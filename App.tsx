@@ -6,7 +6,7 @@ import { LandingPage } from './components/LandingPage';
 import { AiChatPage } from './components/AiChatPage';
 import { LoginPage } from './components/auth/LoginPage';
 import { SignUpPage } from './components/auth/SignUpPage';
-import { Menu, Bell, LogOut, Globe, Search, User as UserIcon, Briefcase, MessageCircle, Home } from 'lucide-react';
+import { Menu, Bell, LogOut, Globe, Search, User as UserIcon, Briefcase, MessageCircle, Home, Newspaper } from 'lucide-react';
 
 const App: React.FC = () => {
   const [user, setUser] = useState<User | null>(null); 
@@ -172,6 +172,13 @@ const App: React.FC = () => {
              >
                <Briefcase size={20} />
                {isBangla ? 'চাকরি' : 'Jobs'}
+             </button>
+             <button 
+               onClick={() => { setActiveModule(AppModule.BLOG); setSidebarOpen(false); }}
+               className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-colors ${activeModule === AppModule.BLOG ? 'bg-brand-50 text-brand-700 font-medium' : 'text-gray-600 hover:bg-gray-50'}`}
+             >
+               <Newspaper size={20} />
+               {isBangla ? 'ব্লগ' : 'Blog'}
              </button>
              <button 
                onClick={() => { setActiveModule(AppModule.CONTACT); setSidebarOpen(false); }}

@@ -23,5 +23,6 @@ export const MODULE_CONFIG = {
   [AppModule.DISASTER]: { title: 'Disaster Prep', titleBn: 'দুর্যোগ ব্যবস্থাপনা', color: 'bg-red-600' },
   [AppModule.JOB]: { title: 'Jobs & Careers', titleBn: 'চাকরি ও ক্যারিয়ার', color: 'bg-pink-600' },
   [AppModule.CONTACT]: { title: 'Contact Us', titleBn: 'যোগাযোগ', color: 'bg-violet-600' },
+  [AppModule.BLOG]: { title: 'Blog', titleBn: 'ব্লগ', color: 'bg-emerald-600' },
   [AppModule.PROFILE]: { title: 'User Profile', titleBn: 'ব্যবহারকারীর প্রোফাইল', color: 'bg-slate-600' },
 };

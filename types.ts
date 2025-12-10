@@ -20,7 +20,8 @@ export enum AppModule {
   DISASTER = 'disaster',
   PROFILE = 'profile',
   JOB = 'job',
-  CONTACT = 'contact'
+  CONTACT = 'contact',
+  BLOG = 'blog'
 }
 
 export interface User {

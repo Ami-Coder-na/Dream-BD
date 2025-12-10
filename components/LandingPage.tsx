@@ -118,9 +118,6 @@ export const LandingPage: React.FC<Props> = ({
     if (user && onModuleSelect) {
       onModuleSelect(moduleId);
     } else {
-      // If not logged in, scroll to modules section or show login?
-      // Current behavior: scroll to section if just browsing, or login if clicking from "Services" menu
-      // Let's assume onModuleSelect handles logic or we redirect to login
       if (!user) {
         onLogin();
       } else {
@@ -184,6 +181,14 @@ export const LandingPage: React.FC<Props> = ({
                 className="text-sm font-medium text-gray-600 hover:text-brand-600 transition-colors"
                >
                  {isBangla ? 'চাকরি' : 'Jobs'}
+               </button>
+
+               {/* Blog Link */}
+               <button 
+                onClick={() => user && onModuleSelect ? onModuleSelect(AppModule.BLOG) : onLogin()} 
+                className="text-sm font-medium text-gray-600 hover:text-brand-600 transition-colors"
+               >
+                 {isBangla ? 'ব্লগ' : 'Blog'}
                </button>
 
                <button onClick={() => scrollToSection('about')} className="text-sm font-medium text-gray-600 hover:text-brand-600 transition-colors">
@@ -333,6 +338,13 @@ export const LandingPage: React.FC<Props> = ({
                className="text-left font-medium text-gray-700 py-2 border-b border-gray-50"
              >
                {isBangla ? 'চাকরি' : 'Jobs'}
+             </button>
+
+             <button 
+               onClick={() => user && onModuleSelect ? onModuleSelect(AppModule.BLOG) : onLogin()}
+               className="text-left font-medium text-gray-700 py-2 border-b border-gray-50"
+             >
+               {isBangla ? 'ব্লগ' : 'Blog'}
              </button>
 
              <button onClick={() => scrollToSection('about')} className="text-left font-medium text-gray-700 py-2 border-b border-gray-50">
