@@ -16,7 +16,7 @@ export const EduModule: React.FC<Props> = ({ isBangla }) => {
       students: 1250,
       lessons: 45,
       progress: 75,
-      image: 'https://images.unsplash.com/photo-1635070041078-e363dbe005cb?q=80&w=400'
+      image: 'https://images.unsplash.com/photo-1635070041078-e363dbe005cb?auto=format&fit=crop&q=80&w=400'
     },
     {
       id: 2,
@@ -25,7 +25,7 @@ export const EduModule: React.FC<Props> = ({ isBangla }) => {
       students: 3400,
       lessons: 20,
       progress: 30,
-      image: 'https://images.unsplash.com/photo-1456513080510-7bf3a84b82f8?q=80&w=400'
+      image: 'https://images.unsplash.com/photo-1456513080510-7bf3a84b82f8?auto=format&fit=crop&q=80&w=400'
     },
     {
       id: 3,
@@ -34,7 +34,7 @@ export const EduModule: React.FC<Props> = ({ isBangla }) => {
       students: 800,
       lessons: 60,
       progress: 0,
-      image: 'https://images.unsplash.com/photo-1498050108023-c5249f4df085?q=80&w=400'
+      image: 'https://images.unsplash.com/photo-1498050108023-c5249f4df085?auto=format&fit=crop&q=80&w=400'
     }
   ];
 
@@ -91,7 +91,7 @@ export const EduModule: React.FC<Props> = ({ isBangla }) => {
           {courses.map(course => (
             <div key={course.id} className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden hover:shadow-md transition-all">
               <div className="relative">
-                <img src={course.image} alt={course.title} className="w-full h-40 object-cover" />
+                <img src={course.image} alt={course.title} className="w-full h-40 object-cover" loading="lazy" />
                 <div className="absolute bottom-2 right-2 bg-black/60 text-white text-xs px-2 py-1 rounded flex items-center gap-1">
                   <PlayCircle size={12} /> {course.lessons} Lessons
                 </div>

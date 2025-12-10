@@ -34,7 +34,7 @@ export const SignUpPage: React.FC<SignUpPageProps> = ({
         id: `u${Date.now()}`,
         name: name,
         role: role,
-        avatar: `https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?q=80&w=150`,
+        avatar: `https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&q=80&w=150`,
         email: email
       });
     }, 1200);

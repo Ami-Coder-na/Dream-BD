@@ -14,9 +14,10 @@ export const AmarBdModule: React.FC<Props> = ({ isBangla }) => {
       <div className="relative h-[500px] overflow-hidden">
         <div className="absolute inset-0">
           <img 
-            src="https://images.unsplash.com/photo-1628102604928-103328574495?q=80&w=1200" 
+            src="https://images.unsplash.com/photo-1605624773822-123d6a6954b4?auto=format&fit=crop&q=80&w=1200" 
             alt="Bangladesh Landscape" 
             className="w-full h-full object-cover"
+            loading="eager"
           />
           <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent"></div>
         </div>
@@ -88,8 +89,8 @@ export const AmarBdModule: React.FC<Props> = ({ isBangla }) => {
              </div>
           </div>
           <div className="grid grid-cols-2 gap-4">
-             <img src="https://images.unsplash.com/photo-1596495578065-6e0763fa1178?q=80&w=800" className="rounded-2xl shadow-lg w-full h-64 object-cover transform translate-y-8" alt="National Memorial" />
-             <img src="https://images.unsplash.com/photo-1628081682855-3b951167733f?q=80&w=800" className="rounded-2xl shadow-lg w-full h-64 object-cover" alt="Rickshaw Art" />
+             <img src="https://images.unsplash.com/photo-1596495577886-d920f1fb7238?auto=format&fit=crop&q=80&w=800" className="rounded-2xl shadow-lg w-full h-64 object-cover transform translate-y-8" alt="National Memorial" loading="lazy" />
+             <img src="https://images.unsplash.com/photo-1628081682855-3b951167733f?auto=format&fit=crop&q=80&w=800" className="rounded-2xl shadow-lg w-full h-64 object-cover" alt="Rickshaw Art" loading="lazy" />
           </div>
         </div>
       </div>
@@ -111,22 +112,22 @@ export const AmarBdModule: React.FC<Props> = ({ isBangla }) => {
               { 
                 title: isBangla ? 'কক্সবাজার সমুদ্র সৈকত' : 'Cox\'s Bazar',
                 desc: isBangla ? 'বিশ্বের দীর্ঘতম প্রাকৃতিক সমুদ্র সৈকত।' : 'The longest natural sea beach in the world.',
-                img: 'https://images.unsplash.com/photo-1608958435020-e8a710988090?q=80&w=800'
+                img: 'https://images.unsplash.com/photo-1608958435020-e8a710988090?auto=format&fit=crop&q=80&w=800'
               },
               { 
                 title: isBangla ? 'সুন্দরবন' : 'The Sundarbans',
                 desc: isBangla ? 'বিশ্বের বৃহত্তম ম্যানগ্রোভ বন এবং রয়্যাল বেঙ্গল টাইগারের আবাসস্থল।' : 'Largest mangrove forest and home of the Royal Bengal Tiger.',
-                img: 'https://images.unsplash.com/photo-1565551991823-380327f12e84?q=80&w=800'
+                img: 'https://images.unsplash.com/photo-1565551991823-380327f12e84?auto=format&fit=crop&q=80&w=800'
               },
               { 
                 title: isBangla ? 'সিলেট চা বাগান' : 'Sylhet Tea Gardens',
                 desc: isBangla ? 'পাহাড় এবং সবুজের এক অপূর্ব মিলনমেলা।' : 'A mesmerizing combination of hills and lush greenery.',
-                img: 'https://images.unsplash.com/photo-1591036081822-4217355050f2?q=80&w=800'
+                img: 'https://images.unsplash.com/photo-1591036081822-4217355050f2?auto=format&fit=crop&q=80&w=800'
               }
             ].map((spot, idx) => (
               <div key={idx} className="bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 group">
                 <div className="relative h-64 overflow-hidden">
-                  <img src={spot.img} alt={spot.title} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" />
+                  <img src={spot.img} alt={spot.title} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" loading="lazy" />
                   <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"></div>
                   <div className="absolute bottom-4 left-4 text-white">
                     <h3 className="text-xl font-bold">{spot.title}</h3>
@@ -150,23 +151,23 @@ export const AmarBdModule: React.FC<Props> = ({ isBangla }) => {
             {isBangla ? 'জাতীয় প্রতীকসমূহ' : 'National Symbols'}
          </h2>
          <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
-            <div className="p-6 bg-white rounded-xl shadow-sm border border-gray-100 flex flex-col items-center">
-               <span className="text-4xl mb-4">🐅</span>
+            <div className="p-6 bg-white rounded-xl shadow-sm border border-gray-100 flex flex-col items-center hover:shadow-md transition-all duration-300">
+               <img src="https://images.unsplash.com/photo-1561731216-c3a4d99437d5?auto=format&fit=crop&q=80&w=200" alt="Tiger" className="w-20 h-20 rounded-full object-cover mb-4 border-2 border-green-100 shadow-sm" loading="lazy" />
                <h4 className="font-bold text-gray-800">{isBangla ? 'রয়েল বেঙ্গল টাইগার' : 'Royal Bengal Tiger'}</h4>
                <p className="text-xs text-gray-500 mt-1">{isBangla ? 'জাতীয় পশু' : 'National Animal'}</p>
             </div>
-            <div className="p-6 bg-white rounded-xl shadow-sm border border-gray-100 flex flex-col items-center">
-               <span className="text-4xl mb-4">🪷</span>
+            <div className="p-6 bg-white rounded-xl shadow-sm border border-gray-100 flex flex-col items-center hover:shadow-md transition-all duration-300">
+               <img src="https://images.unsplash.com/photo-1599598425947-320d35dc7454?auto=format&fit=crop&q=80&w=200" alt="Water Lily" className="w-20 h-20 rounded-full object-cover mb-4 border-2 border-green-100 shadow-sm" loading="lazy" />
                <h4 className="font-bold text-gray-800">{isBangla ? 'শাপলা' : 'Water Lily'}</h4>
                <p className="text-xs text-gray-500 mt-1">{isBangla ? 'জাতীয় ফুল' : 'National Flower'}</p>
             </div>
-            <div className="p-6 bg-white rounded-xl shadow-sm border border-gray-100 flex flex-col items-center">
-               <span className="text-4xl mb-4">🍈</span>
+            <div className="p-6 bg-white rounded-xl shadow-sm border border-gray-100 flex flex-col items-center hover:shadow-md transition-all duration-300">
+               <img src="https://images.unsplash.com/photo-1627915997238-71e860161427?auto=format&fit=crop&q=80&w=200" alt="Jackfruit" className="w-20 h-20 rounded-full object-cover mb-4 border-2 border-green-100 shadow-sm" loading="lazy" />
                <h4 className="font-bold text-gray-800">{isBangla ? 'কাঁঠাল' : 'Jackfruit'}</h4>
                <p className="text-xs text-gray-500 mt-1">{isBangla ? 'জাতীয় ফল' : 'National Fruit'}</p>
             </div>
-            <div className="p-6 bg-white rounded-xl shadow-sm border border-gray-100 flex flex-col items-center">
-               <span className="text-4xl mb-4">🐟</span>
+            <div className="p-6 bg-white rounded-xl shadow-sm border border-gray-100 flex flex-col items-center hover:shadow-md transition-all duration-300">
+               <img src="https://images.unsplash.com/photo-1698822005477-9694770289f6?auto=format&fit=crop&q=80&w=200" alt="Hilsa" className="w-20 h-20 rounded-full object-cover mb-4 border-2 border-green-100 shadow-sm" loading="lazy" />
                <h4 className="font-bold text-gray-800">{isBangla ? 'ইলিশ' : 'Hilsa'}</h4>
                <p className="text-xs text-gray-500 mt-1">{isBangla ? 'জাতীয় মাছ' : 'National Fish'}</p>
             </div>

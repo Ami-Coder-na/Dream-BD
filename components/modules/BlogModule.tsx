@@ -18,7 +18,7 @@ export const BlogModule: React.FC<Props> = ({ isBangla }) => {
       author: 'Dr. Rahim Ahmed',
       date: 'Oct 15, 2023',
       category: isBangla ? 'কৃষি' : 'Agriculture',
-      image: 'https://images.unsplash.com/photo-1625246333195-78d9c38ad449?q=80&w=400'
+      image: 'https://images.unsplash.com/photo-1625246333195-78d9c38ad449?auto=format&fit=crop&q=80&w=400'
     },
     {
       id: 2,
@@ -29,7 +29,7 @@ export const BlogModule: React.FC<Props> = ({ isBangla }) => {
       author: 'Fatema Begum',
       date: 'Oct 12, 2023',
       category: isBangla ? 'ফার্মিং' : 'Farming',
-      image: 'https://images.unsplash.com/photo-1591465223018-b783d73b5a45?q=80&w=400'
+      image: 'https://images.unsplash.com/photo-1591465223018-b783d73b5a45?auto=format&fit=crop&q=80&w=400'
     },
     {
       id: 3,
@@ -40,7 +40,7 @@ export const BlogModule: React.FC<Props> = ({ isBangla }) => {
       author: 'Kamrul Hasan',
       date: 'Oct 08, 2023',
       category: isBangla ? 'বাণিজ্য' : 'Trade',
-      image: 'https://images.unsplash.com/photo-1459416202863-125c15e58e6e?q=80&w=400'
+      image: 'https://images.unsplash.com/photo-1459416202863-125c15e58e6e?auto=format&fit=crop&q=80&w=400'
     },
     {
       id: 4,
@@ -51,7 +51,7 @@ export const BlogModule: React.FC<Props> = ({ isBangla }) => {
       author: 'Dr. Nusrat Jahan',
       date: 'Oct 05, 2023',
       category: isBangla ? 'স্বাস্থ্য' : 'Health',
-      image: 'https://images.unsplash.com/photo-1576091160399-112ba8d25d1d?q=80&w=400'
+      image: 'https://images.unsplash.com/photo-1576091160399-112ba8d25d1d?auto=format&fit=crop&q=80&w=400'
     }
   ];
 
@@ -89,6 +89,7 @@ export const BlogModule: React.FC<Props> = ({ isBangla }) => {
                   src={post.image} 
                   alt={post.title} 
                   className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                  loading="lazy"
                 />
                 <span className="absolute top-4 left-4 bg-white/95 backdrop-blur-sm text-emerald-700 text-xs font-bold px-3 py-1.5 rounded-full flex items-center gap-1 shadow-sm">
                   <Tag size={12} />
