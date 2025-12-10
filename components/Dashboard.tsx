@@ -1,12 +1,10 @@
+
 import React from 'react';
 import { AppModule, User } from '../types';
 import { CraftModule } from './modules/CraftModule';
 import { AgriModule } from './modules/AgriModule';
-import { JobModule } from './modules/JobModule';
-import { ContactModule } from './modules/ContactModule';
-import { BlogModule } from './modules/BlogModule';
 import { ProfilePage } from './ProfilePage';
-import { ShoppingBag, Sprout, BookOpen, HeartPulse, Bus, Trash2, Fish, AlertOctagon, Briefcase, MessageCircle, Newspaper } from 'lucide-react';
+import { ShoppingBag, Sprout, BookOpen, HeartPulse, Bus, Trash2, Fish, AlertOctagon } from 'lucide-react';
 
 interface DashboardProps {
   user: User;
@@ -26,9 +24,6 @@ const getModuleIcon = (module: AppModule) => {
     case AppModule.WASTE: return <Trash2 />;
     case AppModule.FISHERY: return <Fish />;
     case AppModule.DISASTER: return <AlertOctagon />;
-    case AppModule.JOB: return <Briefcase />;
-    case AppModule.CONTACT: return <MessageCircle />;
-    case AppModule.BLOG: return <Newspaper />;
     default: return <ShoppingBag />;
   }
 };
@@ -43,12 +38,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, activeModule, onModu
         return <CraftModule isBangla={isBangla} />;
       case AppModule.AGRI:
         return <AgriModule isBangla={isBangla} />;
-      case AppModule.JOB:
-        return <JobModule isBangla={isBangla} />;
-      case AppModule.CONTACT:
-        return <ContactModule isBangla={isBangla} />;
-      case AppModule.BLOG:
-        return <BlogModule isBangla={isBangla} />;
+      // Job, Blog, Contact are now handled at App level as full pages
       default:
         // Placeholder for modules under development
         return (

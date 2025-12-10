@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { User, UserRole, AppModule } from './types';
 import { Dashboard } from './components/Dashboard';
@@ -6,30 +7,34 @@ import { LandingPage } from './components/LandingPage';
 import { AiChatPage } from './components/AiChatPage';
 import { LoginPage } from './components/auth/LoginPage';
 import { SignUpPage } from './components/auth/SignUpPage';
+import { JobModule } from './components/modules/JobModule';
+import { BlogModule } from './components/modules/BlogModule';
+import { ContactModule } from './components/modules/ContactModule';
+import { Header } from './components/layout/Header';
+import { Footer } from './components/layout/Footer';
 import { Menu, Bell, LogOut, Globe, Search, User as UserIcon, Briefcase, MessageCircle, Home, Newspaper } from 'lucide-react';
 
 const App: React.FC = () => {
   const [user, setUser] = useState<User | null>(null); 
-  const [activeModule, setActiveModule] = useState<AppModule>(AppModule.PROFILE);
+  const [activeModule, setActiveModule] = useState<AppModule | 'LANDING'>('LANDING');
   const [isBangla, setIsBangla] = useState(true);
   const [isSidebarOpen, setSidebarOpen] = useState(false);
   const [showAiChat, setShowAiChat] = useState(false);
   const [authView, setAuthView] = useState<'none' | 'login' | 'signup'>('none');
   const [showNotifications, setShowNotifications] = useState(false);
-  const [isAppView, setIsAppView] = useState(false); // Controls whether to show Landing Page or Sidebar Layout
 
   // Login handler
   const handleLoginSuccess = (loggedInUser: User) => {
     setUser(loggedInUser);
     setAuthView('none');
     setShowAiChat(false);
-    setIsAppView(false); // Default to Landing Page after login, similar to a website experience
+    setActiveModule('LANDING'); // Default to Landing Page after login
   };
   
   const handleLogout = () => {
     setUser(null);
     setAuthView('none');
-    setIsAppView(false);
+    setActiveModule('LANDING');
   };
 
   const handleUpdateUser = (updatedUser: User) => {
@@ -43,8 +48,11 @@ const App: React.FC = () => {
   // Module Selection Handler
   const handleModuleSelect = (module: AppModule) => {
     setActiveModule(module);
-    setIsAppView(true); // Switch to App/Dashboard view
     setSidebarOpen(false);
+  };
+
+  const handleNavigateHome = () => {
+    setActiveModule('LANDING');
   };
 
   // Render AI Chat Page if requested
@@ -80,25 +88,69 @@ const App: React.FC = () => {
     );
   }
 
-  // Render Landing Page if:
-  // 1. Not logged in
-  // 2. Logged in but NOT in App View (default state after login)
-  if (!user || (!isAppView && user)) {
+  // Helper to determine if we are in "Website Mode" (Full Page) vs "App Mode" (Sidebar)
+  // JOB, BLOG, CONTACT are always full website pages now.
+  const isWebsitePage = activeModule === 'LANDING' || activeModule === AppModule.JOB || activeModule === AppModule.BLOG || activeModule === AppModule.CONTACT;
+
+  if (isWebsitePage) {
+    const renderWebsiteContent = () => {
+      switch (activeModule) {
+        case AppModule.JOB:
+          return <JobModule isBangla={isBangla} />;
+        case AppModule.BLOG:
+          return <BlogModule isBangla={isBangla} />;
+        case AppModule.CONTACT:
+          return <ContactModule isBangla={isBangla} />;
+        case 'LANDING':
+        default:
+          return (
+            <LandingPage 
+              user={user}
+              onLogin={navigateToLogin}
+              onLogout={handleLogout}
+              onRegister={navigateToSignUp}
+              onOpenAiChat={() => setShowAiChat(true)}
+              onModuleSelect={handleModuleSelect}
+              isBangla={isBangla} 
+              toggleLanguage={() => setIsBangla(!isBangla)} 
+            />
+          );
+      }
+    };
+
+    // LandingPage component already includes Header/Footer logic internally or we wrap specific modules
+    // Note: LandingPage.tsx was refactored to use Header/Footer inside it.
+    // For Job/Blog/Contact, we need to wrap them manually here to keep layout consistent.
+    if (activeModule === 'LANDING') {
+      return renderWebsiteContent();
+    }
+
     return (
-      <LandingPage 
-        user={user}
-        onLogin={navigateToLogin}
-        onLogout={handleLogout}
-        onRegister={navigateToSignUp}
-        onOpenAiChat={() => setShowAiChat(true)}
-        onModuleSelect={handleModuleSelect}
-        isBangla={isBangla} 
-        toggleLanguage={() => setIsBangla(!isBangla)} 
-      />
+      <div className="min-h-screen bg-white font-sans text-gray-900 flex flex-col">
+        <Header 
+          user={user} 
+          onLogin={navigateToLogin} 
+          onRegister={navigateToSignUp} 
+          onLogout={handleLogout} 
+          onModuleSelect={handleModuleSelect}
+          onNavigateHome={handleNavigateHome}
+          isBangla={isBangla} 
+          toggleLanguage={() => setIsBangla(!isBangla)} 
+        />
+        <div className="flex-1">
+           {renderWebsiteContent()}
+        </div>
+        <Footer 
+          isBangla={isBangla} 
+          toggleLanguage={() => setIsBangla(!isBangla)} 
+          onNavigateHome={handleNavigateHome}
+        />
+        <GeminiAssistant currentModule={activeModule as AppModule} isBangla={isBangla} />
+      </div>
     );
   }
 
-  // Render App (Sidebar Layout) only if logged in AND isAppView is true
+  // Render App (Sidebar Layout) for Core Modules (Agri, Health, etc)
   return (
     <div className="min-h-screen bg-gray-50 font-sans text-gray-900 flex">
       
@@ -114,7 +166,7 @@ const App: React.FC = () => {
       <aside className={`fixed lg:sticky top-0 left-0 h-screen w-64 bg-white border-r border-gray-200 transform transition-transform duration-200 ease-in-out z-50 ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}`}>
         <div 
           className="p-6 flex items-center gap-3 border-b border-gray-100 h-20 cursor-pointer hover:bg-gray-50 transition-colors"
-          onClick={() => setIsAppView(false)} // Click Logo to go back to Landing Page
+          onClick={handleNavigateHome}
         >
           <div className="w-8 h-8 bg-brand-600 rounded-lg flex items-center justify-center text-white font-bold text-lg">
             D
@@ -125,7 +177,7 @@ const App: React.FC = () => {
         <nav className="p-4 space-y-1 overflow-y-auto h-[calc(100vh-5rem)]">
           
           <button 
-             onClick={() => setIsAppView(false)}
+             onClick={handleNavigateHome}
              className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-colors text-gray-600 hover:bg-gray-50 mb-4`}
           >
             <Home size={20} />
@@ -150,7 +202,7 @@ const App: React.FC = () => {
                {isBangla ? 'সেবাসমূহ' : 'Services'}
              </p>
              {/* Simple list of modules as Nav Items */}
-             {[AppModule.CRAFT, AppModule.AGRI, AppModule.EDU, AppModule.HEALTH, AppModule.TRANSPORT].map((mod) => (
+             {[AppModule.CRAFT, AppModule.AGRI, AppModule.EDU, AppModule.HEALTH, AppModule.TRANSPORT, AppModule.WASTE, AppModule.FISHERY, AppModule.DISASTER].map((mod) => (
                 <button 
                   key={mod}
                   onClick={() => { setActiveModule(mod); setSidebarOpen(false); }}
@@ -168,21 +220,21 @@ const App: React.FC = () => {
              </p>
              <button 
                onClick={() => { setActiveModule(AppModule.JOB); setSidebarOpen(false); }}
-               className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-colors ${activeModule === AppModule.JOB ? 'bg-brand-50 text-brand-700 font-medium' : 'text-gray-600 hover:bg-gray-50'}`}
+               className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-colors text-gray-600 hover:bg-gray-50`}
              >
                <Briefcase size={20} />
                {isBangla ? 'চাকরি' : 'Jobs'}
              </button>
              <button 
                onClick={() => { setActiveModule(AppModule.BLOG); setSidebarOpen(false); }}
-               className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-colors ${activeModule === AppModule.BLOG ? 'bg-brand-50 text-brand-700 font-medium' : 'text-gray-600 hover:bg-gray-50'}`}
+               className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-colors text-gray-600 hover:bg-gray-50`}
              >
                <Newspaper size={20} />
                {isBangla ? 'ব্লগ' : 'Blog'}
              </button>
              <button 
                onClick={() => { setActiveModule(AppModule.CONTACT); setSidebarOpen(false); }}
-               className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-colors ${activeModule === AppModule.CONTACT ? 'bg-brand-50 text-brand-700 font-medium' : 'text-gray-600 hover:bg-gray-50'}`}
+               className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-colors text-gray-600 hover:bg-gray-50`}
              >
                <MessageCircle size={20} />
                {isBangla ? 'যোগাযোগ' : 'Contact'}
@@ -191,7 +243,7 @@ const App: React.FC = () => {
         </nav>
       </aside>
 
-      {/* Main Content Area */}
+      {/* Main Content Area for App Modules */}
       <main className="flex-1 flex flex-col min-w-0">
         
         {/* Top Header */}
@@ -251,10 +303,10 @@ const App: React.FC = () => {
 
             {/* User Profile */}
             <div className="flex items-center gap-3 pl-4 border-l border-gray-200 cursor-pointer" onClick={() => setActiveModule(AppModule.PROFILE)}>
-              <img src={user.avatar} alt="Profile" className="w-8 h-8 rounded-full border border-gray-200" />
+              <img src={user!.avatar} alt="Profile" className="w-8 h-8 rounded-full border border-gray-200" />
               <div className="hidden md:block text-sm">
-                <p className="font-medium text-gray-800">{user.name}</p>
-                <p className="text-xs text-gray-500">{user.role}</p>
+                <p className="font-medium text-gray-800">{user!.name}</p>
+                <p className="text-xs text-gray-500">{user!.role}</p>
               </div>
               <button onClick={(e) => { e.stopPropagation(); handleLogout(); }} className="p-2 text-gray-400 hover:text-red-600 ml-2" title="Logout">
                 <LogOut size={18} />
@@ -266,8 +318,8 @@ const App: React.FC = () => {
         {/* View Content */}
         <div className="p-6 lg:p-10 max-w-7xl mx-auto w-full">
           <Dashboard 
-            user={user} 
-            activeModule={activeModule} 
+            user={user!} 
+            activeModule={activeModule as AppModule} 
             onModuleSelect={handleModuleSelect}
             onUpdateUser={handleUpdateUser}
             isBangla={isBangla}
@@ -276,7 +328,7 @@ const App: React.FC = () => {
       </main>
 
       {/* Global AI Assistant */}
-      <GeminiAssistant currentModule={activeModule} isBangla={isBangla} />
+      <GeminiAssistant currentModule={activeModule as AppModule} isBangla={isBangla} />
 
     </div>
   );
