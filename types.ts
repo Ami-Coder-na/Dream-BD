@@ -10,7 +10,6 @@ export enum UserRole {
 }
 
 export enum AppModule {
-  HOME = 'home',
   CRAFT = 'craft',
   AGRI = 'agriculture',
   EDU = 'education',
@@ -18,7 +17,10 @@ export enum AppModule {
   TRANSPORT = 'transport',
   WASTE = 'waste',
   FISHERY = 'fishery',
-  DISASTER = 'disaster'
+  DISASTER = 'disaster',
+  PROFILE = 'profile',
+  JOB = 'job',
+  CONTACT = 'contact'
 }
 
 export interface User {
@@ -26,6 +28,9 @@ export interface User {
   name: string;
   role: UserRole;
   avatar: string;
+  email?: string;
+  phone?: string;
+  location?: string;
 }
 
 export interface Product {
@@ -52,9 +57,25 @@ export interface Alert {
   timestamp: string;
 }
 
+export interface Attachment {
+  type: 'image' | 'audio';
+  url: string; // For display (blob url or base64)
+  base64?: string; // For API
+  mimeType?: string; // For API
+}
+
 export interface ChatMessage {
   id: string;
   role: 'user' | 'model';
   text: string;
+  attachment?: Attachment;
   timestamp: Date;
+  feedback?: 'positive' | 'negative';
+}
+
+export interface ChatSession {
+  id: string;
+  title: string;
+  date: string; // 'Today', 'Yesterday', etc.
+  preview: string;
 }

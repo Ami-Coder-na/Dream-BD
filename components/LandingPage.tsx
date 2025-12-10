@@ -1,207 +1,473 @@
 import React from 'react';
-import { Layout, ArrowRight, ShoppingBag, Sprout, BookOpen, HeartPulse, Bus, Trash2, Fish, Globe, ShieldCheck } from 'lucide-react';
+import { 
+  ShoppingBag, Sprout, BookOpen, HeartPulse, 
+  Bus, Trash2, Fish, Globe, AlertOctagon, 
+  Users, CheckCircle, Star, Phone, Mail, MapPin, Menu, X, ChevronDown, Sparkles, Bell
+} from 'lucide-react';
 import { Button } from './ui/Button';
 
 interface Props {
   onLogin: () => void;
+  onRegister: () => void;
+  onOpenAiChat: () => void;
   isBangla: boolean;
   toggleLanguage: () => void;
 }
 
-export const LandingPage: React.FC<Props> = ({ onLogin, isBangla, toggleLanguage }) => {
-  const features = [
+export const LandingPage: React.FC<Props> = ({ onLogin, onRegister, onOpenAiChat, isBangla, toggleLanguage }) => {
+  const [mobileMenuOpen, setMobileMenuOpen] = React.useState(false);
+  const [showNotifications, setShowNotifications] = React.useState(false);
+
+  const modules = [
     {
       icon: <ShoppingBag className="w-8 h-8 text-orange-500" />,
-      title: isBangla ? 'ঐতিহ্যবাহী কারুশিল্প' : 'Heritage Crafts',
-      desc: isBangla ? 'সরাসরি কারিগরদের থেকে কিনুন' : 'Buy directly from artisans'
+      title: isBangla ? 'কারুশিল্প' : 'Crafts',
+      desc: isBangla ? 'দেশীয় পণ্যের বিশ্ববাজার' : 'Global market for local goods'
     },
     {
       icon: <Sprout className="w-8 h-8 text-green-600" />,
-      title: isBangla ? 'স্মার্ট কৃষি' : 'Smart Agriculture',
-      desc: isBangla ? 'আবহাওয়া ও ফসলের পরামর্শ' : 'Weather & crop advisory'
+      title: isBangla ? 'কৃষি' : 'Agriculture',
+      desc: isBangla ? 'আধুনিক চাষাবাদ ও পরামর্শ' : 'Smart farming advisory'
     },
     {
       icon: <HeartPulse className="w-8 h-8 text-teal-500" />,
-      title: isBangla ? 'ডিজিটাল স্বাস্থ্যসেবা' : 'Digital Health',
-      desc: isBangla ? 'টেলিমেডিসিন ও অ্যাপয়েন্টমেন্ট' : 'Telemedicine & appointments'
+      title: isBangla ? 'স্বাস্থ্য' : 'Health',
+      desc: isBangla ? 'ঘরে বসেই ডাক্তার দেখান' : 'Telemedicine services'
     },
     {
       icon: <BookOpen className="w-8 h-8 text-blue-500" />,
       title: isBangla ? 'শিক্ষা' : 'Education',
-      desc: isBangla ? 'সবার জন্য উন্মুক্ত শিক্ষা' : 'Learning for everyone'
+      desc: isBangla ? 'সবার জন্য মানসম্মত শিক্ষা' : 'Quality education for all'
     },
     {
       icon: <Bus className="w-8 h-8 text-indigo-600" />,
       title: isBangla ? 'পরিবহন' : 'Transport',
-      desc: isBangla ? 'রুট ট্র্যাকিং ও টিকিট' : 'Route tracking & tickets'
+      desc: isBangla ? 'সহজ টিকেট ও ট্র্যাকিং' : 'Easy ticketing & tracking'
     },
     {
       icon: <Trash2 className="w-8 h-8 text-gray-600" />,
-      title: isBangla ? 'বর্জ্য ব্যবস্থাপনা' : 'Waste Mgmt',
-      desc: isBangla ? 'নাগরিক রিপোর্ট ও রিসাইক্লিং' : 'Reporting & recycling'
+      title: isBangla ? 'বর্জ্য' : 'Waste Mgmt',
+      desc: isBangla ? 'পরিচ্ছন্ন পরিবেশ গড়ি' : 'Clean environment initiative'
+    },
+    {
+      icon: <Fish className="w-8 h-8 text-cyan-600" />,
+      title: isBangla ? 'মৎস্য' : 'Fishery',
+      desc: isBangla ? 'বৈজ্ঞানিক মাছ চাষ' : 'Scientific fish farming'
+    },
+    {
+      icon: <AlertOctagon className="w-8 h-8 text-red-600" />,
+      title: isBangla ? 'দুর্যোগ' : 'Disaster',
+      desc: isBangla ? 'আগাম সতর্কবার্তা' : 'Early warning system'
     }
   ];
 
-  const scrollToServices = () => {
-    document.getElementById('services')?.scrollIntoView({ behavior: 'smooth' });
+  const features = [
+    isBangla ? 'আবহাওয়া তথ্য' : 'Weather Info',
+    isBangla ? 'ডাক্তার বুকিং' : 'Doctor Booking',
+    isBangla ? 'পরিবহন ট্র্যাকিং' : 'Transport Tracking',
+    isBangla ? 'বর্জ্য রিসাইক্লিং' : 'Recycling Marketplace',
+    isBangla ? 'কৃষি পরামর্শ' : 'Agri Advisory',
+    isBangla ? 'অনলাইন ক্লাস' : 'Online Classes',
+  ];
+
+  const testimonials = [
+    {
+      name: isBangla ? 'রহিম উদ্দিন' : 'Rahim Uddin',
+      role: isBangla ? 'কৃষক, রংপুর' : 'Farmer, Rangpur',
+      text: isBangla 
+        ? 'ড্রিম বিডি অ্যাপ ব্যবহার করে আমি আবহাওয়ার সঠিক খবর পাই, যা আমার ফসল বাঁচাতে সাহায্য করে।' 
+        : 'Using Dream BD, I get accurate weather updates which helps save my crops.'
+    },
+    {
+      name: isBangla ? 'সুমাইয়া আক্তার' : 'Sumaiya Akter',
+      role: isBangla ? 'উদ্যোক্তা, ঢাকা' : 'Entrepreneur, Dhaka',
+      text: isBangla 
+        ? 'আমার হাতের তৈরি পণ্য এখন সারা দেশে বিক্রি করতে পারছি। এটি সত্যি অসাধারণ!' 
+        : 'I can now sell my handmade products all over the country. Truly amazing!'
+    }
+  ];
+
+  const scrollToSection = (id: string) => {
+    document.getElementById(id)?.scrollIntoView({ behavior: 'smooth' });
+    setMobileMenuOpen(false);
   };
 
   return (
     <div className="min-h-screen bg-white font-sans text-gray-900 flex flex-col">
       {/* Navbar */}
-      <nav className="sticky top-0 z-50 bg-white/80 backdrop-blur-md border-b border-gray-100">
+      <nav className="sticky top-0 z-50 bg-white/90 backdrop-blur-md border-b border-gray-100">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-20">
-            <div className="flex items-center gap-3 cursor-pointer" onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}>
+            {/* Logo */}
+            <div 
+              className="flex items-center gap-3 cursor-pointer" 
+              onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+            >
               <div className="w-10 h-10 bg-brand-600 rounded-xl flex items-center justify-center text-white font-bold text-xl shadow-lg">
                 D
               </div>
               <span className="text-2xl font-bold text-gray-800 tracking-tight">Dream BD</span>
             </div>
 
-            {/* Middle Nav Items */}
-            <div className="hidden lg:flex items-center gap-6 xl:gap-8">
-               <button onClick={scrollToServices} className="text-sm font-medium text-gray-600 hover:text-brand-600 transition-colors">
-                 {isBangla ? 'কারুশিল্প' : 'Crafts'}
+            {/* Desktop Menu */}
+            <div className="hidden lg:flex items-center gap-6">
+               {/* Services Dropdown */}
+               <div className="relative group">
+                 <button 
+                   className="flex items-center gap-1 text-sm font-medium text-gray-600 hover:text-brand-600 transition-colors py-2"
+                   onClick={() => scrollToSection('modules')}
+                 >
+                   {isBangla ? 'সেবাসমূহ' : 'Services'}
+                   <ChevronDown size={16} />
+                 </button>
+                 
+                 {/* Dropdown Content */}
+                 <div className="absolute top-full -left-4 w-64 bg-white rounded-xl shadow-xl border border-gray-100 py-2 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 transform translate-y-2 group-hover:translate-y-0 z-50">
+                   <div className="px-4 py-2 border-b border-gray-50 bg-gray-50">
+                     <span className="text-xs font-semibold text-gray-400 uppercase tracking-wider">
+                       {isBangla ? 'মডিউলসমূহ' : 'Modules'}
+                     </span>
+                   </div>
+                   {modules.map((mod, idx) => (
+                     <button
+                       key={idx}
+                       className="w-full text-left px-4 py-2.5 text-sm text-gray-700 hover:bg-brand-50 hover:text-brand-700 transition-colors flex items-center gap-3"
+                       onClick={() => scrollToSection('modules')}
+                     >
+                       <span className="w-1.5 h-1.5 rounded-full bg-brand-400"></span>
+                       <span className="font-medium">{mod.title}</span>
+                     </button>
+                   ))}
+                 </div>
+               </div>
+               
+               {/* Jobs Link */}
+               <button onClick={onLogin} className="text-sm font-medium text-gray-600 hover:text-brand-600 transition-colors">
+                 {isBangla ? 'চাকরি' : 'Jobs'}
                </button>
-               <button onClick={scrollToServices} className="text-sm font-medium text-gray-600 hover:text-brand-600 transition-colors">
-                 {isBangla ? 'কৃষি' : 'Agriculture'}
+
+               <button onClick={() => scrollToSection('about')} className="text-sm font-medium text-gray-600 hover:text-brand-600 transition-colors">
+                 {isBangla ? 'আমাদের সম্পর্কে' : 'About'}
                </button>
-               <button onClick={scrollToServices} className="text-sm font-medium text-gray-600 hover:text-brand-600 transition-colors">
-                 {isBangla ? 'স্বাস্থ্য' : 'Health'}
-               </button>
-               <button onClick={scrollToServices} className="text-sm font-medium text-gray-600 hover:text-brand-600 transition-colors">
-                 {isBangla ? 'শিক্ষা' : 'Education'}
-               </button>
-               <button onClick={scrollToServices} className="text-sm font-medium text-gray-600 hover:text-brand-600 transition-colors">
-                 {isBangla ? 'পরিবহন' : 'Transport'}
-               </button>
-               <button onClick={scrollToServices} className="text-sm font-medium text-gray-600 hover:text-brand-600 transition-colors">
-                 {isBangla ? 'বর্জ্য ব্যবস্থাপনা' : 'Waste Mgmt'}
+               
+               {/* Contact Link */}
+               <button onClick={onLogin} className="text-sm font-medium text-gray-600 hover:text-brand-600 transition-colors">
+                 {isBangla ? 'যোগাযোগ' : 'Contact'}
                </button>
             </div>
             
-            <div className="flex items-center gap-4">
+            {/* Actions */}
+            <div className="hidden lg:flex items-center gap-4">
+              {/* Notification Bell */}
+              <div className="relative">
+                <button 
+                  onClick={() => setShowNotifications(!showNotifications)}
+                  className="p-2 text-gray-600 hover:text-brand-600 hover:bg-gray-50 rounded-full transition-colors relative"
+                >
+                  <Bell size={20} />
+                  <span className="absolute top-1.5 right-2 w-2 h-2 bg-red-500 rounded-full border border-white"></span>
+                </button>
+
+                {showNotifications && (
+                  <div className="absolute top-full right-0 mt-2 w-80 bg-white rounded-xl shadow-xl border border-gray-100 p-4 z-50 animate-fade-in">
+                    <div className="flex justify-between items-center mb-3">
+                      <h4 className="font-bold text-gray-900">{isBangla ? 'নোটিফিকেশন' : 'Notifications'}</h4>
+                      <span className="text-xs text-brand-600 font-medium cursor-pointer">{isBangla ? 'সব দেখুন' : 'View all'}</span>
+                    </div>
+                    <div className="space-y-3">
+                      <div className="flex gap-3 items-start p-2 hover:bg-gray-50 rounded-lg transition-colors cursor-pointer">
+                        <div className="w-2 h-2 mt-2 rounded-full bg-brand-500 shrink-0"></div>
+                        <div>
+                          <p className="text-sm text-gray-800 font-medium">{isBangla ? 'নতুন এআই চ্যাট!' : 'New Feature: AI Chat'}</p>
+                          <p className="text-xs text-gray-500">{isBangla ? 'আমাদের স্মার্ট সহকারীর সাথে কথা বলুন।' : 'Talk to our smart assistant now!'}</p>
+                        </div>
+                      </div>
+                      <div className="flex gap-3 items-start p-2 hover:bg-gray-50 rounded-lg transition-colors cursor-pointer">
+                        <div className="w-2 h-2 mt-2 rounded-full bg-orange-500 shrink-0"></div>
+                        <div>
+                          <p className="text-sm text-gray-800 font-medium">{isBangla ? 'সিস্টেম আপডেট' : 'System Update'}</p>
+                          <p className="text-xs text-gray-500">{isBangla ? 'আমরা গোপনীয়তা নীতি আপডেট করেছি।' : 'We have updated the privacy policy.'}</p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
+
               <button 
                 onClick={toggleLanguage}
-                className="hidden md:flex items-center gap-2 text-sm font-medium text-gray-600 hover:text-brand-600 px-3 py-1.5 rounded-full border border-gray-200 hover:border-brand-200 transition-all"
+                className="flex items-center gap-2 text-sm font-medium text-gray-600 hover:text-brand-600 px-3 py-1.5 rounded-full border border-gray-200 hover:border-brand-200 transition-all"
               >
                 <Globe size={16} />
                 <span>{isBangla ? 'English' : 'বাংলা'}</span>
               </button>
               <Button onClick={onLogin} variant="primary" className="shadow-lg shadow-brand-500/20">
-                {isBangla ? 'লগইন করুন' : 'Login'}
+                {isBangla ? 'লগইন' : 'Login'}
               </Button>
+            </div>
+
+            {/* Mobile Menu Button */}
+            <div className="lg:hidden flex items-center gap-4">
+              <button onClick={() => setMobileMenuOpen(!mobileMenuOpen)} className="text-gray-600">
+                {mobileMenuOpen ? <X size={28} /> : <Menu size={28} />}
+              </button>
             </div>
           </div>
         </div>
+
+        {/* Mobile Menu Overlay */}
+        {mobileMenuOpen && (
+          <div className="lg:hidden absolute top-20 left-0 w-full bg-white border-b border-gray-100 p-4 flex flex-col gap-4 shadow-xl">
+             <button onClick={() => scrollToSection('modules')} className="text-left font-medium text-gray-700 py-2 border-b border-gray-50 flex justify-between items-center">
+               {isBangla ? 'সেবাসমূহ' : 'Services'}
+               <ChevronDown size={16} />
+             </button>
+             {/* Simple list for mobile for better UX than huge dropdown */}
+             <div className="pl-4 grid grid-cols-2 gap-2 mb-2">
+               {modules.map((mod, idx) => (
+                  <button key={idx} onClick={() => scrollToSection('modules')} className="text-xs text-gray-500 text-left py-1 hover:text-brand-600">
+                    {mod.title}
+                  </button>
+               ))}
+             </div>
+             
+             <button onClick={onLogin} className="text-left font-medium text-gray-700 py-2 border-b border-gray-50">
+               {isBangla ? 'চাকরি' : 'Jobs'}
+             </button>
+
+             <button onClick={() => scrollToSection('about')} className="text-left font-medium text-gray-700 py-2 border-b border-gray-50">
+               {isBangla ? 'আমাদের সম্পর্কে' : 'About'}
+             </button>
+             
+             <button onClick={onLogin} className="text-left font-medium text-gray-700 py-2 border-b border-gray-50">
+               {isBangla ? 'যোগাযোগ' : 'Contact'}
+             </button>
+             
+             <div className="flex gap-4 mt-2">
+                <Button onClick={toggleLanguage} variant="outline" size="sm" className="flex-1">
+                  {isBangla ? 'English' : 'বাংলা'}
+                </Button>
+                <Button onClick={onLogin} className="flex-1">
+                  {isBangla ? 'লগইন' : 'Login'}
+                </Button>
+             </div>
+          </div>
+        )}
       </nav>
 
       {/* Hero Section */}
-      <div className="relative overflow-hidden bg-brand-50">
-        <div className="absolute top-0 right-0 -mr-20 -mt-20 w-96 h-96 bg-brand-200 rounded-full blur-3xl opacity-30"></div>
-        <div className="absolute bottom-0 left-0 -ml-20 -mb-20 w-80 h-80 bg-secondary-500 rounded-full blur-3xl opacity-10"></div>
-        
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 lg:py-32 relative z-10">
-          <div className="text-center max-w-4xl mx-auto">
-            <span className="inline-block py-1 px-3 rounded-full bg-brand-100 text-brand-700 text-sm font-semibold mb-6">
-              {isBangla ? '🇧🇩 ডিজিটাল বাংলাদেশের জন্য একটি প্ল্যাটফর্ম' : '🇧🇩 One Platform for Digital Bangladesh'}
-            </span>
-            <h1 className="text-4xl md:text-6xl font-bold text-gray-900 mb-8 leading-tight">
-              {isBangla ? (
-                <>
-                  স্বপ্ন দেখুন, <span className="text-brand-600">গড়ুন আগামীর বাংলাদেশ</span>
-                </>
-              ) : (
-                <>
-                  Empowering Citizens, <span className="text-brand-600">Building Dream BD</span>
-                </>
-              )}
-            </h1>
-            <p className="text-xl text-gray-600 mb-10 max-w-2xl mx-auto leading-relaxed">
-              {isBangla 
-                ? 'কারুশিল্প থেকে কৃষি, স্বাস্থ্য থেকে শিক্ষা—সব সেবা এখন এক ছাতার নিচে। আজই যুক্ত হোন দেশের সবচেয়ে বড় ডিজিটাল প্ল্যাটফর্মে।'
-                : 'From heritage crafts to smart agriculture, health to education—access all essential services in one unified digital platform.'}
-            </p>
-            <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <Button onClick={onLogin} size="lg" className="text-lg px-8 py-4 shadow-xl shadow-brand-600/20 hover:shadow-brand-600/30 transform hover:-translate-y-1 transition-all">
-                {isBangla ? 'শুরু করুন' : 'Get Started'} <ArrowRight className="ml-2 w-5 h-5" />
-              </Button>
-              <Button onClick={onLogin} variant="outline" size="lg" className="text-lg px-8 py-4 bg-white border-gray-300 hover:bg-gray-50">
-                {isBangla ? 'আরও জানুন' : 'Learn More'}
-              </Button>
-            </div>
+      <div className="relative overflow-hidden bg-gradient-to-br from-brand-50 via-white to-brand-50 pt-20 pb-32">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 text-center">
+          <span className="inline-block py-2 px-4 rounded-full bg-white border border-brand-100 text-brand-700 text-sm font-semibold mb-8 shadow-sm">
+            🚀 {isBangla ? 'ডিজিটাল বাংলাদেশের এক নতুন দিগন্ত' : 'A New Horizon for Digital Bangladesh'}
+          </span>
+          <h1 className="text-4xl md:text-6xl lg:text-7xl font-bold text-gray-900 mb-8 leading-tight tracking-tight">
+            {isBangla ? (
+              <>
+                এক প্ল্যাটফর্মে <span className="text-brand-600">কৃষি, শিক্ষা, স্বাস্থ্য ও পরিবহন</span>
+              </>
+            ) : (
+              <>
+                Agriculture, Education, Health <br/> <span className="text-brand-600">& Transport in One Platform</span>
+              </>
+            )}
+          </h1>
+          <p className="text-xl text-gray-600 mb-10 max-w-3xl mx-auto leading-relaxed">
+            {isBangla 
+              ? 'স্বপ্ন দেখুন, গড়ুন আগামীর বাংলাদেশ। কারুশিল্প থেকে কৃষি, স্বাস্থ্য থেকে শিক্ষা—সব সেবা এখন আপনার হাতের মুঠোয়।'
+              : 'Dream it, build it. From heritage crafts to smart agriculture, health to education—access all essential services at your fingertips.'}
+          </p>
+          <div className="flex flex-col sm:flex-row gap-4 justify-center">
+            {/* Main CTA renamed to Talk With AI */}
+            <Button onClick={onOpenAiChat} size="lg" className="text-lg px-10 py-4 shadow-xl shadow-brand-600/20 hover:scale-105 transition-transform flex items-center gap-2">
+               <Sparkles size={20} />
+              {isBangla ? 'AI-এর সাথে কথা বলুন' : 'Talk With AI'} 
+            </Button>
+            
+            <Button onClick={() => scrollToSection('modules')} variant="outline" size="lg" className="text-lg px-10 py-4 bg-white border-gray-300 hover:bg-gray-50">
+              {isBangla ? 'সেবাসমূহ দেখুন' : 'Explore Modules'}
+            </Button>
           </div>
         </div>
       </div>
 
-      {/* Features Grid */}
-      <div id="services" className="py-24 bg-white">
+      {/* About Platform */}
+      <div id="about" className="py-20 bg-white">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="bg-gray-900 rounded-3xl p-8 md:p-16 text-center text-white relative overflow-hidden">
+            <div className="absolute top-0 right-0 w-64 h-64 bg-brand-500 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob"></div>
+            <div className="absolute bottom-0 left-0 w-64 h-64 bg-purple-500 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob animation-delay-2000"></div>
+            
+            <h2 className="text-3xl font-bold mb-6 relative z-10">
+              {isBangla ? 'আমাদের লক্ষ্য' : 'Our Mission'}
+            </h2>
+            <p className="text-xl text-gray-300 max-w-3xl mx-auto leading-relaxed relative z-10">
+              {isBangla 
+                ? 'বাংলাদেশের বাস্তব সমস্যার ডিজিটাল সমাধান প্রদান করা। আমরা এমন একটি ইকোসিস্টেম তৈরি করছি যেখানে প্রযুক্তি ও ঐতিহ্য মিলেমিশে কাজ করে।'
+                : 'To provide digital solutions for real-world problems in Bangladesh. We are building an ecosystem where technology and heritage work hand in hand.'}
+            </p>
+          </div>
+        </div>
+      </div>
+
+      {/* Key Modules Overview */}
+      <div id="modules" className="py-24 bg-gray-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
             <h2 className="text-3xl font-bold text-gray-900 mb-4">
-              {isBangla ? 'আমাদের সেবাসমূহ' : 'Our Services'}
+              {isBangla ? 'মূল সেবাসমূহ' : 'Key Modules'}
             </h2>
             <p className="text-gray-500 max-w-xl mx-auto">
-              {isBangla 
-                ? 'নাগরিক জীবনের প্রতিটি প্রয়োজন মেটাতে আমরা আছি আপনার পাশে'
-                : 'Comprehensive digital solutions for every aspect of daily life'}
+              {isBangla ? 'আপনার প্রয়োজনের সব সমাধান এক জায়গায়' : 'All solutions for your needs in one place'}
             </p>
           </div>
           
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {features.map((feature, idx) => (
-              <div key={idx} className="bg-gray-50 rounded-2xl p-8 transition-all hover:bg-white hover:shadow-xl hover:shadow-gray-200/50 border border-transparent hover:border-gray-100 group">
-                <div className="w-16 h-16 bg-white rounded-2xl flex items-center justify-center shadow-sm mb-6 group-hover:scale-110 transition-transform duration-300">
-                  {feature.icon}
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+            {modules.map((mod, idx) => (
+              <div key={idx} className="bg-white rounded-2xl p-6 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 border border-gray-100 group text-center cursor-pointer" onClick={onLogin}>
+                <div className="w-14 h-14 mx-auto bg-gray-50 rounded-full flex items-center justify-center mb-4 group-hover:bg-brand-50 transition-colors">
+                  {mod.icon}
                 </div>
-                <h3 className="text-xl font-bold text-gray-900 mb-2">{feature.title}</h3>
-                <p className="text-gray-600">{feature.desc}</p>
+                <h3 className="font-bold text-gray-900 mb-1">{mod.title}</h3>
+                <p className="text-sm text-gray-500">{mod.desc}</p>
               </div>
             ))}
           </div>
         </div>
       </div>
 
-      {/* Trust/Footer Section */}
-      <div className="bg-gray-900 text-white py-16 mt-auto">
+      {/* Features Highlight */}
+      <div className="py-20 bg-white border-y border-gray-100">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-12">
-            <div className="col-span-1 md:col-span-2">
-              <div className="flex items-center gap-3 mb-6">
-                <div className="w-8 h-8 bg-brand-500 rounded-lg flex items-center justify-center text-white font-bold">D</div>
-                <span className="text-2xl font-bold">Dream BD</span>
+          <div className="flex flex-wrap justify-center gap-4 md:gap-8">
+            {features.map((feat, idx) => (
+              <div key={idx} className="flex items-center gap-2 bg-gray-50 px-6 py-3 rounded-full text-gray-700 font-medium">
+                <CheckCircle size={18} className="text-brand-600" />
+                {feat}
               </div>
-              <p className="text-gray-400 max-w-sm">
-                {isBangla 
-                  ? 'একটি সমৃদ্ধ ও স্মার্ট বাংলাদেশ গড়ার লক্ষ্যে আমাদের এই পথচলা।'
-                  : 'A unified platform committed to building a prosperous and Smart Bangladesh.'}
-              </p>
-            </div>
-            
-            <div>
-              <h4 className="font-semibold text-lg mb-4">{isBangla ? 'যোগাযোগ' : 'Contact'}</h4>
-              <ul className="space-y-2 text-gray-400">
-                <li>support@dreambd.gov.bd</li>
-                <li>+880 1234 567890</li>
-                <li>Dhaka, Bangladesh</li>
-              </ul>
-            </div>
-            
-            <div>
-              <h4 className="font-semibold text-lg mb-4">{isBangla ? 'লিঙ্ক' : 'Links'}</h4>
-              <ul className="space-y-2 text-gray-400">
-                <li className="hover:text-white cursor-pointer">{isBangla ? 'গোপনীয়তা নীতি' : 'Privacy Policy'}</li>
-                <li className="hover:text-white cursor-pointer">{isBangla ? 'শর্তাবলী' : 'Terms of Service'}</li>
-                <li className="hover:text-white cursor-pointer">{isBangla ? 'সহায়তা' : 'Help Center'}</li>
-              </ul>
-            </div>
-          </div>
-          <div className="border-t border-gray-800 mt-12 pt-8 text-center text-gray-500 text-sm">
-            © 2024 Dream BD Platform. All rights reserved.
+            ))}
           </div>
         </div>
       </div>
+
+      {/* Testimonials */}
+      <div className="py-24 bg-gray-50">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <h2 className="text-3xl font-bold text-center text-gray-900 mb-16">
+            {isBangla ? 'ব্যবহারকারীদের কথা' : 'Success Stories'}
+          </h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+            {testimonials.map((t, idx) => (
+              <div key={idx} className="bg-white p-8 rounded-2xl shadow-sm border border-gray-100">
+                <div className="flex gap-1 text-yellow-400 mb-4">
+                  {[...Array(5)].map((_, i) => <Star key={i} size={16} fill="currentColor" />)}
+                </div>
+                <p className="text-gray-600 italic mb-6 text-lg">"{t.text}"</p>
+                <div className="flex items-center gap-4">
+                  <div className="w-12 h-12 bg-gray-200 rounded-full"></div>
+                  <div>
+                    <h4 className="font-bold text-gray-900">{t.name}</h4>
+                    <p className="text-sm text-gray-500">{t.role}</p>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      {/* Call to Action */}
+      <div className="py-24 bg-white">
+        <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="bg-brand-50 rounded-3xl p-8 md:p-16 text-center border border-brand-100">
+            <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-6">
+              {isBangla ? 'আজই যুক্ত হোন ড্রিম বিডি-তে' : 'Join Dream BD Today'}
+            </h2>
+            <p className="text-xl text-gray-600 mb-10 max-w-2xl mx-auto">
+              {isBangla 
+                ? 'কৃষক, শিক্ষক, ডাক্তার বা সাধারণ নাগরিক—সবার জন্য একটি প্ল্যাটফর্ম।'
+                : 'Whether you are a farmer, teacher, doctor or citizen—one platform for all.'}
+            </p>
+            <div className="flex flex-col sm:flex-row gap-4 justify-center">
+              <Button onClick={onRegister} size="lg" className="px-12 py-4 text-lg">
+                {isBangla ? 'রেজিস্ট্রেশন করুন' : 'Register Now'}
+              </Button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Footer */}
+      <footer className="bg-gray-900 text-gray-400 py-16">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12 mb-12">
+            <div>
+              <div className="flex items-center gap-3 mb-6">
+                <div className="w-8 h-8 bg-brand-500 rounded-lg flex items-center justify-center text-white font-bold">D</div>
+                <span className="text-2xl font-bold text-white">Dream BD</span>
+              </div>
+              <p className="text-sm leading-relaxed mb-6">
+                {isBangla 
+                  ? 'স্মার্ট বাংলাদেশের জন্য একটি সমন্বিত ডিজিটাল প্ল্যাটফর্ম।'
+                  : 'An integrated digital platform for a Smart Bangladesh.'}
+              </p>
+              <div className="flex gap-4">
+                {/* Social placeholders */}
+                <div className="w-8 h-8 bg-gray-800 rounded-full flex items-center justify-center hover:bg-brand-600 cursor-pointer transition-colors">f</div>
+                <div className="w-8 h-8 bg-gray-800 rounded-full flex items-center justify-center hover:bg-brand-600 cursor-pointer transition-colors">t</div>
+                <div className="w-8 h-8 bg-gray-800 rounded-full flex items-center justify-center hover:bg-brand-600 cursor-pointer transition-colors">in</div>
+              </div>
+            </div>
+
+            <div>
+              <h4 className="text-white font-bold mb-6">{isBangla ? 'কুইক লিঙ্ক' : 'Quick Links'}</h4>
+              <ul className="space-y-3 text-sm">
+                <li onClick={() => scrollToSection('about')} className="hover:text-brand-500 cursor-pointer">{isBangla ? 'আমাদের সম্পর্কে' : 'About Us'}</li>
+                <li onClick={() => scrollToSection('modules')} className="hover:text-brand-500 cursor-pointer">{isBangla ? 'সেবাসমূহ' : 'Services'}</li>
+                <li className="hover:text-brand-500 cursor-pointer">{isBangla ? 'ব্লগ' : 'Blog'}</li>
+                <li className="hover:text-brand-500 cursor-pointer">{isBangla ? 'যোগাযোগ' : 'Contact'}</li>
+              </ul>
+            </div>
+
+            <div>
+              <h4 className="text-white font-bold mb-6">{isBangla ? 'লিগ্যাল' : 'Legal'}</h4>
+              <ul className="space-y-3 text-sm">
+                <li className="hover:text-brand-500 cursor-pointer">{isBangla ? 'গোপনীয়তা নীতি' : 'Privacy Policy'}</li>
+                <li className="hover:text-brand-500 cursor-pointer">{isBangla ? 'শর্তাবলী' : 'Terms of Use'}</li>
+                <li className="hover:text-brand-500 cursor-pointer">FAQ</li>
+              </ul>
+            </div>
+
+            <div>
+              <h4 className="text-white font-bold mb-6">{isBangla ? 'যোগাযোগ করুন' : 'Contact Us'}</h4>
+              <ul className="space-y-4 text-sm">
+                <li className="flex items-start gap-3">
+                  <MapPin size={18} className="mt-0.5 text-brand-500" />
+                  <span>ICT Tower, Agargaon,<br/>Dhaka-1207, Bangladesh</span>
+                </li>
+                <li className="flex items-center gap-3">
+                  <Phone size={18} className="text-brand-500" />
+                  <span>+880 1234 567890</span>
+                </li>
+                <li className="flex items-center gap-3">
+                  <Mail size={18} className="text-brand-500" />
+                  <span>info@dreambd.gov.bd</span>
+                </li>
+              </ul>
+            </div>
+          </div>
+          
+          <div className="border-t border-gray-800 pt-8 flex flex-col md:flex-row justify-between items-center gap-4 text-sm">
+            <p>© 2024 Dream BD. All rights reserved.</p>
+            <div className="flex items-center gap-2">
+               <Globe size={14} />
+               <button onClick={toggleLanguage} className="hover:text-white">
+                 {isBangla ? 'English' : 'বাংলা'}
+               </button>
+            </div>
+          </div>
+        </div>
+      </footer>
     </div>
   );
 };

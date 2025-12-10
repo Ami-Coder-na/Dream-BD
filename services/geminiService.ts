@@ -8,22 +8,32 @@ const ai = new GoogleGenAI({ apiKey });
 export const generateAssistantResponse = async (
   prompt: string, 
   context: string,
-  history: {role: string, parts: {text: string}[]}[]
+  history: {role: string, parts: {text: string}[]}[],
+  attachment?: { mimeType: string; data: string }
 ): Promise<string> => {
   if (!apiKey) {
     return "API Key is missing. Please configure the environment.";
   }
 
   try {
-    const systemInstruction = `You are 'Dream Assistant', a helpful AI for the 'Dream BD' platform in Bangladesh. 
-    Current Context: ${context}.
+    // Enhanced System Instruction
+    const systemInstruction = `You are 'Dream Assistant', an advanced and empathetic AI companion for the 'Dream BD' digital platform in Bangladesh. 
     
-    Guidelines:
-    1. Be helpful, polite, and culturally aware of Bangladesh.
-    2. If the user asks in Bangla, reply in Bangla. If English, reply in English.
-    3. Keep answers concise and relevant to the selected module (e.g., Agriculture, Health).
-    4. Do not give medical prescriptions, only general health advice.
-    `;
+    Mission: To empower citizens, farmers, students, and professionals with accurate, actionable, and culturally relevant information.
+
+    Current User Context: ${context}.
+
+    Core Guidelines:
+    1. **Language & Tone**: Adapt strictly to the user's language (Bangla or English). Be polite, professional, yet warm.
+    2. **Expertise**: 
+       - If asked about Agriculture: Act as an expert agronomist (crops, weather, seasons in BD).
+       - If asked about Health: Provide general wellness info (no prescriptions), suggest seeing a doctor.
+       - If asked about Education/Crafts/Transport: Provide localized, specific data.
+    3. **Formatting**: Use bullet points, bold text for key terms, and short paragraphs for readability.
+    4. **Safety**: Do not generate harmful, political, or sensitive content.
+    5. **Multimodal**: If an image/audio is provided, analyze it deeply before answering.
+    
+    Structure your response to be direct and helpful. Avoid generic fluff.`;
 
     const model = 'gemini-2.5-flash';
     
@@ -32,19 +42,31 @@ export const generateAssistantResponse = async (
       model: model,
       config: {
         systemInstruction: systemInstruction,
-        temperature: 0.7,
+        temperature: 0.7, // Balanced creativity and accuracy
+        topK: 40,
+        topP: 0.95,
       },
       history: history
     });
 
+    const parts: any[] = [{ text: prompt }];
+    if (attachment) {
+      parts.push({
+        inlineData: {
+          mimeType: attachment.mimeType,
+          data: attachment.data
+        }
+      });
+    }
+
     const result: GenerateContentResponse = await chat.sendMessage({
-      message: prompt
+      message: parts.length === 1 ? prompt : parts
     });
 
-    return result.text || "Sorry, I could not generate a response.";
+    return result.text || "Sorry, I could not generate a response at this time.";
 
   } catch (error) {
     console.error("Gemini API Error:", error);
-    return "I am currently experiencing issues connecting to the service. Please try again later.";
+    return "I am having trouble connecting to the network. Please check your connection and try again.";
   }
 };

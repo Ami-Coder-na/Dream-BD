@@ -21,4 +21,7 @@ export const MODULE_CONFIG = {
   [AppModule.WASTE]: { title: 'Waste Mgmt', titleBn: 'বর্জ্য ব্যবস্থাপনা', color: 'bg-gray-600' },
   [AppModule.FISHERY]: { title: 'Fishery', titleBn: 'মৎস্য চাষ', color: 'bg-cyan-600' },
   [AppModule.DISASTER]: { title: 'Disaster Prep', titleBn: 'দুর্যোগ ব্যবস্থাপনা', color: 'bg-red-600' },
+  [AppModule.JOB]: { title: 'Jobs & Careers', titleBn: 'চাকরি ও ক্যারিয়ার', color: 'bg-pink-600' },
+  [AppModule.CONTACT]: { title: 'Contact Us', titleBn: 'যোগাযোগ', color: 'bg-violet-600' },
+  [AppModule.PROFILE]: { title: 'User Profile', titleBn: 'ব্যবহারকারীর প্রোফাইল', color: 'bg-slate-600' },
 };

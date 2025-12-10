@@ -3,41 +3,88 @@ import { User, UserRole, AppModule } from './types';
 import { Dashboard } from './components/Dashboard';
 import { GeminiAssistant } from './components/GeminiAssistant';
 import { LandingPage } from './components/LandingPage';
-import { Layout, Menu, Bell, LogOut, Globe, Search } from 'lucide-react';
-
-const MOCK_USER: User = {
-  id: 'u1',
-  name: 'Rahim Uddin',
-  role: UserRole.CITIZEN,
-  avatar: 'https://i.pravatar.cc/150?u=rahim'
-};
+import { AiChatPage } from './components/AiChatPage';
+import { LoginPage } from './components/auth/LoginPage';
+import { SignUpPage } from './components/auth/SignUpPage';
+import { Menu, Bell, LogOut, Globe, Search, User as UserIcon, Briefcase, MessageCircle } from 'lucide-react';
 
 const App: React.FC = () => {
   const [user, setUser] = useState<User | null>(null); 
-  const [activeModule, setActiveModule] = useState<AppModule>(AppModule.HOME);
+  const [activeModule, setActiveModule] = useState<AppModule>(AppModule.PROFILE);
   const [isBangla, setIsBangla] = useState(true);
   const [isSidebarOpen, setSidebarOpen] = useState(false);
+  const [showAiChat, setShowAiChat] = useState(false);
+  const [authView, setAuthView] = useState<'none' | 'login' | 'signup'>('none');
+  const [showNotifications, setShowNotifications] = useState(false);
 
-  // Simple login handler
-  const handleLogin = () => {
-    setUser(MOCK_USER);
-    setActiveModule(AppModule.HOME);
+  // Login handler
+  const handleLoginSuccess = (loggedInUser: User) => {
+    setUser(loggedInUser);
+    setActiveModule(AppModule.PROFILE); // Default to profile
+    setAuthView('none');
+    setShowAiChat(false);
   };
   
-  const handleLogout = () => setUser(null);
+  const handleLogout = () => {
+    setUser(null);
+    setAuthView('none');
+  };
 
-  // Render Landing Page if not logged in
+  const handleUpdateUser = (updatedUser: User) => {
+    setUser(updatedUser);
+  };
+
+  const navigateToLogin = () => setAuthView('login');
+  const navigateToSignUp = () => setAuthView('signup');
+  const navigateBack = () => setAuthView('none');
+
+  // Render AI Chat Page if requested
+  if (showAiChat) {
+    return (
+      <AiChatPage 
+        onBack={() => setShowAiChat(false)} 
+        isBangla={isBangla} 
+      />
+    );
+  }
+
+  // Render Authentication Views
+  if (!user && authView === 'login') {
+    return (
+      <LoginPage 
+        onLoginSuccess={handleLoginSuccess}
+        onNavigateToSignUp={navigateToSignUp}
+        onBack={navigateBack}
+        isBangla={isBangla}
+      />
+    );
+  }
+
+  if (!user && authView === 'signup') {
+    return (
+      <SignUpPage 
+        onSignUpSuccess={handleLoginSuccess}
+        onNavigateToLogin={navigateToLogin}
+        onBack={navigateBack}
+        isBangla={isBangla}
+      />
+    );
+  }
+
+  // Render Landing Page if not logged in and not in auth flow
   if (!user) {
     return (
       <LandingPage 
-        onLogin={handleLogin} 
+        onLogin={navigateToLogin}
+        onRegister={navigateToSignUp}
+        onOpenAiChat={() => setShowAiChat(true)}
         isBangla={isBangla} 
         toggleLanguage={() => setIsBangla(!isBangla)} 
       />
     );
   }
 
-  // Render Dashboard if logged in
+  // Render App if logged in
   return (
     <div className="min-h-screen bg-gray-50 font-sans text-gray-900 flex">
       
@@ -61,18 +108,18 @@ const App: React.FC = () => {
         <nav className="p-4 space-y-1 overflow-y-auto h-[calc(100vh-5rem)]">
           <div className="mb-6">
              <p className="px-4 text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">
-               {isBangla ? 'প্রধান মেনু' : 'Main Menu'}
+               {isBangla ? 'আমার একাউন্ট' : 'My Account'}
              </p>
              <button 
-               onClick={() => { setActiveModule(AppModule.HOME); setSidebarOpen(false); }}
-               className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-colors ${activeModule === AppModule.HOME ? 'bg-brand-50 text-brand-700 font-medium' : 'text-gray-600 hover:bg-gray-50'}`}
+               onClick={() => { setActiveModule(AppModule.PROFILE); setSidebarOpen(false); }}
+               className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-colors ${activeModule === AppModule.PROFILE ? 'bg-brand-50 text-brand-700 font-medium' : 'text-gray-600 hover:bg-gray-50'}`}
              >
-               <Layout size={20} />
-               {isBangla ? 'ড্যাশবোর্ড' : 'Dashboard'}
+               <UserIcon size={20} />
+               {isBangla ? 'প্রোফাইল ও সেটিংস' : 'Profile & Settings'}
              </button>
           </div>
 
-          <div>
+          <div className="mb-6">
              <p className="px-4 text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">
                {isBangla ? 'সেবাসমূহ' : 'Services'}
              </p>
@@ -87,6 +134,26 @@ const App: React.FC = () => {
                   <span className="capitalize">{mod}</span>
                 </button>
              ))}
+          </div>
+
+          <div>
+             <p className="px-4 text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">
+               {isBangla ? 'অন্যান্য' : 'Others'}
+             </p>
+             <button 
+               onClick={() => { setActiveModule(AppModule.JOB); setSidebarOpen(false); }}
+               className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-colors ${activeModule === AppModule.JOB ? 'bg-brand-50 text-brand-700 font-medium' : 'text-gray-600 hover:bg-gray-50'}`}
+             >
+               <Briefcase size={20} />
+               {isBangla ? 'চাকরি' : 'Jobs'}
+             </button>
+             <button 
+               onClick={() => { setActiveModule(AppModule.CONTACT); setSidebarOpen(false); }}
+               className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-colors ${activeModule === AppModule.CONTACT ? 'bg-brand-50 text-brand-700 font-medium' : 'text-gray-600 hover:bg-gray-50'}`}
+             >
+               <MessageCircle size={20} />
+               {isBangla ? 'যোগাযোগ' : 'Contact'}
+             </button>
           </div>
         </nav>
       </aside>
@@ -121,19 +188,49 @@ const App: React.FC = () => {
             </button>
 
             {/* Notifications */}
-            <button className="relative p-2 text-gray-600 hover:bg-gray-100 rounded-full">
-              <Bell size={20} />
-              <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-red-500 rounded-full border-2 border-white"></span>
-            </button>
+            <div className="relative">
+              <button 
+                onClick={() => setShowNotifications(!showNotifications)}
+                className="relative p-2 text-gray-600 hover:bg-gray-100 rounded-full"
+              >
+                <Bell size={20} />
+                <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-red-500 rounded-full border-2 border-white"></span>
+              </button>
+              
+              {showNotifications && (
+                <div className="absolute top-full right-0 mt-2 w-80 bg-white rounded-xl shadow-xl border border-gray-100 p-4 z-50 animate-fade-in">
+                  <div className="flex justify-between items-center mb-3">
+                    <h4 className="font-bold text-gray-900">{isBangla ? 'নোটিফিকেশন' : 'Notifications'}</h4>
+                    <span className="text-xs text-brand-600 font-medium cursor-pointer">{isBangla ? 'সব মুছুন' : 'Clear all'}</span>
+                  </div>
+                  <div className="space-y-3">
+                    <div className="flex gap-3 items-start p-2 hover:bg-gray-50 rounded-lg transition-colors cursor-pointer">
+                      <div className="w-2 h-2 mt-2 rounded-full bg-blue-500 shrink-0"></div>
+                      <div>
+                        <p className="text-sm text-gray-800 font-medium">{isBangla ? 'স্বাগতম!' : 'Welcome!'}</p>
+                        <p className="text-xs text-gray-500">{isBangla ? 'ড্রিম বিডি প্ল্যাটফর্মে স্বাগতম।' : 'Welcome to Dream BD platform.'}</p>
+                      </div>
+                    </div>
+                    <div className="flex gap-3 items-start p-2 hover:bg-gray-50 rounded-lg transition-colors cursor-pointer">
+                       <div className="w-2 h-2 mt-2 rounded-full bg-green-500 shrink-0"></div>
+                       <div>
+                         <p className="text-sm text-gray-800 font-medium">{isBangla ? 'অর্ডার আপডেট' : 'Order Update'}</p>
+                         <p className="text-xs text-gray-500">{isBangla ? 'আপনার অর্ডার #1234 নিশ্চিত করা হয়েছে।' : 'Your order #1234 has been confirmed.'}</p>
+                       </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
 
             {/* User Profile */}
-            <div className="flex items-center gap-3 pl-4 border-l border-gray-200">
+            <div className="flex items-center gap-3 pl-4 border-l border-gray-200 cursor-pointer" onClick={() => setActiveModule(AppModule.PROFILE)}>
               <img src={user.avatar} alt="Profile" className="w-8 h-8 rounded-full border border-gray-200" />
               <div className="hidden md:block text-sm">
                 <p className="font-medium text-gray-800">{user.name}</p>
                 <p className="text-xs text-gray-500">{user.role}</p>
               </div>
-              <button onClick={handleLogout} className="p-2 text-gray-400 hover:text-red-600 ml-2" title="Logout">
+              <button onClick={(e) => { e.stopPropagation(); handleLogout(); }} className="p-2 text-gray-400 hover:text-red-600 ml-2" title="Logout">
                 <LogOut size={18} />
               </button>
             </div>
@@ -146,6 +243,7 @@ const App: React.FC = () => {
             user={user} 
             activeModule={activeModule} 
             onModuleSelect={setActiveModule}
+            onUpdateUser={handleUpdateUser}
             isBangla={isBangla}
           />
         </div>
