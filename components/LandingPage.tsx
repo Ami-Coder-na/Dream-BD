@@ -3,7 +3,8 @@ import React, { useState, useEffect } from 'react';
 import { 
   ShoppingBag, Sprout, BookOpen, HeartPulse, 
   Bus, Trash2, Fish, AlertOctagon, CheckCircle, Star, Sparkles,
-  ArrowRight, MapPin, Calendar, ShieldAlert, TrendingUp, CloudRain, Phone, Activity
+  ArrowRight, MapPin, Calendar, ShieldAlert, TrendingUp, CloudRain, Phone, Activity,
+  UserPlus, LayoutGrid, Smile, Building2, Landmark, Truck, Globe
 } from 'lucide-react';
 import { Button } from './ui/Button';
 import { User, AppModule } from '../types';
@@ -136,6 +137,67 @@ export const LandingPage: React.FC<Props> = ({
                 : 'To provide digital solutions for real-world problems in Bangladesh. We are building an ecosystem where technology and heritage work hand in hand.'}
             </p>
           </div>
+        </div>
+      </div>
+
+      {/* --- HOW IT WORKS (NEW SECTION) --- */}
+      <div className="py-20 bg-gray-50">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+           <div className="text-center mb-12">
+             <span className="text-brand-600 font-bold tracking-wider uppercase text-sm mb-2 block">
+               {isBangla ? 'ব্যবহার নির্দেশিকা' : 'How It Works'}
+             </span>
+             <h2 className="text-3xl font-bold text-gray-900">
+               {isBangla ? 'খুব সহজেই সেবা নিন' : 'Get Started in 3 Steps'}
+             </h2>
+           </div>
+
+           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+             {/* Step 1 */}
+             <div className="bg-white p-8 rounded-2xl shadow-sm border border-gray-100 text-center hover:-translate-y-2 transition-transform duration-300">
+                <div className="w-16 h-16 bg-blue-50 rounded-full flex items-center justify-center mx-auto mb-6 text-blue-600">
+                  <UserPlus size={32} />
+                </div>
+                <h3 className="text-xl font-bold text-gray-900 mb-3">
+                  {isBangla ? '১. একাউন্ট তৈরি করুন' : '1. Create Account'}
+                </h3>
+                <p className="text-gray-600">
+                  {isBangla 
+                    ? 'আপনার মোবাইল নম্বর বা ইমেল ব্যবহার করে খুব সহজেই রেজিস্ট্রেশন করুন।' 
+                    : 'Register easily using your mobile number or email address.'}
+                </p>
+             </div>
+
+             {/* Step 2 */}
+             <div className="bg-white p-8 rounded-2xl shadow-sm border border-gray-100 text-center hover:-translate-y-2 transition-transform duration-300">
+                <div className="w-16 h-16 bg-brand-50 rounded-full flex items-center justify-center mx-auto mb-6 text-brand-600">
+                  <LayoutGrid size={32} />
+                </div>
+                <h3 className="text-xl font-bold text-gray-900 mb-3">
+                  {isBangla ? '২. সেবা নির্বাচন করুন' : '2. Choose Service'}
+                </h3>
+                <p className="text-gray-600">
+                  {isBangla 
+                    ? 'কৃষি, স্বাস্থ্য, শিক্ষা বা পরিবহন—আপনার প্রয়োজনীয় সেবাটি বেছে নিন।' 
+                    : 'Select the service you need—Agriculture, Health, Education or Transport.'}
+                </p>
+             </div>
+
+             {/* Step 3 */}
+             <div className="bg-white p-8 rounded-2xl shadow-sm border border-gray-100 text-center hover:-translate-y-2 transition-transform duration-300">
+                <div className="w-16 h-16 bg-purple-50 rounded-full flex items-center justify-center mx-auto mb-6 text-purple-600">
+                  <Smile size={32} />
+                </div>
+                <h3 className="text-xl font-bold text-gray-900 mb-3">
+                  {isBangla ? '৩. সমাধান পান' : '3. Get Solution'}
+                </h3>
+                <p className="text-gray-600">
+                  {isBangla 
+                    ? 'দ্রুত এবং নির্ভরযোগ্য সেবা উপভোগ করুন এবং জীবনযাত্রার মান উন্নয়ন করুন।' 
+                    : 'Enjoy fast, reliable services and improve your quality of life.'}
+                </p>
+             </div>
+           </div>
         </div>
       </div>
 
@@ -338,7 +400,7 @@ export const LandingPage: React.FC<Props> = ({
                 </h2>
                 <p className="text-indigo-200 text-lg mb-8 leading-relaxed">
                   {isBangla 
-                    ? 'বাস, ট্রেন বা লঞ্চের টিকেট কাটুন ঘরে বসেই। আপনার পরিবহন এখন কোথায় আছে তা ম্যাপে দেখুন।'
+                    ? 'বাস, ট্রেন বা লঞ্চের টিকেট কাটুন ঘরে বসেই। আপনার পরিবহন এখন কোথায় আছে তা ম্যাপে দেখুন।'
                     : 'Book Bus, Train or Launch tickets from home. Track your vehicle location in real-time on the map.'}
                 </p>
                 <Button onClick={() => onModuleSelect(AppModule.TRANSPORT)} className="bg-white text-indigo-900 hover:bg-indigo-50 border-none font-bold px-8">

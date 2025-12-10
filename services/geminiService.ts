@@ -45,6 +45,7 @@ export const generateAssistantResponse = async (
         temperature: 0.7, // Balanced creativity and accuracy
         topK: 40,
         topP: 0.95,
+        thinkingConfig: { thinkingBudget: 0 } // Optimization for latency: Disable thinking
       },
       history: history
     });
