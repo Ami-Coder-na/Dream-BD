@@ -2,59 +2,81 @@ import React from 'react';
 import { 
   ShoppingBag, Sprout, BookOpen, HeartPulse, 
   Bus, Trash2, Fish, Globe, AlertOctagon, 
-  Users, CheckCircle, Star, Phone, Mail, MapPin, Menu, X, ChevronDown, Sparkles, Bell
+  Users, CheckCircle, Star, Phone, Mail, MapPin, Menu, X, ChevronDown, Sparkles, Bell, LogOut, User as UserIcon
 } from 'lucide-react';
 import { Button } from './ui/Button';
+import { User, AppModule } from '../types';
 
 interface Props {
+  user?: User | null;
   onLogin: () => void;
   onRegister: () => void;
+  onLogout?: () => void;
   onOpenAiChat: () => void;
+  onModuleSelect?: (module: AppModule) => void;
   isBangla: boolean;
   toggleLanguage: () => void;
 }
 
-export const LandingPage: React.FC<Props> = ({ onLogin, onRegister, onOpenAiChat, isBangla, toggleLanguage }) => {
+export const LandingPage: React.FC<Props> = ({ 
+  user, 
+  onLogin, 
+  onRegister, 
+  onLogout,
+  onOpenAiChat, 
+  onModuleSelect,
+  isBangla, 
+  toggleLanguage 
+}) => {
   const [mobileMenuOpen, setMobileMenuOpen] = React.useState(false);
   const [showNotifications, setShowNotifications] = React.useState(false);
+  const [userMenuOpen, setUserMenuOpen] = React.useState(false);
 
   const modules = [
     {
+      id: AppModule.CRAFT,
       icon: <ShoppingBag className="w-8 h-8 text-orange-500" />,
       title: isBangla ? 'কারুশিল্প' : 'Crafts',
       desc: isBangla ? 'দেশীয় পণ্যের বিশ্ববাজার' : 'Global market for local goods'
     },
     {
+      id: AppModule.AGRI,
       icon: <Sprout className="w-8 h-8 text-green-600" />,
       title: isBangla ? 'কৃষি' : 'Agriculture',
       desc: isBangla ? 'আধুনিক চাষাবাদ ও পরামর্শ' : 'Smart farming advisory'
     },
     {
+      id: AppModule.HEALTH,
       icon: <HeartPulse className="w-8 h-8 text-teal-500" />,
       title: isBangla ? 'স্বাস্থ্য' : 'Health',
       desc: isBangla ? 'ঘরে বসেই ডাক্তার দেখান' : 'Telemedicine services'
     },
     {
+      id: AppModule.EDU,
       icon: <BookOpen className="w-8 h-8 text-blue-500" />,
       title: isBangla ? 'শিক্ষা' : 'Education',
       desc: isBangla ? 'সবার জন্য মানসম্মত শিক্ষা' : 'Quality education for all'
     },
     {
+      id: AppModule.TRANSPORT,
       icon: <Bus className="w-8 h-8 text-indigo-600" />,
       title: isBangla ? 'পরিবহন' : 'Transport',
       desc: isBangla ? 'সহজ টিকেট ও ট্র্যাকিং' : 'Easy ticketing & tracking'
     },
     {
+      id: AppModule.WASTE,
       icon: <Trash2 className="w-8 h-8 text-gray-600" />,
       title: isBangla ? 'বর্জ্য' : 'Waste Mgmt',
       desc: isBangla ? 'পরিচ্ছন্ন পরিবেশ গড়ি' : 'Clean environment initiative'
     },
     {
+      id: AppModule.FISHERY,
       icon: <Fish className="w-8 h-8 text-cyan-600" />,
       title: isBangla ? 'মৎস্য' : 'Fishery',
       desc: isBangla ? 'বৈজ্ঞানিক মাছ চাষ' : 'Scientific fish farming'
     },
     {
+      id: AppModule.DISASTER,
       icon: <AlertOctagon className="w-8 h-8 text-red-600" />,
       title: isBangla ? 'দুর্যোগ' : 'Disaster',
       desc: isBangla ? 'আগাম সতর্কবার্তা' : 'Early warning system'
@@ -90,6 +112,21 @@ export const LandingPage: React.FC<Props> = ({ onLogin, onRegister, onOpenAiChat
   const scrollToSection = (id: string) => {
     document.getElementById(id)?.scrollIntoView({ behavior: 'smooth' });
     setMobileMenuOpen(false);
+  };
+
+  const handleModuleClick = (moduleId: AppModule) => {
+    if (user && onModuleSelect) {
+      onModuleSelect(moduleId);
+    } else {
+      // If not logged in, scroll to modules section or show login?
+      // Current behavior: scroll to section if just browsing, or login if clicking from "Services" menu
+      // Let's assume onModuleSelect handles logic or we redirect to login
+      if (!user) {
+        onLogin();
+      } else {
+        onModuleSelect?.(moduleId);
+      }
+    }
   };
 
   return (
@@ -132,7 +169,7 @@ export const LandingPage: React.FC<Props> = ({ onLogin, onRegister, onOpenAiChat
                      <button
                        key={idx}
                        className="w-full text-left px-4 py-2.5 text-sm text-gray-700 hover:bg-brand-50 hover:text-brand-700 transition-colors flex items-center gap-3"
-                       onClick={() => scrollToSection('modules')}
+                       onClick={() => handleModuleClick(mod.id)}
                      >
                        <span className="w-1.5 h-1.5 rounded-full bg-brand-400"></span>
                        <span className="font-medium">{mod.title}</span>
@@ -142,7 +179,10 @@ export const LandingPage: React.FC<Props> = ({ onLogin, onRegister, onOpenAiChat
                </div>
                
                {/* Jobs Link */}
-               <button onClick={onLogin} className="text-sm font-medium text-gray-600 hover:text-brand-600 transition-colors">
+               <button 
+                onClick={() => user && onModuleSelect ? onModuleSelect(AppModule.JOB) : onLogin()} 
+                className="text-sm font-medium text-gray-600 hover:text-brand-600 transition-colors"
+               >
                  {isBangla ? 'চাকরি' : 'Jobs'}
                </button>
 
@@ -151,7 +191,10 @@ export const LandingPage: React.FC<Props> = ({ onLogin, onRegister, onOpenAiChat
                </button>
                
                {/* Contact Link */}
-               <button onClick={onLogin} className="text-sm font-medium text-gray-600 hover:text-brand-600 transition-colors">
+               <button 
+                onClick={() => user && onModuleSelect ? onModuleSelect(AppModule.CONTACT) : onLogin()}
+                className="text-sm font-medium text-gray-600 hover:text-brand-600 transition-colors"
+               >
                  {isBangla ? 'যোগাযোগ' : 'Contact'}
                </button>
             </div>
@@ -201,9 +244,49 @@ export const LandingPage: React.FC<Props> = ({ onLogin, onRegister, onOpenAiChat
                 <Globe size={16} />
                 <span>{isBangla ? 'English' : 'বাংলা'}</span>
               </button>
-              <Button onClick={onLogin} variant="primary" className="shadow-lg shadow-brand-500/20">
-                {isBangla ? 'লগইন' : 'Login'}
-              </Button>
+              
+              {user ? (
+                <div className="relative">
+                  <button 
+                    onClick={() => setUserMenuOpen(!userMenuOpen)}
+                    className="flex items-center gap-2 pl-2"
+                  >
+                    <img src={user.avatar} alt="User" className="w-10 h-10 rounded-full border-2 border-white shadow-sm object-cover" />
+                    <ChevronDown size={14} className="text-gray-500" />
+                  </button>
+                  
+                  {userMenuOpen && (
+                    <div className="absolute top-full right-0 mt-2 w-56 bg-white rounded-xl shadow-xl border border-gray-100 py-2 z-50 animate-fade-in">
+                       <div className="px-4 py-3 border-b border-gray-50">
+                         <p className="text-sm font-bold text-gray-900">{user.name}</p>
+                         <p className="text-xs text-gray-500">{user.role}</p>
+                       </div>
+                       <button 
+                         onClick={() => {
+                           if(onModuleSelect) onModuleSelect(AppModule.PROFILE);
+                           setUserMenuOpen(false);
+                         }}
+                         className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-2"
+                       >
+                         <UserIcon size={16} />
+                         {isBangla ? 'প্রোফাইল' : 'Profile'}
+                       </button>
+                       <div className="border-t border-gray-50 my-1"></div>
+                       <button 
+                         onClick={onLogout}
+                         className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 flex items-center gap-2"
+                       >
+                         <LogOut size={16} />
+                         {isBangla ? 'লগ আউট' : 'Log Out'}
+                       </button>
+                    </div>
+                  )}
+                </div>
+              ) : (
+                <Button onClick={onLogin} variant="primary" className="shadow-lg shadow-brand-500/20">
+                  {isBangla ? 'লগইন' : 'Login'}
+                </Button>
+              )}
             </div>
 
             {/* Mobile Menu Button */}
@@ -218,6 +301,16 @@ export const LandingPage: React.FC<Props> = ({ onLogin, onRegister, onOpenAiChat
         {/* Mobile Menu Overlay */}
         {mobileMenuOpen && (
           <div className="lg:hidden absolute top-20 left-0 w-full bg-white border-b border-gray-100 p-4 flex flex-col gap-4 shadow-xl">
+             {user && (
+               <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg mb-2">
+                 <img src={user.avatar} alt="User" className="w-10 h-10 rounded-full" />
+                 <div>
+                   <p className="text-sm font-bold text-gray-900">{user.name}</p>
+                   <p className="text-xs text-gray-500">{user.role}</p>
+                 </div>
+               </div>
+             )}
+
              <button onClick={() => scrollToSection('modules')} className="text-left font-medium text-gray-700 py-2 border-b border-gray-50 flex justify-between items-center">
                {isBangla ? 'সেবাসমূহ' : 'Services'}
                <ChevronDown size={16} />
@@ -225,13 +318,20 @@ export const LandingPage: React.FC<Props> = ({ onLogin, onRegister, onOpenAiChat
              {/* Simple list for mobile for better UX than huge dropdown */}
              <div className="pl-4 grid grid-cols-2 gap-2 mb-2">
                {modules.map((mod, idx) => (
-                  <button key={idx} onClick={() => scrollToSection('modules')} className="text-xs text-gray-500 text-left py-1 hover:text-brand-600">
+                  <button 
+                    key={idx} 
+                    onClick={() => handleModuleClick(mod.id)} 
+                    className="text-xs text-gray-500 text-left py-1 hover:text-brand-600"
+                  >
                     {mod.title}
                   </button>
                ))}
              </div>
              
-             <button onClick={onLogin} className="text-left font-medium text-gray-700 py-2 border-b border-gray-50">
+             <button 
+               onClick={() => user && onModuleSelect ? onModuleSelect(AppModule.JOB) : onLogin()}
+               className="text-left font-medium text-gray-700 py-2 border-b border-gray-50"
+             >
                {isBangla ? 'চাকরি' : 'Jobs'}
              </button>
 
@@ -239,7 +339,10 @@ export const LandingPage: React.FC<Props> = ({ onLogin, onRegister, onOpenAiChat
                {isBangla ? 'আমাদের সম্পর্কে' : 'About'}
              </button>
              
-             <button onClick={onLogin} className="text-left font-medium text-gray-700 py-2 border-b border-gray-50">
+             <button 
+               onClick={() => user && onModuleSelect ? onModuleSelect(AppModule.CONTACT) : onLogin()}
+               className="text-left font-medium text-gray-700 py-2 border-b border-gray-50"
+             >
                {isBangla ? 'যোগাযোগ' : 'Contact'}
              </button>
              
@@ -247,9 +350,15 @@ export const LandingPage: React.FC<Props> = ({ onLogin, onRegister, onOpenAiChat
                 <Button onClick={toggleLanguage} variant="outline" size="sm" className="flex-1">
                   {isBangla ? 'English' : 'বাংলা'}
                 </Button>
-                <Button onClick={onLogin} className="flex-1">
-                  {isBangla ? 'লগইন' : 'Login'}
-                </Button>
+                {user ? (
+                   <Button onClick={onLogout} variant="danger" size="sm" className="flex-1 bg-red-50 text-red-600 border border-red-200 hover:bg-red-100">
+                     {isBangla ? 'লগ আউট' : 'Log Out'}
+                   </Button>
+                ) : (
+                   <Button onClick={onLogin} className="flex-1">
+                     {isBangla ? 'লগইন' : 'Login'}
+                   </Button>
+                )}
              </div>
           </div>
         )}
@@ -258,7 +367,7 @@ export const LandingPage: React.FC<Props> = ({ onLogin, onRegister, onOpenAiChat
       {/* Hero Section */}
       <div className="relative overflow-hidden bg-gradient-to-br from-brand-50 via-white to-brand-50 pt-20 pb-32">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 text-center">
-          <span className="inline-block py-2 px-4 rounded-full bg-white border border-brand-100 text-brand-700 text-sm font-semibold mb-8 shadow-sm">
+          <span className="inline-block py-2 px-4 rounded-full bg-white border border-brand-100 text-brand-700 text-sm font-semibold mb-8 shadow-sm animate-fade-in-up">
             🚀 {isBangla ? 'ডিজিটাল বাংলাদেশের এক নতুন দিগন্ত' : 'A New Horizon for Digital Bangladesh'}
           </span>
           <h1 className="text-4xl md:text-6xl lg:text-7xl font-bold text-gray-900 mb-8 leading-tight tracking-tight">
@@ -278,9 +387,16 @@ export const LandingPage: React.FC<Props> = ({ onLogin, onRegister, onOpenAiChat
               : 'Dream it, build it. From heritage crafts to smart agriculture, health to education—access all essential services at your fingertips.'}
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            {/* Main CTA renamed to Talk With AI */}
-            <Button onClick={onOpenAiChat} size="lg" className="text-lg px-10 py-4 shadow-xl shadow-brand-600/20 hover:scale-105 transition-transform flex items-center gap-2">
-               <Sparkles size={20} />
+            {/* Main CTA: Talk With AI - Enhanced with Animation */}
+            <Button 
+              onClick={onOpenAiChat} 
+              size="lg" 
+              className="text-lg px-10 py-4 shadow-xl shadow-brand-600/30 hover:shadow-2xl hover:shadow-brand-600/50 hover:scale-105 active:scale-95 transition-all duration-300 flex items-center gap-2 relative overflow-hidden group"
+            >
+               {/* Shine Effect */}
+               <span className="absolute inset-0 w-full h-full bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000 ease-in-out"></span>
+               
+               <Sparkles size={20} className="animate-pulse" />
               {isBangla ? 'AI-এর সাথে কথা বলুন' : 'Talk With AI'} 
             </Button>
             
@@ -324,7 +440,11 @@ export const LandingPage: React.FC<Props> = ({ onLogin, onRegister, onOpenAiChat
           
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
             {modules.map((mod, idx) => (
-              <div key={idx} className="bg-white rounded-2xl p-6 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 border border-gray-100 group text-center cursor-pointer" onClick={onLogin}>
+              <div 
+                key={idx} 
+                className="bg-white rounded-2xl p-6 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 border border-gray-100 group text-center cursor-pointer" 
+                onClick={() => handleModuleClick(mod.id)}
+              >
                 <div className="w-14 h-14 mx-auto bg-gray-50 rounded-full flex items-center justify-center mb-4 group-hover:bg-brand-50 transition-colors">
                   {mod.icon}
                 </div>
@@ -377,25 +497,27 @@ export const LandingPage: React.FC<Props> = ({ onLogin, onRegister, onOpenAiChat
       </div>
 
       {/* Call to Action */}
-      <div className="py-24 bg-white">
-        <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="bg-brand-50 rounded-3xl p-8 md:p-16 text-center border border-brand-100">
-            <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-6">
-              {isBangla ? 'আজই যুক্ত হোন ড্রিম বিডি-তে' : 'Join Dream BD Today'}
-            </h2>
-            <p className="text-xl text-gray-600 mb-10 max-w-2xl mx-auto">
-              {isBangla 
-                ? 'কৃষক, শিক্ষক, ডাক্তার বা সাধারণ নাগরিক—সবার জন্য একটি প্ল্যাটফর্ম।'
-                : 'Whether you are a farmer, teacher, doctor or citizen—one platform for all.'}
-            </p>
-            <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <Button onClick={onRegister} size="lg" className="px-12 py-4 text-lg">
-                {isBangla ? 'রেজিস্ট্রেশন করুন' : 'Register Now'}
-              </Button>
+      {!user && (
+        <div className="py-24 bg-white">
+          <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="bg-brand-50 rounded-3xl p-8 md:p-16 text-center border border-brand-100">
+              <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-6">
+                {isBangla ? 'আজই যুক্ত হোন ড্রিম বিডি-তে' : 'Join Dream BD Today'}
+              </h2>
+              <p className="text-xl text-gray-600 mb-10 max-w-2xl mx-auto">
+                {isBangla 
+                  ? 'কৃষক, শিক্ষক, ডাক্তার বা সাধারণ নাগরিক—সবার জন্য একটি প্ল্যাটফর্ম।'
+                  : 'Whether you are a farmer, teacher, doctor or citizen—one platform for all.'}
+              </p>
+              <div className="flex flex-col sm:flex-row gap-4 justify-center">
+                <Button onClick={onRegister} size="lg" className="px-12 py-4 text-lg">
+                  {isBangla ? 'রেজিস্ট্রেশন করুন' : 'Register Now'}
+                </Button>
+              </div>
             </div>
           </div>
         </div>
-      </div>
+      )}
 
       {/* Footer */}
       <footer className="bg-gray-900 text-gray-400 py-16">

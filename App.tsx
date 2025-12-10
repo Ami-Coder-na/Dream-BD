@@ -6,7 +6,7 @@ import { LandingPage } from './components/LandingPage';
 import { AiChatPage } from './components/AiChatPage';
 import { LoginPage } from './components/auth/LoginPage';
 import { SignUpPage } from './components/auth/SignUpPage';
-import { Menu, Bell, LogOut, Globe, Search, User as UserIcon, Briefcase, MessageCircle } from 'lucide-react';
+import { Menu, Bell, LogOut, Globe, Search, User as UserIcon, Briefcase, MessageCircle, Home } from 'lucide-react';
 
 const App: React.FC = () => {
   const [user, setUser] = useState<User | null>(null); 
@@ -16,18 +16,20 @@ const App: React.FC = () => {
   const [showAiChat, setShowAiChat] = useState(false);
   const [authView, setAuthView] = useState<'none' | 'login' | 'signup'>('none');
   const [showNotifications, setShowNotifications] = useState(false);
+  const [isAppView, setIsAppView] = useState(false); // Controls whether to show Landing Page or Sidebar Layout
 
   // Login handler
   const handleLoginSuccess = (loggedInUser: User) => {
     setUser(loggedInUser);
-    setActiveModule(AppModule.PROFILE); // Default to profile
     setAuthView('none');
     setShowAiChat(false);
+    setIsAppView(false); // Default to Landing Page after login, similar to a website experience
   };
   
   const handleLogout = () => {
     setUser(null);
     setAuthView('none');
+    setIsAppView(false);
   };
 
   const handleUpdateUser = (updatedUser: User) => {
@@ -37,6 +39,13 @@ const App: React.FC = () => {
   const navigateToLogin = () => setAuthView('login');
   const navigateToSignUp = () => setAuthView('signup');
   const navigateBack = () => setAuthView('none');
+
+  // Module Selection Handler
+  const handleModuleSelect = (module: AppModule) => {
+    setActiveModule(module);
+    setIsAppView(true); // Switch to App/Dashboard view
+    setSidebarOpen(false);
+  };
 
   // Render AI Chat Page if requested
   if (showAiChat) {
@@ -71,20 +80,25 @@ const App: React.FC = () => {
     );
   }
 
-  // Render Landing Page if not logged in and not in auth flow
-  if (!user) {
+  // Render Landing Page if:
+  // 1. Not logged in
+  // 2. Logged in but NOT in App View (default state after login)
+  if (!user || (!isAppView && user)) {
     return (
       <LandingPage 
+        user={user}
         onLogin={navigateToLogin}
+        onLogout={handleLogout}
         onRegister={navigateToSignUp}
         onOpenAiChat={() => setShowAiChat(true)}
+        onModuleSelect={handleModuleSelect}
         isBangla={isBangla} 
         toggleLanguage={() => setIsBangla(!isBangla)} 
       />
     );
   }
 
-  // Render App if logged in
+  // Render App (Sidebar Layout) only if logged in AND isAppView is true
   return (
     <div className="min-h-screen bg-gray-50 font-sans text-gray-900 flex">
       
@@ -98,7 +112,10 @@ const App: React.FC = () => {
 
       {/* Sidebar Navigation */}
       <aside className={`fixed lg:sticky top-0 left-0 h-screen w-64 bg-white border-r border-gray-200 transform transition-transform duration-200 ease-in-out z-50 ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}`}>
-        <div className="p-6 flex items-center gap-3 border-b border-gray-100 h-20">
+        <div 
+          className="p-6 flex items-center gap-3 border-b border-gray-100 h-20 cursor-pointer hover:bg-gray-50 transition-colors"
+          onClick={() => setIsAppView(false)} // Click Logo to go back to Landing Page
+        >
           <div className="w-8 h-8 bg-brand-600 rounded-lg flex items-center justify-center text-white font-bold text-lg">
             D
           </div>
@@ -106,6 +123,15 @@ const App: React.FC = () => {
         </div>
 
         <nav className="p-4 space-y-1 overflow-y-auto h-[calc(100vh-5rem)]">
+          
+          <button 
+             onClick={() => setIsAppView(false)}
+             className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-colors text-gray-600 hover:bg-gray-50 mb-4`}
+          >
+            <Home size={20} />
+            {isBangla ? 'হোম পেজ' : 'Home Page'}
+          </button>
+
           <div className="mb-6">
              <p className="px-4 text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">
                {isBangla ? 'আমার একাউন্ট' : 'My Account'}
@@ -211,13 +237,6 @@ const App: React.FC = () => {
                         <p className="text-xs text-gray-500">{isBangla ? 'ড্রিম বিডি প্ল্যাটফর্মে স্বাগতম।' : 'Welcome to Dream BD platform.'}</p>
                       </div>
                     </div>
-                    <div className="flex gap-3 items-start p-2 hover:bg-gray-50 rounded-lg transition-colors cursor-pointer">
-                       <div className="w-2 h-2 mt-2 rounded-full bg-green-500 shrink-0"></div>
-                       <div>
-                         <p className="text-sm text-gray-800 font-medium">{isBangla ? 'অর্ডার আপডেট' : 'Order Update'}</p>
-                         <p className="text-xs text-gray-500">{isBangla ? 'আপনার অর্ডার #1234 নিশ্চিত করা হয়েছে।' : 'Your order #1234 has been confirmed.'}</p>
-                       </div>
-                    </div>
                   </div>
                 </div>
               )}
@@ -242,7 +261,7 @@ const App: React.FC = () => {
           <Dashboard 
             user={user} 
             activeModule={activeModule} 
-            onModuleSelect={setActiveModule}
+            onModuleSelect={handleModuleSelect}
             onUpdateUser={handleUpdateUser}
             isBangla={isBangla}
           />

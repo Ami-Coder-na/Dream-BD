@@ -1,12 +1,11 @@
 import React from 'react';
 import { AppModule, User } from '../types';
-import { MODULE_CONFIG } from '../constants';
-import { ShoppingBag, Sprout, BookOpen, HeartPulse, Bus, Trash2, Fish, AlertOctagon, Briefcase, MessageCircle } from 'lucide-react';
 import { CraftModule } from './modules/CraftModule';
 import { AgriModule } from './modules/AgriModule';
 import { JobModule } from './modules/JobModule';
 import { ContactModule } from './modules/ContactModule';
 import { ProfilePage } from './ProfilePage';
+import { ShoppingBag, Sprout, BookOpen, HeartPulse, Bus, Trash2, Fish, AlertOctagon, Briefcase, MessageCircle } from 'lucide-react';
 
 interface DashboardProps {
   user: User;
