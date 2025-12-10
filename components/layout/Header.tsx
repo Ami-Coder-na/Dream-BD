@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { Menu, X, Globe, Bell, LogOut, ChevronDown, User as UserIcon } from 'lucide-react';
+import { Menu, X, Globe, Bell, LogOut, ChevronDown, User as UserIcon, Heart } from 'lucide-react';
 import { Button } from '../ui/Button';
 import { User, AppModule } from '../../types';
 
@@ -62,6 +62,14 @@ export const Header: React.FC<HeaderProps> = ({
 
           {/* Desktop Menu */}
           <div className="hidden lg:flex items-center gap-6">
+              <button 
+                onClick={() => onModuleSelect(AppModule.AMAR_BD)} 
+                className="flex items-center gap-2 text-sm font-bold text-green-700 bg-green-50 px-3 py-1.5 rounded-full hover:bg-green-100 transition-colors"
+              >
+                <Heart size={14} fill="currentColor" />
+                {isBangla ? 'আমার বাংলাদেশ' : 'Amar BD'}
+              </button>
+
               {/* Services Dropdown */}
               <div className="relative group">
                 <button 
@@ -201,6 +209,14 @@ export const Header: React.FC<HeaderProps> = ({
                 </div>
               </div>
             )}
+
+            <button 
+              onClick={() => handleModuleClick(AppModule.AMAR_BD)} 
+              className="flex items-center gap-2 text-left font-bold text-green-700 bg-green-50 p-3 rounded-lg border border-green-100"
+            >
+               <Heart size={16} fill="currentColor" />
+              {isBangla ? 'আমার বাংলাদেশ' : 'Amar BD'}
+            </button>
 
             <div className="text-left font-medium text-gray-700 py-2 border-b border-gray-50">
               {isBangla ? 'সেবাসমূহ' : 'Services'}

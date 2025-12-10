@@ -13,7 +13,7 @@ import { ProfilePage } from './ProfilePage';
 import { ShoppingBag, Sprout, BookOpen, HeartPulse, Bus, Trash2, Fish, AlertOctagon } from 'lucide-react';
 
 interface DashboardProps {
-  user: User;
+  user: User | null;
   activeModule: AppModule;
   onModuleSelect: (module: AppModule) => void;
   onUpdateUser: (updatedUser: User) => void;
@@ -39,6 +39,15 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, activeModule, onModu
   const renderContent = () => {
     switch (activeModule) {
       case AppModule.PROFILE:
+        if (!user) {
+          return (
+             <div className="flex flex-col items-center justify-center py-20 bg-gray-50 rounded-xl border border-dashed border-gray-200">
+               <div className="text-gray-500 mb-2 font-medium">
+                 {isBangla ? 'প্রোফাইল দেখতে অনুগ্রহ করে লগইন করুন।' : 'Please log in to view your profile.'}
+               </div>
+             </div>
+          );
+        }
         return <ProfilePage user={user} onUpdateUser={onUpdateUser} isBangla={isBangla} />;
       case AppModule.CRAFT:
         return <CraftModule isBangla={isBangla} />;

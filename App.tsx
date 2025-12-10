@@ -10,9 +10,19 @@ import { SignUpPage } from './components/auth/SignUpPage';
 import { JobModule } from './components/modules/JobModule';
 import { BlogModule } from './components/modules/BlogModule';
 import { ContactModule } from './components/modules/ContactModule';
+import { AmarBdModule } from './components/modules/AmarBdModule';
+import { CraftModule } from './components/modules/CraftModule';
+import { AgriModule } from './components/modules/AgriModule';
+import { EduModule } from './components/modules/EduModule';
+import { HealthModule } from './components/modules/HealthModule';
+import { TransportModule } from './components/modules/TransportModule';
+import { WasteModule } from './components/modules/WasteModule';
+import { FisheryModule } from './components/modules/FisheryModule';
+import { DisasterModule } from './components/modules/DisasterModule';
 import { Header } from './components/layout/Header';
 import { Footer } from './components/layout/Footer';
-import { Menu, Bell, LogOut, Globe, Search, User as UserIcon, Briefcase, MessageCircle, Home, Newspaper } from 'lucide-react';
+import { Button } from './components/ui/Button';
+import { Menu, Bell, LogOut, Globe, Search, User as UserIcon, Briefcase, MessageCircle, Home, Newspaper, Heart } from 'lucide-react';
 
 const App: React.FC = () => {
   const [user, setUser] = useState<User | null>(null); 
@@ -89,8 +99,8 @@ const App: React.FC = () => {
   }
 
   // Helper to determine if we are in "Website Mode" (Full Page) vs "App Mode" (Sidebar)
-  // JOB, BLOG, CONTACT are always full website pages now.
-  const isWebsitePage = activeModule === 'LANDING' || activeModule === AppModule.JOB || activeModule === AppModule.BLOG || activeModule === AppModule.CONTACT;
+  // ALL modules except Profile are now full website pages.
+  const isWebsitePage = activeModule !== AppModule.PROFILE;
 
   if (isWebsitePage) {
     const renderWebsiteContent = () => {
@@ -101,14 +111,32 @@ const App: React.FC = () => {
           return <BlogModule isBangla={isBangla} />;
         case AppModule.CONTACT:
           return <ContactModule isBangla={isBangla} />;
+        case AppModule.AMAR_BD:
+          return <AmarBdModule isBangla={isBangla} />;
+        case AppModule.CRAFT:
+          return <CraftModule isBangla={isBangla} />;
+        case AppModule.AGRI:
+          return <AgriModule isBangla={isBangla} />;
+        case AppModule.EDU:
+          return <EduModule isBangla={isBangla} />;
+        case AppModule.HEALTH:
+          return <HealthModule isBangla={isBangla} />;
+        case AppModule.TRANSPORT:
+          return <TransportModule isBangla={isBangla} />;
+        case AppModule.WASTE:
+          return <WasteModule isBangla={isBangla} />;
+        case AppModule.FISHERY:
+          return <FisheryModule isBangla={isBangla} />;
+        case AppModule.DISASTER:
+          return <DisasterModule isBangla={isBangla} />;
         case 'LANDING':
         default:
           return (
             <LandingPage 
               user={user}
               onLogin={navigateToLogin}
-              onLogout={handleLogout}
               onRegister={navigateToSignUp}
+              onLogout={handleLogout}
               onOpenAiChat={() => setShowAiChat(true)}
               onModuleSelect={handleModuleSelect}
               isBangla={isBangla} 
@@ -118,9 +146,6 @@ const App: React.FC = () => {
       }
     };
 
-    // LandingPage component already includes Header/Footer logic internally or we wrap specific modules
-    // Note: LandingPage.tsx was refactored to use Header/Footer inside it.
-    // For Job/Blog/Contact, we need to wrap them manually here to keep layout consistent.
     if (activeModule === 'LANDING') {
       return renderWebsiteContent();
     }
@@ -138,7 +163,15 @@ const App: React.FC = () => {
           toggleLanguage={() => setIsBangla(!isBangla)} 
         />
         <div className="flex-1">
-           {renderWebsiteContent()}
+           {/* Wrapper to ensure full page modules look good */}
+           {activeModule === AppModule.JOB || activeModule === AppModule.BLOG || activeModule === AppModule.CONTACT || activeModule === AppModule.AMAR_BD
+             ? renderWebsiteContent() // These already have container
+             : (
+               <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 min-h-screen">
+                 {renderWebsiteContent()}
+               </div>
+             )
+           }
         </div>
         <Footer 
           isBangla={isBangla} 
@@ -150,7 +183,7 @@ const App: React.FC = () => {
     );
   }
 
-  // Render App (Sidebar Layout) for Core Modules (Agri, Health, etc)
+  // Render App (Sidebar Layout) for Profile (Only module left using sidebar)
   return (
     <div className="min-h-screen bg-gray-50 font-sans text-gray-900 flex">
       
@@ -184,53 +217,38 @@ const App: React.FC = () => {
             {isBangla ? 'হোম পেজ' : 'Home Page'}
           </button>
 
+          {user && (
+            <div className="mb-6">
+               <p className="px-4 text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">
+                 {isBangla ? 'আমার একাউন্ট' : 'My Account'}
+               </p>
+               <button 
+                 onClick={() => { setActiveModule(AppModule.PROFILE); setSidebarOpen(false); }}
+                 className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-colors ${activeModule === AppModule.PROFILE ? 'bg-brand-50 text-brand-700 font-medium' : 'text-gray-600 hover:bg-gray-50'}`}
+               >
+                 <UserIcon size={20} />
+                 {isBangla ? 'প্রোফাইল ও সেটিংস' : 'Profile & Settings'}
+               </button>
+            </div>
+          )}
+
           <div className="mb-6">
              <p className="px-4 text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">
-               {isBangla ? 'আমার একাউন্ট' : 'My Account'}
+               {isBangla ? 'দ্রুত লিঙ্ক' : 'Quick Links'}
              </p>
              <button 
-               onClick={() => { setActiveModule(AppModule.PROFILE); setSidebarOpen(false); }}
-               className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-colors ${activeModule === AppModule.PROFILE ? 'bg-brand-50 text-brand-700 font-medium' : 'text-gray-600 hover:bg-gray-50'}`}
+                onClick={() => { setActiveModule(AppModule.AMAR_BD); setSidebarOpen(false); }}
+                className="w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-colors text-gray-600 hover:bg-gray-50"
              >
-               <UserIcon size={20} />
-               {isBangla ? 'প্রোফাইল ও সেটিংস' : 'Profile & Settings'}
+                <Heart size={20} />
+                {isBangla ? 'আমার বাংলাদেশ' : 'Amar BD'}
              </button>
-          </div>
-
-          <div className="mb-6">
-             <p className="px-4 text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">
-               {isBangla ? 'সেবাসমূহ' : 'Services'}
-             </p>
-             {/* Simple list of modules as Nav Items */}
-             {[AppModule.CRAFT, AppModule.AGRI, AppModule.EDU, AppModule.HEALTH, AppModule.TRANSPORT, AppModule.WASTE, AppModule.FISHERY, AppModule.DISASTER].map((mod) => (
-                <button 
-                  key={mod}
-                  onClick={() => { setActiveModule(mod); setSidebarOpen(false); }}
-                  className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-colors ${activeModule === mod ? 'bg-brand-50 text-brand-700 font-medium' : 'text-gray-600 hover:bg-gray-50'}`}
-                >
-                  <span className="w-2 h-2 rounded-full bg-brand-400"></span>
-                  <span className="capitalize">{mod}</span>
-                </button>
-             ))}
-          </div>
-
-          <div>
-             <p className="px-4 text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">
-               {isBangla ? 'অন্যান্য' : 'Others'}
-             </p>
              <button 
                onClick={() => { setActiveModule(AppModule.JOB); setSidebarOpen(false); }}
                className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-colors text-gray-600 hover:bg-gray-50`}
              >
                <Briefcase size={20} />
                {isBangla ? 'চাকরি' : 'Jobs'}
-             </button>
-             <button 
-               onClick={() => { setActiveModule(AppModule.BLOG); setSidebarOpen(false); }}
-               className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-colors text-gray-600 hover:bg-gray-50`}
-             >
-               <Newspaper size={20} />
-               {isBangla ? 'ব্লগ' : 'Blog'}
              </button>
              <button 
                onClick={() => { setActiveModule(AppModule.CONTACT); setSidebarOpen(false); }}
@@ -301,24 +319,32 @@ const App: React.FC = () => {
               )}
             </div>
 
-            {/* User Profile */}
-            <div className="flex items-center gap-3 pl-4 border-l border-gray-200 cursor-pointer" onClick={() => setActiveModule(AppModule.PROFILE)}>
-              <img src={user!.avatar} alt="Profile" className="w-8 h-8 rounded-full border border-gray-200" />
-              <div className="hidden md:block text-sm">
-                <p className="font-medium text-gray-800">{user!.name}</p>
-                <p className="text-xs text-gray-500">{user!.role}</p>
+            {/* User Profile or Login */}
+            {user ? (
+              <div className="flex items-center gap-3 pl-4 border-l border-gray-200 cursor-pointer" onClick={() => setActiveModule(AppModule.PROFILE)}>
+                <img src={user.avatar} alt="Profile" className="w-8 h-8 rounded-full border border-gray-200" />
+                <div className="hidden md:block text-sm">
+                  <p className="font-medium text-gray-800">{user.name}</p>
+                  <p className="text-xs text-gray-500">{user.role}</p>
+                </div>
+                <button onClick={(e) => { e.stopPropagation(); handleLogout(); }} className="p-2 text-gray-400 hover:text-red-600 ml-2" title="Logout">
+                  <LogOut size={18} />
+                </button>
               </div>
-              <button onClick={(e) => { e.stopPropagation(); handleLogout(); }} className="p-2 text-gray-400 hover:text-red-600 ml-2" title="Logout">
-                <LogOut size={18} />
-              </button>
-            </div>
+            ) : (
+              <div className="flex items-center gap-3 pl-4 border-l border-gray-200">
+                <Button onClick={navigateToLogin} size="sm">
+                  {isBangla ? 'লগইন' : 'Login'}
+                </Button>
+              </div>
+            )}
           </div>
         </header>
 
         {/* View Content */}
         <div className="p-6 lg:p-10 max-w-7xl mx-auto w-full">
           <Dashboard 
-            user={user!} 
+            user={user} 
             activeModule={activeModule as AppModule} 
             onModuleSelect={handleModuleSelect}
             onUpdateUser={handleUpdateUser}

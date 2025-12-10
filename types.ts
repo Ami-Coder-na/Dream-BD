@@ -21,7 +21,8 @@ export enum AppModule {
   PROFILE = 'profile',
   JOB = 'job',
   CONTACT = 'contact',
-  BLOG = 'blog'
+  BLOG = 'blog',
+  AMAR_BD = 'amar_bd'
 }
 
 export interface User {
