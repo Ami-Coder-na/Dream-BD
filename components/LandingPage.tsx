@@ -567,7 +567,7 @@ export const LandingPage: React.FC<Props> = ({
                 : 'Whether you are a farmer, teacher, doctor or citizen—one platform for all. Register for free now.'}
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <Button onClick={onRegister} size="lg" className="bg-white text-brand-900 hover:bg-gray-100 px-12 py-4 text-lg font-bold">
+              <Button onClick={onRegister} size="lg" className="bg-white !text-brand-900 hover:bg-gray-100 px-12 py-4 text-lg font-bold">
                 {isBangla ? 'রেজিস্ট্রেশন করুন' : 'Register Now'}
               </Button>
             </div>

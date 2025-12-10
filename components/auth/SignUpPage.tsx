@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Mail, Lock, User, Briefcase, ArrowLeft, Eye, EyeOff, ChevronDown } from 'lucide-react';
 import { Button } from '../ui/Button';
@@ -33,7 +34,7 @@ export const SignUpPage: React.FC<SignUpPageProps> = ({
         id: `u${Date.now()}`,
         name: name,
         role: role,
-        avatar: `https://i.pravatar.cc/150?u=${email}`,
+        avatar: `https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?q=80&w=150`,
         email: email
       });
     }, 1200);

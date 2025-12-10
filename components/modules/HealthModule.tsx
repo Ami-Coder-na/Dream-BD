@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { HeartPulse, Calendar, Phone, MapPin, Star, UserPlus } from 'lucide-react';
 import { Button } from '../ui/Button';
@@ -15,7 +16,7 @@ export const HealthModule: React.FC<Props> = ({ isBangla }) => {
       hospital: 'Dhaka Medical College',
       rating: 4.9,
       experience: '12 Years',
-      image: 'https://i.pravatar.cc/150?u=doc1'
+      image: 'https://images.unsplash.com/photo-1559839734-2b71ea197ec2?q=80&w=150'
     },
     {
       id: 2,
@@ -24,7 +25,7 @@ export const HealthModule: React.FC<Props> = ({ isBangla }) => {
       hospital: 'Square Hospital',
       rating: 4.7,
       experience: '8 Years',
-      image: 'https://i.pravatar.cc/150?u=doc2'
+      image: 'https://images.unsplash.com/photo-1612349317150-e413f6a5b16d?q=80&w=150'
     },
     {
       id: 3,
@@ -33,7 +34,7 @@ export const HealthModule: React.FC<Props> = ({ isBangla }) => {
       hospital: 'Evercare Hospital',
       rating: 4.8,
       experience: '10 Years',
-      image: 'https://i.pravatar.cc/150?u=doc3'
+      image: 'https://images.unsplash.com/photo-1594824476967-48c8b964273f?q=80&w=150'
     }
   ];
 

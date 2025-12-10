@@ -14,7 +14,7 @@ export const AmarBdModule: React.FC<Props> = ({ isBangla }) => {
       <div className="relative h-[500px] overflow-hidden">
         <div className="absolute inset-0">
           <img 
-            src="https://upload.wikimedia.org/wikipedia/commons/thumb/e/e4/River_of_Bangladesh.jpg/1280px-River_of_Bangladesh.jpg" 
+            src="https://images.unsplash.com/photo-1628102604928-103328574495?q=80&w=1200" 
             alt="Bangladesh Landscape" 
             className="w-full h-full object-cover"
           />
@@ -88,8 +88,8 @@ export const AmarBdModule: React.FC<Props> = ({ isBangla }) => {
              </div>
           </div>
           <div className="grid grid-cols-2 gap-4">
-             <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/5/52/Jatiyo_Sriti_Shoudho.jpg/800px-Jatiyo_Sriti_Shoudho.jpg" className="rounded-2xl shadow-lg w-full h-64 object-cover transform translate-y-8" alt="National Memorial" />
-             <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/6/62/Rickshaws_in_Dhaka.jpg/800px-Rickshaws_in_Dhaka.jpg" className="rounded-2xl shadow-lg w-full h-64 object-cover" alt="Rickshaw Art" />
+             <img src="https://images.unsplash.com/photo-1596495578065-6e0763fa1178?q=80&w=800" className="rounded-2xl shadow-lg w-full h-64 object-cover transform translate-y-8" alt="National Memorial" />
+             <img src="https://images.unsplash.com/photo-1628081682855-3b951167733f?q=80&w=800" className="rounded-2xl shadow-lg w-full h-64 object-cover" alt="Rickshaw Art" />
           </div>
         </div>
       </div>
@@ -111,17 +111,17 @@ export const AmarBdModule: React.FC<Props> = ({ isBangla }) => {
               { 
                 title: isBangla ? 'কক্সবাজার সমুদ্র সৈকত' : 'Cox\'s Bazar',
                 desc: isBangla ? 'বিশ্বের দীর্ঘতম প্রাকৃতিক সমুদ্র সৈকত।' : 'The longest natural sea beach in the world.',
-                img: 'https://upload.wikimedia.org/wikipedia/commons/thumb/0/05/Cox%27s_Bazar_Sunset.jpg/800px-Cox%27s_Bazar_Sunset.jpg'
+                img: 'https://images.unsplash.com/photo-1608958435020-e8a710988090?q=80&w=800'
               },
               { 
                 title: isBangla ? 'সুন্দরবন' : 'The Sundarbans',
                 desc: isBangla ? 'বিশ্বের বৃহত্তম ম্যানগ্রোভ বন এবং রয়্যাল বেঙ্গল টাইগারের আবাসস্থল।' : 'Largest mangrove forest and home of the Royal Bengal Tiger.',
-                img: 'https://upload.wikimedia.org/wikipedia/commons/thumb/7/77/Royal_Bengal_Tiger_at_Sundarban.jpg/800px-Royal_Bengal_Tiger_at_Sundarban.jpg'
+                img: 'https://images.unsplash.com/photo-1565551991823-380327f12e84?q=80&w=800'
               },
               { 
-                title: isBangla ? 'জাফলং, সিলেট' : 'Jaflong, Sylhet',
-                desc: isBangla ? 'পাহাড় এবং নদীর এক অপূর্ব মিলনমেলা।' : 'A mesmerizing combination of hills and rivers.',
-                img: 'https://upload.wikimedia.org/wikipedia/commons/thumb/4/4c/Jaflong_Sylhet.jpg/800px-Jaflong_Sylhet.jpg'
+                title: isBangla ? 'সিলেট চা বাগান' : 'Sylhet Tea Gardens',
+                desc: isBangla ? 'পাহাড় এবং সবুজের এক অপূর্ব মিলনমেলা।' : 'A mesmerizing combination of hills and lush greenery.',
+                img: 'https://images.unsplash.com/photo-1591036081822-4217355050f2?q=80&w=800'
               }
             ].map((spot, idx) => (
               <div key={idx} className="bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 group">

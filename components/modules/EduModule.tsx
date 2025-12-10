@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { BookOpen, PlayCircle, Award, Clock, Users, Search } from 'lucide-react';
 import { Button } from '../ui/Button';
@@ -15,7 +16,7 @@ export const EduModule: React.FC<Props> = ({ isBangla }) => {
       students: 1250,
       lessons: 45,
       progress: 75,
-      image: 'https://picsum.photos/400/220?random=20'
+      image: 'https://images.unsplash.com/photo-1635070041078-e363dbe005cb?q=80&w=400'
     },
     {
       id: 2,
@@ -24,7 +25,7 @@ export const EduModule: React.FC<Props> = ({ isBangla }) => {
       students: 3400,
       lessons: 20,
       progress: 30,
-      image: 'https://picsum.photos/400/220?random=21'
+      image: 'https://images.unsplash.com/photo-1456513080510-7bf3a84b82f8?q=80&w=400'
     },
     {
       id: 3,
@@ -33,7 +34,7 @@ export const EduModule: React.FC<Props> = ({ isBangla }) => {
       students: 800,
       lessons: 60,
       progress: 0,
-      image: 'https://picsum.photos/400/220?random=22'
+      image: 'https://images.unsplash.com/photo-1498050108023-c5249f4df085?q=80&w=400'
     }
   ];
 

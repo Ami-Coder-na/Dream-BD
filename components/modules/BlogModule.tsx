@@ -18,7 +18,7 @@ export const BlogModule: React.FC<Props> = ({ isBangla }) => {
       author: 'Dr. Rahim Ahmed',
       date: 'Oct 15, 2023',
       category: isBangla ? 'কৃষি' : 'Agriculture',
-      image: 'https://picsum.photos/400/250?random=10'
+      image: 'https://images.unsplash.com/photo-1625246333195-78d9c38ad449?q=80&w=400'
     },
     {
       id: 2,
@@ -29,7 +29,7 @@ export const BlogModule: React.FC<Props> = ({ isBangla }) => {
       author: 'Fatema Begum',
       date: 'Oct 12, 2023',
       category: isBangla ? 'ফার্মিং' : 'Farming',
-      image: 'https://picsum.photos/400/250?random=11'
+      image: 'https://images.unsplash.com/photo-1591465223018-b783d73b5a45?q=80&w=400'
     },
     {
       id: 3,
@@ -40,7 +40,7 @@ export const BlogModule: React.FC<Props> = ({ isBangla }) => {
       author: 'Kamrul Hasan',
       date: 'Oct 08, 2023',
       category: isBangla ? 'বাণিজ্য' : 'Trade',
-      image: 'https://picsum.photos/400/250?random=12'
+      image: 'https://images.unsplash.com/photo-1459416202863-125c15e58e6e?q=80&w=400'
     },
     {
       id: 4,
@@ -51,7 +51,7 @@ export const BlogModule: React.FC<Props> = ({ isBangla }) => {
       author: 'Dr. Nusrat Jahan',
       date: 'Oct 05, 2023',
       category: isBangla ? 'স্বাস্থ্য' : 'Health',
-      image: 'https://picsum.photos/400/250?random=13'
+      image: 'https://images.unsplash.com/photo-1576091160399-112ba8d25d1d?q=80&w=400'
     }
   ];
 

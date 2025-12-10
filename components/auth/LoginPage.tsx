@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Mail, Lock, ArrowLeft, Eye, EyeOff, CheckCircle, Sparkles } from 'lucide-react';
 import { Button } from '../ui/Button';
@@ -33,7 +34,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({
           id: 'u1',
           name: 'Rahim Uddin',
           role: 'Citizen',
-          avatar: 'https://i.pravatar.cc/150?u=rahim',
+          avatar: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?q=80&w=150',
           email: email
         });
       } else {

@@ -1,10 +1,11 @@
+
 import { Product, UserRole, Alert, AppModule } from './types';
 
 export const MOCK_PRODUCTS: Product[] = [
-  { id: '1', name: 'Nakshi Kantha', nameBn: 'নকশী কাঁথা', price: 2500, category: 'Textile', image: 'https://picsum.photos/300/300?random=1', ecoFriendly: true },
-  { id: '2', name: 'Bamboo Basket', nameBn: 'বাঁশের ঝুড়ি', price: 450, category: 'Bamboo', image: 'https://picsum.photos/300/300?random=2', ecoFriendly: true },
-  { id: '3', name: 'Jamdani Saree', nameBn: 'জামদানি শাড়ি', price: 12000, category: 'Textile', image: 'https://picsum.photos/300/300?random=3', ecoFriendly: false },
-  { id: '4', name: 'Clay Pot', nameBn: 'মাটির কলস', price: 150, category: 'Pottery', image: 'https://picsum.photos/300/300?random=4', ecoFriendly: true },
+  { id: '1', name: 'Nakshi Kantha', nameBn: 'নকশী কাঁথা', price: 2500, category: 'Textile', image: 'https://images.unsplash.com/photo-1599691657388-75707b69512d?q=80&w=300', ecoFriendly: true },
+  { id: '2', name: 'Bamboo Basket', nameBn: 'বাঁশের ঝুড়ি', price: 450, category: 'Bamboo', image: 'https://images.unsplash.com/photo-1605151268069-70562e6097c0?q=80&w=300', ecoFriendly: true },
+  { id: '3', name: 'Jamdani Saree', nameBn: 'জামদানি শাড়ি', price: 12000, category: 'Textile', image: 'https://images.unsplash.com/photo-1617309995644-8c081e649080?q=80&w=300', ecoFriendly: false },
+  { id: '4', name: 'Clay Pot', nameBn: 'মাটির কলস', price: 150, category: 'Pottery', image: 'https://images.unsplash.com/photo-1505315180424-9b2d3588f030?q=80&w=300', ecoFriendly: true },
 ];
 
 export const ALERTS: Alert[] = [
