@@ -216,8 +216,8 @@ export const LandingPage: React.FC<Props> = ({
                   : 'Buy authentic handmade products directly from rural artisans. From Nakshi Kantha to Jamdani, support local craftsmanship.'}
               </p>
               <div className="flex gap-4">
-                <Button onClick={() => onModuleSelect(AppModule.CRAFT)} className="bg-orange-600 hover:bg-orange-700 border-none shadow-lg shadow-orange-600/20">
-                  {isBangla ? 'মার্কেটপ্লেস দেখুন' : 'Visit Marketplace'}
+                <Button onClick={() => onModuleSelect(AppModule.CRAFT)} className="bg-orange-600 hover:bg-orange-700 border-none shadow-lg shadow-orange-600/20 px-8">
+                  {isBangla ? 'কারুশিল্প দেখুন' : 'Explore Crafts'}
                 </Button>
               </div>
             </div>
@@ -257,8 +257,8 @@ export const LandingPage: React.FC<Props> = ({
                    <li key={i} className="flex items-center gap-2 text-gray-700 font-medium">{item}</li>
                  ))}
                </ul>
-               <Button onClick={() => onModuleSelect(AppModule.AGRI)} className="bg-green-600 hover:bg-green-700 border-none shadow-lg shadow-green-600/20">
-                 {isBangla ? 'কৃষি সেবা নিন' : 'Explore Agri Tools'}
+               <Button onClick={() => onModuleSelect(AppModule.AGRI)} className="bg-green-600 hover:bg-green-700 border-none shadow-lg shadow-green-600/20 px-8">
+                 {isBangla ? 'কৃষি সেবা দেখুন' : 'Explore Agriculture'}
                </Button>
             </div>
             <div className="lg:w-1/2 relative">
@@ -305,7 +305,7 @@ export const LandingPage: React.FC<Props> = ({
                    : 'Connect with specialized doctors through video consultation. Find nearby hospitals and emergency services instantly.'}
                </p>
                <div className="flex flex-wrap gap-4">
-                 <Button onClick={() => onModuleSelect(AppModule.HEALTH)} className="bg-teal-600 hover:bg-teal-700 border-none shadow-lg shadow-teal-600/20">
+                 <Button onClick={() => onModuleSelect(AppModule.HEALTH)} className="bg-teal-600 hover:bg-teal-700 border-none shadow-lg shadow-teal-600/20 px-8">
                    {isBangla ? 'ডাক্তার খুঁজুন' : 'Find a Doctor'}
                  </Button>
                  <Button onClick={() => onModuleSelect(AppModule.HEALTH)} variant="outline" className="border-teal-200 text-teal-700 hover:bg-teal-50">
@@ -343,9 +343,12 @@ export const LandingPage: React.FC<Props> = ({
             <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
               {isBangla ? 'সবার জন্য মানসম্মত শিক্ষা' : 'Learning Without Boundaries'}
             </h2>
-            <p className="text-lg text-gray-600 max-w-2xl mx-auto">
+            <p className="text-lg text-gray-600 max-w-2xl mx-auto mb-8">
               {isBangla ? 'একাডেমিক থেকে কারিগরি—সব ধরনের কোর্স এখন এক অ্যাপে।' : 'From academic to vocational training, access diverse courses in one app.'}
             </p>
+            <Button onClick={() => onModuleSelect(AppModule.EDU)} className="bg-blue-600 hover:bg-blue-700 shadow-lg shadow-blue-600/20 px-8">
+              {isBangla ? 'শিক্ষা সেবা দেখুন' : 'Explore Education'}
+            </Button>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
@@ -520,8 +523,8 @@ export const LandingPage: React.FC<Props> = ({
                    ? 'পুকুরের পানির পিএইচ এবং অক্সিজেনের মাত্রা পর্যবেক্ষণ করুন। মাছের রোগ বালাই এবং প্রতিকার সম্পর্কে জানুন।'
                    : 'Monitor pond water quality metrics like pH and Oxygen. Get expert advice on fish health and disease prevention.'}
                </p>
-               <Button onClick={() => onModuleSelect(AppModule.FISHERY)} className="bg-cyan-600 hover:bg-cyan-700 border-none shadow-lg shadow-cyan-600/20">
-                 {isBangla ? 'ড্যাশবোর্ড দেখুন' : 'View Dashboard'}
+               <Button onClick={() => onModuleSelect(AppModule.FISHERY)} className="bg-cyan-600 hover:bg-cyan-700 border-none shadow-lg shadow-cyan-600/20 px-8">
+                 {isBangla ? 'মৎস্য সেবা দেখুন' : 'Explore Fishery'}
                </Button>
             </div>
           </div>
