@@ -1,0 +1,7 @@
+{
+  "name": "Dream BD",
+  "description": "A unified digital platform for Bangladesh integrating crafts, agriculture, education, health, transport, and disaster management.",
+  "requestFramePermissions": [
+    "geolocation"
+  ]
+}
