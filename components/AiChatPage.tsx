@@ -1,3 +1,4 @@
+
 import React, { useState, useRef, useEffect } from 'react';
 import { Send, Bot, ArrowLeft, Loader2, User as UserIcon, Sparkles, Paperclip, X as XIcon, Image as ImageIcon, Mic, ThumbsUp, ThumbsDown, MessageSquare, Clock, Plus, Menu } from 'lucide-react';
 import { generateAssistantResponse } from '../services/geminiService';
@@ -13,25 +14,53 @@ export const AiChatPage: React.FC<AiChatPageProps> = ({ onBack, isBangla }) => {
   const [loading, setLoading] = useState(false);
   const [selectedFile, setSelectedFile] = useState<Attachment | null>(null);
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [activeSessionId, setActiveSessionId] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   
-  // Mock History Data
+  // Mock History Data with Messages
   const [sessions, setSessions] = useState<ChatSession[]>([
-    { id: '1', title: isBangla ? 'ধান চাষের সমস্যা' : 'Rice Farming Issue', date: 'Today', preview: 'How to cure blast disease...' },
-    { id: '2', title: isBangla ? 'ডাক্তারের অ্যাপয়েন্টমেন্ট' : 'Doctor Appointment', date: 'Yesterday', preview: 'Schedule for Dr. Rahim...' },
-    { id: '3', title: isBangla ? 'হস্তশিল্পের বাজার' : 'Craft Market Prices', date: 'Previous 7 Days', preview: 'Price of Nakshi Kantha...' },
+    { 
+      id: '1', 
+      title: isBangla ? 'ধান চাষের সমস্যা' : 'Rice Farming Issue', 
+      date: 'Today', 
+      preview: isBangla ? 'কীভাবে ব্লাস্ট রোগ নিরাময় করা যায়...' : 'How to cure blast disease...',
+      messages: [
+        { id: 'm1-1', role: 'user', text: isBangla ? 'ব্লাস্ট রোগ কীভাবে সারাবো?' : 'How to cure blast disease?', timestamp: new Date(Date.now() - 86400000) },
+        { id: 'm1-2', role: 'model', text: isBangla ? 'ব্লাস্ট রোগ দমনে ট্রাইসাইক্লাজোল ব্যবহার করুন।' : 'Use Tricyclazole to control blast disease.', timestamp: new Date(Date.now() - 86390000) }
+      ]
+    },
+    { 
+      id: '2', 
+      title: isBangla ? 'ডাক্তারের অ্যাপয়েন্টমেন্ট' : 'Doctor Appointment', 
+      date: 'Yesterday', 
+      preview: isBangla ? 'ডাঃ রহিমের সময়সূচী...' : 'Schedule for Dr. Rahim...',
+      messages: [
+        { id: 'm2-1', role: 'user', text: isBangla ? 'ডাঃ রহিমের অ্যাপয়েন্টমেন্ট চাই' : 'I need an appointment with Dr. Rahim', timestamp: new Date(Date.now() - 172800000) },
+        { id: 'm2-2', role: 'model', text: isBangla ? 'ডাঃ রহিম বিকাল ৫টা থেকে ৮টা পর্যন্ত রোগী দেখেন।' : 'Dr. Rahim sees patients from 5 PM to 8 PM.', timestamp: new Date(Date.now() - 172790000) }
+      ]
+    },
+    { 
+      id: '3', 
+      title: isBangla ? 'হস্তশিল্পের বাজার' : 'Craft Market Prices', 
+      date: 'Previous 7 Days', 
+      preview: isBangla ? 'নকশী কাঁথার দাম...' : 'Price of Nakshi Kantha...',
+      messages: [
+        { id: 'm3-1', role: 'user', text: isBangla ? 'নকশী কাঁথার বর্তমান দাম কত?' : 'What is the current price of Nakshi Kantha?', timestamp: new Date(Date.now() - 604800000) },
+        { id: 'm3-2', role: 'model', text: isBangla ? 'মানের উপর নির্ভর করে ১৫০০ থেকে ৫০০০ টাকা।' : 'Depending on quality, 1500 to 5000 BDT.', timestamp: new Date(Date.now() - 604790000) }
+      ]
+    },
   ]);
 
-  const [messages, setMessages] = useState<ChatMessage[]>([
-    {
-      id: 'init',
-      role: 'model',
-      text: isBangla 
-        ? 'স্বাগতম! আমি ড্রিম বিডি এআই। কৃষি, স্বাস্থ্য, শিক্ষা বা অন্য যেকোনো বিষয়ে আমি আপনাকে কীভাবে সাহায্য করতে পারি? আপনি ছবি বা অডিও পাঠাতে পারেন।' 
-        : 'Welcome! I am Dream BD AI. How can I assist you today? You can also share images or audio for analysis.',
-      timestamp: new Date()
-    }
-  ]);
+  const defaultWelcomeMessage: ChatMessage = {
+    id: 'init',
+    role: 'model',
+    text: isBangla 
+      ? 'স্বাগতম! আমি ড্রিম বিডি এআই। কৃষি, স্বাস্থ্য, শিক্ষা বা অন্য যেকোনো বিষয়ে আমি আপনাকে কীভাবে সাহায্য করতে পারি? আপনি ছবি বা অডিও পাঠাতে পারেন।' 
+      : 'Welcome! I am Dream BD AI. How can I assist you today? You can also share images or audio for analysis.',
+    timestamp: new Date()
+  };
+
+  const [messages, setMessages] = useState<ChatMessage[]>([defaultWelcomeMessage]);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   const scrollToBottom = () => {
@@ -45,6 +74,12 @@ export const AiChatPage: React.FC<AiChatPageProps> = ({ onBack, isBangla }) => {
   const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (!file) return;
+
+    // Strict validation for Image and Audio
+    if (!file.type.startsWith('image/') && !file.type.startsWith('audio/')) {
+       alert(isBangla ? 'অনুগ্রহ করে শুধু ছবি বা অডিও ফাইল নির্বাচন করুন।' : 'Please select only image or audio files.');
+       return;
+    }
 
     const reader = new FileReader();
     reader.onload = (e) => {
@@ -63,6 +98,18 @@ export const AiChatPage: React.FC<AiChatPageProps> = ({ onBack, isBangla }) => {
     event.target.value = '';
   };
 
+  const handleSessionSelect = (session: ChatSession) => {
+    setActiveSessionId(session.id);
+    setMessages(session.messages);
+    setSidebarOpen(false); // Close sidebar on mobile after selection
+  };
+
+  const handleNewChat = () => {
+    setActiveSessionId(null);
+    setMessages([defaultWelcomeMessage]);
+    setSidebarOpen(false);
+  };
+
   const handleSend = async () => {
     if (!input.trim() && !selectedFile) return;
 
@@ -74,7 +121,10 @@ export const AiChatPage: React.FC<AiChatPageProps> = ({ onBack, isBangla }) => {
       timestamp: new Date()
     };
 
-    setMessages(prev => [...prev, userMsg]);
+    // Optimistically update UI
+    const msgsAfterUser = [...messages, userMsg];
+    setMessages(msgsAfterUser);
+    
     setInput('');
     const currentAttachment = selectedFile;
     setSelectedFile(null);
@@ -99,14 +149,52 @@ export const AiChatPage: React.FC<AiChatPageProps> = ({ onBack, isBangla }) => {
       timestamp: new Date()
     };
 
-    setMessages(prev => [...prev, botMsg]);
+    const finalMessages = [...msgsAfterUser, botMsg];
+    setMessages(finalMessages);
     setLoading(false);
+
+    // Update or Create Session
+    if (activeSessionId) {
+      // Update existing session
+      setSessions(prev => prev.map(s => {
+        if (s.id === activeSessionId) {
+          return {
+            ...s,
+            preview: botMsg.text.substring(0, 40) + '...',
+            messages: finalMessages,
+            date: 'Today' // Bump to today
+          };
+        }
+        return s;
+      }));
+    } else {
+      // Create new session
+      const newSessionId = Date.now().toString();
+      const newSession: ChatSession = {
+        id: newSessionId,
+        title: input.substring(0, 30) || (isBangla ? 'নতুন আলাপ' : 'New Conversation'),
+        date: 'Today',
+        preview: botMsg.text.substring(0, 40) + '...',
+        messages: finalMessages
+      };
+      setSessions(prev => [newSession, ...prev]);
+      setActiveSessionId(newSessionId);
+    }
   };
 
   const handleFeedback = (msgId: string, type: 'positive' | 'negative') => {
     setMessages(prev => prev.map(msg => 
       msg.id === msgId ? { ...msg, feedback: type } : msg
     ));
+    
+    // Also update in session if active
+    if (activeSessionId) {
+      setSessions(prev => prev.map(s => 
+        s.id === activeSessionId 
+          ? { ...s, messages: s.messages.map(m => m.id === msgId ? { ...m, feedback: type } : m) }
+          : s
+      ));
+    }
   };
 
   const formatTime = (date: Date) => {
@@ -135,7 +223,7 @@ export const AiChatPage: React.FC<AiChatPageProps> = ({ onBack, isBangla }) => {
 
         <div className="p-3">
           <button 
-             onClick={() => { setMessages([]); setSidebarOpen(false); }}
+             onClick={handleNewChat}
              className="w-full flex items-center justify-center gap-2 bg-brand-600 hover:bg-brand-700 text-white py-3 rounded-lg font-medium transition-colors shadow-sm"
           >
             <Plus size={18} />
@@ -144,21 +232,41 @@ export const AiChatPage: React.FC<AiChatPageProps> = ({ onBack, isBangla }) => {
         </div>
 
         <div className="flex-1 overflow-y-auto px-3 pb-4 space-y-4">
-          {/* Group by Date (Mock Implementation) */}
+          {/* Group by Date */}
           <div>
             <p className="px-2 text-xs font-semibold text-gray-400 uppercase mb-2 mt-2">{isBangla ? 'আজ' : 'Today'}</p>
             {sessions.filter(s => s.date === 'Today').map(session => (
-              <div key={session.id} className="p-3 hover:bg-white hover:shadow-sm rounded-lg cursor-pointer transition-all border border-transparent hover:border-gray-200 group">
-                <h4 className="font-medium text-gray-800 text-sm truncate">{session.title}</h4>
+              <div 
+                key={session.id} 
+                onClick={() => handleSessionSelect(session)}
+                className={`p-3 rounded-lg cursor-pointer transition-all border group mb-2 ${
+                  activeSessionId === session.id 
+                    ? 'bg-white border-brand-200 shadow-sm ring-1 ring-brand-100' 
+                    : 'border-transparent hover:bg-white hover:shadow-sm hover:border-gray-200'
+                }`}
+              >
+                <h4 className={`font-medium text-sm truncate ${activeSessionId === session.id ? 'text-brand-700' : 'text-gray-800'}`}>
+                  {session.title}
+                </h4>
                 <p className="text-xs text-gray-500 truncate mt-0.5">{session.preview}</p>
               </div>
             ))}
           </div>
           <div>
-            <p className="px-2 text-xs font-semibold text-gray-400 uppercase mb-2">{isBangla ? 'গতকাল' : 'Yesterday'}</p>
-             {sessions.filter(s => s.date === 'Yesterday').map(session => (
-              <div key={session.id} className="p-3 hover:bg-white hover:shadow-sm rounded-lg cursor-pointer transition-all border border-transparent hover:border-gray-200">
-                <h4 className="font-medium text-gray-800 text-sm truncate">{session.title}</h4>
+            <p className="px-2 text-xs font-semibold text-gray-400 uppercase mb-2">{isBangla ? 'অতীত' : 'Previous'}</p>
+             {sessions.filter(s => s.date !== 'Today').map(session => (
+              <div 
+                key={session.id} 
+                onClick={() => handleSessionSelect(session)}
+                className={`p-3 rounded-lg cursor-pointer transition-all border group mb-2 ${
+                  activeSessionId === session.id 
+                    ? 'bg-white border-brand-200 shadow-sm ring-1 ring-brand-100' 
+                    : 'border-transparent hover:bg-white hover:shadow-sm hover:border-gray-200'
+                }`}
+              >
+                <h4 className={`font-medium text-sm truncate ${activeSessionId === session.id ? 'text-brand-700' : 'text-gray-800'}`}>
+                  {session.title}
+                </h4>
                 <p className="text-xs text-gray-500 truncate mt-0.5">{session.preview}</p>
               </div>
             ))}
@@ -348,7 +456,7 @@ export const AiChatPage: React.FC<AiChatPageProps> = ({ onBack, isBangla }) => {
               <button 
                 onClick={() => fileInputRef.current?.click()}
                 className="p-3 text-gray-400 hover:text-brand-600 hover:bg-brand-50 rounded-full transition-colors mb-[1px]"
-                title="Attach file"
+                title={isBangla ? 'ছবি বা অডিও যুক্ত করুন' : 'Attach image or audio'}
               >
                 <Paperclip size={20} />
               </button>

@@ -79,4 +79,5 @@ export interface ChatSession {
   title: string;
   date: string; // 'Today', 'Yesterday', etc.
   preview: string;
+  messages: ChatMessage[];
 }

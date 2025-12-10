@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   ShoppingBag, Sprout, BookOpen, HeartPulse, 
   Bus, Trash2, Fish, AlertOctagon, CheckCircle, Star, Sparkles
@@ -31,6 +31,39 @@ export const LandingPage: React.FC<Props> = ({
   toggleLanguage 
 }) => {
   
+  // Rotating Headline State
+  const [currentHeadlineIndex, setCurrentHeadlineIndex] = useState(0);
+
+  const headlines = [
+    {
+      bn: <>এক প্ল্যাটফর্মে <span className="text-brand-600">কৃষি, শিক্ষা, স্বাস্থ্য ও পরিবহন</span></>,
+      en: <>Agriculture, Education, Health <br className="hidden md:block"/> <span className="text-brand-600">& Transport in One Platform</span></>
+    },
+    {
+      bn: <>গ্রামীণ জীবনের সব সমস্যার <span className="text-brand-600">ডিজিটাল সমাধান</span></>,
+      en: <>Digital Solutions for <br className="hidden md:block"/> <span className="text-brand-600">All Rural Challenges</span></>
+    },
+    {
+      bn: <>কৃষকের মুখে হাসি, <span className="text-brand-600">শিক্ষার আলো</span> সবার ঘরে</>,
+      en: <>Empowering Farmers, <br className="hidden md:block"/> <span className="text-brand-600">Enlightening Students Everywhere</span></>
+    },
+    {
+      bn: <>জরুরি স্বাস্থ্যসেবা ও পরিবহন <span className="text-brand-600">এখন হাতের মুঠোয়</span></>,
+      en: <>Emergency Healthcare & Transport <br className="hidden md:block"/> <span className="text-brand-600">at Your Fingertips</span></>
+    },
+    {
+      bn: <>স্বপ্নের বাংলাদেশ গড়ার <span className="text-brand-600">ডিজিটাল কারিগর</span></>,
+      en: <>Building a Smart & <br className="hidden md:block"/> <span className="text-brand-600">Digital Dream Bangladesh</span></>
+    }
+  ];
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setCurrentHeadlineIndex((prev) => (prev + 1) % headlines.length);
+    }, 6000); // Increased to 6 seconds for slower rotation
+    return () => clearInterval(interval);
+  }, []);
+
   const modules = [
     {
       id: AppModule.CRAFT,
@@ -113,9 +146,7 @@ export const LandingPage: React.FC<Props> = ({
   };
 
   const handleModuleClick = (moduleId: AppModule) => {
-    if (user || !user) {
-      onModuleSelect(moduleId);
-    }
+    onModuleSelect(moduleId);
   };
 
   return (
@@ -137,17 +168,15 @@ export const LandingPage: React.FC<Props> = ({
           <span className="inline-block py-2 px-4 rounded-full bg-white border border-brand-100 text-brand-700 text-sm font-semibold mb-8 shadow-sm animate-fade-in-up">
             🚀 {isBangla ? 'ডিজিটাল বাংলাদেশের এক নতুন দিগন্ত' : 'A New Horizon for Digital Bangladesh'}
           </span>
-          <h1 className="text-4xl md:text-6xl lg:text-7xl font-bold text-gray-900 mb-8 leading-tight tracking-tight">
-            {isBangla ? (
-              <>
-                এক প্ল্যাটফর্মে <span className="text-brand-600">কৃষি, শিক্ষা, স্বাস্থ্য ও পরিবহন</span>
-              </>
-            ) : (
-              <>
-                Agriculture, Education, Health <br/> <span className="text-brand-600">& Transport in One Platform</span>
-              </>
-            )}
+          
+          {/* Animated Headline */}
+          <h1 
+            key={currentHeadlineIndex}
+            className="text-4xl md:text-6xl lg:text-7xl font-bold text-gray-900 mb-8 leading-tight tracking-tight animate-fade-in min-h-[120px] md:min-h-[160px]"
+          >
+            {isBangla ? headlines[currentHeadlineIndex].bn : headlines[currentHeadlineIndex].en}
           </h1>
+
           <p className="text-xl text-gray-600 mb-10 max-w-3xl mx-auto leading-relaxed">
             {isBangla 
               ? 'স্বপ্ন দেখুন, গড়ুন আগামীর বাংলাদেশ। কারুশিল্প থেকে কৃষি, স্বাস্থ্য থেকে শিক্ষা—সব সেবা এখন আপনার হাতের মুঠোয়।'
