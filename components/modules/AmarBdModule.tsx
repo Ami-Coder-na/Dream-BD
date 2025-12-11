@@ -14,7 +14,7 @@ export const AmarBdModule: React.FC<Props> = ({ isBangla }) => {
       <div className="relative h-[500px] overflow-hidden">
         <div className="absolute inset-0">
           <img 
-            src="https://images.unsplash.com/photo-1596495577886-d920f1fb7238?auto=format&fit=crop&q=80&w=1600" 
+            src="https://upload.wikimedia.org/wikipedia/commons/thumb/8/86/National_Martyrs%27_Memorial_of_Bangladesh_%283%29.jpg/1280px-National_Martyrs%27_Memorial_of_Bangladesh_%283%29.jpg" 
             alt="Bangladesh National Memorial" 
             className="w-full h-full object-cover"
             loading="eager"
@@ -91,8 +91,8 @@ export const AmarBdModule: React.FC<Props> = ({ isBangla }) => {
              </div>
           </div>
           <div className="grid grid-cols-2 gap-4">
-             <img src="https://images.unsplash.com/photo-1628081682855-3b951167733f?auto=format&fit=crop&q=80&w=800" className="rounded-2xl shadow-lg w-full h-64 object-cover transform translate-y-8" alt="Culture Art" loading="lazy" />
-             <img src="https://images.unsplash.com/photo-1588661706680-4591ca134d3d?auto=format&fit=crop&q=80&w=800" className="rounded-2xl shadow-lg w-full h-64 object-cover" alt="Rickshaw Art" loading="lazy" />
+             <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/a/a6/Rickshaw_art_of_Bangladesh.jpg/800px-Rickshaw_art_of_Bangladesh.jpg" className="rounded-2xl shadow-lg w-full h-64 object-cover transform translate-y-8" alt="Rickshaw Art" loading="lazy" />
+             <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/e/e5/Mangal_Shobhajatra_Pohela_Boishakh.jpg/800px-Mangal_Shobhajatra_Pohela_Boishakh.jpg" className="rounded-2xl shadow-lg w-full h-64 object-cover" alt="Culture Art" loading="lazy" />
           </div>
         </div>
       </div>
@@ -114,17 +114,17 @@ export const AmarBdModule: React.FC<Props> = ({ isBangla }) => {
               { 
                 title: isBangla ? 'কক্সবাজার সমুদ্র সৈকত' : 'Cox\'s Bazar',
                 desc: isBangla ? 'বিশ্বের দীর্ঘতম প্রাকৃতিক সমুদ্র সৈকত।' : 'The longest natural sea beach in the world.',
-                img: 'https://images.unsplash.com/photo-1608958435020-e8a710988090?auto=format&fit=crop&q=80&w=800' // Coxs Bazar
+                img: 'https://images.unsplash.com/photo-1599423300746-b6250726f15c?auto=format&fit=crop&q=80&w=800' // Reliable Coxs Bazar
               },
               { 
                 title: isBangla ? 'সুন্দরবন' : 'The Sundarbans',
                 desc: isBangla ? 'বিশ্বের বৃহত্তম ম্যানগ্রোভ বন এবং রয়্যাল বেঙ্গল টাইগারের আবাসস্থল।' : 'Largest mangrove forest and home of the Royal Bengal Tiger.',
-                img: 'https://images.unsplash.com/photo-1624606778465-9856f709142e?auto=format&fit=crop&q=80&w=800' // Mangrove/Forest
+                img: 'https://images.unsplash.com/photo-1596706913897-400845353592?auto=format&fit=crop&q=80&w=800' // Reliable Forest
               },
               { 
                 title: isBangla ? 'সিলেট চা বাগান' : 'Sylhet Tea Gardens',
                 desc: isBangla ? 'পাহাড় এবং সবুজের এক অপূর্ব মিলনমেলা।' : 'A mesmerizing combination of hills and lush greenery.',
-                img: 'https://images.unsplash.com/photo-1598501481105-d57639f75850?auto=format&fit=crop&q=80&w=800' // Tea Garden
+                img: 'https://images.unsplash.com/photo-1598501481105-d57639f75850?auto=format&fit=crop&q=80&w=800' // Reliable Tea Garden
               }
             ].map((spot, idx) => (
               <div key={idx} className="bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 group">
@@ -154,22 +154,22 @@ export const AmarBdModule: React.FC<Props> = ({ isBangla }) => {
          </h2>
          <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
             <div className="p-6 bg-white rounded-xl shadow-sm border border-gray-100 flex flex-col items-center hover:shadow-md transition-all duration-300">
-               <img src="https://images.unsplash.com/photo-1561731216-c3a4d99437d5?auto=format&fit=crop&q=80&w=200" alt="Tiger" className="w-20 h-20 rounded-full object-cover mb-4 border-2 border-green-100 shadow-sm" loading="lazy" />
+               <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/3/3f/Walking_tiger_female.jpg/400px-Walking_tiger_female.jpg" alt="Tiger" className="w-20 h-20 rounded-full object-cover mb-4 border-2 border-green-100 shadow-sm" loading="lazy" />
                <h4 className="font-bold text-gray-800">{isBangla ? 'রয়েল বেঙ্গল টাইগার' : 'Royal Bengal Tiger'}</h4>
                <p className="text-xs text-gray-500 mt-1">{isBangla ? 'জাতীয় পশু' : 'National Animal'}</p>
             </div>
             <div className="p-6 bg-white rounded-xl shadow-sm border border-gray-100 flex flex-col items-center hover:shadow-md transition-all duration-300">
-               <img src="https://images.unsplash.com/photo-1599598425947-320d35dc7454?auto=format&fit=crop&q=80&w=200" alt="Water Lily" className="w-20 h-20 rounded-full object-cover mb-4 border-2 border-green-100 shadow-sm" loading="lazy" />
+               <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/f/f6/Nymphaea_nouchali_-_National_flower_of_Bangladesh.jpg/400px-Nymphaea_nouchali_-_National_flower_of_Bangladesh.jpg" alt="Water Lily" className="w-20 h-20 rounded-full object-cover mb-4 border-2 border-green-100 shadow-sm" loading="lazy" />
                <h4 className="font-bold text-gray-800">{isBangla ? 'শাপলা' : 'Water Lily'}</h4>
                <p className="text-xs text-gray-500 mt-1">{isBangla ? 'জাতীয় ফুল' : 'National Flower'}</p>
             </div>
             <div className="p-6 bg-white rounded-xl shadow-sm border border-gray-100 flex flex-col items-center hover:shadow-md transition-all duration-300">
-               <img src="https://images.unsplash.com/photo-1601379435492-4f18db0d3674?auto=format&fit=crop&q=80&w=200" alt="Jackfruit" className="w-20 h-20 rounded-full object-cover mb-4 border-2 border-green-100 shadow-sm" loading="lazy" />
+               <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/b/ba/Jackfruit_hanging.JPG/400px-Jackfruit_hanging.JPG" alt="Jackfruit" className="w-20 h-20 rounded-full object-cover mb-4 border-2 border-green-100 shadow-sm" loading="lazy" />
                <h4 className="font-bold text-gray-800">{isBangla ? 'কাঁঠাল' : 'Jackfruit'}</h4>
                <p className="text-xs text-gray-500 mt-1">{isBangla ? 'জাতীয় ফল' : 'National Fruit'}</p>
             </div>
             <div className="p-6 bg-white rounded-xl shadow-sm border border-gray-100 flex flex-col items-center hover:shadow-md transition-all duration-300">
-               <img src="https://images.unsplash.com/photo-1621216666358-154a4f899981?auto=format&fit=crop&q=80&w=200" alt="Fish" className="w-20 h-20 rounded-full object-cover mb-4 border-2 border-green-100 shadow-sm" loading="lazy" />
+               <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/2/26/Tenualosa_ilisha_fish.jpg/400px-Tenualosa_ilisha_fish.jpg" alt="Fish" className="w-20 h-20 rounded-full object-cover mb-4 border-2 border-green-100 shadow-sm" loading="lazy" />
                <h4 className="font-bold text-gray-800">{isBangla ? 'ইলিশ' : 'Hilsa'}</h4>
                <p className="text-xs text-gray-500 mt-1">{isBangla ? 'জাতীয় মাছ' : 'National Fish'}</p>
             </div>

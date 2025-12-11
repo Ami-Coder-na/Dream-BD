@@ -8,7 +8,7 @@ export const MOCK_PRODUCTS: Product[] = [
     nameBn: 'নকশী কাঁথা', 
     price: 2500, 
     category: 'Textile', 
-    image: 'https://images.unsplash.com/photo-1597113366853-fea190b6cd82?auto=format&fit=crop&q=80&w=400', // Colorful Embroidery
+    image: 'https://images.unsplash.com/photo-1597113366853-fea190b6cd82?auto=format&fit=crop&q=80&w=400', // Woven texture
     ecoFriendly: true 
   },
   { 
@@ -17,7 +17,7 @@ export const MOCK_PRODUCTS: Product[] = [
     nameBn: 'বাঁশের ঝুড়ি', 
     price: 450, 
     category: 'Bamboo', 
-    image: 'https://images.unsplash.com/photo-1615966650071-855b15f29ad1?auto=format&fit=crop&q=80&w=400', // Woven Basket
+    image: 'https://images.unsplash.com/photo-1615966650071-855b15f29ad1?auto=format&fit=crop&q=80&w=400', // Basket
     ecoFriendly: true 
   },
   { 
@@ -26,7 +26,7 @@ export const MOCK_PRODUCTS: Product[] = [
     nameBn: 'জামদানি শাড়ি', 
     price: 12000, 
     category: 'Textile', 
-    image: 'https://images.unsplash.com/photo-1616686159513-4354228c278c?auto=format&fit=crop&q=80&w=400', // Saree Texture
+    image: 'https://images.unsplash.com/photo-1583391725954-43784122b10c?auto=format&fit=crop&q=80&w=400', // Textile pattern
     ecoFriendly: false 
   },
   { 
@@ -35,7 +35,7 @@ export const MOCK_PRODUCTS: Product[] = [
     nameBn: 'মাটির কলস', 
     price: 150, 
     category: 'Pottery', 
-    image: 'https://images.unsplash.com/photo-1624021798317-567c9c072c41?auto=format&fit=crop&q=80&w=400', // Terracotta/Pottery
+    image: 'https://images.unsplash.com/photo-1585642686150-10f545464197?auto=format&fit=crop&q=80&w=400', // Pottery
     ecoFriendly: true 
   },
 ];

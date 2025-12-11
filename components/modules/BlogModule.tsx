@@ -18,7 +18,7 @@ export const BlogModule: React.FC<Props> = ({ isBangla }) => {
       author: 'Dr. Rahim Ahmed',
       date: 'Oct 15, 2023',
       category: isBangla ? 'কৃষি' : 'Agriculture',
-      image: 'https://images.unsplash.com/photo-1530836369250-ef72a3f5cda8?auto=format&fit=crop&q=80&w=400' // Agri Tech / Field
+      image: 'https://images.unsplash.com/photo-1625246333195-58197bd47d26?auto=format&fit=crop&q=80&w=400' // Tractor/Field
     },
     {
       id: 2,
@@ -29,7 +29,7 @@ export const BlogModule: React.FC<Props> = ({ isBangla }) => {
       author: 'Fatema Begum',
       date: 'Oct 12, 2023',
       category: isBangla ? 'ফার্মিং' : 'Farming',
-      image: 'https://images.unsplash.com/photo-1591465223018-b783d73b5a45?auto=format&fit=crop&q=80&w=400' // Vegetables
+      image: 'https://images.unsplash.com/photo-1598170845058-32b9d6a5da37?auto=format&fit=crop&q=80&w=400' // Vegetables
     },
     {
       id: 3,
@@ -40,7 +40,7 @@ export const BlogModule: React.FC<Props> = ({ isBangla }) => {
       author: 'Kamrul Hasan',
       date: 'Oct 08, 2023',
       category: isBangla ? 'বাণিজ্য' : 'Trade',
-      image: 'https://images.unsplash.com/photo-1560706248-812030019623?auto=format&fit=crop&q=80&w=400' // Textiles / Sewing
+      image: 'https://images.unsplash.com/photo-1605333527878-43d9a5b1064a?auto=format&fit=crop&q=80&w=400' // Sewing/Craft
     },
     {
       id: 4,
@@ -51,7 +51,7 @@ export const BlogModule: React.FC<Props> = ({ isBangla }) => {
       author: 'Dr. Nusrat Jahan',
       date: 'Oct 05, 2023',
       category: isBangla ? 'স্বাস্থ্য' : 'Health',
-      image: 'https://images.unsplash.com/photo-1576091160550-2187d80a1830?auto=format&fit=crop&q=80&w=400' // Stethoscope / Doctor
+      image: 'https://images.unsplash.com/photo-1576091160550-2187d80a1830?auto=format&fit=crop&q=80&w=400' // Doctor
     }
   ];
 
