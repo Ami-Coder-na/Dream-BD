@@ -2,6 +2,7 @@
 import React from 'react';
 import { Search, Calendar, User, ArrowRight, Tag } from 'lucide-react';
 import { Button } from '../ui/Button';
+import { getOptimizedImageUrl } from '../utils/imageUtils';
 
 interface Props {
   isBangla: boolean;
@@ -18,7 +19,7 @@ export const BlogModule: React.FC<Props> = ({ isBangla }) => {
       author: 'Dr. Rahim Ahmed',
       date: 'Oct 15, 2023',
       category: isBangla ? 'কৃষি' : 'Agriculture',
-      image: 'https://images.unsplash.com/photo-1625246333195-58197bd47d26?auto=format&fit=crop&q=80&w=400' // Tractor/Field
+      image: 'https://images.unsplash.com/photo-1625246333195-58197bd47d26' // Tractor/Field
     },
     {
       id: 2,
@@ -29,7 +30,7 @@ export const BlogModule: React.FC<Props> = ({ isBangla }) => {
       author: 'Fatema Begum',
       date: 'Oct 12, 2023',
       category: isBangla ? 'ফার্মিং' : 'Farming',
-      image: 'https://images.unsplash.com/photo-1598170845058-32b9d6a5da37?auto=format&fit=crop&q=80&w=400' // Vegetables
+      image: 'https://images.unsplash.com/photo-1598170845058-32b9d6a5da37' // Vegetables
     },
     {
       id: 3,
@@ -40,7 +41,7 @@ export const BlogModule: React.FC<Props> = ({ isBangla }) => {
       author: 'Kamrul Hasan',
       date: 'Oct 08, 2023',
       category: isBangla ? 'বাণিজ্য' : 'Trade',
-      image: 'https://images.unsplash.com/photo-1605333527878-43d9a5b1064a?auto=format&fit=crop&q=80&w=400' // Sewing/Craft
+      image: 'https://images.unsplash.com/photo-1605333527878-43d9a5b1064a' // Sewing/Craft
     },
     {
       id: 4,
@@ -51,7 +52,7 @@ export const BlogModule: React.FC<Props> = ({ isBangla }) => {
       author: 'Dr. Nusrat Jahan',
       date: 'Oct 05, 2023',
       category: isBangla ? 'স্বাস্থ্য' : 'Health',
-      image: 'https://images.unsplash.com/photo-1576091160550-2187d80a1830?auto=format&fit=crop&q=80&w=400' // Doctor
+      image: 'https://images.unsplash.com/photo-1576091160550-2187d80a1830' // Doctor
     }
   ];
 
@@ -86,10 +87,11 @@ export const BlogModule: React.FC<Props> = ({ isBangla }) => {
             <div key={post.id} className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden hover:shadow-xl hover:-translate-y-1 transition-all duration-300 group flex flex-col h-full">
               <div className="relative h-56 overflow-hidden">
                 <img 
-                  src={post.image} 
+                  src={getOptimizedImageUrl(post.image, 600)} 
                   alt={post.title} 
                   className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                   loading="lazy"
+                  onError={(e) => { e.currentTarget.src = "https://placehold.co/400x300/f3f4f6/9ca3af?text=Article+Image"; }}
                 />
                 <span className="absolute top-4 left-4 bg-white/95 backdrop-blur-sm text-emerald-700 text-xs font-bold px-3 py-1.5 rounded-full flex items-center gap-1 shadow-sm">
                   <Tag size={12} />

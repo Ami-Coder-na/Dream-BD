@@ -1,8 +1,10 @@
+
 import React from 'react';
 import { ShoppingBag, Star, Truck } from 'lucide-react';
 import { Product } from '../../types';
 import { MOCK_PRODUCTS } from '../../constants';
 import { Button } from '../ui/Button';
+import { getOptimizedImageUrl } from '../utils/imageUtils';
 
 interface Props {
   isBangla: boolean;
@@ -28,7 +30,13 @@ export const CraftModule: React.FC<Props> = ({ isBangla }) => {
         {MOCK_PRODUCTS.map((product) => (
           <div key={product.id} className="bg-white rounded-lg shadow-sm border border-gray-100 overflow-hidden hover:shadow-md transition-shadow">
             <div className="relative h-48 bg-gray-200">
-              <img src={product.image} alt={product.name} className="w-full h-full object-cover" />
+              <img 
+                src={getOptimizedImageUrl(product.image, 400)} 
+                alt={product.name} 
+                className="w-full h-full object-cover" 
+                loading="lazy"
+                onError={(e) => { e.currentTarget.src = "https://placehold.co/400x300/f3f4f6/9ca3af?text=Image+Unavailable"; }}
+              />
               {product.ecoFriendly && (
                 <span className="absolute top-2 left-2 bg-green-500 text-white text-xs px-2 py-1 rounded-full">
                   Eco-Friendly

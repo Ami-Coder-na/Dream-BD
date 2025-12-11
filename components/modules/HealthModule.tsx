@@ -2,6 +2,7 @@
 import React from 'react';
 import { HeartPulse, Calendar, Phone, MapPin, Star, UserPlus } from 'lucide-react';
 import { Button } from '../ui/Button';
+import { getOptimizedImageUrl } from '../utils/imageUtils';
 
 interface Props {
   isBangla: boolean;
@@ -16,7 +17,7 @@ export const HealthModule: React.FC<Props> = ({ isBangla }) => {
       hospital: 'Dhaka Medical College',
       rating: 4.9,
       experience: '12 Years',
-      image: 'https://images.unsplash.com/photo-1559839734-2b71ea197ec2?auto=format&fit=crop&q=80&w=150'
+      image: 'https://images.unsplash.com/photo-1559839734-2b71ea197ec2'
     },
     {
       id: 2,
@@ -25,7 +26,7 @@ export const HealthModule: React.FC<Props> = ({ isBangla }) => {
       hospital: 'Square Hospital',
       rating: 4.7,
       experience: '8 Years',
-      image: 'https://images.unsplash.com/photo-1612349317150-e413f6a5b16d?auto=format&fit=crop&q=80&w=150'
+      image: 'https://images.unsplash.com/photo-1612349317150-e413f6a5b16d'
     },
     {
       id: 3,
@@ -34,7 +35,7 @@ export const HealthModule: React.FC<Props> = ({ isBangla }) => {
       hospital: 'Evercare Hospital',
       rating: 4.8,
       experience: '10 Years',
-      image: 'https://images.unsplash.com/photo-1594824476967-48c8b964273f?auto=format&fit=crop&q=80&w=150'
+      image: 'https://images.unsplash.com/photo-1594824476967-48c8b964273f'
     }
   ];
 
@@ -94,7 +95,13 @@ export const HealthModule: React.FC<Props> = ({ isBangla }) => {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {doctors.map(doc => (
             <div key={doc.id} className="bg-white p-4 rounded-xl shadow-sm border border-gray-100 flex gap-4 hover:shadow-md transition-all">
-              <img src={doc.image} alt={doc.name} className="w-20 h-20 rounded-lg object-cover bg-gray-100" loading="lazy" />
+              <img 
+                src={getOptimizedImageUrl(doc.image, 200)} 
+                alt={doc.name} 
+                className="w-20 h-20 rounded-lg object-cover bg-gray-100" 
+                loading="lazy" 
+                onError={(e) => { e.currentTarget.src = "https://placehold.co/150?text=Dr"; }}
+              />
               <div className="flex-1">
                 <div className="flex justify-between items-start">
                   <div>

@@ -6,6 +6,7 @@ import {
   CheckCircle, X, RefreshCw, MapPin, ChevronDown, Tag
 } from 'lucide-react';
 import { Button } from '../ui/Button';
+import { getOptimizedImageUrl } from '../utils/imageUtils';
 
 interface Props {
   isBangla: boolean;
@@ -42,14 +43,14 @@ export const BazarSodaiModule: React.FC<Props> = ({ isBangla }) => {
 
   // --- DATA ---
   const retailProducts = [
-    { id: 1, nameBn: 'তাজা আলু', nameEn: 'Fresh Potato', price: 45, unit: 'kg', img: 'https://images.unsplash.com/photo-1518977676601-b53f82aba655?auto=format&fit=crop&q=80&w=400', category: 'Vegetable' },
-    { id: 2, nameBn: 'দেশি পেঁয়াজ', nameEn: 'Local Onion', price: 90, unit: 'kg', img: 'https://images.unsplash.com/photo-1618512496248-a07fe83aa8cb?auto=format&fit=crop&q=80&w=400', category: 'Vegetable' },
-    { id: 3, nameBn: 'রুই মাছ', nameEn: 'Rui Fish', price: 350, unit: 'kg', img: 'https://images.unsplash.com/photo-1599321955726-90471f64560d?auto=format&fit=crop&q=80&w=400', category: 'Fish' },
-    { id: 4, nameBn: 'মসুর ডাল', nameEn: 'Lentils', price: 130, unit: 'kg', img: 'https://images.unsplash.com/photo-1515543904379-3d757afe9b68?auto=format&fit=crop&q=80&w=400', category: 'Grocery' },
-    { id: 5, nameBn: 'সবুজ আপেল', nameEn: 'Green Apple', price: 220, unit: 'kg', img: 'https://images.unsplash.com/photo-1610832958506-aa56368176cf?auto=format&fit=crop&q=80&w=400', category: 'Fruit' },
-    { id: 6, nameBn: 'সয়াবিন তেল', nameEn: 'Soybean Oil', price: 170, unit: 'L', img: 'https://images.unsplash.com/photo-1474979266404-7cadd259c308?auto=format&fit=crop&q=80&w=400', category: 'Grocery' },
-    { id: 7, nameBn: 'বেগুন', nameEn: 'Eggplant', price: 60, unit: 'kg', img: 'https://images.unsplash.com/photo-1615485500704-8e99099928b3?auto=format&fit=crop&q=80&w=400', category: 'Vegetable' },
-    { id: 8, nameBn: 'পাকা আম', nameEn: 'Ripe Mango', price: 120, unit: 'kg', img: 'https://images.unsplash.com/photo-1553279768-865429fa0078?auto=format&fit=crop&q=80&w=400', category: 'Fruit' },
+    { id: 1, nameBn: 'তাজা আলু', nameEn: 'Fresh Potato', price: 45, unit: 'kg', img: 'https://images.unsplash.com/photo-1518977676601-b53f82aba655', category: 'Vegetable' },
+    { id: 2, nameBn: 'দেশি পেঁয়াজ', nameEn: 'Local Onion', price: 90, unit: 'kg', img: 'https://images.unsplash.com/photo-1618512496248-a07fe83aa8cb', category: 'Vegetable' },
+    { id: 3, nameBn: 'রুই মাছ', nameEn: 'Rui Fish', price: 350, unit: 'kg', img: 'https://images.unsplash.com/photo-1599321955726-90471f64560d', category: 'Fish' },
+    { id: 4, nameBn: 'মসুর ডাল', nameEn: 'Lentils', price: 130, unit: 'kg', img: 'https://images.unsplash.com/photo-1515543904379-3d757afe9b68', category: 'Grocery' },
+    { id: 5, nameBn: 'সবুজ আপেল', nameEn: 'Green Apple', price: 220, unit: 'kg', img: 'https://images.unsplash.com/photo-1610832958506-aa56368176cf', category: 'Fruit' },
+    { id: 6, nameBn: 'সয়াবিন তেল', nameEn: 'Soybean Oil', price: 170, unit: 'L', img: 'https://images.unsplash.com/photo-1474979266404-7cadd259c308', category: 'Grocery' },
+    { id: 7, nameBn: 'বেগুন', nameEn: 'Eggplant', price: 60, unit: 'kg', img: 'https://images.unsplash.com/photo-1615485500704-8e99099928b3', category: 'Vegetable' },
+    { id: 8, nameBn: 'পাকা আম', nameEn: 'Ripe Mango', price: 120, unit: 'kg', img: 'https://images.unsplash.com/photo-1553279768-865429fa0078', category: 'Fruit' },
   ];
 
   const wholesaleListings = [
@@ -272,9 +273,13 @@ export const BazarSodaiModule: React.FC<Props> = ({ isBangla }) => {
                     <div key={prod.id} className="bg-white rounded-2xl p-4 shadow-sm border border-gray-100 hover:shadow-lg transition-all group relative flex flex-col">
                       <div className="relative h-48 mb-4 overflow-hidden rounded-xl">
                         <img 
-                          src={prod.img} 
+                          src={getOptimizedImageUrl(prod.img, 400)} 
                           alt={prod.nameEn} 
                           className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+                          loading="lazy"
+                          onError={(e) => {
+                            e.currentTarget.src = "https://placehold.co/400x300/e2e8f0/475569?text=No+Image";
+                          }}
                         />
                         <span className="absolute top-2 left-2 bg-white/90 backdrop-blur text-xs font-bold px-2 py-1 rounded-md text-lime-700 shadow-sm flex items-center gap-1">
                           <Tag size={10} />

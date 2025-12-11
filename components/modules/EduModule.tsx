@@ -2,6 +2,7 @@
 import React from 'react';
 import { BookOpen, PlayCircle, Award, Clock, Users, Search } from 'lucide-react';
 import { Button } from '../ui/Button';
+import { getOptimizedImageUrl } from '../utils/imageUtils';
 
 interface Props {
   isBangla: boolean;
@@ -16,7 +17,7 @@ export const EduModule: React.FC<Props> = ({ isBangla }) => {
       students: 1250,
       lessons: 45,
       progress: 75,
-      image: 'https://images.unsplash.com/photo-1635070041078-e363dbe005cb?auto=format&fit=crop&q=80&w=400' // Math
+      image: 'https://images.unsplash.com/photo-1635070041078-e363dbe005cb' // Math
     },
     {
       id: 2,
@@ -25,7 +26,7 @@ export const EduModule: React.FC<Props> = ({ isBangla }) => {
       students: 3400,
       lessons: 20,
       progress: 30,
-      image: 'https://images.unsplash.com/photo-1456513080510-7bf3a84b82f8?auto=format&fit=crop&q=80&w=400' // Books
+      image: 'https://images.unsplash.com/photo-1456513080510-7bf3a84b82f8' // Books
     },
     {
       id: 3,
@@ -34,7 +35,7 @@ export const EduModule: React.FC<Props> = ({ isBangla }) => {
       students: 800,
       lessons: 60,
       progress: 0,
-      image: 'https://images.unsplash.com/photo-1517694712202-14dd9538aa97?auto=format&fit=crop&q=80&w=400' // Coding
+      image: 'https://images.unsplash.com/photo-1517694712202-14dd9538aa97' // Coding
     }
   ];
 
@@ -91,7 +92,13 @@ export const EduModule: React.FC<Props> = ({ isBangla }) => {
           {courses.map(course => (
             <div key={course.id} className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden hover:shadow-md transition-all">
               <div className="relative">
-                <img src={course.image} alt={course.title} className="w-full h-40 object-cover" loading="lazy" />
+                <img 
+                  src={getOptimizedImageUrl(course.image, 600)} 
+                  alt={course.title} 
+                  className="w-full h-40 object-cover" 
+                  loading="lazy" 
+                  onError={(e) => { e.currentTarget.src = "https://placehold.co/400x200/f3f4f6/9ca3af?text=Course+Image"; }}
+                />
                 <div className="absolute bottom-2 right-2 bg-black/60 text-white text-xs px-2 py-1 rounded flex items-center gap-1">
                   <PlayCircle size={12} /> {course.lessons} Lessons
                 </div>

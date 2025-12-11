@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, Suspense, lazy } from 'react';
 import { User, UserRole, AppModule } from './types';
 import { Dashboard } from './components/Dashboard';
 import { GeminiAssistant } from './components/GeminiAssistant';
@@ -7,24 +7,38 @@ import { LandingPage } from './components/LandingPage';
 import { AiChatPage } from './components/AiChatPage';
 import { LoginPage } from './components/auth/LoginPage';
 import { SignUpPage } from './components/auth/SignUpPage';
-import { JobModule } from './components/modules/JobModule';
-import { BlogModule } from './components/modules/BlogModule';
-import { ContactModule } from './components/modules/ContactModule';
-import { AmarBdModule } from './components/modules/AmarBdModule';
-import { AmarJelaModule } from './components/modules/AmarJelaModule';
-import { BazarSodaiModule } from './components/modules/BazarSodaiModule';
-import { CraftModule } from './components/modules/CraftModule';
-import { AgriModule } from './components/modules/AgriModule';
-import { EduModule } from './components/modules/EduModule';
-import { HealthModule } from './components/modules/HealthModule';
-import { TransportModule } from './components/modules/TransportModule';
-import { WasteModule } from './components/modules/WasteModule';
-import { FisheryModule } from './components/modules/FisheryModule';
-import { DisasterModule } from './components/modules/DisasterModule';
 import { Header } from './components/layout/Header';
 import { Footer } from './components/layout/Footer';
 import { Button } from './components/ui/Button';
-import { Menu, Bell, LogOut, Globe, Search, User as UserIcon, Briefcase, MessageCircle, Home, Newspaper, Heart } from 'lucide-react';
+import { Menu, Bell, LogOut, Globe, Search, User as UserIcon, Briefcase, MessageCircle, Home, Heart, Loader2 } from 'lucide-react';
+
+// Lazy Load Modules for Bundle Splitting
+const JobModule = lazy(() => import('./components/modules/JobModule').then(module => ({ default: module.JobModule })));
+const BlogModule = lazy(() => import('./components/modules/BlogModule').then(module => ({ default: module.BlogModule })));
+const ContactModule = lazy(() => import('./components/modules/ContactModule').then(module => ({ default: module.ContactModule })));
+const AmarBdModule = lazy(() => import('./components/modules/AmarBdModule').then(module => ({ default: module.AmarBdModule })));
+const AmarJelaModule = lazy(() => import('./components/modules/AmarJelaModule').then(module => ({ default: module.AmarJelaModule })));
+const BazarSodaiModule = lazy(() => import('./components/modules/BazarSodaiModule').then(module => ({ default: module.BazarSodaiModule })));
+const CraftModule = lazy(() => import('./components/modules/CraftModule').then(module => ({ default: module.CraftModule })));
+const AgriModule = lazy(() => import('./components/modules/AgriModule').then(module => ({ default: module.AgriModule })));
+const EduModule = lazy(() => import('./components/modules/EduModule').then(module => ({ default: module.EduModule })));
+const HealthModule = lazy(() => import('./components/modules/HealthModule').then(module => ({ default: module.HealthModule })));
+const TransportModule = lazy(() => import('./components/modules/TransportModule').then(module => ({ default: module.TransportModule })));
+const WasteModule = lazy(() => import('./components/modules/WasteModule').then(module => ({ default: module.WasteModule })));
+const FisheryModule = lazy(() => import('./components/modules/FisheryModule').then(module => ({ default: module.FisheryModule })));
+const DisasterModule = lazy(() => import('./components/modules/DisasterModule').then(module => ({ default: module.DisasterModule })));
+
+const LoadingFallback = () => (
+  <div className="min-h-screen flex items-center justify-center bg-gray-50">
+    <div className="flex flex-col items-center gap-4">
+      <div className="relative">
+        <div className="w-12 h-12 border-4 border-gray-200 rounded-full"></div>
+        <div className="w-12 h-12 border-4 border-brand-600 rounded-full border-t-transparent animate-spin absolute top-0 left-0"></div>
+      </div>
+      <p className="text-gray-500 font-medium animate-pulse">Loading...</p>
+    </div>
+  </div>
+);
 
 const App: React.FC = () => {
   const [user, setUser] = useState<User | null>(null); 
@@ -106,50 +120,43 @@ const App: React.FC = () => {
 
   if (isWebsitePage) {
     const renderWebsiteContent = () => {
-      switch (activeModule) {
-        case AppModule.JOB:
-          return <JobModule isBangla={isBangla} />;
-        case AppModule.BLOG:
-          return <BlogModule isBangla={isBangla} />;
-        case AppModule.CONTACT:
-          return <ContactModule isBangla={isBangla} />;
-        case AppModule.AMAR_BD:
-          return <AmarBdModule isBangla={isBangla} onModuleSelect={handleModuleSelect} />;
-        case AppModule.AMAR_JELA:
-          return <AmarJelaModule isBangla={isBangla} />;
-        case AppModule.BAZAR_SODAI:
-          return <BazarSodaiModule isBangla={isBangla} />;
-        case AppModule.CRAFT:
-          return <CraftModule isBangla={isBangla} />;
-        case AppModule.AGRI:
-          return <AgriModule isBangla={isBangla} />;
-        case AppModule.EDU:
-          return <EduModule isBangla={isBangla} />;
-        case AppModule.HEALTH:
-          return <HealthModule isBangla={isBangla} />;
-        case AppModule.TRANSPORT:
-          return <TransportModule isBangla={isBangla} />;
-        case AppModule.WASTE:
-          return <WasteModule isBangla={isBangla} />;
-        case AppModule.FISHERY:
-          return <FisheryModule isBangla={isBangla} />;
-        case AppModule.DISASTER:
-          return <DisasterModule isBangla={isBangla} />;
-        case 'LANDING':
-        default:
-          return (
-            <LandingPage 
-              user={user}
-              onLogin={navigateToLogin}
-              onRegister={navigateToSignUp}
-              onLogout={handleLogout}
-              onOpenAiChat={() => setShowAiChat(true)}
-              onModuleSelect={handleModuleSelect}
-              isBangla={isBangla} 
-              toggleLanguage={() => setIsBangla(!isBangla)} 
-            />
-          );
-      }
+      // Use Suspense to handle the lazy loaded components
+      return (
+        <Suspense fallback={<LoadingFallback />}>
+          {(() => {
+            switch (activeModule) {
+              case AppModule.JOB: return <JobModule isBangla={isBangla} />;
+              case AppModule.BLOG: return <BlogModule isBangla={isBangla} />;
+              case AppModule.CONTACT: return <ContactModule isBangla={isBangla} />;
+              case AppModule.AMAR_BD: return <AmarBdModule isBangla={isBangla} onModuleSelect={handleModuleSelect} />;
+              case AppModule.AMAR_JELA: return <AmarJelaModule isBangla={isBangla} />;
+              case AppModule.BAZAR_SODAI: return <BazarSodaiModule isBangla={isBangla} />;
+              case AppModule.CRAFT: return <CraftModule isBangla={isBangla} />;
+              case AppModule.AGRI: return <AgriModule isBangla={isBangla} />;
+              case AppModule.EDU: return <EduModule isBangla={isBangla} />;
+              case AppModule.HEALTH: return <HealthModule isBangla={isBangla} />;
+              case AppModule.TRANSPORT: return <TransportModule isBangla={isBangla} />;
+              case AppModule.WASTE: return <WasteModule isBangla={isBangla} />;
+              case AppModule.FISHERY: return <FisheryModule isBangla={isBangla} />;
+              case AppModule.DISASTER: return <DisasterModule isBangla={isBangla} />;
+              case 'LANDING':
+              default:
+                return (
+                  <LandingPage 
+                    user={user}
+                    onLogin={navigateToLogin}
+                    onRegister={navigateToSignUp}
+                    onLogout={handleLogout}
+                    onOpenAiChat={() => setShowAiChat(true)}
+                    onModuleSelect={handleModuleSelect}
+                    isBangla={isBangla} 
+                    toggleLanguage={() => setIsBangla(!isBangla)} 
+                  />
+                );
+            }
+          })()}
+        </Suspense>
+      );
     };
 
     if (activeModule === 'LANDING') {

@@ -2,6 +2,7 @@
 import React, { useState } from 'react';
 import { Search, MapPin, Users, BookOpen, HeartPulse, Building2, Phone, Camera, ArrowRight } from 'lucide-react';
 import { Button } from '../ui/Button';
+import { getOptimizedImageUrl } from '../utils/imageUtils';
 
 interface Props {
   isBangla: boolean;
@@ -55,9 +56,9 @@ const getDistrictData = (id: string, nameEn: string, nameBn: string, division: s
     ],
     touristSpots: [`${nameEn} Park`, 'Central Mosque', 'River View Point'],
     images: [
-      'https://images.unsplash.com/photo-1588515907474-0428d0092d6e?auto=format&fit=crop&q=80&w=800', // Generic landscape
-      'https://images.unsplash.com/photo-1628189873998-25f00e95a947?auto=format&fit=crop&q=80&w=800', // Greenery
-      'https://images.unsplash.com/photo-1626017121703-a44214436531?auto=format&fit=crop&q=80&w=800'  // Village
+      'https://images.unsplash.com/photo-1596895111956-bf1cf0599ce5', // Green Bangladesh
+      'https://images.unsplash.com/photo-1628189873998-25f00e95a947', // Nature
+      'https://images.unsplash.com/photo-1582811466099-28c148f34346'  // River
     ]
   };
 };
@@ -177,17 +178,17 @@ export const AmarJelaModule: React.FC<Props> = ({ isBangla }) => {
         { name: 'Kurmitola General Hospital', address: 'Cantonment, Dhaka', phone: '02-8712345' }
       ];
       fullData.images = [
-        'https://images.unsplash.com/photo-1619671603704-8b6567958611?auto=format&fit=crop&q=80&w=800', // Parliament
-        'https://images.unsplash.com/photo-1594196163273-5a02796fb322?auto=format&fit=crop&q=80&w=800', // Ahsan Manzil
-        'https://images.unsplash.com/photo-1628189873998-25f00e95a947?auto=format&fit=crop&q=80&w=800'  // City
+        'https://images.unsplash.com/photo-1619671603704-8b6567958611', // Parliament
+        'https://images.unsplash.com/photo-1594196163273-5a02796fb322', // Ahsan Manzil
+        'https://images.unsplash.com/photo-1628189873998-25f00e95a947'  // City
       ];
     } else if (district.id === 'coxsbazar') {
       fullData.population = '2.3 Million';
       fullData.touristSpots = ['Longest Sea Beach', 'Himchari', 'Inani Beach', 'Radiant Fish World'];
       fullData.images = [
-        'https://images.unsplash.com/photo-1599580460305-64906f23349e?auto=format&fit=crop&q=80&w=800', // Beach
-        'https://images.unsplash.com/photo-1549885744-83952f4a5697?auto=format&fit=crop&q=80&w=800', // Boats
-        'https://images.unsplash.com/photo-1582811466099-28c148f34346?auto=format&fit=crop&q=80&w=800'  // Sunset
+        'https://images.unsplash.com/photo-1599580460305-64906f23349e', // Beach
+        'https://images.unsplash.com/photo-1549885744-83952f4a5697', // Boats
+        'https://images.unsplash.com/photo-1582811466099-28c148f34346'  // Sunset
       ];
     }
 
@@ -204,7 +205,7 @@ export const AmarJelaModule: React.FC<Props> = ({ isBangla }) => {
         {/* Background - Separated to handle overflow hiding independently */}
         <div className="absolute inset-0 overflow-hidden z-0">
            <div className="absolute inset-0 bg-teal-700"></div>
-           <div className="absolute inset-0 opacity-10 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')]"></div>
+           <div className="absolute inset-0 opacity-10 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] bg-teal-800"></div>
         </div>
 
         {/* Content - High Z-index to float above everything */}
@@ -260,13 +261,25 @@ export const AmarJelaModule: React.FC<Props> = ({ isBangla }) => {
             <div className="bg-white rounded-3xl shadow-xl p-6 md:p-10 flex flex-col lg:flex-row gap-8 lg:gap-12 items-start border border-gray-100">
               <div className="w-full lg:w-1/3 space-y-3">
                  <img 
-                   src={selectedDistrict.images[0]} 
+                   src={getOptimizedImageUrl(selectedDistrict.images[0], 600)} 
                    alt={selectedDistrict.nameEn} 
                    className="w-full h-64 object-cover rounded-2xl shadow-md transform hover:scale-[1.02] transition-transform duration-500"
+                   loading="lazy"
+                   onError={(e) => { e.currentTarget.src = "https://placehold.co/600x400/teal/white?text=District+Image"; }}
                  />
                  <div className="grid grid-cols-2 gap-3">
-                    <img src={selectedDistrict.images[1]} className="w-full h-28 object-cover rounded-xl shadow-sm hover:opacity-90 transition-opacity" />
-                    <img src={selectedDistrict.images[2]} className="w-full h-28 object-cover rounded-xl shadow-sm hover:opacity-90 transition-opacity" />
+                    <img 
+                      src={getOptimizedImageUrl(selectedDistrict.images[1], 400)} 
+                      className="w-full h-28 object-cover rounded-xl shadow-sm hover:opacity-90 transition-opacity" 
+                      loading="lazy"
+                      onError={(e) => { e.currentTarget.src = "https://placehold.co/400x300/teal/white?text=Image"; }}
+                    />
+                    <img 
+                      src={getOptimizedImageUrl(selectedDistrict.images[2], 400)} 
+                      className="w-full h-28 object-cover rounded-xl shadow-sm hover:opacity-90 transition-opacity" 
+                      loading="lazy"
+                      onError={(e) => { e.currentTarget.src = "https://placehold.co/400x300/teal/white?text=Image"; }}
+                    />
                  </div>
               </div>
               <div className="w-full lg:w-2/3">

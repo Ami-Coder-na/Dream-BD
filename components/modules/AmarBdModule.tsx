@@ -1,8 +1,9 @@
 
 import React, { useState } from 'react';
-import { MapPin, ArrowRight, Search, Compass, Info, Star, ChevronRight, X } from 'lucide-react';
+import { MapPin, ArrowRight, Search, Info, ChevronRight, X, Users, BookOpen, HeartPulse, Camera, Building2, Map, ChevronDown, Activity } from 'lucide-react';
 import { Button } from '../ui/Button';
 import { AppModule } from '../../types';
+import { getOptimizedImageUrl } from '../utils/imageUtils';
 
 interface Props {
   isBangla: boolean;
@@ -22,117 +23,12 @@ interface DivisionData {
   districts: DistrictData[];
 }
 
-// Map Point Interface
-interface MapPoint {
-  id: string;
-  nameBn: string;
-  nameEn: string;
-  top: string;
-  left: string;
-  type: 'division' | 'spot';
-  image: string;
-  descBn: string;
-  descEn: string;
-}
-
 export const AmarBdModule: React.FC<Props> = ({ isBangla, onModuleSelect }) => {
   const [activeDivision, setActiveDivision] = useState<string>('All');
   const [searchQuery, setSearchQuery] = useState('');
-  const [selectedMapPoint, setSelectedMapPoint] = useState<MapPoint | null>(null);
+  const [selectedDistrictForDetails, setSelectedDistrictForDetails] = useState<{ district: DistrictData, divisionName: string } | null>(null);
+  const [treeOpenDivision, setTreeOpenDivision] = useState<string | null>(null);
 
-  // Map Data Points (Coordinates tuned for the standard Bangladesh Map)
-  const mapPoints: MapPoint[] = [
-    { 
-      id: 'rangpur', 
-      nameBn: 'রংপুর', 
-      nameEn: 'Rangpur', 
-      top: '12%', 
-      left: '28%', 
-      type: 'division',
-      image: 'https://images.unsplash.com/photo-1628189873998-25f00e95a947?auto=format&fit=crop&q=80&w=400',
-      descBn: 'ঐতিহাসিক তাজহাট জমিদার বাড়ি এবং বিভিন্ন প্রত্নতাত্ত্বিক নিদর্শনের জন্য বিখ্যাত।',
-      descEn: 'Famous for the historic Tajhat Palace and various archaeological sites.'
-    },
-    { 
-      id: 'sylhet', 
-      nameBn: 'সিলেট', 
-      nameEn: 'Sylhet', 
-      top: '28%', 
-      left: '78%', 
-      type: 'division',
-      image: 'https://images.unsplash.com/photo-1601925358526-7c9c0d9c0944?auto=format&fit=crop&q=80&w=400', // Tea garden
-      descBn: 'দুটি পাতা একটি কুঁড়ির দেশ। চা বাগান এবং জাফলং এর প্রাকৃতিক সৌন্দর্য।',
-      descEn: 'Land of two leaves and a bud. Known for tea gardens and Jaflong\'s beauty.'
-    },
-    { 
-      id: 'mymensingh', 
-      nameBn: 'ময়মনসিংহ', 
-      nameEn: 'Mymensingh', 
-      top: '25%', 
-      left: '50%', 
-      type: 'division',
-      image: 'https://images.unsplash.com/photo-1596464716127-f2a82984de30?auto=format&fit=crop&q=80&w=400',
-      descBn: 'মহুয়া মলুয়ার দেশ। শশী লজ এবং কৃষি বিশ্ববিদ্যালয়ের জন্য পরিচিত।',
-      descEn: 'Land of Mahua Malua. Known for Shashi Lodge and Agricultural University.'
-    },
-    { 
-      id: 'rajshahi', 
-      nameBn: 'রাজশাহী', 
-      nameEn: 'Rajshahi', 
-      top: '30%', 
-      left: '20%', 
-      type: 'division',
-      image: 'https://images.unsplash.com/photo-1635070041078-e363dbe005cb?auto=format&fit=crop&q=80&w=400', // Mango/Green
-      descBn: 'শিক্ষানগরী ও রেশম নগরী। আম এবং ঐতিহাসিক নিদর্শনের জন্য বিখ্যাত।',
-      descEn: 'City of Education and Silk. Famous for Mangoes and historical sites.'
-    },
-    { 
-      id: 'dhaka', 
-      nameBn: 'ঢাকা', 
-      nameEn: 'Dhaka', 
-      top: '48%', 
-      left: '48%', 
-      type: 'division',
-      image: 'https://images.unsplash.com/photo-1619671603704-8b6567958611?auto=format&fit=crop&q=80&w=400', // Parliament
-      descBn: 'বাংলাদেশের রাজধানী। ইতিহাস, ঐতিহ্য এবং আধুনিকতার এক অনন্য সংমিশ্রণ।',
-      descEn: 'Capital of Bangladesh. A unique blend of history, heritage and modernity.'
-    },
-    { 
-      id: 'khulna', 
-      nameBn: 'খুলনা', 
-      nameEn: 'Khulna', 
-      top: '65%', 
-      left: '28%', 
-      type: 'division',
-      image: 'https://images.unsplash.com/photo-1599580460305-64906f23349e?auto=format&fit=crop&q=80&w=400', // Sundarbansish
-      descBn: 'সুন্দরবনের প্রবেশদ্বার। রয়েল বেঙ্গল টাইগার এবং ম্যানগ্রোভ বনের জন্য বিখ্যাত।',
-      descEn: 'Gateway to the Sundarbans. Famous for Royal Bengal Tiger and Mangrove forest.'
-    },
-    { 
-      id: 'barisal', 
-      nameBn: 'বরিশাল', 
-      nameEn: 'Barisal', 
-      top: '72%', 
-      left: '45%', 
-      type: 'division',
-      image: 'https://images.unsplash.com/photo-1582811466099-28c148f34346?auto=format&fit=crop&q=80&w=400', // River
-      descBn: 'নদী মাতৃক বাংলাদেশের শস্য ভান্ডার। কুয়াকাটা সমুদ্র সৈকতের নিকটবর্তী।',
-      descEn: 'Granary of riverine Bangladesh. Close to Kuakata sea beach.'
-    },
-    { 
-      id: 'chattogram', 
-      nameBn: 'চট্টগ্রাম', 
-      nameEn: 'Chattogram', 
-      top: '70%', 
-      left: '72%', 
-      type: 'division',
-      image: 'https://images.unsplash.com/photo-1549885744-83952f4a5697?auto=format&fit=crop&q=80&w=400', // Port/Sea
-      descBn: 'বাংলাদেশের বাণিজ্যিক রাজধানী। পাহাড় এবং সমুদ্রের এক অপূর্ব মিলনমেলা।',
-      descEn: 'Commercial capital of Bangladesh. A wonderful union of hills and sea.'
-    },
-  ];
-
-  // Comprehensive Data for 8 Divisions and their Districts
   const tourismData: DivisionData[] = [
     {
       id: 'dhaka',
@@ -256,14 +152,25 @@ export const AmarBdModule: React.FC<Props> = ({ isBangla, onModuleSelect }) => {
     }
   ];
 
-  // Helper to get all districts if "All" is selected, or filtered by division
+  // Colors for tree nodes
+  const divisionColors: Record<string, string> = {
+    dhaka: 'bg-green-600 border-green-600 text-white',
+    chattogram: 'bg-teal-600 border-teal-600 text-white',
+    sylhet: 'bg-emerald-600 border-emerald-600 text-white',
+    khulna: 'bg-cyan-600 border-cyan-600 text-white',
+    rajshahi: 'bg-rose-500 border-rose-500 text-white',
+    barisal: 'bg-indigo-500 border-indigo-500 text-white',
+    rangpur: 'bg-orange-500 border-orange-500 text-white',
+    mymensingh: 'bg-purple-600 border-purple-600 text-white',
+  };
+
   const getFilteredDistricts = () => {
-    let districts: { district: DistrictData, divisionName: string }[] = [];
+    let districts: { district: DistrictData, divisionName: string, divisionId: string }[] = [];
     
     tourismData.forEach(div => {
       if (activeDivision === 'All' || activeDivision === div.id) {
         div.districts.forEach(dist => {
-           districts.push({ district: dist, divisionName: isBangla ? div.nameBn : div.nameEn });
+           districts.push({ district: dist, divisionName: isBangla ? div.nameBn : div.nameEn, divisionId: div.id });
         });
       }
     });
@@ -280,29 +187,27 @@ export const AmarBdModule: React.FC<Props> = ({ isBangla, onModuleSelect }) => {
 
   const filteredList = getFilteredDistricts();
 
-  const handleNavigateToDetails = () => {
-    if (onModuleSelect) {
-      onModuleSelect(AppModule.AMAR_JELA);
-    }
-  };
-
   return (
     <div className="bg-white min-h-screen animate-fade-in">
       {/* Hero Section */}
       <div className="relative h-[500px] overflow-hidden">
         <div className="absolute inset-0">
           <img 
-            src="https://images.unsplash.com/photo-1548013146-72479768bada?auto=format&fit=crop&q=80&w=1280"
-            srcSet="https://images.unsplash.com/photo-1548013146-72479768bada?auto=format&fit=crop&q=80&w=640 640w,
-                    https://images.unsplash.com/photo-1548013146-72479768bada?auto=format&fit=crop&q=80&w=1024 1024w,
-                    https://images.unsplash.com/photo-1548013146-72479768bada?auto=format&fit=crop&q=80&w=1280 1280w"
+            src={getOptimizedImageUrl('https://images.unsplash.com/photo-1548013146-72479768bada', 1280)}
+            srcSet={`${getOptimizedImageUrl('https://images.unsplash.com/photo-1548013146-72479768bada', 640)} 640w,
+                    ${getOptimizedImageUrl('https://images.unsplash.com/photo-1548013146-72479768bada', 1024)} 1024w,
+                    ${getOptimizedImageUrl('https://images.unsplash.com/photo-1548013146-72479768bada', 1280)} 1280w`}
             sizes="100vw"
             alt="Bangladesh Landscape" 
             className="w-full h-full object-cover"
             loading="eager"
             fetchPriority="high"
+            width="1280"
+            height="500"
+            onError={(e) => {
+              e.currentTarget.src = "https://placehold.co/1280x500/22c55e/ffffff?text=Beautiful+Bangladesh";
+            }}
           />
-          {/* Enhanced Dark Overlay for Contrast */}
           <div className="absolute inset-0 bg-black/50"></div>
           <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/20 to-black/60"></div>
         </div>
@@ -345,85 +250,97 @@ export const AmarBdModule: React.FC<Props> = ({ isBangla, onModuleSelect }) => {
         </div>
       </div>
 
-      {/* Interactive Map Section */}
-      <div className="py-20 bg-white overflow-hidden relative">
+      {/* --- NEW SECTION: ADMINISTRATIVE TREE (Prashashonik Kathamo) --- */}
+      <div className="py-20 bg-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-12">
-            <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-3">
-              {isBangla ? 'মানচিত্রে দেখুন' : 'Explore on Map'}
+          <div className="text-center mb-16">
+            <h2 className="text-3xl font-bold text-gray-900 mb-4 flex items-center justify-center gap-3">
+              <Building2 className="text-green-600" size={32} />
+              {isBangla ? 'প্রশাসনিক কাঠামো' : 'Administrative Structure'}
             </h2>
-            <p className="text-gray-500 max-w-2xl mx-auto text-base">
+            <p className="text-gray-500 max-w-xl mx-auto">
               {isBangla 
-                ? 'মানচিত্রের বিভিন্ন পয়েন্টে ক্লিক করে বিভাগ ও জেলা সম্পর্কে জানুন।' 
-                : 'Click on points on the map to learn about divisions and districts.'}
+                ? 'এক নজরে বাংলাদেশের ৮টি বিভাগ এবং ৬৪টি জেলা। বিস্তারিত দেখতে বিভাগে ক্লিক করুন।'
+                : 'Bangladesh at a glance: 8 Divisions and 64 Districts. Click on a division to explore.'}
             </p>
           </div>
 
-          <div className="flex justify-center relative">
-            {/* Map Container */}
-            <div className="relative w-full max-w-3xl h-[600px] bg-blue-50/50 rounded-3xl border border-blue-100 shadow-inner flex items-center justify-center overflow-hidden">
-               {/* Map Image */}
-               <img 
-                 src="https://upload.wikimedia.org/wikipedia/commons/thumb/f/f2/Bangladesh_divisions_bengali.svg/800px-Bangladesh_divisions_bengali.svg.png" 
-                 alt="Map of Bangladesh" 
-                 className="h-[90%] w-auto object-contain drop-shadow-md"
-               />
+          <div className="max-w-5xl mx-auto">
+            {/* Root Node: Bangladesh */}
+            <div className="flex flex-col items-center relative z-10">
+              <div className="w-24 h-24 rounded-full bg-green-600 border-4 border-white shadow-xl flex flex-col items-center justify-center text-white z-20 hover:scale-110 transition-transform cursor-pointer">
+                <span className="text-xs font-bold opacity-80">{isBangla ? 'দেশ' : 'Country'}</span>
+                <span className="font-bold text-sm text-center px-1">{isBangla ? 'বাংলাদেশ' : 'Bangladesh'}</span>
+              </div>
+              {/* Vertical Connector Line */}
+              <div className="h-12 w-0.5 bg-gray-300"></div>
+            </div>
 
-               {/* Interactive Hotspots */}
-               {mapPoints.map((point) => (
-                 <button
-                   key={point.id}
-                   onClick={() => setSelectedMapPoint(point)}
-                   className="absolute group z-10 focus:outline-none"
-                   style={{ top: point.top, left: point.left }}
-                 >
-                   <span className="relative flex h-6 w-6">
-                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
-                      <span className="relative inline-flex rounded-full h-6 w-6 bg-red-500 border-2 border-white shadow-md"></span>
-                   </span>
-                   <span className="absolute left-1/2 -translate-x-1/2 -top-8 bg-white text-gray-800 text-xs font-bold px-2 py-1 rounded shadow-md opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none">
-                     {isBangla ? point.nameBn : point.nameEn}
-                   </span>
-                 </button>
-               ))}
+            {/* Tree Branch Container */}
+            <div className="relative pt-8 pb-10 px-4">
+              {/* Horizontal Connecting Line (Desktop) */}
+              <div className="hidden md:block absolute top-0 left-10 right-10 h-8 border-t-2 border-l-2 border-r-2 border-gray-300 rounded-t-2xl"></div>
+              {/* Center vertical connector to branch */}
+              <div className="hidden md:block absolute top-0 left-1/2 w-0.5 h-8 bg-gray-300 -translate-x-1/2"></div>
 
-               {/* Info Card Pop-over */}
-               {selectedMapPoint && (
-                 <div className="absolute inset-0 z-20 flex items-center justify-center p-4 bg-black/20 backdrop-blur-sm animate-fade-in" onClick={() => setSelectedMapPoint(null)}>
+              {/* Division Grid */}
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 relative z-10">
+                {tourismData.map((division, idx) => (
+                  <div key={division.id} className="flex flex-col items-center">
+                    {/* Vertical Connector for each node (Desktop) */}
+                    <div className="hidden md:block h-8 w-0.5 bg-gray-300 mb-[-2px]"></div>
+                    
+                    {/* Mobile Connector */}
+                    <div className="md:hidden h-8 w-0.5 bg-gray-300"></div>
+
+                    {/* Division Card */}
                     <div 
-                      className="bg-white rounded-2xl shadow-2xl p-6 w-full max-w-sm border border-gray-200 relative overflow-hidden"
-                      onClick={(e) => e.stopPropagation()} // Prevent closing when clicking inside card
+                      onClick={() => setTreeOpenDivision(treeOpenDivision === division.id ? null : division.id)}
+                      className={`w-full rounded-xl shadow-sm hover:shadow-lg border-2 transition-all cursor-pointer overflow-hidden ${
+                        treeOpenDivision === division.id 
+                          ? `${divisionColors[division.id]} ring-2 ring-offset-2 ring-green-500` 
+                          : 'bg-white border-gray-100 hover:border-green-200'
+                      }`}
                     >
-                       <button onClick={() => setSelectedMapPoint(null)} className="absolute top-3 right-3 p-1 rounded-full bg-gray-100 text-gray-500 hover:bg-red-50 hover:text-red-500 transition-colors">
-                         <X size={20} />
-                       </button>
-                       
-                       <div className="flex gap-4 items-start mb-4">
-                         <img src={selectedMapPoint.image} alt={selectedMapPoint.nameEn} className="w-20 h-20 rounded-xl object-cover shadow-sm border border-gray-100" />
-                         <div>
-                           <span className="text-xs font-bold text-green-600 bg-green-50 px-2 py-0.5 rounded uppercase">{selectedMapPoint.type}</span>
-                           <h3 className="text-2xl font-bold text-gray-900 mt-1">{isBangla ? selectedMapPoint.nameBn : selectedMapPoint.nameEn}</h3>
-                         </div>
-                       </div>
-                       
-                       <p className="text-gray-600 text-sm mb-6 leading-relaxed">
-                         {isBangla ? selectedMapPoint.descBn : selectedMapPoint.descEn}
-                       </p>
-                       
-                       <Button onClick={handleNavigateToDetails} className="w-full flex items-center justify-center gap-2">
-                         {isBangla ? 'বিস্তারিত দেখুন' : 'View Full Details'}
-                         <ArrowRight size={16} />
-                       </Button>
+                      <div className={`p-4 flex items-center justify-between ${treeOpenDivision === division.id ? 'text-white' : 'text-gray-800'}`}>
+                        <div>
+                          <h4 className="font-bold text-lg">{isBangla ? division.nameBn : division.nameEn}</h4>
+                          <span className={`text-xs ${treeOpenDivision === division.id ? 'text-white/80' : 'text-gray-500'}`}>
+                            {isBangla ? `${division.districts.length}টি জেলা` : `${division.districts.length} Districts`}
+                          </span>
+                        </div>
+                        {treeOpenDivision === division.id ? <ChevronDown size={20} /> : <ChevronRight size={20} className="text-gray-400" />}
+                      </div>
+                      
+                      {/* Expanded Districts Panel */}
+                      {treeOpenDivision === division.id && (
+                        <div className="bg-white p-4 border-t border-white/20 animate-fade-in cursor-default">
+                          <p className="text-xs font-bold text-gray-400 uppercase mb-3 tracking-wider">
+                            {isBangla ? 'জেলাসমূহ' : 'Districts'}
+                          </p>
+                          <div className="flex flex-wrap gap-2">
+                            {division.districts.map((dist, dIdx) => (
+                              <span 
+                                key={dIdx} 
+                                className="inline-block px-3 py-1.5 rounded-lg bg-gray-50 text-gray-700 text-sm font-medium border border-gray-200 hover:bg-green-50 hover:text-green-700 hover:border-green-200 transition-colors"
+                              >
+                                {isBangla ? dist.nameBn : dist.nameEn}
+                              </span>
+                            ))}
+                          </div>
+                        </div>
+                      )}
                     </div>
-                 </div>
-               )}
+                  </div>
+                ))}
+              </div>
             </div>
           </div>
         </div>
       </div>
 
-      {/* 64 Districts Tourism Section - NEW DESIGN */}
-      <div id="districts" className="py-20 bg-gray-50/50">
+      {/* 64 Districts Tourism Section - Sticky controls */}
+      <div id="districts" className="py-20 bg-gray-50/50 scroll-mt-20">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-12">
             <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-3">
@@ -436,12 +353,10 @@ export const AmarBdModule: React.FC<Props> = ({ isBangla, onModuleSelect }) => {
             </p>
           </div>
 
-          {/* Sticky Controls Container */}
+          {/* Sticky Controls */}
           <div className="sticky top-24 z-30 mb-12">
             <div className="bg-white rounded-2xl shadow-xl shadow-gray-200/50 border border-gray-100 p-3 max-w-6xl mx-auto">
               <div className="flex flex-col md:flex-row items-center gap-4">
-                
-                {/* Division Tabs - Scrollable */}
                 <div className="w-full overflow-x-auto pb-2 scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-50 px-1">
                   <div className="flex gap-3">
                     <button
@@ -470,7 +385,6 @@ export const AmarBdModule: React.FC<Props> = ({ isBangla, onModuleSelect }) => {
                   </div>
                 </div>
 
-                {/* Search Bar - Fixed width on Desktop */}
                 <div className="w-full md:w-72 shrink-0 border-l border-gray-100 md:pl-4">
                    <div className="relative group">
                      <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-green-600 transition-colors" size={18} />
@@ -483,51 +397,44 @@ export const AmarBdModule: React.FC<Props> = ({ isBangla, onModuleSelect }) => {
                      />
                    </div>
                 </div>
-
               </div>
             </div>
           </div>
 
-          {/* Districts Grid */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
             {filteredList.length > 0 ? (
               filteredList.map((item, idx) => (
-                <div key={idx} className="group relative bg-white rounded-2xl border border-gray-100 p-6 shadow-sm hover:shadow-xl transition-all duration-300 hover:-translate-y-1 overflow-hidden">
-                  
-                  {/* Decorative Background Icon */}
-                  <div className="absolute -right-4 -top-4 opacity-[0.03] group-hover:opacity-10 transition-opacity duration-500">
-                    <MapPin size={120} className="transform rotate-12" />
-                  </div>
-
-                  {/* Header */}
-                  <div className="relative z-10 mb-4">
-                    <span className="inline-block px-3 py-1 rounded-full bg-green-50 text-green-700 text-xs font-bold mb-3 border border-green-100">
-                      {item.divisionName}
-                    </span>
-                    <h3 className="text-2xl font-bold text-gray-900 group-hover:text-green-700 transition-colors">
+                <div 
+                  key={idx} 
+                  onClick={() => setSelectedDistrictForDetails(item)}
+                  className="group bg-white rounded-xl border border-gray-100 shadow-sm hover:shadow-lg transition-all duration-300 hover:-translate-y-1 p-6 cursor-pointer flex flex-col h-full"
+                >
+                  <div className="flex justify-between items-start mb-4">
+                    <h3 className="text-xl font-bold text-gray-900 group-hover:text-green-700 transition-colors">
                        {isBangla ? item.district.nameBn : item.district.nameEn}
                     </h3>
+                    <span className="text-xs font-bold text-gray-500 bg-gray-100 px-2 py-1 rounded">
+                      {item.divisionName}
+                    </span>
                   </div>
                   
-                  {/* Spots List */}
-                  <div className="relative z-10 space-y-3 mb-6">
+                  <ul className="space-y-3 mb-6 flex-1">
                     {item.district.spots.slice(0, 3).map((spot, sIdx) => (
-                      <div key={sIdx} className="flex items-start gap-3">
+                      <li key={sIdx} className="flex items-start gap-3">
                          <div className="w-1.5 h-1.5 rounded-full bg-green-400 mt-2 shrink-0 group-hover:bg-green-600 transition-colors shadow-sm"></div>
                          <span className="text-sm text-gray-600 font-medium group-hover:text-gray-900 transition-colors line-clamp-1">{spot}</span>
-                      </div>
+                      </li>
                     ))}
                     {item.district.spots.length > 3 && (
-                      <div className="pl-4 text-xs font-semibold text-green-600/70">
+                      <li className="pl-4 text-xs font-semibold text-green-600/70">
                         + {item.district.spots.length - 3} {isBangla ? 'আরও' : 'more'}
-                      </div>
+                      </li>
                     )}
-                  </div>
-
-                  {/* Footer Action */}
-                  <div className="relative z-10 pt-4 border-t border-gray-50 flex items-center justify-between group/link">
-                    <span className="text-xs font-bold text-gray-400 group-hover:text-green-600 transition-colors">
-                      {isBangla ? 'বিস্তারিত দেখুন' : 'View Details'}
+                  </ul>
+                  
+                  <div className="pt-4 border-t border-gray-50 flex items-center justify-between group/link mt-auto">
+                    <span className="text-xs font-bold text-green-600 group-hover:underline transition-colors flex items-center gap-1">
+                      {isBangla ? 'বিস্তারিত দেখুন' : 'View Details'} <ArrowRight size={12} className="opacity-0 group-hover:opacity-100 transition-opacity" />
                     </span>
                     <div className="w-8 h-8 rounded-full bg-gray-50 flex items-center justify-center text-gray-400 group-hover:bg-green-600 group-hover:text-white transition-all duration-300">
                       <ChevronRight size={16} />
@@ -547,9 +454,63 @@ export const AmarBdModule: React.FC<Props> = ({ isBangla, onModuleSelect }) => {
               </div>
             )}
           </div>
-
         </div>
       </div>
+
+      {/* District Details Modal */}
+      {selectedDistrictForDetails && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fade-in" onClick={() => setSelectedDistrictForDetails(null)}>
+          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] flex flex-col overflow-hidden" onClick={e => e.stopPropagation()}>
+            <div className="p-6 border-b border-gray-100 flex justify-between items-center bg-gray-50">
+              <div>
+                <h2 className="text-2xl font-bold text-gray-900">{isBangla ? selectedDistrictForDetails.district.nameBn : selectedDistrictForDetails.district.nameEn}</h2>
+                <p className="text-sm text-gray-500">{selectedDistrictForDetails.divisionName}</p>
+              </div>
+              <button onClick={() => setSelectedDistrictForDetails(null)} className="p-2 hover:bg-gray-200 rounded-full text-gray-500 transition-colors">
+                <X size={24} />
+              </button>
+            </div>
+            
+            <div className="p-6 overflow-y-auto">
+              <div className="bg-green-50 p-4 rounded-xl border border-green-100 mb-6">
+                <p className="text-green-800 text-sm leading-relaxed">
+                  {isBangla 
+                    ? `স্বাগতম ${selectedDistrictForDetails.district.nameBn} জেলায়। এটি ${selectedDistrictForDetails.divisionName}-এর একটি ঐতিহ্যবাহী জেলা যা তার প্রাকৃতিক সৌন্দর্য এবং ঐতিহাসিক নিদর্শনের জন্য পরিচিত।` 
+                    : `Welcome to ${selectedDistrictForDetails.district.nameEn} district. A traditional district in ${selectedDistrictForDetails.divisionName}, known for its natural beauty and historical sites.`}
+                </p>
+              </div>
+
+              <h3 className="text-lg font-bold text-gray-800 mb-4 flex items-center gap-2">
+                <Map size={20} className="text-green-600" />
+                {isBangla ? 'দর্শনীয় স্থানসমূহ' : 'Tourist Spots'}
+              </h3>
+
+              <div className="space-y-4">
+                {selectedDistrictForDetails.district.spots.map((spot, idx) => (
+                  <div key={idx} className="border border-gray-200 rounded-xl p-4 hover:border-green-200 hover:bg-green-50/30 transition-colors">
+                    <h4 className="font-bold text-gray-900 text-lg mb-1">{spot}</h4>
+                    <p className="text-sm text-gray-600 mb-2">
+                      {isBangla 
+                        ? 'এটি জেলার অন্যতম জনপ্রিয় পর্যটন কেন্দ্র। পর্যটকদের জন্য একটি চমৎকার গন্তব্য।' 
+                        : 'One of the most popular tourist centers in the district. A wonderful destination for tourists.'}
+                    </p>
+                    <div className="flex items-center gap-1 text-xs font-medium text-blue-600 bg-blue-50 w-fit px-2 py-1 rounded">
+                      <MapPin size={12} />
+                      {isBangla ? 'শহর থেকে ৫ কি.মি. দূরে' : '5 km from city center'}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <div className="p-4 border-t border-gray-100 bg-gray-50 flex justify-end">
+              <Button onClick={() => setSelectedDistrictForDetails(null)}>
+                {isBangla ? 'বন্ধ করুন' : 'Close'}
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* History & Culture */}
       <div className="py-20 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -581,24 +542,30 @@ export const AmarBdModule: React.FC<Props> = ({ isBangla, onModuleSelect }) => {
           </div>
           <div className="grid grid-cols-2 gap-4">
              <img 
-               src="https://images.unsplash.com/photo-1584351608663-7140f7f32924?auto=format&fit=crop&q=80&w=800"
-               srcSet="https://images.unsplash.com/photo-1584351608663-7140f7f32924?auto=format&fit=crop&q=80&w=400 400w,
-                       https://images.unsplash.com/photo-1584351608663-7140f7f32924?auto=format&fit=crop&q=80&w=800 800w"
+               src={getOptimizedImageUrl('https://images.unsplash.com/photo-1584351608663-7140f7f32924', 800)}
+               srcSet={`${getOptimizedImageUrl('https://images.unsplash.com/photo-1584351608663-7140f7f32924', 400)} 400w,
+                       ${getOptimizedImageUrl('https://images.unsplash.com/photo-1584351608663-7140f7f32924', 800)} 800w`}
                sizes="(max-width: 768px) 100vw, 50vw"
                className="rounded-2xl shadow-lg w-full h-64 object-cover transform translate-y-8" 
                alt="Rickshaw Art" 
                loading="lazy" 
                decoding="async"
+               width="400"
+               height="600"
+               onError={(e) => { e.currentTarget.src = "https://placehold.co/400x600?text=Rickshaw+Art"; }}
              />
              <img 
-               src="https://images.unsplash.com/photo-1596464716127-f2a82984de30?auto=format&fit=crop&q=80&w=800"
-               srcSet="https://images.unsplash.com/photo-1596464716127-f2a82984de30?auto=format&fit=crop&q=80&w=400 400w,
-                       https://images.unsplash.com/photo-1596464716127-f2a82984de30?auto=format&fit=crop&q=80&w=800 800w"
+               src={getOptimizedImageUrl('https://images.unsplash.com/photo-1596464716127-f2a82984de30', 800)}
+               srcSet={`${getOptimizedImageUrl('https://images.unsplash.com/photo-1596464716127-f2a82984de30', 400)} 400w,
+                       ${getOptimizedImageUrl('https://images.unsplash.com/photo-1596464716127-f2a82984de30', 800)} 800w`}
                sizes="(max-width: 768px) 100vw, 50vw"
                className="rounded-2xl shadow-lg w-full h-64 object-cover" 
                alt="Culture" 
                loading="lazy"
                decoding="async" 
+               width="400"
+               height="600"
+               onError={(e) => { e.currentTarget.src = "https://placehold.co/400x600?text=Culture"; }}
              />
           </div>
         </div>
@@ -612,42 +579,51 @@ export const AmarBdModule: React.FC<Props> = ({ isBangla, onModuleSelect }) => {
          <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
             <div className="p-6 bg-white rounded-xl shadow-sm border border-gray-100 flex flex-col items-center hover:shadow-md transition-all duration-300">
                <img 
-                 src="https://images.unsplash.com/photo-1505576399279-565b52d4ac71?auto=format&fit=crop&q=80&w=400"
-                 srcSet="https://images.unsplash.com/photo-1505576399279-565b52d4ac71?auto=format&fit=crop&q=80&w=200 200w,
-                         https://images.unsplash.com/photo-1505576399279-565b52d4ac71?auto=format&fit=crop&q=80&w=400 400w"
+                 src={getOptimizedImageUrl('https://images.unsplash.com/photo-1505576399279-565b52d4ac71', 400)}
+                 srcSet={`${getOptimizedImageUrl('https://images.unsplash.com/photo-1505576399279-565b52d4ac71', 200)} 200w,
+                         ${getOptimizedImageUrl('https://images.unsplash.com/photo-1505576399279-565b52d4ac71', 400)} 400w`}
                  sizes="(max-width: 768px) 50vw, 25vw"
                  alt="Tiger" 
                  className="w-20 h-20 rounded-full object-cover mb-4 border-2 border-green-100 shadow-sm" 
                  loading="lazy"
                  decoding="async" 
+                 width="80"
+                 height="80"
+                 onError={(e) => { e.currentTarget.src = "https://placehold.co/100?text=Tiger"; }}
                />
                <h4 className="font-bold text-gray-800">{isBangla ? 'রয়েল বেঙ্গল টাইগার' : 'Royal Bengal Tiger'}</h4>
                <p className="text-xs text-gray-500 mt-1">{isBangla ? 'জাতীয় পশু' : 'National Animal'}</p>
             </div>
             <div className="p-6 bg-white rounded-xl shadow-sm border border-gray-100 flex flex-col items-center hover:shadow-md transition-all duration-300">
                <img 
-                 src="https://images.unsplash.com/photo-1508605448373-bd85d0335e98?auto=format&fit=crop&q=80&w=400"
-                 srcSet="https://images.unsplash.com/photo-1508605448373-bd85d0335e98?auto=format&fit=crop&q=80&w=200 200w,
-                         https://images.unsplash.com/photo-1508605448373-bd85d0335e98?auto=format&fit=crop&q=80&w=400 400w"
+                 src={getOptimizedImageUrl('https://images.unsplash.com/photo-1508605448373-bd85d0335e98', 400)}
+                 srcSet={`${getOptimizedImageUrl('https://images.unsplash.com/photo-1508605448373-bd85d0335e98', 200)} 200w,
+                         ${getOptimizedImageUrl('https://images.unsplash.com/photo-1508605448373-bd85d0335e98', 400)} 400w`}
                  sizes="(max-width: 768px) 50vw, 25vw"
                  alt="Water Lily" 
                  className="w-20 h-20 rounded-full object-cover mb-4 border-2 border-green-100 shadow-sm" 
                  loading="lazy"
                  decoding="async" 
+                 width="80"
+                 height="80"
+                 onError={(e) => { e.currentTarget.src = "https://placehold.co/100?text=Water+Lily"; }}
                />
                <h4 className="font-bold text-gray-800">{isBangla ? 'শাপলা' : 'Water Lily'}</h4>
                <p className="text-xs text-gray-500 mt-1">{isBangla ? 'জাতীয় ফুল' : 'National Flower'}</p>
             </div>
             <div className="p-6 bg-white rounded-xl shadow-sm border border-gray-100 flex flex-col items-center hover:shadow-md transition-all duration-300">
                <img 
-                 src="https://images.unsplash.com/photo-1559865611-30018314ddf4?auto=format&fit=crop&q=80&w=400"
-                 srcSet="https://images.unsplash.com/photo-1559865611-30018314ddf4?auto=format&fit=crop&q=80&w=200 200w,
-                         https://images.unsplash.com/photo-1559865611-30018314ddf4?auto=format&fit=crop&q=80&w=400 400w"
+                 src={getOptimizedImageUrl('https://images.unsplash.com/photo-1559865611-30018314ddf4', 400)}
+                 srcSet={`${getOptimizedImageUrl('https://images.unsplash.com/photo-1559865611-30018314ddf4', 200)} 200w,
+                         ${getOptimizedImageUrl('https://images.unsplash.com/photo-1559865611-30018314ddf4', 400)} 400w`}
                  sizes="(max-width: 768px) 50vw, 25vw"
                  alt="Jackfruit" 
                  className="w-20 h-20 rounded-full object-cover mb-4 border-2 border-green-100 shadow-sm" 
                  loading="lazy"
                  decoding="async" 
+                 width="80"
+                 height="80"
+                 onError={(e) => { e.currentTarget.src = "https://placehold.co/100?text=Jackfruit"; }}
                />
                <h4 className="font-bold text-gray-800">{isBangla ? 'কাঁঠাল' : 'Jackfruit'}</h4>
                <p className="text-xs text-gray-500 mt-1">{isBangla ? 'জাতীয় ফল' : 'National Fruit'}</p>
@@ -659,6 +635,9 @@ export const AmarBdModule: React.FC<Props> = ({ isBangla, onModuleSelect }) => {
                  className="w-20 h-20 rounded-full object-cover mb-4 border-2 border-green-100 shadow-sm" 
                  loading="lazy"
                  decoding="async" 
+                 width="80"
+                 height="80"
+                 onError={(e) => { e.currentTarget.src = "https://placehold.co/100?text=Hilsa+Fish"; }}
                />
                <h4 className="font-bold text-gray-800">{isBangla ? 'ইলিশ' : 'Hilsa'}</h4>
                <p className="text-xs text-gray-500 mt-1">{isBangla ? 'জাতীয় মাছ' : 'National Fish'}</p>
