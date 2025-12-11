@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { Menu, X, Globe, Bell, LogOut, ChevronDown, User as UserIcon, Heart } from 'lucide-react';
+import { Menu, X, Globe, Bell, LogOut, ChevronDown, User as UserIcon, Heart, Map } from 'lucide-react';
 import { Button } from '../ui/Button';
 import { User, AppModule } from '../../types';
 
@@ -68,6 +68,14 @@ export const Header: React.FC<HeaderProps> = ({
               >
                 <Heart size={14} fill="currentColor" />
                 {isBangla ? 'আমার বাংলাদেশ' : 'Amar BD'}
+              </button>
+
+              <button 
+                onClick={() => onModuleSelect(AppModule.AMAR_JELA)} 
+                className="flex items-center gap-2 text-sm font-bold text-teal-700 bg-teal-50 px-3 py-1.5 rounded-full hover:bg-teal-100 transition-colors"
+              >
+                <Map size={14} />
+                {isBangla ? 'আমার জেলা' : 'Amar Jela'}
               </button>
 
               {/* Services Dropdown */}
@@ -216,6 +224,14 @@ export const Header: React.FC<HeaderProps> = ({
             >
                <Heart size={16} fill="currentColor" />
               {isBangla ? 'আমার বাংলাদেশ' : 'Amar BD'}
+            </button>
+
+            <button 
+              onClick={() => handleModuleClick(AppModule.AMAR_JELA)} 
+              className="flex items-center gap-2 text-left font-bold text-teal-700 bg-teal-50 p-3 rounded-lg border border-teal-100"
+            >
+               <Map size={16} />
+              {isBangla ? 'আমার জেলা' : 'Amar Jela'}
             </button>
 
             <div className="text-left font-medium text-gray-700 py-2 border-b border-gray-50">

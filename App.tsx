@@ -11,6 +11,7 @@ import { JobModule } from './components/modules/JobModule';
 import { BlogModule } from './components/modules/BlogModule';
 import { ContactModule } from './components/modules/ContactModule';
 import { AmarBdModule } from './components/modules/AmarBdModule';
+import { AmarJelaModule } from './components/modules/AmarJelaModule';
 import { CraftModule } from './components/modules/CraftModule';
 import { AgriModule } from './components/modules/AgriModule';
 import { EduModule } from './components/modules/EduModule';
@@ -113,6 +114,8 @@ const App: React.FC = () => {
           return <ContactModule isBangla={isBangla} />;
         case AppModule.AMAR_BD:
           return <AmarBdModule isBangla={isBangla} />;
+        case AppModule.AMAR_JELA:
+          return <AmarJelaModule isBangla={isBangla} />;
         case AppModule.CRAFT:
           return <CraftModule isBangla={isBangla} />;
         case AppModule.AGRI:
@@ -164,7 +167,7 @@ const App: React.FC = () => {
         />
         <div className="flex-1">
            {/* Wrapper to ensure full page modules look good */}
-           {activeModule === AppModule.JOB || activeModule === AppModule.BLOG || activeModule === AppModule.CONTACT || activeModule === AppModule.AMAR_BD
+           {activeModule === AppModule.JOB || activeModule === AppModule.BLOG || activeModule === AppModule.CONTACT || activeModule === AppModule.AMAR_BD || activeModule === AppModule.AMAR_JELA
              ? renderWebsiteContent() // These already have container
              : (
                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 min-h-screen">

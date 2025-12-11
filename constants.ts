@@ -58,5 +58,6 @@ export const MODULE_CONFIG = {
   [AppModule.CONTACT]: { title: 'Contact Us', titleBn: 'যোগাযোগ', color: 'bg-violet-600' },
   [AppModule.BLOG]: { title: 'Blog', titleBn: 'ব্লগ', color: 'bg-emerald-600' },
   [AppModule.AMAR_BD]: { title: 'Amar Bangladesh', titleBn: 'আমার বাংলাদেশ', color: 'bg-green-700' },
+  [AppModule.AMAR_JELA]: { title: 'Amar Jela', titleBn: 'আমার জেলা', color: 'bg-teal-700' },
   [AppModule.PROFILE]: { title: 'User Profile', titleBn: 'ব্যবহারকারীর প্রোফাইল', color: 'bg-slate-600' },
 };
