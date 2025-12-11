@@ -1,10 +1,12 @@
 
 import React, { useState } from 'react';
-import { MapPin, ArrowRight, Search, Compass, Info, Star, ChevronRight } from 'lucide-react';
+import { MapPin, ArrowRight, Search, Compass, Info, Star, ChevronRight, X } from 'lucide-react';
 import { Button } from '../ui/Button';
+import { AppModule } from '../../types';
 
 interface Props {
   isBangla: boolean;
+  onModuleSelect?: (module: AppModule) => void;
 }
 
 interface DistrictData {
@@ -20,9 +22,115 @@ interface DivisionData {
   districts: DistrictData[];
 }
 
-export const AmarBdModule: React.FC<Props> = ({ isBangla }) => {
+// Map Point Interface
+interface MapPoint {
+  id: string;
+  nameBn: string;
+  nameEn: string;
+  top: string;
+  left: string;
+  type: 'division' | 'spot';
+  image: string;
+  descBn: string;
+  descEn: string;
+}
+
+export const AmarBdModule: React.FC<Props> = ({ isBangla, onModuleSelect }) => {
   const [activeDivision, setActiveDivision] = useState<string>('All');
   const [searchQuery, setSearchQuery] = useState('');
+  const [selectedMapPoint, setSelectedMapPoint] = useState<MapPoint | null>(null);
+
+  // Map Data Points (Coordinates tuned for the standard Bangladesh Map)
+  const mapPoints: MapPoint[] = [
+    { 
+      id: 'rangpur', 
+      nameBn: 'রংপুর', 
+      nameEn: 'Rangpur', 
+      top: '12%', 
+      left: '28%', 
+      type: 'division',
+      image: 'https://images.unsplash.com/photo-1628189873998-25f00e95a947?auto=format&fit=crop&q=80&w=400',
+      descBn: 'ঐতিহাসিক তাজহাট জমিদার বাড়ি এবং বিভিন্ন প্রত্নতাত্ত্বিক নিদর্শনের জন্য বিখ্যাত।',
+      descEn: 'Famous for the historic Tajhat Palace and various archaeological sites.'
+    },
+    { 
+      id: 'sylhet', 
+      nameBn: 'সিলেট', 
+      nameEn: 'Sylhet', 
+      top: '28%', 
+      left: '78%', 
+      type: 'division',
+      image: 'https://images.unsplash.com/photo-1601925358526-7c9c0d9c0944?auto=format&fit=crop&q=80&w=400', // Tea garden
+      descBn: 'দুটি পাতা একটি কুঁড়ির দেশ। চা বাগান এবং জাফলং এর প্রাকৃতিক সৌন্দর্য।',
+      descEn: 'Land of two leaves and a bud. Known for tea gardens and Jaflong\'s beauty.'
+    },
+    { 
+      id: 'mymensingh', 
+      nameBn: 'ময়মনসিংহ', 
+      nameEn: 'Mymensingh', 
+      top: '25%', 
+      left: '50%', 
+      type: 'division',
+      image: 'https://images.unsplash.com/photo-1596464716127-f2a82984de30?auto=format&fit=crop&q=80&w=400',
+      descBn: 'মহুয়া মলুয়ার দেশ। শশী লজ এবং কৃষি বিশ্ববিদ্যালয়ের জন্য পরিচিত।',
+      descEn: 'Land of Mahua Malua. Known for Shashi Lodge and Agricultural University.'
+    },
+    { 
+      id: 'rajshahi', 
+      nameBn: 'রাজশাহী', 
+      nameEn: 'Rajshahi', 
+      top: '30%', 
+      left: '20%', 
+      type: 'division',
+      image: 'https://images.unsplash.com/photo-1635070041078-e363dbe005cb?auto=format&fit=crop&q=80&w=400', // Mango/Green
+      descBn: 'শিক্ষানগরী ও রেশম নগরী। আম এবং ঐতিহাসিক নিদর্শনের জন্য বিখ্যাত।',
+      descEn: 'City of Education and Silk. Famous for Mangoes and historical sites.'
+    },
+    { 
+      id: 'dhaka', 
+      nameBn: 'ঢাকা', 
+      nameEn: 'Dhaka', 
+      top: '48%', 
+      left: '48%', 
+      type: 'division',
+      image: 'https://images.unsplash.com/photo-1619671603704-8b6567958611?auto=format&fit=crop&q=80&w=400', // Parliament
+      descBn: 'বাংলাদেশের রাজধানী। ইতিহাস, ঐতিহ্য এবং আধুনিকতার এক অনন্য সংমিশ্রণ।',
+      descEn: 'Capital of Bangladesh. A unique blend of history, heritage and modernity.'
+    },
+    { 
+      id: 'khulna', 
+      nameBn: 'খুলনা', 
+      nameEn: 'Khulna', 
+      top: '65%', 
+      left: '28%', 
+      type: 'division',
+      image: 'https://images.unsplash.com/photo-1599580460305-64906f23349e?auto=format&fit=crop&q=80&w=400', // Sundarbansish
+      descBn: 'সুন্দরবনের প্রবেশদ্বার। রয়েল বেঙ্গল টাইগার এবং ম্যানগ্রোভ বনের জন্য বিখ্যাত।',
+      descEn: 'Gateway to the Sundarbans. Famous for Royal Bengal Tiger and Mangrove forest.'
+    },
+    { 
+      id: 'barisal', 
+      nameBn: 'বরিশাল', 
+      nameEn: 'Barisal', 
+      top: '72%', 
+      left: '45%', 
+      type: 'division',
+      image: 'https://images.unsplash.com/photo-1582811466099-28c148f34346?auto=format&fit=crop&q=80&w=400', // River
+      descBn: 'নদী মাতৃক বাংলাদেশের শস্য ভান্ডার। কুয়াকাটা সমুদ্র সৈকতের নিকটবর্তী।',
+      descEn: 'Granary of riverine Bangladesh. Close to Kuakata sea beach.'
+    },
+    { 
+      id: 'chattogram', 
+      nameBn: 'চট্টগ্রাম', 
+      nameEn: 'Chattogram', 
+      top: '70%', 
+      left: '72%', 
+      type: 'division',
+      image: 'https://images.unsplash.com/photo-1549885744-83952f4a5697?auto=format&fit=crop&q=80&w=400', // Port/Sea
+      descBn: 'বাংলাদেশের বাণিজ্যিক রাজধানী। পাহাড় এবং সমুদ্রের এক অপূর্ব মিলনমেলা।',
+      descEn: 'Commercial capital of Bangladesh. A wonderful union of hills and sea.'
+    },
+  ];
 
   // Comprehensive Data for 8 Divisions and their Districts
   const tourismData: DivisionData[] = [
@@ -172,6 +280,12 @@ export const AmarBdModule: React.FC<Props> = ({ isBangla }) => {
 
   const filteredList = getFilteredDistricts();
 
+  const handleNavigateToDetails = () => {
+    if (onModuleSelect) {
+      onModuleSelect(AppModule.AMAR_JELA);
+    }
+  };
+
   return (
     <div className="bg-white min-h-screen animate-fade-in">
       {/* Hero Section */}
@@ -226,6 +340,83 @@ export const AmarBdModule: React.FC<Props> = ({ isBangla }) => {
             <div className="text-center">
               <h3 className="text-4xl font-bold text-red-600 mb-2">8th</h3>
               <p className="text-gray-600 font-medium">{isBangla ? 'বিশ্বে জনসংখ্যায়' : 'Most Populous'}</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Interactive Map Section */}
+      <div className="py-20 bg-white overflow-hidden relative">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-12">
+            <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-3">
+              {isBangla ? 'মানচিত্রে দেখুন' : 'Explore on Map'}
+            </h2>
+            <p className="text-gray-500 max-w-2xl mx-auto text-base">
+              {isBangla 
+                ? 'মানচিত্রের বিভিন্ন পয়েন্টে ক্লিক করে বিভাগ ও জেলা সম্পর্কে জানুন।' 
+                : 'Click on points on the map to learn about divisions and districts.'}
+            </p>
+          </div>
+
+          <div className="flex justify-center relative">
+            {/* Map Container */}
+            <div className="relative w-full max-w-3xl h-[600px] bg-blue-50/50 rounded-3xl border border-blue-100 shadow-inner flex items-center justify-center overflow-hidden">
+               {/* Map Image */}
+               <img 
+                 src="https://upload.wikimedia.org/wikipedia/commons/thumb/f/f2/Bangladesh_divisions_bengali.svg/800px-Bangladesh_divisions_bengali.svg.png" 
+                 alt="Map of Bangladesh" 
+                 className="h-[90%] w-auto object-contain drop-shadow-md"
+               />
+
+               {/* Interactive Hotspots */}
+               {mapPoints.map((point) => (
+                 <button
+                   key={point.id}
+                   onClick={() => setSelectedMapPoint(point)}
+                   className="absolute group z-10 focus:outline-none"
+                   style={{ top: point.top, left: point.left }}
+                 >
+                   <span className="relative flex h-6 w-6">
+                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
+                      <span className="relative inline-flex rounded-full h-6 w-6 bg-red-500 border-2 border-white shadow-md"></span>
+                   </span>
+                   <span className="absolute left-1/2 -translate-x-1/2 -top-8 bg-white text-gray-800 text-xs font-bold px-2 py-1 rounded shadow-md opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none">
+                     {isBangla ? point.nameBn : point.nameEn}
+                   </span>
+                 </button>
+               ))}
+
+               {/* Info Card Pop-over */}
+               {selectedMapPoint && (
+                 <div className="absolute inset-0 z-20 flex items-center justify-center p-4 bg-black/20 backdrop-blur-sm animate-fade-in" onClick={() => setSelectedMapPoint(null)}>
+                    <div 
+                      className="bg-white rounded-2xl shadow-2xl p-6 w-full max-w-sm border border-gray-200 relative overflow-hidden"
+                      onClick={(e) => e.stopPropagation()} // Prevent closing when clicking inside card
+                    >
+                       <button onClick={() => setSelectedMapPoint(null)} className="absolute top-3 right-3 p-1 rounded-full bg-gray-100 text-gray-500 hover:bg-red-50 hover:text-red-500 transition-colors">
+                         <X size={20} />
+                       </button>
+                       
+                       <div className="flex gap-4 items-start mb-4">
+                         <img src={selectedMapPoint.image} alt={selectedMapPoint.nameEn} className="w-20 h-20 rounded-xl object-cover shadow-sm border border-gray-100" />
+                         <div>
+                           <span className="text-xs font-bold text-green-600 bg-green-50 px-2 py-0.5 rounded uppercase">{selectedMapPoint.type}</span>
+                           <h3 className="text-2xl font-bold text-gray-900 mt-1">{isBangla ? selectedMapPoint.nameBn : selectedMapPoint.nameEn}</h3>
+                         </div>
+                       </div>
+                       
+                       <p className="text-gray-600 text-sm mb-6 leading-relaxed">
+                         {isBangla ? selectedMapPoint.descBn : selectedMapPoint.descEn}
+                       </p>
+                       
+                       <Button onClick={handleNavigateToDetails} className="w-full flex items-center justify-center gap-2">
+                         {isBangla ? 'বিস্তারিত দেখুন' : 'View Full Details'}
+                         <ArrowRight size={16} />
+                       </Button>
+                    </div>
+                 </div>
+               )}
             </div>
           </div>
         </div>

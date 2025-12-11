@@ -1,3 +1,4 @@
+
 import React, { useState, useMemo } from 'react';
 import { 
   ShoppingBasket, TrendingUp, Truck, Search, Filter, 
@@ -10,7 +11,13 @@ interface Props {
   isBangla: boolean;
 }
 
-const FilterCheckbox = ({ label, checked, onChange }: { label: string, checked: boolean, onChange: () => void }) => (
+interface FilterCheckboxProps {
+  label: string;
+  checked: boolean;
+  onChange: () => void;
+}
+
+const FilterCheckbox: React.FC<FilterCheckboxProps> = ({ label, checked, onChange }) => (
   <label className="flex items-center gap-3 cursor-pointer group">
     <div className={`w-5 h-5 rounded border flex items-center justify-center transition-colors ${checked ? 'bg-lime-600 border-lime-600' : 'border-gray-300 group-hover:border-lime-400'}`}>
       {checked && <CheckCircle size={12} className="text-white" />}

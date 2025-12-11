@@ -4,7 +4,8 @@ import {
   ShoppingBag, Sprout, BookOpen, HeartPulse, 
   Bus, Trash2, Fish, AlertOctagon, CheckCircle, Star, Sparkles,
   ArrowRight, MapPin, Calendar, ShieldAlert, TrendingUp, CloudRain, Phone, Activity,
-  UserPlus, LayoutGrid, Smile, Building2, Landmark, Truck, Globe
+  UserPlus, LayoutGrid, Smile, Building2, Landmark, Truck, Globe,
+  CloudSun, Stethoscope, Recycle
 } from 'lucide-react';
 import { Button } from './ui/Button';
 import { User, AppModule } from '../types';
@@ -201,6 +202,61 @@ export const LandingPage: React.FC<Props> = ({
         </div>
       </div>
 
+      {/* --- KEY FEATURES HIGHLIGHTS --- */}
+      <div className="py-20 bg-white border-t border-gray-100">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-16">
+            <span className="text-brand-600 font-bold tracking-wider uppercase text-sm mb-2 block">
+              {isBangla ? 'ফিচার হাইলাইট' : 'Key Features'}
+            </span>
+            <h2 className="text-3xl font-bold text-gray-900">
+              {isBangla ? 'এক নজরে আমাদের সেরা সুবিধাসমূহ' : 'Platform Highlights'}
+            </h2>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+            {[
+              {
+                icon: <CloudSun size={32} />,
+                title: isBangla ? 'আবহাওয়া তথ্য' : 'Weather Info',
+                desc: isBangla ? 'কৃষকদের জন্য সঠিক আবহাওয়া পূর্বাভাস ও সতর্কতা।' : 'Real-time weather forecasts and alerts for farmers.',
+                color: 'text-blue-500',
+                bg: 'bg-blue-50'
+              },
+              {
+                icon: <Stethoscope size={32} />,
+                title: isBangla ? 'ডাক্তার বুকিং' : 'Doctor Booking',
+                desc: isBangla ? 'ঘরে বসেই বিশেষজ্ঞ ডাক্তারের পরামর্শ ও অ্যাপয়েন্টমেন্ট।' : 'Consult specialists and book appointments from home.',
+                color: 'text-teal-500',
+                bg: 'bg-teal-50'
+              },
+              {
+                icon: <MapPin size={32} />,
+                title: isBangla ? 'লাইভ ট্র্যাকিং' : 'Transport Tracking',
+                desc: isBangla ? 'বাস বা ট্রেনের বর্তমান অবস্থান জানুন ম্যাপে।' : 'Track real-time location of public transport.',
+                color: 'text-indigo-500',
+                bg: 'bg-indigo-50'
+              },
+              {
+                icon: <Recycle size={32} />,
+                title: isBangla ? 'রিসাইক্লিং মার্কেট' : 'Recycling Market',
+                desc: isBangla ? 'বর্জ্য কেনা-বেচার জন্য দেশের প্রথম ডিজিটাল মার্কেটপ্লেস।' : 'First digital marketplace for waste trading.',
+                color: 'text-green-600',
+                bg: 'bg-green-50'
+              }
+            ].map((feature, idx) => (
+              <div key={idx} className="group p-6 rounded-2xl border border-gray-100 hover:shadow-lg transition-all duration-300 hover:-translate-y-1 bg-white text-center">
+                <div className={`w-16 h-16 mx-auto rounded-full flex items-center justify-center mb-6 ${feature.bg} ${feature.color} group-hover:scale-110 transition-transform`}>
+                  {feature.icon}
+                </div>
+                <h3 className="text-xl font-bold text-gray-900 mb-3">{feature.title}</h3>
+                <p className="text-gray-600 text-sm leading-relaxed">{feature.desc}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+
       {/* --- CRAFT SECTION --- */}
       <div id="crafts" className="py-24 bg-orange-50/50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -216,7 +272,7 @@ export const LandingPage: React.FC<Props> = ({
                   : 'Buy authentic handmade products directly from rural artisans. From Nakshi Kantha to Jamdani, support local craftsmanship.'}
               </p>
               <div className="flex gap-4">
-                <Button onClick={() => onModuleSelect(AppModule.CRAFT)} className="bg-orange-600 hover:bg-orange-700 border-none shadow-lg shadow-orange-600/20 px-8">
+                <Button onClick={() => onModuleSelect(AppModule.CRAFT)} className="!bg-orange-600 hover:!bg-orange-700 !text-white border-none shadow-lg shadow-orange-600/20 px-8">
                   {isBangla ? 'কারুশিল্প দেখুন' : 'Explore Crafts'}
                 </Button>
               </div>
@@ -257,7 +313,7 @@ export const LandingPage: React.FC<Props> = ({
                    <li key={i} className="flex items-center gap-2 text-gray-700 font-medium">{item}</li>
                  ))}
                </ul>
-               <Button onClick={() => onModuleSelect(AppModule.AGRI)} className="bg-green-600 hover:bg-green-700 border-none shadow-lg shadow-green-600/20 px-8">
+               <Button onClick={() => onModuleSelect(AppModule.AGRI)} className="!bg-green-600 hover:!bg-green-700 !text-white border-none shadow-lg shadow-green-600/20 px-8">
                  {isBangla ? 'কৃষি সেবা দেখুন' : 'Explore Agriculture'}
                </Button>
             </div>
@@ -305,10 +361,10 @@ export const LandingPage: React.FC<Props> = ({
                    : 'Connect with specialized doctors through video consultation. Find nearby hospitals and emergency services instantly.'}
                </p>
                <div className="flex flex-wrap gap-4">
-                 <Button onClick={() => onModuleSelect(AppModule.HEALTH)} className="bg-teal-600 hover:bg-teal-700 border-none shadow-lg shadow-teal-600/20 px-8">
+                 <Button onClick={() => onModuleSelect(AppModule.HEALTH)} className="!bg-teal-600 hover:!bg-teal-700 !text-white border-none shadow-lg shadow-teal-600/20 px-8">
                    {isBangla ? 'ডাক্তার খুঁজুন' : 'Find a Doctor'}
                  </Button>
-                 <Button onClick={() => onModuleSelect(AppModule.HEALTH)} variant="outline" className="border-teal-200 text-teal-700 hover:bg-teal-50">
+                 <Button onClick={() => onModuleSelect(AppModule.HEALTH)} variant="outline" className="border-teal-200 !text-teal-700 hover:!bg-teal-50">
                    {isBangla ? 'জরুরি সেবা' : 'Emergency Help'}
                  </Button>
                </div>
@@ -346,7 +402,7 @@ export const LandingPage: React.FC<Props> = ({
             <p className="text-lg text-gray-600 max-w-2xl mx-auto mb-8">
               {isBangla ? 'একাডেমিক থেকে কারিগরি—সব ধরনের কোর্স এখন এক অ্যাপে।' : 'From academic to vocational training, access diverse courses in one app.'}
             </p>
-            <Button onClick={() => onModuleSelect(AppModule.EDU)} className="bg-blue-600 hover:bg-blue-700 shadow-lg shadow-blue-600/20 px-8">
+            <Button onClick={() => onModuleSelect(AppModule.EDU)} className="!bg-blue-600 hover:!bg-blue-700 !text-white shadow-lg shadow-blue-600/20 px-8">
               {isBangla ? 'শিক্ষা সেবা দেখুন' : 'Explore Education'}
             </Button>
           </div>
@@ -406,7 +462,7 @@ export const LandingPage: React.FC<Props> = ({
                     ? 'বাস, ট্রেন বা লঞ্চের টিকেট কাটুন ঘরে বসেই। আপনার পরিবহন এখন কোথায় আছে তা ম্যাপে দেখুন।'
                     : 'Book Bus, Train or Launch tickets from home. Track your vehicle location in real-time on the map.'}
                 </p>
-                <Button onClick={() => onModuleSelect(AppModule.TRANSPORT)} className="bg-white text-indigo-900 hover:bg-indigo-50 border-none font-bold px-8">
+                <Button onClick={() => onModuleSelect(AppModule.TRANSPORT)} className="!bg-white !text-indigo-900 hover:!bg-indigo-50 border-none font-bold px-8">
                   {isBangla ? 'টিকেট বুক করুন' : 'Book Tickets'}
                 </Button>
               </div>
@@ -461,7 +517,7 @@ export const LandingPage: React.FC<Props> = ({
                    <CloudRain size={24} />
                    <span className="text-xs mt-2">Upload Photo</span>
                  </div>
-                 <Button className="w-full bg-gray-800 text-white">{isBangla ? 'জমা দিন' : 'Submit'}</Button>
+                 <Button className="w-full !bg-gray-800 !text-white">{isBangla ? 'জমা দিন' : 'Submit'}</Button>
                </div>
                <div className="absolute top-10 -left-10 w-20 h-20 bg-green-200 rounded-full mix-blend-multiply filter blur-xl opacity-70"></div>
                <div className="absolute bottom-10 -right-10 w-20 h-20 bg-gray-300 rounded-full mix-blend-multiply filter blur-xl opacity-70"></div>
@@ -476,7 +532,7 @@ export const LandingPage: React.FC<Props> = ({
                    ? 'আপনার এলাকার বর্জ্য অব্যবস্থাপনার ছবি তুলে রিপোর্ট করুন। আমরা পৌঁছে দেব কর্তৃপক্ষের কাছে। জানুন আবর্জনা সংগ্রহের সময়সূচী।'
                    : 'Report uncollected waste with a photo. Track collection trucks and view pickup schedules in real-time.'}
                </p>
-               <Button onClick={() => onModuleSelect(AppModule.WASTE)} className="bg-gray-700 hover:bg-gray-800 border-none shadow-lg">
+               <Button onClick={() => onModuleSelect(AppModule.WASTE)} className="!bg-gray-700 hover:!bg-gray-800 !text-white border-none shadow-lg">
                  {isBangla ? 'রিপোর্ট করুন' : 'Report Issue'}
                </Button>
             </div>
@@ -523,7 +579,7 @@ export const LandingPage: React.FC<Props> = ({
                    ? 'পুকুরের পানির পিএইচ এবং অক্সিজেনের মাত্রা পর্যবেক্ষণ করুন। মাছের রোগ বালাই এবং প্রতিকার সম্পর্কে জানুন।'
                    : 'Monitor pond water quality metrics like pH and Oxygen. Get expert advice on fish health and disease prevention.'}
                </p>
-               <Button onClick={() => onModuleSelect(AppModule.FISHERY)} className="bg-cyan-600 hover:bg-cyan-700 border-none shadow-lg shadow-cyan-600/20 px-8">
+               <Button onClick={() => onModuleSelect(AppModule.FISHERY)} className="!bg-cyan-600 hover:!bg-cyan-700 !text-white border-none shadow-lg shadow-cyan-600/20 px-8">
                  {isBangla ? 'মৎস্য সেবা দেখুন' : 'Explore Fishery'}
                </Button>
             </div>
@@ -548,8 +604,8 @@ export const LandingPage: React.FC<Props> = ({
                    {isBangla ? 'উপকূলীয় এলাকায় জলোচ্ছ্বাসের সম্ভাবনা। নিরাপদ আশ্রয়ে যান।' : 'Possibility of tidal surge in coastal areas. Move to safety.'}
                  </p>
                  <div className="flex gap-2">
-                   <Button size="sm" variant="danger" className="w-full">{isBangla ? 'আশ্রয়কেন্দ্র' : 'Find Shelter'}</Button>
-                   <Button size="sm" variant="outline" className="w-full border-red-200 text-red-700">{isBangla ? 'কল করুন' : 'Call 999'}</Button>
+                   <Button size="sm" variant="danger" className="w-full !bg-red-600 !text-white">{isBangla ? 'আশ্রয়কেন্দ্র' : 'Find Shelter'}</Button>
+                   <Button size="sm" variant="outline" className="w-full border-red-200 !text-red-700">{isBangla ? 'কল করুন' : 'Call 999'}</Button>
                  </div>
                </div>
             </div>
@@ -563,7 +619,7 @@ export const LandingPage: React.FC<Props> = ({
                    ? 'ঘূর্ণিঝড়, বন্যা বা জলোচ্ছ্বাসের আগাম সতর্কবার্তা পান। আপনার নিকটস্থ সাইক্লোন শেল্টার বা নিরাপদ স্থান খুঁজে নিন।'
                    : 'Receive real-time alerts for cyclones and floods. Locate nearby shelters and emergency contacts instantly.'}
                </p>
-               <Button onClick={() => onModuleSelect(AppModule.DISASTER)} className="bg-red-600 hover:bg-red-700 border-none shadow-lg shadow-red-600/30">
+               <Button onClick={() => onModuleSelect(AppModule.DISASTER)} className="!bg-red-600 hover:!bg-red-700 !text-white border-none shadow-lg shadow-red-600/30">
                  {isBangla ? 'সতর্কবার্তা দেখুন' : 'Check Alerts'}
                </Button>
             </div>
@@ -632,7 +688,7 @@ export const LandingPage: React.FC<Props> = ({
                 : 'Whether you are a farmer, teacher, doctor or citizen—one platform for all. Register for free now.'}
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <Button onClick={onRegister} size="lg" className="bg-white !text-brand-900 hover:bg-gray-100 px-12 py-4 text-lg font-bold">
+              <Button onClick={onRegister} size="lg" className="!bg-white !text-brand-900 hover:!bg-gray-100 px-12 py-4 text-lg font-bold">
                 {isBangla ? 'রেজিস্ট্রেশন করুন' : 'Register Now'}
               </Button>
             </div>

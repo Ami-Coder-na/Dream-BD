@@ -114,7 +114,7 @@ const App: React.FC = () => {
         case AppModule.CONTACT:
           return <ContactModule isBangla={isBangla} />;
         case AppModule.AMAR_BD:
-          return <AmarBdModule isBangla={isBangla} />;
+          return <AmarBdModule isBangla={isBangla} onModuleSelect={handleModuleSelect} />;
         case AppModule.AMAR_JELA:
           return <AmarJelaModule isBangla={isBangla} />;
         case AppModule.BAZAR_SODAI:
