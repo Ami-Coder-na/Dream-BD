@@ -1,3 +1,4 @@
+
 export enum UserRole {
   ADMIN = 'Admin',
   CITIZEN = 'Citizen',
@@ -83,4 +84,14 @@ export interface ChatSession {
   date: string; // 'Today', 'Yesterday', etc.
   preview: string;
   messages: ChatMessage[];
+}
+
+export interface Notification {
+  id: string;
+  title: string;
+  message: string;
+  type: 'info' | 'warning' | 'success' | 'alert';
+  timestamp: Date;
+  read: boolean;
+  moduleId?: AppModule;
 }

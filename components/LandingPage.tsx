@@ -8,7 +8,7 @@ import {
   CloudSun, Stethoscope, Recycle
 } from 'lucide-react';
 import { Button } from './ui/Button';
-import { User, AppModule } from '../types';
+import { User, AppModule, Notification } from '../types';
 import { Header } from './layout/Header';
 import { Footer } from './layout/Footer';
 import { MOCK_PRODUCTS } from '../constants';
@@ -22,6 +22,9 @@ interface Props {
   onModuleSelect: (module: AppModule) => void;
   isBangla: boolean;
   toggleLanguage: () => void;
+  notifications?: Notification[];
+  onMarkAllRead?: () => void;
+  onClearNotifications?: () => void;
 }
 
 export const LandingPage: React.FC<Props> = ({ 
@@ -32,7 +35,10 @@ export const LandingPage: React.FC<Props> = ({
   onOpenAiChat, 
   onModuleSelect,
   isBangla, 
-  toggleLanguage 
+  toggleLanguage,
+  notifications,
+  onMarkAllRead,
+  onClearNotifications
 }) => {
   
   // Rotating Headline State
@@ -82,7 +88,10 @@ export const LandingPage: React.FC<Props> = ({
         onModuleSelect={onModuleSelect}
         onNavigateHome={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
         isBangla={isBangla} 
-        toggleLanguage={toggleLanguage} 
+        toggleLanguage={toggleLanguage}
+        notifications={notifications}
+        onMarkAllRead={onMarkAllRead}
+        onClearNotifications={onClearNotifications}
       />
 
       {/* Hero Section */}

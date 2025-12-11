@@ -1,8 +1,8 @@
 
 import React, { useState } from 'react';
-import { Menu, X, Globe, Bell, LogOut, ChevronDown, User as UserIcon, Heart, Map, ShoppingBasket } from 'lucide-react';
+import { Menu, X, Globe, Bell, LogOut, ChevronDown, User as UserIcon, Heart, Map, ShoppingBasket, Check, Trash2, Info, AlertTriangle, CheckCircle, ShieldAlert } from 'lucide-react';
 import { Button } from '../ui/Button';
-import { User, AppModule } from '../../types';
+import { User, AppModule, Notification } from '../../types';
 
 interface HeaderProps {
   user?: User | null;
@@ -13,6 +13,9 @@ interface HeaderProps {
   onNavigateHome: () => void;
   isBangla: boolean;
   toggleLanguage: () => void;
+  notifications?: Notification[];
+  onMarkAllRead?: () => void;
+  onClearNotifications?: () => void;
 }
 
 export const Header: React.FC<HeaderProps> = ({ 
@@ -23,7 +26,10 @@ export const Header: React.FC<HeaderProps> = ({
   onModuleSelect,
   onNavigateHome,
   isBangla, 
-  toggleLanguage 
+  toggleLanguage,
+  notifications = [],
+  onMarkAllRead,
+  onClearNotifications
 }) => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [showNotifications, setShowNotifications] = useState(false);
@@ -43,6 +49,27 @@ export const Header: React.FC<HeaderProps> = ({
   const handleModuleClick = (moduleId: AppModule) => {
     onModuleSelect(moduleId);
     setMobileMenuOpen(false);
+  };
+
+  const unreadCount = notifications.filter(n => !n.read).length;
+
+  const getNotificationIcon = (type: string) => {
+    switch (type) {
+      case 'warning': return <AlertTriangle size={16} className="text-orange-500" />;
+      case 'alert': return <ShieldAlert size={16} className="text-red-600 animate-pulse" />;
+      case 'success': return <CheckCircle size={16} className="text-green-500" />;
+      default: return <Info size={16} className="text-blue-500" />;
+    }
+  };
+
+  const formatTime = (date: Date) => {
+    const now = new Date();
+    const diff = Math.floor((now.getTime() - new Date(date).getTime()) / 60000); // minutes
+    if (diff < 1) return 'Just now';
+    if (diff < 60) return `${diff}m ago`;
+    const hours = Math.floor(diff / 60);
+    if (hours < 24) return `${hours}h ago`;
+    return `${Math.floor(hours / 24)}d ago`;
   };
 
   return (
@@ -127,26 +154,83 @@ export const Header: React.FC<HeaderProps> = ({
             <div className="relative">
               <button 
                 onClick={() => setShowNotifications(!showNotifications)}
-                className="p-2 text-gray-600 hover:text-brand-600 hover:bg-gray-50 rounded-full transition-colors relative"
+                className={`p-2 rounded-full transition-colors relative ${showNotifications ? 'bg-brand-50 text-brand-600' : 'text-gray-600 hover:bg-gray-50'}`}
               >
                 <Bell size={20} />
-                <span className="absolute top-1.5 right-2 w-2 h-2 bg-red-500 rounded-full border border-white"></span>
+                {unreadCount > 0 && (
+                  <span className="absolute top-1.5 right-2 w-2 h-2 bg-red-500 rounded-full border border-white animate-pulse"></span>
+                )}
               </button>
 
               {showNotifications && (
-                <div className="absolute top-full right-0 mt-2 w-80 bg-white rounded-xl shadow-xl border border-gray-100 p-4 z-50 animate-fade-in">
-                  <div className="flex justify-between items-center mb-3">
-                    <h4 className="font-bold text-gray-900">{isBangla ? 'নোটিফিকেশন' : 'Notifications'}</h4>
-                    <span className="text-xs text-brand-600 font-medium cursor-pointer">{isBangla ? 'সব দেখুন' : 'View all'}</span>
-                  </div>
-                  <div className="space-y-3">
-                    <div className="flex gap-3 items-start p-2 hover:bg-gray-50 rounded-lg transition-colors cursor-pointer">
-                      <div className="w-2 h-2 mt-2 rounded-full bg-brand-500 shrink-0"></div>
-                      <div>
-                        <p className="text-sm text-gray-800 font-medium">{isBangla ? 'নতুন এআই চ্যাট!' : 'New Feature: AI Chat'}</p>
-                        <p className="text-xs text-gray-500">{isBangla ? 'আমাদের স্মার্ট সহকারীর সাথে কথা বলুন।' : 'Talk to our smart assistant now!'}</p>
-                      </div>
+                <div className="absolute top-full right-0 mt-2 w-96 bg-white rounded-xl shadow-xl border border-gray-100 z-50 animate-fade-in overflow-hidden">
+                  <div className="flex justify-between items-center p-4 border-b border-gray-50">
+                    <div className="flex items-center gap-2">
+                      <h4 className="font-bold text-gray-900">{isBangla ? 'নোটিফিকেশন' : 'Notifications'}</h4>
+                      {unreadCount > 0 && (
+                        <span className="bg-brand-100 text-brand-700 text-xs font-bold px-2 py-0.5 rounded-full">
+                          {unreadCount}
+                        </span>
+                      )}
                     </div>
+                    <div className="flex gap-2">
+                       <button 
+                         onClick={onMarkAllRead} 
+                         className="p-1.5 text-gray-400 hover:text-brand-600 hover:bg-brand-50 rounded transition-colors"
+                         title={isBangla ? 'সব পড়া হয়েছে' : 'Mark all read'}
+                       >
+                         <Check size={16} />
+                       </button>
+                       <button 
+                         onClick={onClearNotifications} 
+                         className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded transition-colors"
+                         title={isBangla ? 'সব মুছুন' : 'Clear all'}
+                       >
+                         <Trash2 size={16} />
+                       </button>
+                    </div>
+                  </div>
+                  
+                  <div className="max-h-[400px] overflow-y-auto">
+                    {notifications.length > 0 ? (
+                      <div className="divide-y divide-gray-50">
+                        {notifications.map((notif) => (
+                          <div 
+                            key={notif.id} 
+                            onClick={() => {
+                              if(notif.moduleId) onModuleSelect(notif.moduleId);
+                              setShowNotifications(false);
+                            }}
+                            className={`p-4 hover:bg-gray-50 transition-colors cursor-pointer flex gap-3 ${!notif.read ? 'bg-brand-50/30' : ''}`}
+                          >
+                            <div className={`mt-1 shrink-0`}>
+                              {getNotificationIcon(notif.type)}
+                            </div>
+                            <div className="flex-1">
+                              <div className="flex justify-between items-start mb-1">
+                                <p className={`text-sm font-semibold ${!notif.read ? 'text-gray-900' : 'text-gray-600'}`}>
+                                  {notif.title}
+                                </p>
+                                <span className="text-[10px] text-gray-400 whitespace-nowrap ml-2">
+                                  {formatTime(notif.timestamp)}
+                                </span>
+                              </div>
+                              <p className="text-xs text-gray-500 leading-relaxed line-clamp-2">
+                                {notif.message}
+                              </p>
+                            </div>
+                            {!notif.read && (
+                              <div className="self-center w-2 h-2 bg-brand-500 rounded-full shrink-0"></div>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <div className="p-8 text-center text-gray-400">
+                        <Bell size={32} className="mx-auto mb-2 opacity-20" />
+                        <p className="text-sm">{isBangla ? 'কোন নোটিফিকেশন নেই' : 'No notifications'}</p>
+                      </div>
+                    )}
                   </div>
                 </div>
               )}
@@ -206,12 +290,55 @@ export const Header: React.FC<HeaderProps> = ({
 
           {/* Mobile Menu Button */}
           <div className="lg:hidden flex items-center gap-4">
+             <button 
+                onClick={() => setShowNotifications(!showNotifications)}
+                className="relative text-gray-600 p-1"
+              >
+                <Bell size={24} />
+                {unreadCount > 0 && (
+                  <span className="absolute top-0 right-0 w-2.5 h-2.5 bg-red-500 rounded-full border-2 border-white animate-pulse"></span>
+                )}
+              </button>
+
             <button onClick={() => setMobileMenuOpen(!mobileMenuOpen)} className="text-gray-600">
               {mobileMenuOpen ? <X size={28} /> : <Menu size={28} />}
             </button>
           </div>
         </div>
       </div>
+      
+      {/* Mobile Notifications Overlay */}
+      {showNotifications && (
+         <div className="lg:hidden absolute top-20 left-0 right-0 bg-white shadow-xl z-40 border-b border-gray-100 max-h-[60vh] overflow-y-auto">
+            <div className="flex justify-between items-center p-4 bg-gray-50 sticky top-0">
+               <h4 className="font-bold text-gray-900">{isBangla ? 'নোটিফিকেশন' : 'Notifications'}</h4>
+               <button onClick={() => setShowNotifications(false)}><X size={20} /></button>
+            </div>
+            {notifications.length > 0 ? (
+               <div className="divide-y divide-gray-100">
+                  {notifications.map((notif) => (
+                    <div 
+                      key={notif.id} 
+                      onClick={() => {
+                         if(notif.moduleId) onModuleSelect(notif.moduleId);
+                         setShowNotifications(false);
+                      }}
+                      className={`p-4 flex gap-3 ${!notif.read ? 'bg-brand-50/20' : ''}`}
+                    >
+                       <div className="mt-1">{getNotificationIcon(notif.type)}</div>
+                       <div>
+                          <p className="text-sm font-semibold text-gray-900">{notif.title}</p>
+                          <p className="text-xs text-gray-500 mt-1">{notif.message}</p>
+                          <p className="text-[10px] text-gray-400 mt-2">{formatTime(notif.timestamp)}</p>
+                       </div>
+                    </div>
+                  ))}
+               </div>
+            ) : (
+               <div className="p-8 text-center text-gray-400">{isBangla ? 'কোন নোটিফিকেশন নেই' : 'No notifications'}</div>
+            )}
+         </div>
+      )}
 
       {/* Mobile Menu Overlay */}
       {mobileMenuOpen && (

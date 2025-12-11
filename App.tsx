@@ -1,6 +1,6 @@
 
-import React, { useState, Suspense, lazy } from 'react';
-import { User, AppModule } from './types';
+import React, { useState, Suspense, lazy, useEffect } from 'react';
+import { User, AppModule, Notification } from './types';
 import { GeminiAssistant } from './components/GeminiAssistant';
 import { LandingPage } from './components/LandingPage';
 import { AiChatPage } from './components/AiChatPage';
@@ -46,6 +46,53 @@ const App: React.FC = () => {
   const [isBangla, setIsBangla] = useState(true);
   const [showAiChat, setShowAiChat] = useState(false);
   const [authView, setAuthView] = useState<'none' | 'login' | 'signup'>('none');
+
+  // Notification State
+  const [notifications, setNotifications] = useState<Notification[]>([
+    {
+      id: '1',
+      title: 'New Job Alert',
+      message: 'Assistant Teacher post available in Dhaka.',
+      type: 'info',
+      timestamp: new Date(Date.now() - 1000 * 60 * 60 * 2),
+      read: false,
+      moduleId: AppModule.JOB
+    },
+    {
+       id: '2',
+       title: 'Market Update',
+       message: 'Egg prices dropped by 5% today.',
+       type: 'success',
+       timestamp: new Date(Date.now() - 1000 * 60 * 60 * 5),
+       read: false,
+       moduleId: AppModule.BAZAR_SODAI
+    }
+  ]);
+
+  // Simulate incoming notification
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      const newNotif: Notification = {
+        id: Date.now().toString(),
+        title: isBangla ? 'ঘূর্ণিঝড় সতর্কতা' : 'Cyclone Warning',
+        message: isBangla ? 'উপকূলীয় এলাকার জন্য ৪ নম্বর সতর্কতা সংকেত।' : 'Signal 4 issued for coastal areas. Stay safe!',
+        type: 'alert',
+        timestamp: new Date(),
+        read: false,
+        moduleId: AppModule.DISASTER
+      };
+      setNotifications(prev => [newNotif, ...prev]);
+    }, 10000); // 10 seconds delay
+    return () => clearTimeout(timer);
+  }, [isBangla]);
+
+  const handleMarkAllRead = () => {
+    setNotifications(prev => prev.map(n => ({ ...n, read: true })));
+  };
+
+  const handleClearNotifications = () => {
+      setNotifications([]);
+  };
 
   // Login handler
   const handleLoginSuccess = (loggedInUser: User) => {
@@ -166,7 +213,10 @@ const App: React.FC = () => {
                     onOpenAiChat={() => setShowAiChat(true)}
                     onModuleSelect={handleModuleSelect}
                     isBangla={isBangla} 
-                    toggleLanguage={() => setIsBangla(!isBangla)} 
+                    toggleLanguage={() => setIsBangla(!isBangla)}
+                    notifications={notifications}
+                    onMarkAllRead={handleMarkAllRead}
+                    onClearNotifications={handleClearNotifications}
                   />
                 );
             }
@@ -195,7 +245,10 @@ const App: React.FC = () => {
           onModuleSelect={handleModuleSelect}
           onNavigateHome={handleNavigateHome}
           isBangla={isBangla} 
-          toggleLanguage={() => setIsBangla(!isBangla)} 
+          toggleLanguage={() => setIsBangla(!isBangla)}
+          notifications={notifications}
+          onMarkAllRead={handleMarkAllRead}
+          onClearNotifications={handleClearNotifications}
         />
         <div className="flex-1">
             {/* Wrapper to ensure full page modules look good */}

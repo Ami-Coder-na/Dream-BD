@@ -1,11 +1,8 @@
-
 import { GoogleGenAI, GenerateContentResponse } from "@google/genai";
 
-// Support both process.env (mapped in vite.config) and standard Vite import.meta.env
-const apiKey = process.env.API_KEY || (import.meta as any).env?.VITE_API_KEY || '';
-
-// Initialize client securely if key exists, otherwise let it fail gracefully later
-const ai = new GoogleGenAI({ apiKey });
+// Initialize client securely using process.env.API_KEY directly as per guidelines.
+// The API key must be obtained exclusively from process.env.API_KEY.
+const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
 
 export const generateAssistantResponse = async (
   prompt: string, 
@@ -13,10 +10,6 @@ export const generateAssistantResponse = async (
   history: {role: string, parts: {text: string}[]}[],
   attachment?: { mimeType: string; data: string }
 ): Promise<string> => {
-  if (!apiKey) {
-    return "API Key is missing. Please add 'API_KEY' in your Vercel Project Settings > Environment Variables. \n\n(এপিআই কি পাওয়া যাচ্ছে না। দয়া করে আপনার প্রজেক্ট সেটিংসে API_KEY যুক্ত করুন।)";
-  }
-
   try {
     // Enhanced System Instruction
     const systemInstruction = `You are 'Dream Assistant', an advanced and empathetic AI companion for the 'Dream BD' digital platform in Bangladesh. 
