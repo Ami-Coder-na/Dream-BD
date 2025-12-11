@@ -177,7 +177,11 @@ const App: React.FC = () => {
   };
 
   if (activeModule === 'LANDING') {
-    return renderContent();
+    return (
+      <>
+        {renderContent()}
+      </>
+    );
   }
 
   return (

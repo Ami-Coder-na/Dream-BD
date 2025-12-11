@@ -1,8 +1,10 @@
+
 import { GoogleGenAI, GenerateContentResponse } from "@google/genai";
 
-const apiKey = process.env.API_KEY || '';
+// Support both process.env (mapped in vite.config) and standard Vite import.meta.env
+const apiKey = process.env.API_KEY || (import.meta as any).env?.VITE_API_KEY || '';
 
-// Initialize client securely
+// Initialize client securely if key exists, otherwise let it fail gracefully later
 const ai = new GoogleGenAI({ apiKey });
 
 export const generateAssistantResponse = async (
@@ -12,7 +14,7 @@ export const generateAssistantResponse = async (
   attachment?: { mimeType: string; data: string }
 ): Promise<string> => {
   if (!apiKey) {
-    return "API Key is missing. Please configure the environment.";
+    return "API Key is missing. Please add 'API_KEY' in your Vercel Project Settings > Environment Variables. \n\n(এপিআই কি পাওয়া যাচ্ছে না। দয়া করে আপনার প্রজেক্ট সেটিংসে API_KEY যুক্ত করুন।)";
   }
 
   try {

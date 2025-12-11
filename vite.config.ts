@@ -12,7 +12,8 @@ export default defineConfig(({ mode }) => {
     plugins: [react()],
     define: {
       // Define process.env to prevent "process is not defined" error in browser
-      'process.env.API_KEY': JSON.stringify(env.API_KEY),
+      // Support both API_KEY and VITE_API_KEY
+      'process.env.API_KEY': JSON.stringify(env.API_KEY || env.VITE_API_KEY),
       'process.env': {}, 
     },
     build: {
