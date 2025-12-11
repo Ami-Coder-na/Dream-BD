@@ -16,7 +16,7 @@ export const EduModule: React.FC<Props> = ({ isBangla }) => {
       students: 1250,
       lessons: 45,
       progress: 75,
-      image: 'https://images.unsplash.com/photo-1635070041078-e363dbe005cb?auto=format&fit=crop&q=80&w=400'
+      image: 'https://images.unsplash.com/photo-1635070041078-e363dbe005cb?auto=format&fit=crop&q=80&w=400' // Math / Geometry
     },
     {
       id: 2,
@@ -25,7 +25,7 @@ export const EduModule: React.FC<Props> = ({ isBangla }) => {
       students: 3400,
       lessons: 20,
       progress: 30,
-      image: 'https://images.unsplash.com/photo-1456513080510-7bf3a84b82f8?auto=format&fit=crop&q=80&w=400'
+      image: 'https://images.unsplash.com/photo-1456513080510-7bf3a84b82f8?auto=format&fit=crop&q=80&w=400' // Books / Study
     },
     {
       id: 3,
@@ -34,7 +34,7 @@ export const EduModule: React.FC<Props> = ({ isBangla }) => {
       students: 800,
       lessons: 60,
       progress: 0,
-      image: 'https://images.unsplash.com/photo-1498050108023-c5249f4df085?auto=format&fit=crop&q=80&w=400'
+      image: 'https://images.unsplash.com/photo-1498050108023-c5249f4df085?auto=format&fit=crop&q=80&w=400' // Code / Laptop
     }
   ];
 

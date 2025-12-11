@@ -14,21 +14,23 @@ export const AmarBdModule: React.FC<Props> = ({ isBangla }) => {
       <div className="relative h-[500px] overflow-hidden">
         <div className="absolute inset-0">
           <img 
-            src="https://images.unsplash.com/photo-1605624773822-123d6a6954b4?auto=format&fit=crop&q=80&w=1200" 
-            alt="Bangladesh Landscape" 
+            src="https://images.unsplash.com/photo-1596495577886-d920f1fb7238?auto=format&fit=crop&q=80&w=1600" 
+            alt="Bangladesh National Memorial" 
             className="w-full h-full object-cover"
             loading="eager"
           />
-          <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent"></div>
+          {/* Enhanced Dark Overlay for Contrast */}
+          <div className="absolute inset-0 bg-black/50"></div>
+          <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/20 to-black/60"></div>
         </div>
         <div className="absolute inset-0 flex flex-col items-center justify-center text-center text-white px-4">
-          <span className="bg-green-600 text-white text-xs font-bold px-3 py-1 rounded-full mb-4 uppercase tracking-wider">
+          <span className="bg-green-600 text-white text-xs font-bold px-3 py-1 rounded-full mb-4 uppercase tracking-wider shadow-lg">
             {isBangla ? 'আমাদের মাতৃভূমি' : 'Our Motherland'}
           </span>
-          <h1 className="text-5xl md:text-7xl font-bold mb-6 drop-shadow-lg">
+          <h1 className="text-5xl md:text-7xl font-bold mb-6 drop-shadow-2xl tracking-tight">
             {isBangla ? 'আমার বাংলাদেশ' : 'Amar Bangladesh'}
           </h1>
-          <p className="text-xl md:text-2xl max-w-2xl text-gray-200">
+          <p className="text-xl md:text-2xl max-w-2xl text-gray-100 drop-shadow-md font-medium leading-relaxed">
             {isBangla 
               ? 'হাজার বছরের ইতিহাস, ঐতিহ্য এবং প্রাকৃতিক সৌন্দর্যের এক অপরূপ লীলাভূমি।' 
               : 'A land of thousands of years of history, heritage, and unparalleled natural beauty.'}
@@ -89,8 +91,8 @@ export const AmarBdModule: React.FC<Props> = ({ isBangla }) => {
              </div>
           </div>
           <div className="grid grid-cols-2 gap-4">
-             <img src="https://images.unsplash.com/photo-1596495577886-d920f1fb7238?auto=format&fit=crop&q=80&w=800" className="rounded-2xl shadow-lg w-full h-64 object-cover transform translate-y-8" alt="National Memorial" loading="lazy" />
-             <img src="https://images.unsplash.com/photo-1628081682855-3b951167733f?auto=format&fit=crop&q=80&w=800" className="rounded-2xl shadow-lg w-full h-64 object-cover" alt="Rickshaw Art" loading="lazy" />
+             <img src="https://images.unsplash.com/photo-1628081682855-3b951167733f?auto=format&fit=crop&q=80&w=800" className="rounded-2xl shadow-lg w-full h-64 object-cover transform translate-y-8" alt="Culture Art" loading="lazy" />
+             <img src="https://images.unsplash.com/photo-1588661706680-4591ca134d3d?auto=format&fit=crop&q=80&w=800" className="rounded-2xl shadow-lg w-full h-64 object-cover" alt="Rickshaw Art" loading="lazy" />
           </div>
         </div>
       </div>
@@ -112,17 +114,17 @@ export const AmarBdModule: React.FC<Props> = ({ isBangla }) => {
               { 
                 title: isBangla ? 'কক্সবাজার সমুদ্র সৈকত' : 'Cox\'s Bazar',
                 desc: isBangla ? 'বিশ্বের দীর্ঘতম প্রাকৃতিক সমুদ্র সৈকত।' : 'The longest natural sea beach in the world.',
-                img: 'https://images.unsplash.com/photo-1608958435020-e8a710988090?auto=format&fit=crop&q=80&w=800'
+                img: 'https://images.unsplash.com/photo-1608958435020-e8a710988090?auto=format&fit=crop&q=80&w=800' // Coxs Bazar
               },
               { 
                 title: isBangla ? 'সুন্দরবন' : 'The Sundarbans',
                 desc: isBangla ? 'বিশ্বের বৃহত্তম ম্যানগ্রোভ বন এবং রয়্যাল বেঙ্গল টাইগারের আবাসস্থল।' : 'Largest mangrove forest and home of the Royal Bengal Tiger.',
-                img: 'https://images.unsplash.com/photo-1565551991823-380327f12e84?auto=format&fit=crop&q=80&w=800'
+                img: 'https://images.unsplash.com/photo-1624606778465-9856f709142e?auto=format&fit=crop&q=80&w=800' // Mangrove/Forest
               },
               { 
                 title: isBangla ? 'সিলেট চা বাগান' : 'Sylhet Tea Gardens',
                 desc: isBangla ? 'পাহাড় এবং সবুজের এক অপূর্ব মিলনমেলা।' : 'A mesmerizing combination of hills and lush greenery.',
-                img: 'https://images.unsplash.com/photo-1591036081822-4217355050f2?auto=format&fit=crop&q=80&w=800'
+                img: 'https://images.unsplash.com/photo-1598501481105-d57639f75850?auto=format&fit=crop&q=80&w=800' // Tea Garden
               }
             ].map((spot, idx) => (
               <div key={idx} className="bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 group">
@@ -162,12 +164,12 @@ export const AmarBdModule: React.FC<Props> = ({ isBangla }) => {
                <p className="text-xs text-gray-500 mt-1">{isBangla ? 'জাতীয় ফুল' : 'National Flower'}</p>
             </div>
             <div className="p-6 bg-white rounded-xl shadow-sm border border-gray-100 flex flex-col items-center hover:shadow-md transition-all duration-300">
-               <img src="https://images.unsplash.com/photo-1627915997238-71e860161427?auto=format&fit=crop&q=80&w=200" alt="Jackfruit" className="w-20 h-20 rounded-full object-cover mb-4 border-2 border-green-100 shadow-sm" loading="lazy" />
+               <img src="https://images.unsplash.com/photo-1601379435492-4f18db0d3674?auto=format&fit=crop&q=80&w=200" alt="Jackfruit" className="w-20 h-20 rounded-full object-cover mb-4 border-2 border-green-100 shadow-sm" loading="lazy" />
                <h4 className="font-bold text-gray-800">{isBangla ? 'কাঁঠাল' : 'Jackfruit'}</h4>
                <p className="text-xs text-gray-500 mt-1">{isBangla ? 'জাতীয় ফল' : 'National Fruit'}</p>
             </div>
             <div className="p-6 bg-white rounded-xl shadow-sm border border-gray-100 flex flex-col items-center hover:shadow-md transition-all duration-300">
-               <img src="https://images.unsplash.com/photo-1698822005477-9694770289f6?auto=format&fit=crop&q=80&w=200" alt="Hilsa" className="w-20 h-20 rounded-full object-cover mb-4 border-2 border-green-100 shadow-sm" loading="lazy" />
+               <img src="https://images.unsplash.com/photo-1621216666358-154a4f899981?auto=format&fit=crop&q=80&w=200" alt="Fish" className="w-20 h-20 rounded-full object-cover mb-4 border-2 border-green-100 shadow-sm" loading="lazy" />
                <h4 className="font-bold text-gray-800">{isBangla ? 'ইলিশ' : 'Hilsa'}</h4>
                <p className="text-xs text-gray-500 mt-1">{isBangla ? 'জাতীয় মাছ' : 'National Fish'}</p>
             </div>

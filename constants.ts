@@ -2,10 +2,42 @@
 import { Product, UserRole, Alert, AppModule } from './types';
 
 export const MOCK_PRODUCTS: Product[] = [
-  { id: '1', name: 'Nakshi Kantha', nameBn: 'নকশী কাঁথা', price: 2500, category: 'Textile', image: 'https://images.unsplash.com/photo-1628081682855-3b951167733f?auto=format&fit=crop&q=80&w=300', ecoFriendly: true },
-  { id: '2', name: 'Bamboo Basket', nameBn: 'বাঁশের ঝুড়ি', price: 450, category: 'Bamboo', image: 'https://images.unsplash.com/photo-1595166661975-309df5c4c23f?auto=format&fit=crop&q=80&w=300', ecoFriendly: true },
-  { id: '3', name: 'Jamdani Saree', nameBn: 'জামদানি শাড়ি', price: 12000, category: 'Textile', image: 'https://images.unsplash.com/photo-1623835639645-0d4bf1752b04?auto=format&fit=crop&q=80&w=300', ecoFriendly: false },
-  { id: '4', name: 'Clay Pot', nameBn: 'মাটির কলস', price: 150, category: 'Pottery', image: 'https://images.unsplash.com/photo-1610725664338-23c623912958?auto=format&fit=crop&q=80&w=300', ecoFriendly: true },
+  { 
+    id: '1', 
+    name: 'Nakshi Kantha', 
+    nameBn: 'নকশী কাঁথা', 
+    price: 2500, 
+    category: 'Textile', 
+    image: 'https://images.unsplash.com/photo-1597113366853-fea190b6cd82?auto=format&fit=crop&q=80&w=400', // Colorful Embroidery
+    ecoFriendly: true 
+  },
+  { 
+    id: '2', 
+    name: 'Bamboo Basket', 
+    nameBn: 'বাঁশের ঝুড়ি', 
+    price: 450, 
+    category: 'Bamboo', 
+    image: 'https://images.unsplash.com/photo-1615966650071-855b15f29ad1?auto=format&fit=crop&q=80&w=400', // Woven Basket
+    ecoFriendly: true 
+  },
+  { 
+    id: '3', 
+    name: 'Jamdani Saree', 
+    nameBn: 'জামদানি শাড়ি', 
+    price: 12000, 
+    category: 'Textile', 
+    image: 'https://images.unsplash.com/photo-1616686159513-4354228c278c?auto=format&fit=crop&q=80&w=400', // Saree Texture
+    ecoFriendly: false 
+  },
+  { 
+    id: '4', 
+    name: 'Clay Pot', 
+    nameBn: 'মাটির কলস', 
+    price: 150, 
+    category: 'Pottery', 
+    image: 'https://images.unsplash.com/photo-1624021798317-567c9c072c41?auto=format&fit=crop&q=80&w=400', // Terracotta/Pottery
+    ecoFriendly: true 
+  },
 ];
 
 export const ALERTS: Alert[] = [
