@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { Menu, X, Globe, Bell, LogOut, ChevronDown, User as UserIcon, Heart, Map } from 'lucide-react';
+import { Menu, X, Globe, Bell, LogOut, ChevronDown, User as UserIcon, Heart, Map, ShoppingBasket } from 'lucide-react';
 import { Button } from '../ui/Button';
 import { User, AppModule } from '../../types';
 
@@ -101,6 +101,14 @@ export const Header: React.FC<HeaderProps> = ({
                 </div>
               </div>
               
+              <button 
+                onClick={() => onModuleSelect(AppModule.BAZAR_SODAI)} 
+                className="flex items-center gap-2 text-sm font-bold text-lime-700 bg-lime-50 px-3 py-1.5 rounded-full hover:bg-lime-100 transition-colors"
+              >
+                <ShoppingBasket size={14} />
+                {isBangla ? 'বাজার সদাই' : 'Bazar Sodai'}
+              </button>
+
               <button onClick={() => onModuleSelect(AppModule.JOB)} className="text-sm font-medium text-gray-600 hover:text-brand-600 transition-colors">
                 {isBangla ? 'চাকরি' : 'Jobs'}
               </button>
@@ -233,6 +241,14 @@ export const Header: React.FC<HeaderProps> = ({
                <Map size={16} />
               {isBangla ? 'আমার জেলা' : 'Amar Jela'}
             </button>
+
+            <button 
+                onClick={() => handleModuleClick(AppModule.BAZAR_SODAI)} 
+                className="flex items-center gap-2 text-left font-bold text-lime-700 bg-lime-50 p-3 rounded-lg border border-lime-100"
+              >
+                <ShoppingBasket size={16} />
+                {isBangla ? 'বাজার সদাই' : 'Bazar Sodai'}
+              </button>
 
             <div className="text-left font-medium text-gray-700 py-2 border-b border-gray-50">
               {isBangla ? 'সেবাসমূহ' : 'Services'}

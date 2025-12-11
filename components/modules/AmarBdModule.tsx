@@ -234,11 +234,11 @@ export const AmarBdModule: React.FC<Props> = ({ isBangla }) => {
       {/* 64 Districts Tourism Section - NEW DESIGN */}
       <div id="districts" className="py-20 bg-gray-50/50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-16">
-            <h2 className="text-4xl font-bold text-gray-900 mb-4">
+          <div className="text-center mb-12">
+            <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-3">
               {isBangla ? '৬৪ জেলার দর্শনীয় স্থান' : 'Explore 64 Districts'}
             </h2>
-            <p className="text-gray-500 max-w-2xl mx-auto text-lg">
+            <p className="text-gray-500 max-w-2xl mx-auto text-base md:text-lg">
               {isBangla 
                 ? 'আপনার ভ্রমণের গন্তব্য ঠিক করুন। বিভাগ অনুযায়ী জেলা খুঁজুন এবং দর্শনীয় স্থান সম্পর্কে জানুন।' 
                 : 'Plan your next trip. Find tourist spots in every district organized by division.'}
@@ -247,47 +247,52 @@ export const AmarBdModule: React.FC<Props> = ({ isBangla }) => {
 
           {/* Sticky Controls Container */}
           <div className="sticky top-24 z-30 mb-12">
-            <div className="bg-white/90 backdrop-blur-lg rounded-2xl shadow-lg border border-gray-100 p-4 flex flex-col md:flex-row justify-between items-center gap-6 max-w-5xl mx-auto">
-              
-              {/* Division Tabs */}
-              <div className="w-full md:w-auto overflow-x-auto pb-2 md:pb-0 scrollbar-hide">
-                <div className="flex gap-2">
-                  <button
-                    onClick={() => setActiveDivision('All')}
-                    className={`px-5 py-2.5 rounded-full text-sm font-bold whitespace-nowrap transition-all duration-300 ${
-                      activeDivision === 'All' 
-                        ? 'bg-green-600 text-white shadow-md transform scale-105' 
-                        : 'bg-gray-50 text-gray-600 hover:bg-gray-100 hover:text-green-600'
-                    }`}
-                  >
-                    {isBangla ? 'সব' : 'All'}
-                  </button>
-                  {tourismData.map(div => (
+            <div className="bg-white rounded-2xl shadow-xl shadow-gray-200/50 border border-gray-100 p-3 max-w-6xl mx-auto">
+              <div className="flex flex-col md:flex-row items-center gap-4">
+                
+                {/* Division Tabs - Scrollable */}
+                <div className="w-full overflow-x-auto pb-2 scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-50 px-1">
+                  <div className="flex gap-3">
                     <button
-                      key={div.id}
-                      onClick={() => setActiveDivision(div.id)}
-                      className={`px-5 py-2.5 rounded-full text-sm font-bold whitespace-nowrap transition-all duration-300 ${
-                        activeDivision === div.id 
-                          ? 'bg-green-600 text-white shadow-md transform scale-105' 
-                          : 'bg-gray-50 text-gray-600 hover:bg-gray-100 hover:text-green-600'
+                      onClick={() => setActiveDivision('All')}
+                      className={`px-5 py-2.5 rounded-full text-sm font-bold whitespace-nowrap transition-all duration-200 ${
+                        activeDivision === 'All' 
+                          ? 'bg-green-600 text-white shadow-md' 
+                          : 'bg-gray-50 text-gray-600 hover:bg-gray-100 hover:text-green-700'
                       }`}
                     >
-                      {isBangla ? div.nameBn : div.nameEn}
+                      {isBangla ? 'সব' : 'All'}
                     </button>
-                  ))}
+                    {tourismData.map(div => (
+                      <button
+                        key={div.id}
+                        onClick={() => setActiveDivision(div.id)}
+                        className={`px-5 py-2.5 rounded-full text-sm font-bold whitespace-nowrap transition-all duration-200 ${
+                          activeDivision === div.id 
+                            ? 'bg-green-600 text-white shadow-md' 
+                            : 'bg-gray-50 text-gray-600 hover:bg-gray-100 hover:text-green-700'
+                        }`}
+                      >
+                        {isBangla ? div.nameBn : div.nameEn}
+                      </button>
+                    ))}
+                  </div>
                 </div>
-              </div>
 
-              {/* Search Bar */}
-              <div className="relative w-full md:w-72 group">
-                 <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-green-600 transition-colors" size={18} />
-                 <input 
-                   type="text" 
-                   placeholder={isBangla ? 'জেলা খুঁজুন...' : 'Search district...'}
-                   value={searchQuery}
-                   onChange={(e) => setSearchQuery(e.target.value)}
-                   className="w-full pl-11 pr-4 py-2.5 rounded-full border border-gray-200 focus:outline-none focus:border-green-500 focus:ring-4 focus:ring-green-500/10 bg-gray-50 focus:bg-white transition-all shadow-sm font-medium"
-                 />
+                {/* Search Bar - Fixed width on Desktop */}
+                <div className="w-full md:w-72 shrink-0 border-l border-gray-100 md:pl-4">
+                   <div className="relative group">
+                     <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-green-600 transition-colors" size={18} />
+                     <input 
+                       type="text" 
+                       placeholder={isBangla ? 'জেলা খুঁজুন...' : 'Search district...'}
+                       value={searchQuery}
+                       onChange={(e) => setSearchQuery(e.target.value)}
+                       className="w-full pl-11 pr-4 py-2.5 rounded-full border border-gray-200 focus:outline-none focus:border-green-500 focus:ring-4 focus:ring-green-500/10 bg-gray-50 focus:bg-white transition-all text-sm font-medium"
+                     />
+                   </div>
+                </div>
+
               </div>
             </div>
           </div>

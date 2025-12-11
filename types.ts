@@ -23,7 +23,8 @@ export enum AppModule {
   CONTACT = 'contact',
   BLOG = 'blog',
   AMAR_BD = 'amar_bd',
-  AMAR_JELA = 'amar_jela'
+  AMAR_JELA = 'amar_jela',
+  BAZAR_SODAI = 'bazar_sodai'
 }
 
 export interface User {
