@@ -1,6 +1,6 @@
 
 import React, { useState, useMemo } from 'react';
-import { Briefcase, MapPin, Clock, DollarSign, Search, X, CheckCircle, Calendar, Building2, Filter, ChevronDown, RefreshCw } from 'lucide-react';
+import { Briefcase, MapPin, Clock, DollarSign, Search, X, CheckCircle, Calendar, Building2, Filter, ChevronDown, RefreshCw, PlusCircle, Send } from 'lucide-react';
 import { Button } from '../ui/Button';
 
 interface Props {
@@ -17,7 +17,7 @@ interface Job {
   company: string;
   location: string;
   salary: string;
-  category: JobCategory; // Added category
+  category: JobCategory;
   type: JobType;
   level: JobLevel;
   posted: string;
@@ -25,6 +25,94 @@ interface Job {
   description: string;
   responsibilities: string[];
 }
+
+// Static Data Moved Outside Component
+const JOBS_DATA: Job[] = [
+  {
+    id: 1,
+    title: 'Assistant Director / সহকারী পরিচালক',
+    company: 'Bangladesh Bank',
+    location: 'Dhaka',
+    salary: 'Grade 9',
+    category: 'Government',
+    type: 'Full Time',
+    level: 'Entry',
+    posted: '2 days ago',
+    deadline: '30 Oct, 2023',
+    description: 'Bangladesh Bank is looking for Assistant Directors for their General Banking division. / বাংলাদেশ ব্যাংক তাদের সাধারণ ব্যাংকিং বিভাগের জন্য সহকারী পরিচালক খুঁজছে।',
+    responsibilities: ['Policy formulation', 'Supervising banking activities', 'Preparing reports']
+  },
+  {
+    id: 2,
+    title: 'Software Engineer / সফটওয়্যার ইঞ্জিনিয়ার',
+    company: 'Pathao',
+    location: 'Dhaka',
+    salary: '৳ 60,000 - 80,000',
+    category: 'Private',
+    type: 'Full Time',
+    level: 'Mid',
+    posted: '1 day ago',
+    deadline: '15 Nov, 2023',
+    description: 'We are looking for a skilled Full-Stack Developer to join our core team. / আমরা একজন দক্ষ ফুল-স্ট্যাক ডেভেলপার খুঁজছি।',
+    responsibilities: ['Developing new features', 'Optimizing code', 'Bug fixing']
+  },
+  {
+    id: 3,
+    title: 'Field Worker / মাঠ কর্মী',
+    company: 'BRAC',
+    location: 'Rangpur',
+    salary: '৳ 18,000',
+    category: 'NGO',
+    type: 'Contract',
+    level: 'Entry',
+    posted: '3 days ago',
+    deadline: '20 Nov, 2023',
+    description: 'Field workers needed for rural development programs. / গ্রামীণ উন্নয়ন কর্মসূচির জন্য মাঠ কর্মী প্রয়োজন।',
+    responsibilities: ['Conducting surveys', 'Data collection', 'Weekly reporting']
+  },
+  {
+    id: 4,
+    title: 'Agriculture Officer / কৃষি কর্মকর্তা',
+    company: 'Dept of Agricultural Extension',
+    location: 'Rajshahi',
+    salary: 'Grade 10',
+    category: 'Government',
+    type: 'Full Time',
+    level: 'Mid',
+    posted: '5 days ago',
+    deadline: '25 Oct, 2023',
+    description: 'Recruitment of officers for advising farmers. / কৃষকদের পরামর্শ প্রদানের জন্য কর্মকর্তা নিয়োগ।',
+    responsibilities: ['Training farmers', 'Crop monitoring', 'Incentive distribution']
+  },
+  {
+    id: 5,
+    title: 'Graphics Designer / গ্রাফিক্স ডিজাইনার',
+    company: 'Creative IT',
+    location: 'Remote',
+    salary: '৳ 30,000',
+    category: 'Private',
+    type: 'Remote',
+    level: 'Entry',
+    posted: '1 week ago',
+    deadline: '10 Nov, 2023',
+    description: 'Creative designer needed for social media content. / সোশ্যাল মিডিয়া কন্টেন্ট তৈরির জন্য ডিজাইনার প্রয়োজন।',
+    responsibilities: ['Banner design', 'Video editing', 'Branding']
+  },
+  {
+    id: 6,
+    title: 'Project Manager / প্রজেক্ট ম্যানেজার',
+    company: 'CARE Bangladesh',
+    location: 'Chattogram',
+    salary: '৳ 90,000',
+    category: 'NGO',
+    type: 'Contract',
+    level: 'Senior',
+    posted: '2 weeks ago',
+    deadline: '01 Nov, 2023',
+    description: 'Experienced Project Manager needed for Health project. / স্বাস্থ্য প্রকল্পের জন্য প্রজেক্ট ম্যানেজার প্রয়োজন।',
+    responsibilities: ['Project planning', 'Budget control', 'Donor reporting']
+  }
+];
 
 export const JobModule: React.FC<Props> = ({ isBangla }) => {
   const [selectedJob, setSelectedJob] = useState<Job | null>(null);
@@ -36,125 +124,18 @@ export const JobModule: React.FC<Props> = ({ isBangla }) => {
   const [selectedLevels, setSelectedLevels] = useState<JobLevel[]>([]);
   const [showMobileFilters, setShowMobileFilters] = useState(false);
 
-  // Expanded Mock Data
-  const jobs: Job[] = [
-    {
-      id: 1,
-      title: isBangla ? 'সহকারী পরিচালক' : 'Assistant Director',
-      company: isBangla ? 'বাংলাদেশ ব্যাংক' : 'Bangladesh Bank',
-      location: isBangla ? 'ঢাকা' : 'Dhaka',
-      salary: 'Grade 9',
-      category: 'Government',
-      type: 'Full Time',
-      level: 'Entry',
-      posted: '2 days ago',
-      deadline: '30 Oct, 2023',
-      description: isBangla 
-        ? 'বাংলাদেশ ব্যাংক তাদের সাধারণ ব্যাংকিং বিভাগের জন্য সহকারী পরিচালক খুঁজছে।'
-        : 'Bangladesh Bank is looking for Assistant Directors for their General Banking division.',
-      responsibilities: isBangla 
-        ? ['পলিসি তৈরি ও বাস্তবায়ন', 'ব্যাংকিং কার্যক্রম তদারকি', 'রিপোর্ট তৈরি করা']
-        : ['Policy formulation and implementation', 'Supervising banking activities', 'Preparing reports']
-    },
-    {
-      id: 2,
-      title: isBangla ? 'সফটওয়্যার ইঞ্জিনিয়ার' : 'Software Engineer',
-      company: isBangla ? 'পাঠাও' : 'Pathao',
-      location: isBangla ? 'ঢাকা' : 'Dhaka',
-      salary: '৳ 60,000 - 80,000',
-      category: 'Private',
-      type: 'Full Time',
-      level: 'Mid',
-      posted: '1 day ago',
-      deadline: '15 Nov, 2023',
-      description: isBangla
-        ? 'আমরা একজন দক্ষ ফুল-স্ট্যাক ডেভেলপার খুঁজছি যিনি আমাদের কোর টিমে কাজ করবেন।'
-        : 'We are looking for a skilled Full-Stack Developer to join our core team.',
-      responsibilities: isBangla
-        ? ['নতুন ফিচার ডেভেলপ করা', 'কোড অপ্টিমাইজ করা', 'বাগ ফিক্সিং']
-        : ['Developing new features', 'Optimizing code', 'Bug fixing']
-    },
-    {
-      id: 3,
-      title: isBangla ? 'মাঠ কর্মী' : 'Field Worker',
-      company: isBangla ? 'ব্র্যাক' : 'BRAC',
-      location: isBangla ? 'রংপুর' : 'Rangpur',
-      salary: '৳ 18,000',
-      category: 'NGO',
-      type: 'Contract',
-      level: 'Entry',
-      posted: '3 days ago',
-      deadline: '20 Nov, 2023',
-      description: isBangla
-        ? 'গ্রামীণ উন্নয়ন কর্মসূচির জন্য মাঠ পর্যায়ে কাজ করার জন্য কর্মী প্রয়োজন।'
-        : 'Field workers needed for rural development programs.',
-      responsibilities: isBangla
-        ? ['জরিপ পরিচালনা করা', 'তথ্য সংগ্রহ করা', 'সাপ্তাহিক রিপোর্ট জমা দেওয়া']
-        : ['Conducting surveys', 'Data collection', 'Submitting weekly reports']
-    },
-    {
-      id: 4,
-      title: isBangla ? 'কৃষি কর্মকর্তা' : 'Agriculture Officer',
-      company: isBangla ? 'কৃষি সম্প্রসারণ অধিদপ্তর' : 'Dept of Agricultural Extension',
-      location: isBangla ? 'রাজশাহী' : 'Rajshahi',
-      salary: 'Grade 10',
-      category: 'Government',
-      type: 'Full Time',
-      level: 'Mid',
-      posted: '5 days ago',
-      deadline: '25 Oct, 2023',
-      description: isBangla
-        ? 'উপজেলা পর্যায়ে কৃষকদের পরামর্শ প্রদান ও তদারকির জন্য কর্মকর্তা নিয়োগ।'
-        : 'Recruitment of officers for advising and supervising farmers at Upazila level.',
-      responsibilities: isBangla
-        ? ['কৃষকদের প্রশিক্ষণ প্রদান', 'ফসল উৎপাদন তদারকি', 'সরকারি প্রণোদনা বিতরণ']
-        : ['Providing training to farmers', 'Monitoring crop production', 'Distributing govt incentives']
-    },
-    {
-      id: 5,
-      title: isBangla ? 'গ্রাফিক্স ডিজাইনার' : 'Graphics Designer',
-      company: isBangla ? 'ক্রিয়েটিভ আইটি' : 'Creative IT',
-      location: isBangla ? 'বাসায় বসে (রিমোট)' : 'Remote',
-      salary: '৳ 30,000',
-      category: 'Private',
-      type: 'Remote',
-      level: 'Entry',
-      posted: '1 week ago',
-      deadline: '10 Nov, 2023',
-      description: isBangla
-        ? 'সোশ্যাল মিডিয়া কন্টেন্ট তৈরির জন্য একজন সৃজনশীল ডিজাইনার প্রয়োজন।'
-        : 'Creative designer needed for creating social media content.',
-      responsibilities: isBangla
-        ? ['ব্যানার ও পোস্টার ডিজাইন', 'ভিডিও এডিটিং (বেসিক)', 'ব্র্যান্ডিং গাইডলাইন মেনে চলা']
-        : ['Designing banners and posters', 'Video editing (basic)', 'Following branding guidelines']
-    },
-    {
-      id: 6,
-      title: isBangla ? 'প্রজেক্ট ম্যানেজার' : 'Project Manager',
-      company: isBangla ? 'কেয়ার বাংলাদেশ' : 'CARE Bangladesh',
-      location: isBangla ? 'চট্টগ্রাম' : 'Chattogram',
-      salary: '৳ 90,000',
-      category: 'NGO',
-      type: 'Contract',
-      level: 'Senior',
-      posted: '2 weeks ago',
-      deadline: '01 Nov, 2023',
-      description: isBangla
-        ? 'স্বাস্থ্য ও পুষ্টি প্রকল্পের জন্য অভিজ্ঞ প্রজেক্ট ম্যানেজার প্রয়োজন।'
-        : 'Experienced Project Manager needed for Health and Nutrition project.',
-      responsibilities: isBangla
-        ? ['প্রকল্প পরিকল্পনা ও বাস্তবায়ন', 'বাজেট নিয়ন্ত্রণ', 'ডোনার রিপোর্ট তৈরি']
-        : ['Project planning and execution', 'Budget control', 'Preparing donor reports']
-    }
-  ];
+  // Post Job States
+  const [showPostModal, setShowPostModal] = useState(false);
+  const [postSubmitted, setPostSubmitted] = useState(false);
 
-  // Filtering Logic
+  // Memoized Filtering Logic
   const filteredJobs = useMemo(() => {
-    return jobs.filter(job => {
+    return JOBS_DATA.filter(job => {
+      const term = searchTerm.toLowerCase();
       const matchesSearch = 
-        job.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        job.company.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        job.location.toLowerCase().includes(searchTerm.toLowerCase());
+        job.title.toLowerCase().includes(term) ||
+        job.company.toLowerCase().includes(term) ||
+        job.location.toLowerCase().includes(term);
 
       const matchesCategory = selectedCategories.length === 0 || selectedCategories.includes(job.category);
       const matchesType = selectedTypes.length === 0 || selectedTypes.includes(job.type);
@@ -162,7 +143,7 @@ export const JobModule: React.FC<Props> = ({ isBangla }) => {
 
       return matchesSearch && matchesCategory && matchesType && matchesLevel;
     });
-  }, [jobs, searchTerm, selectedCategories, selectedTypes, selectedLevels]);
+  }, [searchTerm, selectedCategories, selectedTypes, selectedLevels]);
 
   const toggleFilter = <T extends string>(item: T, current: T[], setter: (val: T[]) => void) => {
     if (current.includes(item)) {
@@ -177,6 +158,11 @@ export const JobModule: React.FC<Props> = ({ isBangla }) => {
     setSelectedTypes([]);
     setSelectedLevels([]);
     setSearchTerm('');
+  };
+
+  const handlePostSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    setPostSubmitted(true);
   };
 
   const getCategoryColor = (cat: JobCategory) => {
@@ -197,11 +183,21 @@ export const JobModule: React.FC<Props> = ({ isBangla }) => {
           <h1 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
             {isBangla ? 'আপনার স্বপ্নের চাকরি খুঁজুন' : 'Find Your Dream Job'}
           </h1>
-          <p className="text-gray-500 max-w-2xl mx-auto">
+          <p className="text-gray-500 max-w-2xl mx-auto mb-6">
             {isBangla 
               ? 'সরকারি, বেসরকারি এবং এনজিও - সব ধরনের চাকরির বিশাল সমাহার।' 
               : 'Government, Private, and NGO - A vast collection of all types of jobs.'}
           </p>
+          
+          <div className="flex justify-center">
+            <Button 
+              onClick={() => { setShowPostModal(true); setPostSubmitted(false); }}
+              className="bg-brand-600 hover:bg-brand-700 text-white shadow-lg shadow-brand-600/20 rounded-full px-8 py-3 flex items-center gap-2 text-lg font-bold"
+            >
+              <PlusCircle size={20} />
+              {isBangla ? 'চাকরির পোস্ট দিন' : 'Create Job Post'}
+            </Button>
+          </div>
         </div>
 
         {/* Mobile Filter Toggle */}
@@ -231,7 +227,7 @@ export const JobModule: React.FC<Props> = ({ isBangla }) => {
               )}
             </div>
 
-            {/* Category Filter */}
+            {/* Filters UI - Same as before but optimized */}
             <div>
               <h4 className="text-sm font-bold text-gray-700 mb-3 uppercase tracking-wider">{isBangla ? 'প্রতিষ্ঠানের ধরন' : 'Job Category'}</h4>
               <div className="space-y-2">
@@ -258,7 +254,6 @@ export const JobModule: React.FC<Props> = ({ isBangla }) => {
 
             <div className="border-t border-gray-100"></div>
 
-            {/* Type Filter */}
             <div>
               <h4 className="text-sm font-bold text-gray-700 mb-3 uppercase tracking-wider">{isBangla ? 'কাজের ধরন' : 'Job Type'}</h4>
               <div className="space-y-2">
@@ -286,14 +281,13 @@ export const JobModule: React.FC<Props> = ({ isBangla }) => {
 
             <div className="border-t border-gray-100"></div>
 
-            {/* Experience Level */}
             <div>
               <h4 className="text-sm font-bold text-gray-700 mb-3 uppercase tracking-wider">{isBangla ? 'অভিজ্ঞতা' : 'Experience Level'}</h4>
               <div className="space-y-2">
                 {[
-                  { val: 'Entry', label: isBangla ? 'এন্ট্রি লেভেল (০-২ বছর)' : 'Entry Level' },
-                  { val: 'Mid', label: isBangla ? 'মিড লেভেল (৩-৫ বছর)' : 'Mid Level' },
-                  { val: 'Senior', label: isBangla ? 'সিনিয়র (৫+ বছর)' : 'Senior Level' }
+                  { val: 'Entry', label: isBangla ? 'এন্ট্রি লেভেল' : 'Entry Level' },
+                  { val: 'Mid', label: isBangla ? 'মিড লেভেল' : 'Mid Level' },
+                  { val: 'Senior', label: isBangla ? 'সিনিয়র' : 'Senior Level' }
                 ].map((lvl) => (
                   <label key={lvl.val} className="flex items-center gap-3 cursor-pointer group">
                     <div className={`w-5 h-5 rounded border flex items-center justify-center transition-colors ${selectedLevels.includes(lvl.val as JobLevel) ? 'bg-brand-600 border-brand-600' : 'border-gray-300 group-hover:border-brand-400'}`}>
@@ -315,7 +309,6 @@ export const JobModule: React.FC<Props> = ({ isBangla }) => {
           {/* Main Content */}
           <main className="lg:col-span-3 space-y-6">
             
-            {/* Search Bar */}
             <div className="bg-white p-2 rounded-2xl shadow-sm border border-gray-200 flex items-center focus-within:ring-2 focus-within:ring-brand-500/20 transition-all">
               <Search className="text-gray-400 ml-4" size={20} />
               <input 
@@ -330,32 +323,12 @@ export const JobModule: React.FC<Props> = ({ isBangla }) => {
               </Button>
             </div>
 
-            {/* Active Filters Display */}
-            {(selectedCategories.length > 0 || selectedTypes.length > 0 || selectedLevels.length > 0) && (
-              <div className="flex flex-wrap gap-2">
-                {[...selectedCategories, ...selectedTypes, ...selectedLevels].map((filter, idx) => (
-                  <span key={idx} className="inline-flex items-center gap-1 px-3 py-1 bg-brand-50 text-brand-700 text-xs font-bold rounded-full border border-brand-100 animate-fade-in">
-                    {filter}
-                    <button onClick={() => {
-                      if (selectedCategories.includes(filter as any)) toggleFilter(filter as any, selectedCategories, setSelectedCategories);
-                      if (selectedTypes.includes(filter as any)) toggleFilter(filter as any, selectedTypes, setSelectedTypes);
-                      if (selectedLevels.includes(filter as any)) toggleFilter(filter as any, selectedLevels, setSelectedLevels);
-                    }} className="hover:text-red-500">
-                      <X size={12} />
-                    </button>
-                  </span>
-                ))}
-              </div>
-            )}
-
-            {/* Results Count */}
             <p className="text-sm text-gray-500 font-medium">
               {isBangla 
                 ? `${filteredJobs.length} টি চাকরি পাওয়া গেছে` 
                 : `Showing ${filteredJobs.length} jobs`}
             </p>
 
-            {/* Job List */}
             <div className="space-y-4">
               {filteredJobs.length > 0 ? (
                 filteredJobs.map(job => (
@@ -364,7 +337,6 @@ export const JobModule: React.FC<Props> = ({ isBangla }) => {
                     onClick={() => setSelectedJob(job)}
                     className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 hover:shadow-lg hover:border-brand-200 transition-all cursor-pointer group relative overflow-hidden"
                   >
-                    {/* Category Badge */}
                     <div className={`absolute top-0 right-0 px-4 py-1 text-xs font-bold rounded-bl-xl border-l border-b ${getCategoryColor(job.category)}`}>
                       {job.category === 'Government' ? (isBangla ? 'সরকারি' : 'Government') : 
                        job.category === 'Private' ? (isBangla ? 'বেসরকারি' : 'Private') : 
@@ -418,12 +390,65 @@ export const JobModule: React.FC<Props> = ({ isBangla }) => {
         </div>
       </div>
 
-      {/* Job Details Modal - Preserved from previous version but updated UI */}
+      {/* Post Job Modal */}
+      {showPostModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fade-in" onClick={() => setShowPostModal(false)}>
+          <div className="bg-white w-full max-w-2xl rounded-2xl shadow-2xl overflow-hidden transform transition-all" onClick={e => e.stopPropagation()}>
+            <div className="p-6 border-b border-gray-100 flex justify-between items-center bg-gradient-to-r from-brand-50 to-white">
+              <div>
+                <h2 className="text-xl font-bold text-gray-900 flex items-center gap-2">
+                  <div className="p-2 bg-brand-100 rounded-lg text-brand-600">
+                    <PlusCircle size={20} />
+                  </div>
+                  {isBangla ? 'নতুন চাকরির পোস্ট' : 'Create New Job Post'}
+                </h2>
+                <p className="text-sm text-gray-500 mt-1 ml-11">
+                  {isBangla ? 'আপনার প্রতিষ্ঠানের জন্য সেরা কর্মী খুঁজুন' : 'Find the best talent for your company'}
+                </p>
+              </div>
+              <button onClick={() => setShowPostModal(false)} className="p-2 hover:bg-white rounded-full text-gray-400 hover:text-red-500 transition-colors shadow-sm"><X size={20} /></button>
+            </div>
+
+            <div className="p-8">
+              {postSubmitted ? (
+                <div className="text-center py-12 flex flex-col items-center animate-fade-in-up">
+                  <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mb-6 text-green-600 shadow-lg shadow-green-100">
+                    <CheckCircle size={40} className="animate-bounce" />
+                  </div>
+                  <h3 className="text-2xl font-bold text-gray-900 mb-3">{isBangla ? 'জমা দেওয়া সফল হয়েছে!' : 'Submission Successful!'}</h3>
+                  <p className="text-gray-500 mb-8 max-w-sm mx-auto leading-relaxed">
+                    {isBangla ? 'আপনার বিজ্ঞপ্তিটি রিভিউয়ের জন্য পাঠানো হয়েছে।' : 'Your job post has been sent for review.'}
+                  </p>
+                  <Button onClick={() => setShowPostModal(false)}>{isBangla ? 'বন্ধ করুন' : 'Close'}</Button>
+                </div>
+              ) : (
+                <form onSubmit={handlePostSubmit} className="space-y-6">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div className="space-y-2">
+                      <label className="text-sm font-semibold text-gray-700">{isBangla ? 'পদের নাম' : 'Job Title'} *</label>
+                      <input type="text" required className="w-full px-4 py-2 bg-gray-50 border border-gray-200 rounded-lg" />
+                    </div>
+                    <div className="space-y-2">
+                      <label className="text-sm font-semibold text-gray-700">{isBangla ? 'প্রতিষ্ঠান' : 'Company'} *</label>
+                      <input type="text" required className="w-full px-4 py-2 bg-gray-50 border border-gray-200 rounded-lg" />
+                    </div>
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-sm font-semibold text-gray-700">{isBangla ? 'বিবরণ' : 'Description'} *</label>
+                    <textarea required rows={4} className="w-full px-4 py-2 bg-gray-50 border border-gray-200 rounded-lg"></textarea>
+                  </div>
+                  <Button type="submit" className="w-full">{isBangla ? 'জমা দিন' : 'Submit'}</Button>
+                </form>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Job Details Modal */}
       {selectedJob && (
         <div className="fixed inset-0 z-50 flex items-center justify-center px-4 bg-black/60 backdrop-blur-sm animate-fade-in">
           <div className="bg-white w-full max-w-2xl rounded-2xl shadow-2xl overflow-hidden animate-fade-in-up max-h-[90vh] flex flex-col">
-            
-            {/* Modal Header */}
             <div className="p-6 border-b border-gray-100 flex justify-between items-start sticky top-0 bg-white z-10">
               <div className="flex gap-4">
                  <div className="w-16 h-16 bg-brand-50 rounded-xl flex items-center justify-center text-brand-600 border border-brand-100">
@@ -432,27 +457,12 @@ export const JobModule: React.FC<Props> = ({ isBangla }) => {
                  <div>
                    <h2 className="text-2xl font-bold text-gray-900">{selectedJob.title}</h2>
                    <p className="text-gray-600 font-medium text-lg">{selectedJob.company}</p>
-                   <div className="flex items-center gap-2 mt-2">
-                      <span className={`text-xs px-2 py-0.5 rounded border ${getCategoryColor(selectedJob.category)}`}>
-                        {selectedJob.category}
-                      </span>
-                      <span className="text-sm text-gray-400">•</span>
-                      <span className="text-sm text-gray-500">{selectedJob.location}</span>
-                   </div>
                  </div>
               </div>
-              <button 
-                onClick={() => setSelectedJob(null)}
-                className="p-2 hover:bg-gray-100 rounded-full text-gray-500 transition-colors"
-              >
-                <X size={24} />
-              </button>
+              <button onClick={() => setSelectedJob(null)} className="p-2 hover:bg-gray-100 rounded-full text-gray-500"><X size={24} /></button>
             </div>
-
-            {/* Modal Body */}
             <div className="p-8 overflow-y-auto">
-               <div className="space-y-8">
-                  {/* Stats Grid */}
+               <div className="space-y-6">
                   <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
                     <div className="bg-gray-50 p-3 rounded-xl border border-gray-100">
                        <span className="block text-xs font-bold text-gray-400 uppercase mb-1">{isBangla ? 'বেতন' : 'Salary'}</span>
@@ -462,49 +472,23 @@ export const JobModule: React.FC<Props> = ({ isBangla }) => {
                        <span className="block text-xs font-bold text-gray-400 uppercase mb-1">{isBangla ? 'ধরন' : 'Type'}</span>
                        <span className="font-bold text-gray-900 text-sm">{selectedJob.type}</span>
                     </div>
-                    <div className="bg-gray-50 p-3 rounded-xl border border-gray-100">
-                       <span className="block text-xs font-bold text-gray-400 uppercase mb-1">{isBangla ? 'ডেডলাইন' : 'Deadline'}</span>
-                       <span className="font-bold text-gray-900 text-sm">{selectedJob.deadline}</span>
-                    </div>
                   </div>
-
-                  {/* Description */}
                   <div>
-                    <h3 className="text-lg font-bold text-gray-900 mb-3 border-l-4 border-brand-500 pl-3">
-                      {isBangla ? 'চাকরির বিবরণ' : 'Job Description'}
-                    </h3>
-                    <p className="text-gray-600 leading-relaxed bg-gray-50/50 p-4 rounded-xl">
-                      {selectedJob.description}
-                    </p>
+                    <h3 className="text-lg font-bold text-gray-900 mb-2">{isBangla ? 'বিবরণ' : 'Description'}</h3>
+                    <p className="text-gray-600 leading-relaxed">{selectedJob.description}</p>
                   </div>
-
-                  {/* Responsibilities */}
                   <div>
-                    <h3 className="text-lg font-bold text-gray-900 mb-4 border-l-4 border-brand-500 pl-3">
-                      {isBangla ? 'দায়িত্বসমূহ' : 'Key Responsibilities'}
-                    </h3>
-                    <ul className="grid grid-cols-1 gap-3">
-                      {selectedJob.responsibilities.map((res, idx) => (
-                        <li key={idx} className="flex items-start gap-3 p-3 bg-white border border-gray-100 rounded-lg shadow-sm">
-                          <CheckCircle size={18} className="text-brand-600 mt-0.5 shrink-0" />
-                          <span className="text-gray-700 text-sm font-medium">{res}</span>
-                        </li>
-                      ))}
+                    <h3 className="text-lg font-bold text-gray-900 mb-2">{isBangla ? 'দায়িত্বসমূহ' : 'Responsibilities'}</h3>
+                    <ul className="list-disc pl-5 space-y-1 text-gray-600">
+                      {selectedJob.responsibilities.map((res, i) => <li key={i}>{res}</li>)}
                     </ul>
                   </div>
                </div>
             </div>
-
-            {/* Modal Footer */}
             <div className="p-6 border-t border-gray-100 bg-gray-50 flex justify-end gap-3 sticky bottom-0">
-               <Button variant="outline" onClick={() => setSelectedJob(null)}>
-                 {isBangla ? 'বন্ধ করুন' : 'Close'}
-               </Button>
-               <Button size="lg" className="px-8 shadow-lg shadow-brand-500/20">
-                 {isBangla ? 'আবেদন করুন' : 'Apply Now'}
-               </Button>
+               <Button variant="outline" onClick={() => setSelectedJob(null)}>{isBangla ? 'বন্ধ করুন' : 'Close'}</Button>
+               <Button>{isBangla ? 'আবেদন করুন' : 'Apply Now'}</Button>
             </div>
-
           </div>
         </div>
       )}
