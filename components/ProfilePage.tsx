@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { User, UserRole } from '../types';
 import { Button } from './ui/Button';
-import { User as UserIcon, Mail, Phone, MapPin, Briefcase, Camera, Save, X, Settings, Shield, Bell } from 'lucide-react';
+import { User as UserIcon, Mail, Phone, MapPin, Briefcase, Camera, Save, X, Settings, Shield, Bell, CheckCircle } from 'lucide-react';
 
 interface ProfilePageProps {
   user: User;
@@ -13,6 +13,7 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({ user, onUpdateUser, is
   const [activeTab, setActiveTab] = useState<'profile' | 'settings'>('profile');
   const [isEditing, setIsEditing] = useState(false);
   const [formData, setFormData] = useState<User>({ ...user });
+  const [showSuccess, setShowSuccess] = useState(false);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -22,6 +23,8 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({ user, onUpdateUser, is
   const handleSave = () => {
     onUpdateUser(formData);
     setIsEditing(false);
+    setShowSuccess(true);
+    setTimeout(() => setShowSuccess(false), 3000);
   };
 
   const handleCancel = () => {
@@ -30,7 +33,15 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({ user, onUpdateUser, is
   };
 
   return (
-    <div className="max-w-5xl mx-auto">
+    <div className="max-w-5xl mx-auto relative">
+      {/* Success Toast */}
+      {showSuccess && (
+        <div className="fixed bottom-6 right-6 z-50 bg-green-600 text-white px-6 py-3 rounded-lg shadow-xl animate-fade-in-up flex items-center gap-3">
+          <CheckCircle size={20} />
+          <span className="font-medium">{isBangla ? 'প্রোফাইল আপডেট হয়েছে!' : 'Profile updated successfully!'}</span>
+        </div>
+      )}
+
       {/* Page Title */}
       <div className="mb-8">
         <h1 className="text-2xl font-bold text-gray-900">
