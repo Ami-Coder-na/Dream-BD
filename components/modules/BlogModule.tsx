@@ -63,6 +63,21 @@ export const BlogModule: React.FC<Props> = ({ isBangla }) => {
     post.category.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
+  const categories = [
+    { id: 'Agriculture', bn: 'কৃষি', en: 'Agriculture' },
+    { id: 'Health', bn: 'স্বাস্থ্য', en: 'Health' },
+    { id: 'Education', bn: 'শিক্ষা', en: 'Education' },
+    { id: 'Crafts', bn: 'কারুশিল্প', en: 'Crafts' },
+    { id: 'Transport', bn: 'পরিবহন', en: 'Transport' },
+    { id: 'Fishery', bn: 'মৎস্য চাষ', en: 'Fishery' },
+    { id: 'Waste Management', bn: 'বর্জ্য ব্যবস্থাপনা', en: 'Waste Management' },
+    { id: 'Disaster Management', bn: 'দুর্যোগ ব্যবস্থাপনা', en: 'Disaster Management' },
+    { id: 'Jobs', bn: 'চাকরি ও ক্যারিয়ার', en: 'Jobs & Careers' },
+    { id: 'Bazar Sodai', bn: 'বাজার সদাই', en: 'Bazar Sodai' },
+    { id: 'Technology', bn: 'প্রযুক্তি', en: 'Technology' },
+    { id: 'Lifestyle', bn: 'জীবনধারা', en: 'Lifestyle' }
+  ];
+
   return (
     <div className="bg-gray-50 min-h-screen py-12 px-4 sm:px-6 lg:px-8 animate-fade-in">
       <div className="max-w-7xl mx-auto space-y-12">
@@ -214,8 +229,11 @@ export const BlogModule: React.FC<Props> = ({ isBangla }) => {
                       <label className="block text-sm font-semibold text-gray-700 mb-2">{isBangla ? 'ক্যাটাগরি' : 'Category'} *</label>
                       <select className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl">
                         <option value="">{isBangla ? 'নির্বাচন করুন...' : 'Select...'}</option>
-                        <option value="Agriculture">Agriculture</option>
-                        <option value="Health">Health</option>
+                        {categories.map((cat) => (
+                          <option key={cat.id} value={cat.id}>
+                            {isBangla ? cat.bn : cat.en}
+                          </option>
+                        ))}
                       </select>
                     </div>
                     <div>
