@@ -7,7 +7,7 @@ interface Props {
   isBangla: boolean;
 }
 
-type JobCategory = 'Government' | 'Private' | 'NGO' | 'International';
+type JobCategory = 'Government' | 'Private' | 'NGO' | 'International' | 'Autonomous' | 'Local Government' | 'Public University';
 type JobType = 'Full Time' | 'Part Time' | 'Contract' | 'Remote';
 type JobLevel = 'Entry' | 'Mid' | 'Senior';
 
@@ -26,6 +26,17 @@ interface Job {
   responsibilities: string[];
 }
 
+// Translations for categories
+const categoryLabels: Record<JobCategory, { bn: string; en: string }> = {
+  'Government': { bn: 'সরকারি', en: 'Government' },
+  'Autonomous': { bn: 'স্বায়ত্বশাসিত', en: 'Autonomous' },
+  'Public University': { bn: 'পাবলিক ভার্সিটি', en: 'Public Univ.' },
+  'Local Government': { bn: 'স্থানীয় সরকার', en: 'Local Govt.' },
+  'Private': { bn: 'বেসরকারি', en: 'Private' },
+  'NGO': { bn: 'এনজিও', en: 'NGO' },
+  'International': { bn: 'আন্তর্জাতিক', en: 'International' },
+};
+
 // Static Data Moved Outside Component
 const JOBS_DATA: Job[] = [
   {
@@ -34,7 +45,7 @@ const JOBS_DATA: Job[] = [
     company: 'Bangladesh Bank',
     location: 'Dhaka',
     salary: 'Grade 9',
-    category: 'Government',
+    category: 'Autonomous',
     type: 'Full Time',
     level: 'Entry',
     posted: '2 days ago',
@@ -111,6 +122,34 @@ const JOBS_DATA: Job[] = [
     deadline: '01 Nov, 2023',
     description: 'Experienced Project Manager needed for Health project. / স্বাস্থ্য প্রকল্পের জন্য প্রজেক্ট ম্যানেজার প্রয়োজন।',
     responsibilities: ['Project planning', 'Budget control', 'Donor reporting']
+  },
+  {
+    id: 7,
+    title: 'Lecturer (CSE) / প্রভাষক',
+    company: 'University of Dhaka',
+    location: 'Dhaka',
+    salary: 'Grade 9',
+    category: 'Public University',
+    type: 'Full Time',
+    level: 'Entry',
+    posted: '1 day ago',
+    deadline: '20 Nov, 2023',
+    description: 'Department of CSE is inviting applications for Lecturer position. / সিএসই বিভাগ প্রভাষক পদে দরখাস্ত আহ্বান করছে।',
+    responsibilities: ['Conducting lectures', 'Research supervision', 'Academic counseling']
+  },
+  {
+    id: 8,
+    title: 'Assistant Engineer / সহকারী প্রকৌশলী',
+    company: 'Dhaka North City Corporation',
+    location: 'Dhaka',
+    salary: 'Grade 9',
+    category: 'Local Government',
+    type: 'Full Time',
+    level: 'Entry',
+    posted: '3 days ago',
+    deadline: '25 Nov, 2023',
+    description: 'DNCC requires engineers for urban planning projects. / ডিএনসিসি নগর পরিকল্পনা প্রকল্পের জন্য প্রকৌশলী খুঁজছে।',
+    responsibilities: ['Site inspection', 'Project estimation', 'Maintenance supervision']
   }
 ];
 
@@ -168,11 +207,23 @@ export const JobModule: React.FC<Props> = ({ isBangla }) => {
   const getCategoryColor = (cat: JobCategory) => {
     switch (cat) {
       case 'Government': return 'bg-green-100 text-green-800 border-green-200';
+      case 'Autonomous': return 'bg-teal-100 text-teal-800 border-teal-200';
+      case 'Public University': return 'bg-purple-100 text-purple-800 border-purple-200';
+      case 'Local Government': return 'bg-emerald-100 text-emerald-800 border-emerald-200';
       case 'Private': return 'bg-blue-100 text-blue-800 border-blue-200';
       case 'NGO': return 'bg-orange-100 text-orange-800 border-orange-200';
       default: return 'bg-gray-100 text-gray-800';
     }
   };
+
+  const jobCategoriesList = [
+    { val: 'Government', label: isBangla ? 'সরকারি (মন্ত্রণালয়/অধিদপ্তর)' : 'Government (Ministry/Dept)' },
+    { val: 'Autonomous', label: isBangla ? 'স্বায়ত্বশাসিত প্রতিষ্ঠান' : 'Autonomous Bodies' },
+    { val: 'Public University', label: isBangla ? 'পাবলিক বিশ্ববিদ্যালয়' : 'Public Universities' },
+    { val: 'Local Government', label: isBangla ? 'স্থানীয় সরকার (সিটি/পৌরসভা)' : 'Local Govt. (City/Municipal)' },
+    { val: 'Private', label: isBangla ? 'বেসরকারি কোম্পানি' : 'Private Company' },
+    { val: 'NGO', label: isBangla ? 'এনজিও / উন্নয়ন সংস্থা' : 'NGO / Development' }
+  ];
 
   return (
     <div className="bg-gray-50 min-h-screen py-8 lg:py-12 px-4 sm:px-6 lg:px-8">
@@ -185,8 +236,8 @@ export const JobModule: React.FC<Props> = ({ isBangla }) => {
           </h1>
           <p className="text-gray-500 max-w-2xl mx-auto mb-6">
             {isBangla 
-              ? 'সরকারি, বেসরকারি এবং এনজিও - সব ধরনের চাকরির বিশাল সমাহার।' 
-              : 'Government, Private, and NGO - A vast collection of all types of jobs.'}
+              ? 'সরকারি, বেসরকারি, স্বায়ত্বশাসিত এবং এনজিও - সব ধরনের চাকরির বিশাল সমাহার।' 
+              : 'Government, Private, Autonomous, and NGO - A vast collection of all types of jobs.'}
           </p>
           
           <div className="flex justify-center">
@@ -227,15 +278,11 @@ export const JobModule: React.FC<Props> = ({ isBangla }) => {
               )}
             </div>
 
-            {/* Filters UI - Same as before but optimized */}
+            {/* Filters UI */}
             <div>
               <h4 className="text-sm font-bold text-gray-700 mb-3 uppercase tracking-wider">{isBangla ? 'প্রতিষ্ঠানের ধরন' : 'Job Category'}</h4>
               <div className="space-y-2">
-                {[
-                  { val: 'Government', label: isBangla ? 'সরকারি চাকরি' : 'Government' },
-                  { val: 'Private', label: isBangla ? 'বেসরকারি কোম্পানি' : 'Private Company' },
-                  { val: 'NGO', label: isBangla ? 'এনজিও / ডেভেলপমেন্ট' : 'NGO / Development' }
-                ].map((cat) => (
+                {jobCategoriesList.map((cat) => (
                   <label key={cat.val} className="flex items-center gap-3 cursor-pointer group">
                     <div className={`w-5 h-5 rounded border flex items-center justify-center transition-colors ${selectedCategories.includes(cat.val as JobCategory) ? 'bg-brand-600 border-brand-600' : 'border-gray-300 group-hover:border-brand-400'}`}>
                       {selectedCategories.includes(cat.val as JobCategory) && <CheckCircle size={12} className="text-white" />}
@@ -338,9 +385,7 @@ export const JobModule: React.FC<Props> = ({ isBangla }) => {
                     className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 hover:shadow-lg hover:border-brand-200 transition-all cursor-pointer group relative overflow-hidden"
                   >
                     <div className={`absolute top-0 right-0 px-4 py-1 text-xs font-bold rounded-bl-xl border-l border-b ${getCategoryColor(job.category)}`}>
-                      {job.category === 'Government' ? (isBangla ? 'সরকারি' : 'Government') : 
-                       job.category === 'Private' ? (isBangla ? 'বেসরকারি' : 'Private') : 
-                       job.category === 'NGO' ? (isBangla ? 'এনজিও' : 'NGO') : job.category}
+                      {isBangla ? categoryLabels[job.category].bn : categoryLabels[job.category].en}
                     </div>
 
                     <div className="flex flex-col md:flex-row gap-5 items-start">
