@@ -8,6 +8,7 @@ import { LoginPage } from './components/auth/LoginPage';
 import { SignUpPage } from './components/auth/SignUpPage';
 import { Header } from './components/layout/Header';
 import { Footer } from './components/layout/Footer';
+import { ErrorBoundary } from './components/ErrorBoundary';
 import { Loader2 } from 'lucide-react';
 
 // Lazy Load Modules for Bundle Splitting
@@ -80,90 +81,98 @@ const App: React.FC = () => {
   // Render AI Chat Page if requested
   if (showAiChat) {
     return (
-      <AiChatPage 
-        onBack={() => setShowAiChat(false)} 
-        isBangla={isBangla} 
-      />
+      <ErrorBoundary>
+        <AiChatPage 
+          onBack={() => setShowAiChat(false)} 
+          isBangla={isBangla} 
+        />
+      </ErrorBoundary>
     );
   }
 
   // Render Authentication Views
   if (!user && authView === 'login') {
     return (
-      <LoginPage 
-        onLoginSuccess={handleLoginSuccess}
-        onNavigateToSignUp={navigateToSignUp}
-        onBack={navigateBack}
-        isBangla={isBangla}
-      />
+      <ErrorBoundary>
+        <LoginPage 
+          onLoginSuccess={handleLoginSuccess}
+          onNavigateToSignUp={navigateToSignUp}
+          onBack={navigateBack}
+          isBangla={isBangla}
+        />
+      </ErrorBoundary>
     );
   }
 
   if (!user && authView === 'signup') {
     return (
-      <SignUpPage 
-        onSignUpSuccess={handleLoginSuccess}
-        onNavigateToLogin={navigateToLogin}
-        onBack={navigateBack}
-        isBangla={isBangla}
-      />
+      <ErrorBoundary>
+        <SignUpPage 
+          onSignUpSuccess={handleLoginSuccess}
+          onNavigateToLogin={navigateToLogin}
+          onBack={navigateBack}
+          isBangla={isBangla}
+        />
+      </ErrorBoundary>
     );
   }
 
   const renderContent = () => {
-    // Use Suspense to handle the lazy loaded components
+    // Use Suspense to handle the lazy loaded components and ErrorBoundary to catch failures
     return (
-      <Suspense fallback={<LoadingFallback />}>
-        {(() => {
-          switch (activeModule) {
-            case AppModule.PROFILE:
-              if (!user) {
-                return (
-                  <div className="flex flex-col items-center justify-center py-20">
-                    <div className="text-gray-500 mb-4 font-medium">
-                      {isBangla ? 'প্রোফাইল দেখতে অনুগ্রহ করে লগইন করুন।' : 'Please log in to view your profile.'}
+      <ErrorBoundary>
+        <Suspense fallback={<LoadingFallback />}>
+          {(() => {
+            switch (activeModule) {
+              case AppModule.PROFILE:
+                if (!user) {
+                  return (
+                    <div className="flex flex-col items-center justify-center py-20">
+                      <div className="text-gray-500 mb-4 font-medium">
+                        {isBangla ? 'প্রোফাইল দেখতে অনুগ্রহ করে লগইন করুন।' : 'Please log in to view your profile.'}
+                      </div>
+                      <button 
+                        onClick={navigateToLogin}
+                        className="px-6 py-2 bg-brand-600 text-white rounded-lg hover:bg-brand-700 transition-colors shadow-md"
+                      >
+                        {isBangla ? 'লগইন' : 'Login'}
+                      </button>
                     </div>
-                    <button 
-                      onClick={navigateToLogin}
-                      className="px-6 py-2 bg-brand-600 text-white rounded-lg hover:bg-brand-700"
-                    >
-                      {isBangla ? 'লগইন' : 'Login'}
-                    </button>
-                  </div>
+                  );
+                }
+                return <ProfilePage user={user} onUpdateUser={handleUpdateUser} isBangla={isBangla} />;
+              case AppModule.JOB: return <JobModule isBangla={isBangla} />;
+              case AppModule.BLOG: return <BlogModule isBangla={isBangla} />;
+              case AppModule.CONTACT: return <ContactModule isBangla={isBangla} />;
+              case AppModule.AMAR_BD: return <AmarBdModule isBangla={isBangla} onModuleSelect={handleModuleSelect} />;
+              case AppModule.AMAR_JELA: return <AmarJelaModule isBangla={isBangla} />;
+              case AppModule.BAZAR_SODAI: return <BazarSodaiModule isBangla={isBangla} />;
+              case AppModule.CRAFT: return <CraftModule isBangla={isBangla} />;
+              case AppModule.AGRI: return <AgriModule isBangla={isBangla} />;
+              case AppModule.EDU: return <EduModule isBangla={isBangla} />;
+              case AppModule.HEALTH: return <HealthModule isBangla={isBangla} />;
+              case AppModule.TRANSPORT: return <TransportModule isBangla={isBangla} />;
+              case AppModule.WASTE: return <WasteModule isBangla={isBangla} />;
+              case AppModule.FISHERY: return <FisheryModule isBangla={isBangla} />;
+              case AppModule.DISASTER: return <DisasterModule isBangla={isBangla} />;
+              case 'LANDING':
+              default:
+                return (
+                  <LandingPage 
+                    user={user}
+                    onLogin={navigateToLogin}
+                    onRegister={navigateToSignUp}
+                    onLogout={handleLogout}
+                    onOpenAiChat={() => setShowAiChat(true)}
+                    onModuleSelect={handleModuleSelect}
+                    isBangla={isBangla} 
+                    toggleLanguage={() => setIsBangla(!isBangla)} 
+                  />
                 );
-              }
-              return <ProfilePage user={user} onUpdateUser={handleUpdateUser} isBangla={isBangla} />;
-            case AppModule.JOB: return <JobModule isBangla={isBangla} />;
-            case AppModule.BLOG: return <BlogModule isBangla={isBangla} />;
-            case AppModule.CONTACT: return <ContactModule isBangla={isBangla} />;
-            case AppModule.AMAR_BD: return <AmarBdModule isBangla={isBangla} onModuleSelect={handleModuleSelect} />;
-            case AppModule.AMAR_JELA: return <AmarJelaModule isBangla={isBangla} />;
-            case AppModule.BAZAR_SODAI: return <BazarSodaiModule isBangla={isBangla} />;
-            case AppModule.CRAFT: return <CraftModule isBangla={isBangla} />;
-            case AppModule.AGRI: return <AgriModule isBangla={isBangla} />;
-            case AppModule.EDU: return <EduModule isBangla={isBangla} />;
-            case AppModule.HEALTH: return <HealthModule isBangla={isBangla} />;
-            case AppModule.TRANSPORT: return <TransportModule isBangla={isBangla} />;
-            case AppModule.WASTE: return <WasteModule isBangla={isBangla} />;
-            case AppModule.FISHERY: return <FisheryModule isBangla={isBangla} />;
-            case AppModule.DISASTER: return <DisasterModule isBangla={isBangla} />;
-            case 'LANDING':
-            default:
-              return (
-                <LandingPage 
-                  user={user}
-                  onLogin={navigateToLogin}
-                  onRegister={navigateToSignUp}
-                  onLogout={handleLogout}
-                  onOpenAiChat={() => setShowAiChat(true)}
-                  onModuleSelect={handleModuleSelect}
-                  isBangla={isBangla} 
-                  toggleLanguage={() => setIsBangla(!isBangla)} 
-                />
-              );
-          }
-        })()}
-      </Suspense>
+            }
+          })()}
+        </Suspense>
+      </ErrorBoundary>
     );
   };
 
@@ -172,35 +181,37 @@ const App: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen bg-white font-sans text-gray-900 flex flex-col">
-      <Header 
-        user={user} 
-        onLogin={navigateToLogin} 
-        onRegister={navigateToSignUp} 
-        onLogout={handleLogout} 
-        onModuleSelect={handleModuleSelect}
-        onNavigateHome={handleNavigateHome}
-        isBangla={isBangla} 
-        toggleLanguage={() => setIsBangla(!isBangla)} 
-      />
-      <div className="flex-1">
-          {/* Wrapper to ensure full page modules look good */}
-          {activeModule === AppModule.JOB || activeModule === AppModule.BLOG || activeModule === AppModule.CONTACT || activeModule === AppModule.AMAR_BD || activeModule === AppModule.AMAR_JELA || activeModule === AppModule.BAZAR_SODAI
-            ? renderContent() // These already have container
-            : (
-              <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 min-h-screen">
-                {renderContent()}
-              </div>
-            )
-          }
+    <ErrorBoundary>
+      <div className="min-h-screen bg-white font-sans text-gray-900 flex flex-col">
+        <Header 
+          user={user} 
+          onLogin={navigateToLogin} 
+          onRegister={navigateToSignUp} 
+          onLogout={handleLogout} 
+          onModuleSelect={handleModuleSelect}
+          onNavigateHome={handleNavigateHome}
+          isBangla={isBangla} 
+          toggleLanguage={() => setIsBangla(!isBangla)} 
+        />
+        <div className="flex-1">
+            {/* Wrapper to ensure full page modules look good */}
+            {activeModule === AppModule.JOB || activeModule === AppModule.BLOG || activeModule === AppModule.CONTACT || activeModule === AppModule.AMAR_BD || activeModule === AppModule.AMAR_JELA || activeModule === AppModule.BAZAR_SODAI
+              ? renderContent() // These already have container
+              : (
+                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 min-h-screen">
+                  {renderContent()}
+                </div>
+              )
+            }
+        </div>
+        <Footer 
+          isBangla={isBangla} 
+          toggleLanguage={() => setIsBangla(!isBangla)} 
+          onNavigateHome={handleNavigateHome}
+        />
+        <GeminiAssistant currentModule={activeModule as AppModule} isBangla={isBangla} />
       </div>
-      <Footer 
-        isBangla={isBangla} 
-        toggleLanguage={() => setIsBangla(!isBangla)} 
-        onNavigateHome={handleNavigateHome}
-      />
-      <GeminiAssistant currentModule={activeModule as AppModule} isBangla={isBangla} />
-    </div>
+    </ErrorBoundary>
   );
 };
 
