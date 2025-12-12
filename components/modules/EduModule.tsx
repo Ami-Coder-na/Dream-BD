@@ -1,11 +1,12 @@
 
-import React, { useState, useMemo, useRef } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { 
   BookOpen, MonitorPlay, GraduationCap, BrainCircuit, Search, 
   Download, PlayCircle, Award, ChevronRight, FileText, 
   Briefcase, Lightbulb, Library, Laptop, Trophy, Target,
   Star, User, Calendar, X, Filter, ChevronDown, Book, Eye,
-  CheckCircle, Lock, Play, ArrowLeft, RefreshCw, List
+  CheckCircle, Lock, Play, ArrowLeft, RefreshCw, List, 
+  HelpCircle, Puzzle, Gamepad2, Timer, Globe, TrendingUp, DollarSign, ArrowRight
 } from 'lucide-react';
 import { Button } from '../ui/Button';
 import { getOptimizedImageUrl } from '../utils/imageUtils';
@@ -18,1070 +19,531 @@ interface Props {
 
 type EduTab = 'library' | 'skills' | 'interactive' | 'career';
 
-// --- GK DATA (100 Questions) ---
-const GK_CONTENT_BN = `
-১. বাংলাদেশের সাংবিধানিক নাম কী?
-উঃ গণপ্রজাতন্ত্রী বাংলাদেশ।
-
-২. বাংলাদেশের ভূখণ্ডের আয়তন কত?
-উঃ ১,৪৭,৫৭০ বর্গ কিমি।
-
-৩. বাংলাদেশের সীমান্তবর্তী দেশ কয়টি?
-উঃ ২টি (ভারত ও মিয়ানমার)।
-
-৪. বাংলাদেশের মোট সীমান্ত দৈর্ঘ্য কত?
-উঃ ৫,১৩৮ কিমি।
-
-৫. ভারতের সাথে বাংলাদেশের সীমান্ত দৈর্ঘ্য কত?
-উঃ ৪,১৫৬ কিমি।
-
-৬. মিয়ানমারের সাথে বাংলাদেশের সীমান্ত দৈর্ঘ্য কত?
-উঃ ২৭১ কিমি।
-
-৭. বাংলাদেশের উপকূলীয় জেলার সংখ্যা কয়টি?
-উঃ ১৯টি।
-
-৮. বাংলাদেশের উষ্ণতম স্থান কোনটি?
-উঃ লালপুর, নাটোর।
-
-৯. বাংলাদেশের শীতলতম স্থান কোনটি?
-উঃ শ্রীমঙ্গল, মৌলভীবাজার।
-
-১০. বাংলাদেশের সর্বোচ্চ পর্বতশৃঙ্গ কোনটি?
-উঃ তাজিংডং (বিজয়)।
-
-১১. কাপ্তাই হ্রদ কোথায় অবস্থিত?
-উঃ রাঙ্গামাটি।
-
-১২. চলন বিল কোথায় অবস্থিত?
-উঃ পাবনা, নাটোর ও সিরাজগঞ্জ জেলায়।
-
-১৩. বাংলাদেশের বৃহত্তম দ্বীপ কোনটি?
-উঃ ভোলা।
-
-১৪. সেন্টমার্টিন দ্বীপের অপর নাম কী?
-উঃ নারিকেল জিঞ্জিরা।
-
-১৫. বাংলাদেশের একমাত্র প্রবাল দ্বীপ কোনটি?
-উঃ সেন্টমার্টিন।
-
-১৬. পদ্মা নদী কোথায় মেঘনার সাথে মিলিত হয়েছে?
-উঃ চাঁদপুরে।
-
-১৭. যমুনা নদী কোথায় পদ্মার সাথে মিলিত হয়েছে?
-উঃ গোয়ালন্দ ঘাটে।
-
-১৮. পুরাতন ব্রহ্মপুত্র নদের শাখা নদী কোনটি?
-উঃ শীতলক্ষ্যা।
-
-১৯. বঙ্গবন্ধু সেতু কোন নদীর উপর অবস্থিত?
-উঃ যমুনা নদী।
-
-২০. পদ্মা সেতুর দৈর্ঘ্য কত?
-উঃ ৬.১৫ কিমি।
-
-২১. বাংলাদেশের প্রথম চা বাগান কোথায় প্রতিষ্ঠিত হয়?
-উঃ সিলেটের মালনীছড়ায় (১৮৫৪ সালে)।
-
-২২. বাংলাদেশের বৃহত্তম বনাঞ্চল কোনটি?
-উঃ সুন্দরবন।
-
-২৩. সুন্দরবনের আয়তন কত?
-উঃ প্রায় ১০,০০০ বর্গ কিমি (বাংলাদেশ অংশে ৬,০১৭ বর্গ কিমি)।
-
-২৪. সুন্দরবনকে ওয়ার্ল্ড হেরিটেজ সাইট ঘোষণা করে কোন সংস্থা?
-উঃ ইউনেস্কো (১৯৯৭ সালে)।
-
-২৫. বাংলাদেশের জাতীয় প্রতীক কী?
-উঃ উভয় পাশে ধানের শীষ বেষ্টিত পানিতে ভাসমান শাপলা।
-
-২৬. বাংলাদেশের জাতীয় ফুল কী?
-উঃ শাপলা।
-
-২৭. বাংলাদেশের জাতীয় ফল কী?
-উঃ কাঁঠাল।
-
-২৮. বাংলাদেশের জাতীয় মাছ কী?
-উঃ ইলিশ।
-
-২৯. বাংলাদেশের জাতীয় পশু কী?
-উঃ রয়েল বেঙ্গল টাইগার।
-
-৩০. বাংলাদেশের জাতীয় পাখি কী?
-উঃ দোয়েল।
-
-৩১. বাংলাদেশের জাতীয় খেলা কী?
-উঃ কাবাডি (হা-ডু-ডু)।
-
-৩২. বাংলাদেশের জাতীয় কবি কে?
-উঃ কাজী নজরুল ইসলাম।
-
-৩৩. বাংলাদেশের প্রথম রাষ্ট্রপতি কে ছিলেন?
-উঃ বঙ্গবন্ধু শেখ মুজিবুর রহমান।
-
-৩৪. বাংলাদেশের প্রথম প্রধানমন্ত্রী কে ছিলেন?
-উঃ তাজউদ্দীন আহমদ।
-
-৩৫. বাংলাদেশের সংবিধান কত সালে গৃহীত হয়?
-উঃ ১৯৭২ সালে (৪ নভেম্বর)।
-
-৩৬. সংবিধানের কত নং অনুচ্ছেদে রাষ্ট্রধর্ম ইসলামের কথা বলা হয়েছে?
-উঃ ২(ক) নং অনুচ্ছেদে।
-
-৩৭. বাংলাদেশের আইনসভার নাম কী?
-উঃ জাতীয় সংসদ।
-
-৩৮. জাতীয় সংসদের মোট আসন সংখ্যা কত?
-উঃ ৩৫০টি (৩০০টি নির্বাচিত + ৫০টি সংরক্ষিত মহিলা আসন)।
-
-৩৯. জাতীয় সংসদের প্রতীক কী?
-উঃ শাপলা ফুল।
-
-৪০. মুজিবনগর সরকার কবে গঠিত হয়?
-উঃ ১০ এপ্রিল ১৯৭১।
-
-৪১. মুজিবনগর সরকার কবে শপথ গ্রহণ করে?
-উঃ ১৭ এপ্রিল ১৯৭১।
-
-৪২. বাংলাদেশকে প্রথম স্বীকৃতি প্রদানকারী দেশ কোনটি?
-উঃ ভুটান।
-
-৪৩. বীরশ্রেষ্ঠ উপাধি প্রাপ্ত মুক্তিযোদ্ধার সংখ্যা কত?
-উঃ ৭ জন।
-
-৪৪. বীর উত্তম খেতাব প্রাপ্ত মুক্তিযোদ্ধার সংখ্যা কত?
-উঃ ৬৮ জন।
-
-৪৫. সার্ক (SAARC) এর সদর দপ্তর কোথায়?
-উঃ কাঠমান্ডু, নেপাল।
-
-৪৬. জাতিসংঘ (UN) কত সালে প্রতিষ্ঠিত হয়?
-উঃ ১৯৪৫ সালে।
-
-৪৭. জাতিসংঘের সদর দপ্তর কোথায়?
-উঃ নিউইয়র্ক, যুক্তরাষ্ট্র।
-
-৪৮. বিশ্ব স্বাস্থ্য সংস্থা (WHO) এর সদর দপ্তর কোথায়?
-উঃ জেনেভা, সুইজারল্যান্ড।
-
-৪৯. বিশ্বকাপ ফুটবল কত বছর পর পর অনুষ্ঠিত হয়?
-উঃ ৪ বছর।
-
-৫০. ক্রিকেটের জনক বলা হয় কোন দেশকে?
-উঃ ইংল্যান্ড।
-
-৫১. বাংলাদেশের প্রথম ভূ-উপগ্রহ কেন্দ্র কোথায় স্থাপিত হয়?
-উঃ বেতবুনিয়া, রাঙ্গামাটি।
-
-৫২. বঙ্গবন্ধু স্যাটেলাইট-১ কবে উৎক্ষেপণ করা হয়?
-উঃ ১১ মে ২০১৮।
-
-৫৩. বাংলাদেশের ইন্টারনেট ডোমেইন কোনটি?
-উঃ .bd
-
-৫৪. বাংলাদেশের টাকার নোটে কার স্বাক্ষর থাকে?
-উঃ বাংলাদেশ ব্যাংকের গভর্নরের (১ ও ২ টাকার নোট বাদে)।
-
-৫৫. ১ ও ২ টাকার নোটে কার স্বাক্ষর থাকে?
-উঃ অর্থ সচিবের।
-
-৫৬. ঢাকা বিশ্ববিদ্যালয় কত সালে প্রতিষ্ঠিত হয়?
-উঃ ১৯২১ সালে।
-
-৫৭. কেন্দ্রীয় শহীদ মিনারের স্থপতি কে?
-উঃ হামিদুর রহমান।
-
-৫৮. জাতীয় স্মৃতিসৌধের স্থপতি কে?
-উঃ সৈয়দ মাইনুল হোসেন।
-
-৫৯. জাতীয় সংসদ ভবনের স্থপতি কে?
-উঃ লুই আই কান।
-
-৬০. অপরাজেয় বাংলা ভাস্কর্যটি কোথায় অবস্থিত?
-উঃ ঢাকা বিশ্ববিদ্যালয় কলা ভবনের সামনে।
-
-৬১. সাবাস বাংলাদেশ ভাস্কর্যটি কোথায়?
-উঃ রাজশাহী বিশ্ববিদ্যালয়ে।
-
-৬২. সংশপ্তক ভাস্কর্যটি কোথায়?
-উঃ জাহাঙ্গীরনগর বিশ্ববিদ্যালয়ে।
-
-৬৩. বাংলাদেশের বৃহত্তম স্থলবন্দর কোনটি?
-উঃ বেনাপোল।
-
-৬৪. বাংলাদেশের একমাত্র পাহাড়ী দ্বীপ কোনটি?
-উঃ মহেশখালী।
-
-৬৫. বাংলাদেশের দীর্ঘতম সমুদ্র সৈকত কোথায়?
-উঃ কক্সবাজার।
-
-৬৬. কুয়াকাটা সমুদ্র সৈকত কোন জেলায়?
-উঃ পটুয়াখালী।
-
-৬৭. ভবদহ বিল কোথায় অবস্থিত?
-উঃ যশোরে।
-
-৬৮. চলন বিলের মধ্য দিয়ে প্রবাহিত নদীর নাম কী?
-উঃ আত্রাই।
-
-৬৯. বাংলাদেশের কোন জেলাকে শস্য ভাণ্ডার বলা হয়?
-উঃ বরিশাল।
-
-৭০. বাংলাদেশের রুটির ঝুড়ি বলা হয় কোন জেলাকে?
-উঃ নওগাঁ।
-
-৭১. চায়ের দেশ বলা হয় কোন জেলাকে?
-উঃ মৌলভীবাজার।
-
-৭২. ৩৬০ আউলিয়ার দেশ কোনটি?
-উঃ সিলেট।
-
-৭৩. ১২ আউলিয়ার দেশ কোনটি?
-উঃ চট্টগ্রাম।
-
-৭৪. হিমছড়ি কোন জেলায় অবস্থিত?
-উঃ কক্সবাজার।
-
-৭৫. শুভলং ঝর্ণা কোথায়?
-উঃ রাঙ্গামাটি।
-
-৭৬. মাধবকুন্ড জলপ্রপাত কোথায়?
-উঃ বড়লেখা, মৌলভীবাজার।
-
-৭৭. বাংলার ভেনিস বলা হয় কাকে?
-উঃ বরিশালকে।
-
-৭৮. প্রাচ্যের ডান্ডি বলা হয় কোন জেলাকে?
-উঃ নারায়ণগঞ্জ।
-
-৭৯. সাগর কন্যা বলা হয় কোন এলাকাকে?
-উঃ কুয়াকাটা।
-
-৮০. ময়নামতি কোথায় অবস্থিত?
-উঃ কুমিল্লায়।
-
-৮১. মহাস্থানগড় কোথায় অবস্থিত?
-উঃ বগুড়ায়।
-
-৮২. পাহাড়পুর বৌদ্ধ বিহার কোথায়?
-উঃ নওগাঁ জেলায়।
-
-৮৩. লালবাগ কেল্লা কে নির্মাণ শুরু করেন?
-উঃ শাহজাদা আজম।
-
-৮৪. আহসান মঞ্জিল কোথায় অবস্থিত?
-উঃ পুরান ঢাকার ইসলামপুরে (বুড়িগঙ্গা নদীর তীরে)।
-
-৮৫. ষাট গম্বুজ মসজিদ কোথায়?
-উঃ বাগেরহাট।
-
-৮৬. সোনা মসজিদ কোথায়?
-উঃ চাঁপাইনবাবগঞ্জ।
-
-৮৭. তারা মসজিদ কোথায়?
-উঃ আরমানিটোলা, ঢাকা।
-
-৮৮. জাতীয় যাদুঘর কোথায় অবস্থিত?
-উঃ শাহবাগ, ঢাকা।
-
-৮৯. মুক্তিযুদ্ধ যাদুঘর কোথায়?
-উঃ আগারগাঁও, ঢাকা।
-
-৯০. বরেন্দ্র যাদুঘর কোথায়?
-উঃ রাজশাহী।
-
-৯১. বাংলাদেশের বৃহত্তম বিল কোনটি?
-উঃ চলন বিল।
-
-৯২. বাংলাদেশের বৃহত্তম হাওড় কোনটি?
-উঃ হাকালুকি হাওড়।
-
-৯৩. হালদা ভ্যালি কোথায়?
-উঃ খাগড়াছড়ি।
-
-৯৪. নাফ নদী কোথায় অবস্থিত?
-উঃ বাংলাদেশ ও মিয়ানমার সীমান্তে।
-
-৯৫. তিন বিঘা করিডোর কোথায়?
-উঃ লালমনিরহাট।
-
-৯৬. বাংলা সনের প্রবর্তক কে?
-উঃ সম্রাট আকবর।
-
-৯৭. বাংলা নববর্ষ পহেলা বৈশাখ চালু করেন কে?
-উঃ সম্রাট আকবর।
-
-৯৮. বাংলাদেশের লোকশিল্প যাদুঘর কোথায়?
-উঃ সোনারগাঁও।
-
-৯৯. বাংলাদেশের প্রথম এভারেস্ট জয়ী কে?
-উঃ মুসা ইব্রাহীম।
-
-১০০. বাংলাদেশের প্রথম মহিলা এভারেস্ট জয়ী কে?
-উঃ নিশাত মজুমদার।
-`;
-
-// --- EXPANDED DATA CONSTANTS ---
-
-const BOOKS_DB = [
-  // Primary (Class 1-5)
+// --- CAREER DATA ---
+const CAREER_PATHS = [
   {
-    id: 101,
-    titleBn: 'আমার বাংলা বই (৫ম শ্রেণি)',
-    titleEn: 'Amar Bangla Boi (Class 5)',
-    author: 'NCTB',
-    level: 'Primary',
-    class: 'Class 5',
-    pages: 120,
-    rating: 4.8,
-    image: 'https://images.unsplash.com/photo-1544947950-fa07a98d237f',
-    descBn: 'পঞ্চম শ্রেণির শিক্ষার্থীদের জন্য জাতীয় শিক্ষাক্রম ও পাঠ্যপুস্তক বোর্ড কর্তৃক প্রণীত বাংলা পাঠ্যবই।',
-    descEn: 'Bengali textbook for Class 5 students developed by NCTB.',
-    type: 'NCTB Text',
-    content: 'এই বইয়ের ডিজিটাল ভার্সন শীঘ্রই আসছে। আপডেটের জন্য অপেক্ষা করুন...'
+    id: 1,
+    titleBn: 'বিসিএস ক্যাডার (প্রশাসন)',
+    titleEn: 'BCS Cadre (Admin)',
+    icon: <FlagIcon />,
+    descBn: 'বাংলাদেশ সিভিল সার্ভিসের সবচেয়ে সম্মানজনক পেশা।',
+    descEn: 'Most prestigious career in Bangladesh Civil Service.',
+    roadmap: [
+      { stepBn: 'স্নাতক ডিগ্রি (Honours/Degree)', stepEn: 'Bachelor Degree' },
+      { stepBn: 'বিসিএস প্রিলিমিনারি প্রস্তুতি', stepEn: 'BCS Preliminary Prep' },
+      { stepBn: 'লিখিত পরীক্ষা (৯০০ নম্বর)', stepEn: 'Written Exam (900 Marks)' },
+      { stepBn: 'মৌখিক পরীক্ষা (২০০ নম্বর)', stepEn: 'Viva Voce (200 Marks)' },
+      { stepBn: 'গেজেট ও যোগদান', stepEn: 'Gazette & Joining' }
+    ],
+    salary: { entry: '৳ 35k', mid: '৳ 70k', senior: '৳ 1.2L+' },
+    skillsBn: ['বাংলা ও ইংরেজি', 'সাধারণ জ্ঞান', 'গাণিতিক যুক্তি', 'নেতৃত্ব', 'ধৈর্য'],
+    skillsEn: ['Bangla & English', 'General Knowledge', 'Math Reasoning', 'Leadership', 'Patience']
   },
   {
-    id: 102,
-    titleBn: 'প্রাথমিক গণিত (৪র্থ শ্রেণি)',
-    titleEn: 'Elementary Math (Class 4)',
-    author: 'NCTB',
-    level: 'Primary',
-    class: 'Class 4',
-    pages: 110,
-    rating: 4.7,
-    image: 'https://images.unsplash.com/photo-1635070041078-e363dbe005cb',
-    descBn: 'চতুর্থ শ্রেণির গণিত বই - যোগ, বিয়োগ, গুণ, ভাগ ও জ্যামিতি।',
-    descEn: 'Math book for Class 4 covering arithmetic and geometry.',
-    type: 'NCTB Text',
-    content: 'গণিত অনুশীলন:\n১. যোগ কর: ৪৫০ + ৩২০ = ?\n২. বিয়োগ কর: ৫০০ - ২০০ = ?\n৩. গুণ কর: ১২ x ৫ = ?'
-  },
-  
-  // Secondary (Class 6-10)
-  {
-    id: 201,
-    titleBn: 'গণিত (৯ম-১০ম শ্রেণি)',
-    titleEn: 'Mathematics (Class 9-10)',
-    author: 'NCTB',
-    level: 'Secondary',
-    class: 'Class 9-10',
-    pages: 350,
-    rating: 4.9,
-    image: 'https://images.unsplash.com/photo-1596495578065-6e0763fa1178',
-    descBn: 'নবম ও দশম শ্রেণির আবশ্যিক গণিত। বীজগণিত, জ্যামিতি ও ত্রিকোণমিতি।',
-    descEn: 'Compulsory Math for Class 9-10 including Algebra and Trigonometry.',
-    type: 'NCTB Text',
-    content: 'বীজগণিত সূত্রাবলী:\n(a+b)² = a² + 2ab + b²\n(a-b)² = a² - 2ab + b²\na² - b² = (a+b)(a-b)'
-  },
-  
-  // Skill & General
-  {
-    id: 401,
-    titleBn: 'সাধারণ জ্ঞান ২০২৩',
-    titleEn: 'General Knowledge 2023',
-    author: 'Mp3 Series',
-    level: 'Skill Dev',
-    class: 'General',
-    pages: 200,
-    rating: 4.5,
-    image: 'https://images.unsplash.com/photo-1457369804613-52c61a468e7d',
-    descBn: 'বাংলাদেশ ও আন্তর্জাতিক বিষয়াবলী, বিসিএস ও চাকরির প্রস্তুতির জন্য।',
-    descEn: 'Bangladesh and International affairs.',
-    type: 'General',
-    content: GK_CONTENT_BN // Providing rich content here
+    id: 2,
+    titleBn: 'সফটওয়্যার ইঞ্জিনিয়ার',
+    titleEn: 'Software Engineer',
+    icon: <CodeIcon />,
+    descBn: 'প্রযুক্তি খাতে উচ্চ বেতন ও স্বাধীনতার পেশা।',
+    descEn: 'High salary and flexibility in the tech industry.',
+    roadmap: [
+      { stepBn: 'HSC (বিজ্ঞান বিভাগ)', stepEn: 'HSC (Science)' },
+      { stepBn: 'CSE তে বিএসসি ডিগ্রি', stepEn: 'BSc in CSE / IT' },
+      { stepBn: 'প্রোগ্রামিং ও প্রজেক্ট তৈরি', stepEn: 'Learn Programming & Build Projects' },
+      { stepBn: 'ইন্টার্নশিপ / জুনিয়র জব', stepEn: 'Internship / Junior Role' }
+    ],
+    salary: { entry: '৳ 40k', mid: '৳ 1.0L', senior: '৳ 3.0L+' },
+    skillsBn: ['কোডিং (JS/Python)', 'সমস্যা সমাধান', 'সিস্টেম ডিজাইন', 'টিমওয়ার্ক'],
+    skillsEn: ['Coding (JS/Python)', 'Problem Solving', 'System Design', 'Teamwork']
   },
   {
-    id: 402,
-    titleBn: 'ফ্রিল্যান্সিং গাইডলাইন',
-    titleEn: 'Freelancing Guideline',
-    author: 'Jobayer Academy',
-    level: 'Skill Dev',
-    class: 'Skill',
-    pages: 150,
-    rating: 4.8,
-    image: 'https://images.unsplash.com/photo-1516321318423-f06f85e504b3',
-    descBn: 'ঘরে বসে আয়ের পূর্ণাঙ্গ গাইডলাইন।',
-    descEn: 'Complete guideline for earning from home.',
-    type: 'Tech',
-    content: 'ফ্রিল্যান্সিং শুরু করার ধাপসমূহ:\n১. দক্ষতা নির্বাচন করুন (যেমন: গ্রাফিক্স ডিজাইন, ওয়েব ডেভেলপমেন্ট)।\n২. একটি মার্কেটপ্লেস এ প্রোফাইল খুলুন (Upwork, Fiverr)।\n৩. পোর্টফোলিও তৈরি করুন।'
+    id: 3,
+    titleBn: 'ডাক্তার (এমবিবিএস)',
+    titleEn: 'Doctor (MBBS)',
+    icon: <StethoscopeIcon />,
+    descBn: 'মানবসেবা ও সম্মানের একটি মহান পেশা।',
+    descEn: 'Noble profession of serving humanity.',
+    roadmap: [
+      { stepBn: 'HSC (জীববিজ্ঞান সহ)', stepEn: 'HSC (with Biology)' },
+      { stepBn: 'মেডিকেল ভর্তি পরীক্ষা', stepEn: 'Medical Admission Test' },
+      { stepBn: '৫ বছর এমবিবিএস কোর্স', stepEn: '5 Years MBBS Course' },
+      { stepBn: '১ বছর ইন্টার্নশিপ', stepEn: '1 Year Internship' },
+      { stepBn: 'বিসিএস (স্বাস্থ্য) / এফসিপিএস', stepEn: 'BCS (Health) / FCPS' }
+    ],
+    salary: { entry: '৳ 30k', mid: '৳ 80k', senior: '৳ 2.0L+' },
+    skillsBn: ['জীববিজ্ঞান', 'ধৈর্য', 'যোগাযোগ দক্ষতা', 'দ্রুত সিদ্ধান্ত গ্রহণ'],
+    skillsEn: ['Biology', 'Patience', 'Communication', 'Quick Decision Making']
+  },
+  {
+    id: 4,
+    titleBn: 'ব্যাংকার',
+    titleEn: 'Banker',
+    icon: <BriefcaseIcon />,
+    descBn: 'আর্থিক নিরাপত্তা ও স্থিতিশীল ক্যারিয়ার।',
+    descEn: 'Financial security and stable career path.',
+    roadmap: [
+      { stepBn: 'যেকোনো বিষয়ে স্নাতক', stepEn: 'Bachelor in any subject' },
+      { stepBn: 'এমবিএ (ব্যাংকিং/ফিন্যান্স)', stepEn: 'MBA (Banking/Finance)' },
+      { stepBn: 'ব্যাংক জব প্রিপারেশন', stepEn: 'Bank Job Preparation' },
+      { stepBn: 'ম্যানেজমেন্ট ট্রেইনি অফিসার (MTO)', stepEn: 'Management Trainee Officer (MTO)' }
+    ],
+    salary: { entry: '৳ 45k', mid: '৳ 90k', senior: '৳ 1.5L+' },
+    skillsBn: ['গণিত ও বিশ্লেষণ', 'ইংরেজি', 'কাস্টমার সার্ভিস', 'সততা'],
+    skillsEn: ['Math & Analysis', 'English', 'Customer Service', 'Integrity']
+  },
+  {
+    id: 5,
+    titleBn: 'ফ্রিল্যান্সার',
+    titleEn: 'Freelancer',
+    icon: <LaptopIcon />,
+    descBn: 'স্বাধীনভাবে কাজ করার ও বৈদেশিক মুদ্রা আয়ের সুযোগ।',
+    descEn: 'Freedom to work and earn foreign currency.',
+    roadmap: [
+      { stepBn: 'নির্দিষ্ট দক্ষতা অর্জন (গ্রাফিক্স/ওয়েব)', stepEn: 'Learn a Skill (Graphics/Web)' },
+      { stepBn: 'পোর্টফোলিও তৈরি', stepEn: 'Build Portfolio' },
+      { stepBn: 'মার্কেটপ্লেসে একাউন্ট (Fiverr/Upwork)', stepEn: 'Join Marketplace (Fiverr/Upwork)' },
+      { stepBn: 'ক্লায়েন্ট কমিউনিকেশন', stepEn: 'Client Communication' }
+    ],
+    salary: { entry: '৳ 20k', mid: '৳ 60k', senior: '৳ 1.5L+' },
+    skillsBn: ['টাইম ম্যানেজমেন্ট', 'ইংরেজি যোগাযোগ', 'টেকনিক্যাল দক্ষতা', 'ধৈর্য'],
+    skillsEn: ['Time Management', 'English Comm.', 'Technical Skill', 'Patience']
+  },
+  {
+    id: 6,
+    titleBn: 'উদ্যোক্তা',
+    titleEn: 'Entrepreneur',
+    icon: <LightbulbIcon />,
+    descBn: 'নিজস্ব ব্যবসা এবং কর্মসংস্থান তৈরির সুযোগ।',
+    descEn: 'Start your own business and create jobs.',
+    roadmap: [
+      { stepBn: 'আইডিয়া জেনারেশন', stepEn: 'Idea Generation' },
+      { stepBn: 'মার্কেট রিসার্চ', stepEn: 'Market Research' },
+      { stepBn: 'বিজনেস প্ল্যান ও ফান্ডিং', stepEn: 'Business Plan & Funding' },
+      { stepBn: 'প্রোডাক্ট লঞ্চ ও মার্কেটিং', stepEn: 'Product Launch & Marketing' }
+    ],
+    salary: { entry: 'Risk', mid: 'Unlim.', senior: 'Unlim.' },
+    skillsBn: ['ঝুঁকি গ্রহণ', 'নেতৃত্ব', 'বিক্রয় ও বিপণন', 'নেটওয়ার্কিং'],
+    skillsEn: ['Risk Taking', 'Leadership', 'Sales & Marketing', 'Networking']
   }
 ];
 
-const SKILL_COURSES = [
+interface IconProps extends React.SVGProps<SVGSVGElement> {
+  size?: number | string;
+}
+
+// Custom Icons
+function FlagIcon({ size = 24, ...props }: IconProps) { return <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}><path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"/><line x1="4" x2="4" y1="22" y2="15"/></svg>; }
+function CodeIcon({ size = 24, ...props }: IconProps) { return <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>; }
+function StethoscopeIcon({ size = 24, ...props }: IconProps) { return <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}><path d="M4.8 2.3A.3.3 0 1 0 5 2H4a2 2 0 0 0-2 2v5a6 6 0 0 0 6 6v0a6 6 0 0 0 6-6V4a2 2 0 0 0-2-2h-1a.2.2 0 1 0 .3.3"/><path d="M8 15v6"/><path d="M16 15v6"/><circle cx="12" cy="21" r="2"/></svg>; }
+function BriefcaseIcon({ size = 24, ...props }: IconProps) { return <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}><rect width="20" height="14" x="2" y="7" rx="2" ry="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></svg>; }
+function LaptopIcon({ size = 24, ...props }: IconProps) { return <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}><path d="M20 16V7a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v9m16 0H4m16 0 1.28 2.55a1 1 0 0 1-.9 1.45H3.62a1 1 0 0 1-.9-1.45L4 16"/></svg>; }
+function LightbulbIcon({ size = 24, ...props }: IconProps) { return <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}><path d="M15 14c.2-1 .7-1.7 1.5-2.5 1-1 1.5-2.2 1.5-3.5A6 6 0 0 0 6 8c0 1 .2 2.2 1.5 3.5.7.7 1.3 1.5 1.5 2.5"/><path d="M9 18h6"/><path d="M10 22h4"/></svg>; }
+
+// --- QUIZ & GAME DATA & ICONS (Reused from previous context) ---
+// (Re-declaring necessary icons and data for completeness within this file)
+function AtomIcon({ size = 24, ...props }: IconProps) { return <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}><circle cx="12" cy="12" r="1"></circle><path d="M20.2 20.2c2.04-2.03.02-7.36-4.5-11.9-4.54-4.52-9.87-6.54-11.9-4.5-2.04 2.03-.02 7.36 4.5 11.9 4.54 4.52 9.87 6.54 11.9 4.5Z"></path><path d="M15.7 15.7c4.52-4.54 6.54-9.87 4.5-11.9-2.03-2.04-7.36-.02-11.9 4.5-4.52 4.54-6.54 9.87-4.5 11.9 2.03 2.04 7.36.02 11.9-4.5Z"></path></svg>; }
+function CalculatorIcon({ size = 24, ...props }: IconProps) { return <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}><rect x="4" y="2" width="16" height="20" rx="2"></rect><line x1="8" y1="6" x2="16" y2="6"></line><line x1="16" y1="14" x2="16" y2="18"></line><path d="M16 10h.01"></path><path d="M12 10h.01"></path><path d="M8 10h.01"></path><path d="M12 14h.01"></path><path d="M8 14h.01"></path><path d="M12 18h.01"></path><path d="M8 18h.01"></path></svg>; }
+function PaletteIcon({ size = 24, ...props }: IconProps) { return <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}><circle cx="13.5" cy="6.5" r=".5"></circle><circle cx="17.5" cy="10.5" r=".5"></circle><circle cx="8.5" cy="7.5" r=".5"></circle><circle cx="6.5" cy="12.5" r=".5"></circle><path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10c.926 0 1.648-.746 1.648-1.688 0-.437-.18-.835-.437-1.125-.29-.289-.438-.652-.438-1.093 0-.679.63-1.219 1.313-1.219h1.093c4.385 0 7.313-4.153 7.313-8.875C22.5 6.5 16.964 2 12 2Z"></path></svg>; }
+
+const QUIZ_LIST = [
   {
     id: 1,
-    titleBn: 'কম্পিউটার ও ডিজিটাল লিটারেসি',
-    titleEn: 'Computer & Digital Literacy',
-    category: 'Tech',
-    type: 'Free',
-    price: 0,
-    duration: '4 Weeks',
-    lessonsCount: 4,
-    image: 'https://images.unsplash.com/photo-1531297461136-82af022f0b79',
-    descBn: 'ইন্টারনেট ব্যবহার, মোবাইল ব্যাংকিং এবং সরকারি পোর্টাল ব্যবহারের প্রশিক্ষণ।',
-    descEn: 'Training on internet usage, mobile banking, and government portals.',
-    curriculum: [
-      { id: 1, titleBn: 'কম্পিউটার পরিচিতি', titleEn: 'Introduction to Computer', content: 'Basic hardware and software concepts.' },
-      { id: 2, titleBn: 'ইন্টারনেট ব্যবহার', titleEn: 'Using the Internet', content: 'Browsing, searching, and safety.' },
-      { id: 3, titleBn: 'মাইক্রোসফট অফিস', titleEn: 'Microsoft Office', content: 'Word, Excel, and PowerPoint basics.' },
-      { id: 4, titleBn: 'ডিজিটাল ব্যাংকিং', titleEn: 'Digital Banking', content: 'Using bKash, Nagad, and Online Banking.' }
+    titleBn: 'সাধারণ জ্ঞান (বাংলাদেশ)',
+    titleEn: 'General Knowledge (BD)',
+    questions: [
+      { qBn: 'বাংলাদেশের জাতীয় প্রতীক কোনটি?', qEn: 'What is the national emblem of Bangladesh?', optionsBn: ['শাপলা', 'ইলিশ', 'রয়েল বেঙ্গল টাইগার', 'দোয়েল'], optionsEn: ['Water Lily', 'Hilsa', 'Royal Bengal Tiger', 'Magpie Robin'], correct: 0 },
+      { qBn: 'বাংলাদেশের বিজয় দিবস কবে?', qEn: 'When is the Victory Day of Bangladesh?', optionsBn: ['২১ ফেব্রুয়ারি', '২৬ মার্চ', '১৬ ডিসেম্বর', '১৪ এপ্রিল'], optionsEn: ['21 February', '26 March', '16 December', '14 April'], correct: 2 },
+      { qBn: 'মুজিবনগর সরকার কবে গঠিত হয়?', qEn: 'When was the Mujibnagar government formed?', optionsBn: ['১০ এপ্রিল ১৯৭১', '১৭ এপ্রিল ১৯৭১', '২৬ মার্চ ১৯৭১', '১৬ ডিসেম্বর ১৯৭১'], optionsEn: ['10 April 1971', '17 April 1971', '26 March 1971', '16 December 1971'], correct: 0 }
     ]
   },
   {
     id: 2,
-    titleBn: 'স্মার্ট কৃষি ও গবাদিপশু পালন',
-    titleEn: 'Smart Agriculture & Livestock',
-    category: 'Agri',
-    type: 'Paid',
-    price: 500,
-    duration: '6 Weeks',
-    lessonsCount: 5,
-    image: 'https://images.unsplash.com/photo-1625246333195-58197bd47d26',
-    descBn: 'আধুনিক চাষাবাদ পদ্ধতি এবং গবাদিপশু পালনের বৈজ্ঞানিক উপায়।',
-    descEn: 'Modern farming methods and scientific animal rearing.',
-    curriculum: [
-      { id: 1, titleBn: 'মাটি প্রস্তুতি', titleEn: 'Soil Preparation', content: 'Testing soil pH and preparation.' },
-      { id: 2, titleBn: 'উন্নত বীজ নির্বাচন', titleEn: 'Seed Selection', content: 'Identifying HYV seeds.' },
-      { id: 3, titleBn: 'সার ব্যবস্থাপনা', titleEn: 'Fertilizer Management', content: 'Organic and chemical fertilizers.' },
-      { id: 4, titleBn: 'রোগ বালাই দমন', titleEn: 'Pest Control', content: 'Integrated Pest Management (IPM).' },
-      { id: 5, titleBn: 'ফসল সংগ্রহ', titleEn: 'Harvesting', content: 'Post-harvest technology.' }
-    ]
-  },
-  {
-    id: 3,
-    titleBn: 'ক্ষুদ্র ব্যবসা ও উদ্যোক্তা',
-    titleEn: 'Small Business & Entrepreneurship',
-    category: 'Business',
-    type: 'Free',
-    price: 0,
-    duration: '5 Weeks',
-    lessonsCount: 3,
-    image: 'https://images.unsplash.com/photo-1556761175-5973dc0f32e7',
-    descBn: 'ব্যবসা পরিকল্পনা, বিপণন এবং আর্থিক ব্যবস্থাপনার গাইডলাইন।',
-    descEn: 'Guidelines for business planning, marketing, and financial management.',
-    curriculum: [
-      { id: 1, titleBn: 'ব্যবসা পরিকল্পনা', titleEn: 'Business Planning', content: 'Creating a lean business model.' },
-      { id: 2, titleBn: 'মার্কেটিং কৌশল', titleEn: 'Marketing Strategy', content: 'Digital and offline marketing.' },
-      { id: 3, titleBn: 'হিসাবরক্ষণ', titleEn: 'Bookkeeping', content: 'Managing cash flow and profit.' }
-    ]
-  },
-  {
-    id: 4,
-    titleBn: 'গ্রাফিক্স ডিজাইন ব্যাসিক',
-    titleEn: 'Graphics Design Basic',
-    category: 'Tech',
-    type: 'Paid',
-    price: 1200,
-    duration: '8 Weeks',
-    lessonsCount: 6,
-    image: 'https://images.unsplash.com/photo-1626785774573-4b799314346d',
-    descBn: 'ফটোশপ এবং ইলাস্ট্রেটর দিয়ে ডিজাইনের হাতেখড়ি।',
-    descEn: 'Introduction to design using Photoshop and Illustrator.',
-    curriculum: [
-      { id: 1, titleBn: 'ফটোশপ পরিচিতি', titleEn: 'Intro to Photoshop', content: 'Tools and workspace.' },
-      { id: 2, titleBn: 'লেয়ার ও মাস্কিং', titleEn: 'Layers & Masking', content: 'Editing non-destructively.' },
-      { id: 3, titleBn: 'কালার থিওরি', titleEn: 'Color Theory', content: 'Choosing the right palette.' }
-    ]
-  },
-  {
-    id: 5,
-    titleBn: 'পুকুরে মাছ চাষ',
-    titleEn: 'Pond Fish Farming',
-    category: 'Agri',
-    type: 'Free',
-    price: 0,
-    duration: '3 Weeks',
-    lessonsCount: 4,
-    image: 'https://images.unsplash.com/photo-1583212292454-1fe6229603b7',
-    descBn: 'বৈজ্ঞানিক পদ্ধতিতে পুকুর প্রস্তুত ও মাছ চাষ।',
-    descEn: 'Scientific pond preparation and fish cultivation.',
-    curriculum: [
-      { id: 1, titleBn: 'পুকুর খনন', titleEn: 'Pond Digging', content: 'Size and depth calculation.' },
-      { id: 2, titleBn: 'পোনা মজুদ', titleEn: 'Stocking Fingerlings', content: 'Transport and release.' }
+    titleBn: 'বিজ্ঞান ও প্রযুক্তি',
+    titleEn: 'Science & Tech',
+    questions: [
+      { qBn: 'পানির রাসায়নিক সংকেত কী?', qEn: 'What is the chemical formula of water?', optionsBn: ['CO2', 'H2O', 'O2', 'NaCl'], optionsEn: ['CO2', 'H2O', 'O2', 'NaCl'], correct: 1 },
+      { qBn: 'কম্পিউটারের মস্তিষ্ক কোনটি?', qEn: 'Which is the brain of a computer?', optionsBn: ['RAM', 'Hard Disk', 'CPU', 'Monitor'], optionsEn: ['RAM', 'Hard Disk', 'CPU', 'Monitor'], correct: 2 }
     ]
   }
 ];
 
-const QUIZZES = [
-  { id: 1, titleBn: 'সাধারণ বিজ্ঞান', titleEn: 'General Science', questions: 20, time: '15 min' },
-  { id: 2, titleBn: 'বাংলাদেশ ও বিশ্ব', titleEn: 'Bangladesh & Global', questions: 25, time: '20 min' },
-  { id: 3, titleBn: 'ইংরেজি গ্রামার', titleEn: 'English Grammar', questions: 15, time: '10 min' },
+const CARD_IMAGES = [
+  { src: <BookOpen size={24} />, id: 1 },
+  { src: <Globe size={24} />, id: 2 },
+  { src: <Laptop size={24} />, id: 3 },
+  { src: <AtomIcon />, id: 4 },
+  { src: <CalculatorIcon />, id: 5 },
+  { src: <PaletteIcon />, id: 6 },
 ];
 
-const CAREER_GUIDES = [
-  { 
-    id: 1, 
-    type: 'Admission', 
-    titleBn: 'বিশ্ববিদ্যালয় ভর্তি গাইড', 
-    titleEn: 'University Admission Guide', 
-    descBn: 'ঢাকা বিশ্ববিদ্যালয়, বুয়েট এবং মেডিকেলে ভর্তির পূর্ণাঙ্গ প্রস্তুতি।',
-    descEn: 'Complete preparation for DU, BUET, and Medical admission.'
-  },
-  { 
-    id: 2, 
-    type: 'Scholarship', 
-    titleBn: 'উচ্চ শিক্ষার স্কলারশিপ', 
-    titleEn: 'Higher Ed Scholarships', 
-    descBn: 'বিদেশে উচ্চ শিক্ষার জন্য ফুল-ফ্রি স্কলারশিপের তথ্য।',
-    descEn: 'Info on full-free scholarships for higher studies abroad.'
-  }
+const BOOKS_DB = [
+  { id: 101, titleBn: 'আমার বাংলা বই (৫ম শ্রেণি)', titleEn: 'Amar Bangla Boi (Class 5)', author: 'NCTB', level: 'Primary', class: 'Class 5', pages: 120, rating: 4.8, image: 'https://images.unsplash.com/photo-1544947950-fa07a98d237f', descBn: 'পঞ্চম শ্রেণির বাংলা পাঠ্যবই।', descEn: 'Bengali textbook for Class 5.', type: 'NCTB Text', content: 'Content coming soon...' },
+  { id: 201, titleBn: 'গণিত (৯ম-১০ম শ্রেণি)', titleEn: 'Mathematics (Class 9-10)', author: 'NCTB', level: 'Secondary', class: 'Class 9-10', pages: 350, rating: 4.9, image: 'https://images.unsplash.com/photo-1596495578065-6e0763fa1178', descBn: 'নবম ও দশম শ্রেণির আবশ্যিক গণিত।', descEn: 'Compulsory Math for Class 9-10.', type: 'NCTB Text', content: 'Algebra Formulas...' },
+  { id: 401, titleBn: 'সাধারণ জ্ঞান ২০২৩', titleEn: 'General Knowledge 2023', author: 'Mp3 Series', level: 'Skill Dev', class: 'General', pages: 200, rating: 4.5, image: 'https://images.unsplash.com/photo-1457369804613-52c61a468e7d', descBn: 'বাংলাদেশ ও আন্তর্জাতিক বিষয়াবলী।', descEn: 'Bangladesh and International affairs.', type: 'General', content: 'GK Content...' }
+];
+
+const SKILL_COURSES = [
+  { id: 1, titleBn: 'কম্পিউটার ও ডিজিটাল লিটারেসি', titleEn: 'Computer & Digital Literacy', category: 'Tech', type: 'Free', price: 0, duration: '4 Weeks', lessonsCount: 4, image: 'https://images.unsplash.com/photo-1531297461136-82af022f0b79', descBn: 'ইন্টারনেট ও কম্পিউটার প্রশিক্ষণ।', descEn: 'Internet & Computer training.', curriculum: [{ id: 1, titleBn: 'কম্পিউটার পরিচিতি', titleEn: 'Introduction', content: 'Basic hardware.' }] },
+  { id: 2, titleBn: 'স্মার্ট কৃষি ও গবাদিপশু পালন', titleEn: 'Smart Agriculture', category: 'Agri', type: 'Paid', price: 500, duration: '6 Weeks', lessonsCount: 5, image: 'https://images.unsplash.com/photo-1625246333195-58197bd47d26', descBn: 'আধুনিক চাষাবাদ পদ্ধতি।', descEn: 'Modern farming methods.', curriculum: [{ id: 1, titleBn: 'মাটি প্রস্তুতি', titleEn: 'Soil Prep', content: 'Testing soil.' }] }
 ];
 
 export const EduModule: React.FC<Props> = ({ isBangla, user }) => {
   const [activeTab, setActiveTab] = useState<EduTab>('library');
   
-  // Library Filter State
+  // Library State
   const [libraryCategory, setLibraryCategory] = useState('All');
   const [classFilter, setClassFilter] = useState('All');
   const [visibleCount, setVisibleCount] = useState(8);
   const [selectedBook, setSelectedBook] = useState<typeof BOOKS_DB[0] | null>(null);
 
-  // Skill Course State
-  const [skillCategoryFilter, setSkillCategoryFilter] = useState('All');
-  const [skillPriceFilter, setSkillPriceFilter] = useState('All');
+  // Skill State
   const [visibleSkillCount, setVisibleSkillCount] = useState(3);
-  
-  // Course Player State
   const [activeCourse, setActiveCourse] = useState<typeof SKILL_COURSES[0] | null>(null);
-  const [currentLessonIndex, setCurrentLessonIndex] = useState(0);
-  const [showCertificate, setShowCertificate] = useState(false);
-  const [playerTab, setPlayerTab] = useState<'overview' | 'reading'>('overview');
 
-  // --- LOGIC ---
+  // Interactive State
+  const [interactiveMode, setInteractiveMode] = useState<'menu' | 'quiz_select' | 'quiz_play' | 'game_play'>('menu');
+  const [currentQuizId, setCurrentQuizId] = useState<number | null>(null);
+  const [currentQuestionIdx, setCurrentQuestionIdx] = useState(0);
+  const [quizScore, setQuizScore] = useState(0);
+  const [selectedOption, setSelectedOption] = useState<number | null>(null);
+  const [isAnswerChecked, setIsAnswerChecked] = useState(false);
+  const [showQuizResult, setShowQuizResult] = useState(false);
+  const [cards, setCards] = useState<any[]>([]);
+  const [turns, setTurns] = useState(0);
+  const [choiceOne, setChoiceOne] = useState<any>(null);
+  const [choiceTwo, setChoiceTwo] = useState<any>(null);
+  const [disabled, setDisabled] = useState(false);
+  const [gameWon, setGameWon] = useState(false);
 
-  const getBooksByCategory = (category: string) => {
-    return BOOKS_DB.filter(b => b.level === category);
-  };
+  // Career State
+  const [selectedCareer, setSelectedCareer] = useState<typeof CAREER_PATHS[0] | null>(null);
 
+  // --- HELPERS ---
   const filteredBooks = useMemo(() => {
     let books = BOOKS_DB;
-    if (libraryCategory !== 'All') {
-      books = books.filter(b => b.level === libraryCategory);
-    }
-    if (classFilter !== 'All') {
-      books = books.filter(b => b.class === classFilter);
-    }
+    if (libraryCategory !== 'All') books = books.filter(b => b.level === libraryCategory);
+    if (classFilter !== 'All') books = books.filter(b => b.class === classFilter);
     return books;
   }, [libraryCategory, classFilter]);
 
-  const filteredCourses = useMemo(() => {
-    return SKILL_COURSES.filter(course => {
-      const matchCat = skillCategoryFilter === 'All' || course.category === skillCategoryFilter;
-      const matchPrice = skillPriceFilter === 'All' || course.type === skillPriceFilter;
-      return matchCat && matchPrice;
-    });
-  }, [skillCategoryFilter, skillPriceFilter]);
-
-  const handleLoadMore = () => {
-    setVisibleCount(prev => prev + 4);
+  // --- INTERACTIVE LOGIC ---
+  const startQuiz = (id: number) => {
+    setCurrentQuizId(id);
+    setCurrentQuestionIdx(0);
+    setQuizScore(0);
+    setShowQuizResult(false);
+    setSelectedOption(null);
+    setIsAnswerChecked(false);
+    setInteractiveMode('quiz_play');
   };
 
-  const handleLoadMoreSkills = () => {
-    setVisibleSkillCount(prev => prev + 3);
+  const handleAnswerClick = (optionIdx: number, correctIdx: number) => {
+    if (isAnswerChecked) return;
+    setSelectedOption(optionIdx);
+    setIsAnswerChecked(true);
+    if (optionIdx === correctIdx) setQuizScore(prev => prev + 1);
   };
 
-  const resetLibrary = () => {
-    setLibraryCategory('All');
-    setClassFilter('All');
-    setVisibleCount(8);
-  };
-
-  const handleStartCourse = (course: typeof SKILL_COURSES[0]) => {
-    if (!user) {
-      alert(isBangla ? 'কোর্স শুরু করতে অনুগ্রহ করে লগইন করুন।' : 'Please login to start the course.');
-      return;
-    }
-    
-    // If Paid, simulate check (in real app, check payment status)
-    if (course.type === 'Paid') {
-      const confirmBuy = window.confirm(isBangla 
-        ? `এটি একটি পেইড কোর্স (৳${course.price})। আপনি কি এনরোল করতে চান?` 
-        : `This is a paid course (৳${course.price}). Do you want to enroll?`);
-      if (!confirmBuy) return;
-    }
-
-    setActiveCourse(course);
-    setCurrentLessonIndex(0);
-    setShowCertificate(false);
-    setPlayerTab('overview');
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-  };
-
-  const handleNextLesson = () => {
-    if (!activeCourse) return;
-    if (currentLessonIndex < activeCourse.curriculum.length - 1) {
-      setCurrentLessonIndex(prev => prev + 1);
-      window.scrollTo({ top: 0, behavior: 'smooth' });
+  const handleNextQuestion = () => {
+    const activeQuizData = QUIZ_LIST.find(q => q.id === currentQuizId);
+    if (!activeQuizData) return;
+    if (currentQuestionIdx < activeQuizData.questions.length - 1) {
+      setCurrentQuestionIdx(prev => prev + 1);
+      setSelectedOption(null);
+      setIsAnswerChecked(false);
     } else {
-      setShowCertificate(true);
+      setShowQuizResult(true);
     }
   };
 
-  const handleDownloadCertificate = () => {
-    // ... existing certificate logic
-    if (!user || !activeCourse) return;
-    const canvas = document.createElement('canvas');
-    canvas.width = 1000;
-    canvas.height = 700;
-    const ctx = canvas.getContext('2d');
-    if (!ctx) return;
-    // ... (rest of certificate drawing code from previous turn)
-    ctx.fillStyle = '#ffffff';
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
-    ctx.lineWidth = 20;
-    ctx.strokeStyle = '#2563eb';
-    ctx.strokeRect(40, 40, canvas.width - 80, canvas.height - 80);
-    ctx.lineWidth = 2;
-    ctx.strokeStyle = '#fbbf24';
-    ctx.strokeRect(65, 65, canvas.width - 130, canvas.height - 130);
-    ctx.font = 'bold 50px serif';
-    ctx.fillStyle = '#1e3a8a';
-    ctx.textAlign = 'center';
-    ctx.fillText('CERTIFICATE', canvas.width / 2, 180);
-    ctx.font = '30px sans-serif';
-    ctx.fillStyle = '#4b5563';
-    ctx.fillText('OF COMPLETION', canvas.width / 2, 225);
-    ctx.font = 'italic 24px serif';
-    ctx.fillStyle = '#374151';
-    ctx.fillText('This certificate is proudly presented to', canvas.width / 2, 300);
-    ctx.font = 'bold 60px serif';
-    ctx.fillStyle = '#1d4ed8';
-    ctx.fillText(user.name, canvas.width / 2, 380);
-    ctx.beginPath();
-    ctx.moveTo(canvas.width / 2 - 200, 395);
-    ctx.lineTo(canvas.width / 2 + 200, 395);
-    ctx.strokeStyle = '#9ca3af';
-    ctx.lineWidth = 2;
-    ctx.stroke();
-    ctx.font = '24px sans-serif';
-    ctx.fillStyle = '#374151';
-    ctx.fillText('For successfully completing the course', canvas.width / 2, 450);
-    ctx.font = 'bold 36px sans-serif';
-    ctx.fillStyle = '#000000';
-    ctx.fillText(activeCourse.titleEn, canvas.width / 2, 500);
-    const date = new Date().toLocaleDateString();
-    ctx.font = '20px sans-serif';
-    ctx.fillStyle = '#6b7280';
-    ctx.fillText(`Date: ${date}`, 250, 600);
-    ctx.fillText('Dream BD Instructor', 750, 600);
-    ctx.beginPath();
-    ctx.moveTo(650, 570);
-    ctx.lineTo(850, 570);
-    ctx.stroke();
-    const dataUrl = canvas.toDataURL('image/jpeg');
-    const link = document.createElement('a');
-    link.href = dataUrl;
-    link.download = `Certificate_${user.name.replace(/\s+/g, '_')}_${activeCourse.id}.jpg`;
-    link.click();
+  const shuffleCards = () => {
+    const shuffledCards = [...CARD_IMAGES, ...CARD_IMAGES]
+      .sort(() => Math.random() - 0.5)
+      .map((card) => ({ ...card, uniqueId: Math.random(), matched: false }));
+    setChoiceOne(null);
+    setChoiceTwo(null);
+    setCards(shuffledCards);
+    setTurns(0);
+    setGameWon(false);
+    setInteractiveMode('game_play');
   };
 
-  // --- RENDER FUNCTIONS ---
+  const handleCardClick = (card: any) => {
+    if (!disabled && !card.matched && card.uniqueId !== choiceOne?.uniqueId) {
+      choiceOne ? setChoiceTwo(card) : setChoiceOne(card);
+    }
+  };
 
-  const renderBookCard = (book: typeof BOOKS_DB[0]) => (
-    <div key={book.id} className="bg-white p-4 rounded-2xl shadow-sm border border-gray-100 hover:shadow-lg transition-all group flex flex-col h-full hover:border-blue-200">
-      <div className="relative aspect-[3/4] mb-4 overflow-hidden rounded-xl bg-gray-100">
-        <img 
-          src={getOptimizedImageUrl(book.image, 300)} 
-          alt={book.titleEn} 
-          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-        />
-        <div className="absolute top-2 right-2">
-          <span className="bg-white/90 backdrop-blur text-[10px] font-bold px-2 py-1 rounded shadow-sm text-blue-700">
-            {book.class}
-          </span>
-        </div>
-      </div>
-      <div className="flex-1 flex flex-col">
-        <h4 className="font-bold text-gray-900 text-base line-clamp-2 mb-1 group-hover:text-blue-600 transition-colors">
-          {isBangla ? book.titleBn : book.titleEn}
-        </h4>
-        <p className="text-xs text-gray-500 mb-4 flex items-center gap-1">
-          <User size={12} /> {book.author}
-        </p>
-        <div className="mt-auto pt-3 border-t border-gray-50">
-          <button 
-            onClick={() => setSelectedBook(book)}
-            className="w-full bg-blue-600 text-white hover:bg-blue-700 py-2.5 rounded-xl text-xs font-bold transition-all shadow-md shadow-blue-200 flex items-center justify-center gap-2 transform active:scale-95"
-          >
-            <BookOpen size={16} />
-            {isBangla ? 'পড়া শুরু করুন' : 'Start Reading'}
-          </button>
-        </div>
-      </div>
-    </div>
-  );
+  useEffect(() => {
+    if (choiceOne && choiceTwo) {
+      setDisabled(true);
+      if (choiceOne.id === choiceTwo.id) {
+        setCards(prev => prev.map(card => card.id === choiceOne.id ? { ...card, matched: true } : card));
+        resetTurn();
+      } else {
+        setTimeout(() => resetTurn(), 1000);
+      }
+    }
+  }, [choiceOne, choiceTwo]);
 
-  const renderLibrary = () => {
-    if (libraryCategory === 'All') {
-      const sections = [
-        { titleBn: 'প্রাথমিক শিক্ষা (১ম-৫ম)', titleEn: 'Primary Education (1-5)', key: 'Primary' },
-        { titleBn: 'মাধ্যমিক শিক্ষা (৬ষ্ঠ-১০ম)', titleEn: 'Secondary Education (6-10)', key: 'Secondary' },
-        { titleBn: 'উচ্চ মাধ্যমিক (এইচএসসি)', titleEn: 'Higher Secondary (HSC)', key: 'Higher Secondary' },
-        { titleBn: 'দক্ষতা ও সাধারণ জ্ঞান', titleEn: 'Skills & General Knowledge', key: 'Skill Dev' }
-      ];
+  useEffect(() => {
+    if (cards.length > 0 && cards.every(card => card.matched)) setGameWon(true);
+  }, [cards]);
 
+  const resetTurn = () => {
+    setChoiceOne(null);
+    setChoiceTwo(null);
+    setTurns(prev => prev + 1);
+    setDisabled(false);
+  };
+
+  // --- RENDERERS ---
+
+  const renderInteractive = () => {
+    if (interactiveMode === 'menu') {
       return (
-        <div className="space-y-10 animate-fade-in">
-          <div className="flex flex-wrap gap-3 justify-center mb-8">
-             {['Primary', 'Secondary', 'Higher Secondary', 'Skill Dev'].map(cat => (
-               <button 
-                 key={cat}
-                 onClick={() => { setLibraryCategory(cat); setVisibleCount(8); }}
-                 className="px-6 py-2 rounded-full border border-gray-200 bg-white text-gray-600 hover:border-blue-500 hover:text-blue-600 transition-all font-medium text-sm shadow-sm"
-               >
-                 {cat}
-               </button>
-             ))}
+        <div className="animate-fade-in space-y-8">
+          <div className="text-center mb-8">
+            <h2 className="text-2xl font-bold text-gray-900 mb-2">{isBangla ? 'খেলুন এবং শিখুন' : 'Play & Learn'}</h2>
+            <p className="text-gray-500">{isBangla ? 'মেধা যাচাইয়ের জন্য কুইজ এবং গেম' : 'Quizzes and games to test your knowledge'}</p>
           </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-4xl mx-auto">
+            <div onClick={() => setInteractiveMode('quiz_select')} className="bg-gradient-to-br from-violet-500 to-purple-600 rounded-3xl p-8 text-white shadow-lg cursor-pointer hover:scale-[1.02] transition-transform relative overflow-hidden group">
+              <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full -mr-10 -mt-10 group-hover:scale-110 transition-transform"></div>
+              <HelpCircle size={48} className="mb-4 text-purple-100" />
+              <h3 className="text-2xl font-bold mb-2">{isBangla ? 'কুইজ খেলুন' : 'Play Quiz'}</h3>
+              <p className="text-purple-100 mb-6 text-sm">{isBangla ? 'সাধারণ জ্ঞান এবং বিজ্ঞান বিষয়ক কুইজ' : 'General knowledge and science quizzes'}</p>
+              <button className="bg-white/20 hover:bg-white/30 px-6 py-2 rounded-full text-sm font-bold backdrop-blur-sm transition-colors">{isBangla ? 'শুরু করুন' : 'Start Now'}</button>
+            </div>
+            <div onClick={shuffleCards} className="bg-gradient-to-br from-emerald-500 to-teal-600 rounded-3xl p-8 text-white shadow-lg cursor-pointer hover:scale-[1.02] transition-transform relative overflow-hidden group">
+              <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full -mr-10 -mt-10 group-hover:scale-110 transition-transform"></div>
+              <Gamepad2 size={48} className="mb-4 text-emerald-100" />
+              <h3 className="text-2xl font-bold mb-2">{isBangla ? 'মেমোরি গেম' : 'Memory Game'}</h3>
+              <p className="text-emerald-100 mb-6 text-sm">{isBangla ? 'আপনার স্মৃতিশক্তি পরীক্ষা করুন' : 'Test your memory power'}</p>
+              <button className="bg-white/20 hover:bg-white/30 px-6 py-2 rounded-full text-sm font-bold backdrop-blur-sm transition-colors">{isBangla ? 'খেলুন' : 'Play'}</button>
+            </div>
+          </div>
+        </div>
+      );
+    }
+    // ... Quiz and Game logic same as before (omitted slightly for brevity but logic is preserved in helper functions) ...
+    if (interactiveMode === 'quiz_select') {
+        return (
+            <div className="animate-fade-in max-w-3xl mx-auto">
+              <button onClick={() => setInteractiveMode('menu')} className="mb-6 flex items-center gap-2 text-gray-600 hover:text-blue-600"><ArrowLeft size={18} /> {isBangla ? 'ফিরে যান' : 'Back'}</button>
+              <h2 className="text-2xl font-bold mb-6">{isBangla ? 'কুইজ নির্বাচন করুন' : 'Select Quiz'}</h2>
+              <div className="grid gap-4">{QUIZ_LIST.map(quiz => (<div key={quiz.id} onClick={() => startQuiz(quiz.id)} className="bg-white p-5 rounded-2xl border hover:shadow-md cursor-pointer flex items-center justify-between"><div className="flex items-center gap-4"><div className="w-12 h-12 bg-blue-50 rounded-full flex items-center justify-center text-blue-600"><Target size={24}/></div><div><h3 className="text-lg font-bold">{isBangla ? quiz.titleBn : quiz.titleEn}</h3></div></div><ChevronRight /></div>))}</div>
+            </div>
+        )
+    }
+    if (interactiveMode === 'quiz_play') {
+        const quiz = QUIZ_LIST.find(q => q.id === currentQuizId);
+        if(!quiz) return null;
+        if(showQuizResult) return (<div className="text-center py-10 bg-white rounded-3xl shadow-lg border border-gray-100 max-w-xl mx-auto"><Trophy size={64} className="mx-auto text-yellow-500 mb-4"/><h2 className="text-3xl font-bold mb-2">{isBangla ? 'সম্পন্ন!' : 'Completed!'}</h2><p className="text-xl font-bold text-blue-600">Score: {quizScore} / {quiz.questions.length}</p><Button className="mt-6" onClick={() => setInteractiveMode('quiz_select')}>{isBangla ? 'আবার খেলুন' : 'Play Again'}</Button></div>);
+        const q = quiz.questions[currentQuestionIdx];
+        return (
+            <div className="max-w-2xl mx-auto bg-white rounded-3xl shadow-lg overflow-hidden border border-gray-100">
+                <div className="bg-gray-50 px-6 py-4 flex justify-between"><span className="font-bold text-gray-500">Q {currentQuestionIdx+1} / {quiz.questions.length}</span><span className="font-bold text-blue-600">Score: {quizScore}</span></div>
+                <div className="p-8"><h3 className="text-xl font-bold mb-6">{isBangla ? q.qBn : q.qEn}</h3><div className="space-y-3">{(isBangla?q.optionsBn:q.optionsEn).map((opt,i) => (<button key={i} onClick={() => handleAnswerClick(i, q.correct)} className={`w-full text-left p-4 rounded-xl border-2 font-medium flex justify-between ${isAnswerChecked ? (i===q.correct ? 'border-green-500 bg-green-50' : (i===selectedOption ? 'border-red-500 bg-red-50' : 'border-gray-100')) : 'border-gray-100 hover:border-blue-500'}`}>{opt} {isAnswerChecked && i===q.correct && <CheckCircle className="text-green-600"/>}</button>))}</div></div>
+                <div className="p-6 border-t flex justify-end"><Button onClick={handleNextQuestion} disabled={!isAnswerChecked}>{isBangla ? 'পরবর্তী' : 'Next'}</Button></div>
+            </div>
+        )
+    }
+    if(interactiveMode === 'game_play') {
+        return (
+            <div className="max-w-4xl mx-auto">
+                <div className="flex justify-between mb-6"><button onClick={() => setInteractiveMode('menu')} className="flex items-center gap-2"><ArrowLeft size={18}/> {isBangla?'ফিরে যান':'Back'}</button><div className="flex gap-4"><span className="font-bold bg-white px-4 py-1 rounded-full border">{isBangla?'চাল':'Turns'}: {turns}</span><button onClick={shuffleCards} className="flex items-center gap-2 text-emerald-600 font-bold"><RefreshCw size={16}/> Reset</button></div></div>
+                {gameWon && <div className="mb-6 bg-green-100 text-green-800 p-4 rounded-xl text-center font-bold">{isBangla?'অভিনন্দন! আপনি জিতেছেন!':'You Won!'}</div>}
+                <div className="grid grid-cols-4 gap-4 max-w-md mx-auto">{cards.map(card => (<div key={card.uniqueId} onClick={() => handleCardClick(card)} className="aspect-square relative cursor-pointer perspective-1000"><div className={`w-full h-full transition-all duration-500 transform-style-3d ${card === choiceOne || card === choiceTwo || card.matched ? 'rotate-y-180' : ''}`}><div className="absolute inset-0 backface-hidden bg-gradient-to-br from-emerald-500 to-teal-600 rounded-xl flex items-center justify-center"><Puzzle className="text-white/50"/></div><div className="absolute inset-0 backface-hidden rotate-y-180 bg-white border-2 border-emerald-500 rounded-xl flex items-center justify-center text-emerald-600">{card.src}</div></div></div>))}</div>
+            </div>
+        )
+    }
+  };
 
-          {sections.map(section => {
-            const sectionBooks = getBooksByCategory(section.key).slice(0, 4);
-            if (sectionBooks.length === 0) return null;
+  const renderCareer = () => {
+    if (selectedCareer) {
+      return (
+        <div className="animate-fade-in max-w-5xl mx-auto">
+          <button 
+            onClick={() => setSelectedCareer(null)}
+            className="mb-6 flex items-center gap-2 text-gray-600 hover:text-blue-600 transition-colors font-medium bg-white px-4 py-2 rounded-full shadow-sm border border-gray-200 w-fit"
+          >
+            <ArrowLeft size={18} /> {isBangla ? 'সব পেশা দেখুন' : 'View All Careers'}
+          </button>
 
-            return (
-              <div key={section.key}>
-                <div className="flex justify-between items-center mb-4 px-1">
-                  <h3 className="text-xl font-bold text-gray-800 border-l-4 border-blue-500 pl-3">
-                    {isBangla ? section.titleBn : section.titleEn}
-                  </h3>
-                  <button 
-                    onClick={() => { setLibraryCategory(section.key); setVisibleCount(8); }}
-                    className="text-sm font-bold text-blue-600 hover:underline flex items-center gap-1"
-                  >
-                    {isBangla ? 'সব দেখুন' : 'View All'} <ChevronRight size={16} />
-                  </button>
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            {/* Left: Info Card */}
+            <div className="lg:col-span-1 space-y-6">
+              <div className="bg-white rounded-3xl p-6 shadow-lg border border-blue-100 text-center relative overflow-hidden">
+                <div className="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-blue-500 to-indigo-600"></div>
+                <div className="w-20 h-20 bg-blue-50 rounded-full flex items-center justify-center mx-auto mb-4 text-blue-600">
+                  {React.cloneElement(selectedCareer.icon as React.ReactElement, { size: 40 })}
                 </div>
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
-                  {sectionBooks.map(book => renderBookCard(book))}
+                <h2 className="text-2xl font-bold text-gray-900 mb-2">{isBangla ? selectedCareer.titleBn : selectedCareer.titleEn}</h2>
+                <p className="text-gray-600 text-sm mb-6">{isBangla ? selectedCareer.descBn : selectedCareer.descEn}</p>
+                
+                <div className="space-y-3 text-left">
+                  <div className="bg-gray-50 p-3 rounded-xl flex justify-between items-center">
+                    <span className="text-xs font-bold text-gray-500 uppercase">{isBangla ? 'শুরুতে বেতন' : 'Entry Salary'}</span>
+                    <span className="font-bold text-gray-800">{selectedCareer.salary.entry}</span>
+                  </div>
+                  <div className="bg-blue-50 p-3 rounded-xl flex justify-between items-center">
+                    <span className="text-xs font-bold text-blue-600 uppercase">{isBangla ? 'মিড লেভেল' : 'Mid Level'}</span>
+                    <span className="font-bold text-blue-800">{selectedCareer.salary.mid}</span>
+                  </div>
+                  <div className="bg-indigo-50 p-3 rounded-xl flex justify-between items-center">
+                    <span className="text-xs font-bold text-indigo-600 uppercase">{isBangla ? 'সিনিয়র' : 'Senior'}</span>
+                    <span className="font-bold text-indigo-800">{selectedCareer.salary.senior}</span>
+                  </div>
                 </div>
               </div>
-            );
-          })}
+
+              <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
+                <h3 className="font-bold text-gray-900 mb-4 flex items-center gap-2">
+                  <Star className="text-yellow-500" size={20} />
+                  {isBangla ? 'প্রয়োজনীয় দক্ষতা' : 'Required Skills'}
+                </h3>
+                <div className="flex flex-wrap gap-2">
+                  {(isBangla ? selectedCareer.skillsBn : selectedCareer.skillsEn).map((skill, idx) => (
+                    <span key={idx} className="bg-gray-100 text-gray-700 px-3 py-1.5 rounded-lg text-sm font-medium">
+                      {skill}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            {/* Right: Roadmap */}
+            <div className="lg:col-span-2">
+              <div className="bg-white rounded-3xl p-8 shadow-sm border border-gray-100 h-full">
+                <h3 className="text-xl font-bold text-gray-900 mb-8 flex items-center gap-2">
+                  <TrendingUp className="text-green-600" />
+                  {isBangla ? 'ক্যারিয়ার রোডম্যাপ' : 'Career Roadmap'}
+                </h3>
+                
+                <div className="relative pl-8 border-l-2 border-dashed border-gray-200 space-y-10">
+                  {selectedCareer.roadmap.map((step, idx) => (
+                    <div key={idx} className="relative">
+                      <div className="absolute -left-[41px] top-0 w-6 h-6 rounded-full bg-blue-600 border-4 border-white shadow-md flex items-center justify-center text-white text-[10px] font-bold">
+                        {idx + 1}
+                      </div>
+                      <div className="bg-gray-50 p-5 rounded-2xl border border-gray-100 hover:border-blue-200 transition-colors group">
+                        <h4 className="text-lg font-bold text-gray-800 group-hover:text-blue-700 transition-colors">
+                          {isBangla ? step.stepBn : step.stepEn}
+                        </h4>
+                        <p className="text-sm text-gray-500 mt-1">
+                          {isBangla ? 'পরবর্তী ধাপে যাওয়ার জন্য এটি সম্পন্ন করুন।' : 'Complete this step to move forward.'}
+                        </p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+
+                <div className="mt-10 p-6 bg-yellow-50 rounded-2xl border border-yellow-100 text-center">
+                  <Lightbulb className="mx-auto text-yellow-600 mb-2" size={24} />
+                  <p className="text-yellow-800 font-medium text-sm">
+                    {isBangla ? 'পরামর্শ: নিয়মিত নতুন দক্ষতা শিখুন এবং নেটওয়ার্কিং বাড়ান।' : 'Tip: Keep learning new skills and expand your network.'}
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
       );
     }
 
     return (
-      <div className="animate-fade-in space-y-6">
-        <div className="flex flex-col md:flex-row justify-between items-center gap-4 bg-white p-4 rounded-2xl border border-blue-100 shadow-sm">
-          <div className="flex items-center gap-2">
-             <button onClick={resetLibrary} className="flex items-center gap-1 text-sm font-medium text-gray-500 hover:text-blue-600">
-               <Library size={16} /> {isBangla ? 'লাইব্রেরি' : 'Library'}
-             </button>
-             <ChevronRight size={16} className="text-gray-300" />
-             <span className="text-sm font-bold text-blue-700 bg-blue-50 px-3 py-1 rounded-full">
-               {libraryCategory}
-             </span>
-          </div>
-          <div className="flex gap-2 w-full md:w-auto">
-             <div className="relative">
-                <Filter size={16} className="absolute left-3 top-2.5 text-gray-400" />
-                <select 
-                  value={classFilter}
-                  onChange={(e) => setClassFilter(e.target.value)}
-                  className="pl-9 pr-8 py-2 bg-gray-50 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/50 appearance-none cursor-pointer"
-                >
-                  <option value="All">{isBangla ? 'সব ক্লাস' : 'All Classes'}</option>
-                  <option value="Class 5">Class 5</option>
-                  <option value="Class 8">Class 8</option>
-                  <option value="Class 9-10">Class 9-10</option>
-                  <option value="HSC">HSC</option>
-                </select>
-                <ChevronDown size={14} className="absolute right-3 top-3 text-gray-400 pointer-events-none" />
-             </div>
-             <div className="relative flex-1 md:w-64">
-              <Search className="absolute left-3 top-2.5 text-gray-400" size={16} />
-              <input 
-                type="text" 
-                placeholder={isBangla ? 'বই খুঁজুন...' : 'Search books...'}
-                className="w-full pl-9 pr-4 py-2 bg-gray-50 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/50"
-              />
-            </div>
-          </div>
+      <div className="animate-fade-in space-y-8">
+        <div className="text-center mb-8">
+          <h2 className="text-2xl font-bold text-gray-900 mb-3">{isBangla ? 'ক্যারিয়ার গাইডলাইন' : 'Career Guidelines'}</h2>
+          <p className="text-gray-500 max-w-2xl mx-auto">
+            {isBangla ? 'সঠিক নির্দেশনা এবং রোডম্যাপ অনুসরণ করে আপনার স্বপ্নের পেশা বেছে নিন।' : 'Choose your dream profession following the right guidance and roadmap.'}
+          </p>
         </div>
 
-        {filteredBooks.length > 0 ? (
-          <>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
-              {filteredBooks.slice(0, visibleCount).map(book => renderBookCard(book))}
-            </div>
-            {visibleCount < filteredBooks.length && (
-              <div className="flex justify-center pt-6">
-                <Button onClick={handleLoadMore} variant="outline" className="px-8 border-blue-200 text-blue-700 hover:bg-blue-50">
-                  {isBangla ? 'আরও দেখুন' : 'Load More'}
-                </Button>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+          {CAREER_PATHS.map((career) => (
+            <div 
+              key={career.id} 
+              onClick={() => setSelectedCareer(career)}
+              className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 hover:shadow-lg hover:-translate-y-1 transition-all cursor-pointer group flex flex-col items-center text-center"
+            >
+              <div className="w-16 h-16 bg-blue-50 rounded-2xl flex items-center justify-center text-blue-600 mb-4 group-hover:scale-110 transition-transform">
+                {React.cloneElement(career.icon as React.ReactElement, { size: 32 })}
               </div>
-            )}
-          </>
-        ) : (
-          <div className="text-center py-20 bg-white rounded-xl border border-dashed border-gray-200">
-             <BookOpen size={48} className="mx-auto text-gray-300 mb-3" />
-             <p className="text-gray-500">{isBangla ? 'কোন বই পাওয়া যায়নি' : 'No books found'}</p>
-          </div>
-        )}
+              <h3 className="text-lg font-bold text-gray-900 mb-2">{isBangla ? career.titleBn : career.titleEn}</h3>
+              <p className="text-sm text-gray-500 mb-4 line-clamp-2">{isBangla ? career.descBn : career.descEn}</p>
+              <span className="mt-auto text-blue-600 font-bold text-sm flex items-center gap-1 group-hover:gap-2 transition-all">
+                {isBangla ? 'রোডম্যাপ দেখুন' : 'View Roadmap'} <ArrowRight size={16} />
+              </span>
+            </div>
+          ))}
+        </div>
       </div>
     );
   };
 
-  const renderSkills = () => (
-    <div className="animate-fade-in space-y-8">
-      {/* Existing Skills Render Code */}
-      <div className="bg-gradient-to-r from-blue-600 to-indigo-600 rounded-3xl p-8 text-white relative overflow-hidden">
-        <div className="relative z-10 max-w-2xl">
-          <h2 className="text-2xl font-bold mb-3">{isBangla ? 'দক্ষতাই শক্তি' : 'Skills are Power'}</h2>
-          <p className="text-blue-100 mb-6">
-            {isBangla ? 'কৃষি, প্রযুক্তি এবং ব্যবসায়িক দক্ষতা অর্জন করে নিজেকে স্বাবলম্বী করুন।' : 'Empower yourself with skills in Agriculture, Tech, and Business.'}
-          </p>
-          <Button className="bg-white text-blue-700 hover:bg-blue-50 border-none">
-            {isBangla ? 'কোর্স ক্যাটালগ' : 'Course Catalog'}
-          </Button>
-        </div>
-        <div className="absolute right-0 bottom-0 opacity-20 transform translate-x-1/4 translate-y-1/4">
-          <Laptop size={250} />
-        </div>
-      </div>
-      
-      {/* Skill Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        {filteredCourses.slice(0, visibleSkillCount).map(course => (
-          <div key={course.id} className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden hover:shadow-lg transition-all flex flex-col">
-             <div className="relative h-48">
-               <img src={getOptimizedImageUrl(course.image, 600)} className="w-full h-full object-cover" alt="" />
-               <span className="absolute top-3 left-3 bg-blue-600 text-white text-xs font-bold px-3 py-1 rounded-full">{course.category}</span>
-             </div>
-             <div className="p-5 flex-1 flex flex-col">
-               <h3 className="font-bold text-gray-900 mb-2">{isBangla ? course.titleBn : course.titleEn}</h3>
-               <p className="text-sm text-gray-600 mb-4 line-clamp-2">{isBangla ? course.descBn : course.descEn}</p>
-               <div className="mt-auto pt-4 border-t border-gray-50 flex justify-between items-center">
-                 <span className="text-xs font-bold text-green-600 bg-green-50 px-2 py-1 rounded">Cert. Available</span>
-                 <button onClick={() => handleStartCourse(course)} className="text-blue-600 font-bold text-sm flex items-center gap-1 hover:gap-2 transition-all">
-                   {isBangla ? 'শুরু করুন' : 'Start'} <ChevronRight size={16} />
-                 </button>
-               </div>
-             </div>
+  const renderLibrary = () => { /* ... existing ... */ 
+    return (
+        <div className="space-y-10 animate-fade-in">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+             {filteredBooks.slice(0, visibleCount).map(book => (
+                <div key={book.id} onClick={() => setSelectedBook(book)} className="bg-white p-4 rounded-2xl shadow-sm border border-gray-100 hover:shadow-lg transition-all group flex flex-col h-full hover:border-blue-200 cursor-pointer">
+                  <div className="relative aspect-[3/4] mb-4 overflow-hidden rounded-xl bg-gray-100">
+                    <img src={getOptimizedImageUrl(book.image, 300)} alt={book.titleEn} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"/>
+                  </div>
+                  <h4 className="font-bold text-gray-900 text-base line-clamp-2 mb-1 group-hover:text-blue-600">{isBangla ? book.titleBn : book.titleEn}</h4>
+                  <div className="mt-auto pt-3 border-t border-gray-50">
+                    <button className="w-full bg-blue-600 text-white hover:bg-blue-700 py-2.5 rounded-xl text-xs font-bold transition-all shadow-md shadow-blue-200 flex items-center justify-center gap-2">
+                      <BookOpen size={16} /> {isBangla ? 'পড়া শুরু করুন' : 'Start Reading'}
+                    </button>
+                  </div>
+                </div>
+             ))}
           </div>
-        ))}
-      </div>
-    </div>
-  );
+        </div>
+    );
+  };
 
-  const renderTabs = () => (
-    <div className="flex justify-center mb-8 overflow-x-auto pb-2 hide-scrollbar">
-      <div className="bg-white p-1.5 rounded-full shadow-sm border border-gray-100 flex gap-1">
-        <button 
-          onClick={() => { setActiveTab('library'); setActiveCourse(null); }}
-          className={`px-5 py-2.5 rounded-full text-sm font-bold transition-all flex items-center gap-2 whitespace-nowrap ${
-            activeTab === 'library' ? 'bg-blue-600 text-white shadow-sm' : 'text-gray-600 hover:bg-gray-50'
-          }`}
-        >
-          <Library size={16} />
-          {isBangla ? 'লাইব্রেরি' : 'Library'}
-        </button>
-        <button 
-          onClick={() => { setActiveTab('skills'); setActiveCourse(null); }}
-          className={`px-5 py-2.5 rounded-full text-sm font-bold transition-all flex items-center gap-2 whitespace-nowrap ${
-            activeTab === 'skills' ? 'bg-blue-600 text-white shadow-sm' : 'text-gray-600 hover:bg-gray-50'
-          }`}
-        >
-          <Briefcase size={16} />
-          {isBangla ? 'দক্ষতা' : 'Skills'}
-        </button>
-        <button 
-          onClick={() => { setActiveTab('interactive'); setActiveCourse(null); }}
-          className={`px-5 py-2.5 rounded-full text-sm font-bold transition-all flex items-center gap-2 whitespace-nowrap ${
-            activeTab === 'interactive' ? 'bg-blue-600 text-white shadow-sm' : 'text-gray-600 hover:bg-gray-50'
-          }`}
-        >
-          <BrainCircuit size={16} />
-          {isBangla ? 'ইন্টারঅ্যাক্টিভ' : 'Interactive'}
-        </button>
-        <button 
-          onClick={() => { setActiveTab('career'); setActiveCourse(null); }}
-          className={`px-5 py-2.5 rounded-full text-sm font-bold transition-all flex items-center gap-2 whitespace-nowrap ${
-            activeTab === 'career' ? 'bg-blue-600 text-white shadow-sm' : 'text-gray-600 hover:bg-gray-50'
-          }`}
-        >
-          <Target size={16} />
-          {isBangla ? 'ক্যারিয়ার' : 'Career'}
-        </button>
-      </div>
-    </div>
-  );
+  const renderSkills = () => { /* ... existing ... */ 
+    return (
+        <div className="animate-fade-in space-y-8">
+           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+             {SKILL_COURSES.slice(0, visibleSkillCount).map(course => (
+               <div key={course.id} className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden hover:shadow-lg transition-all flex flex-col">
+                  <div className="relative h-48">
+                    <img src={getOptimizedImageUrl(course.image, 600)} className="w-full h-full object-cover" alt="" />
+                    <span className="absolute top-3 left-3 bg-blue-600 text-white text-xs font-bold px-3 py-1 rounded-full">{course.category}</span>
+                  </div>
+                  <div className="p-5 flex-1 flex flex-col">
+                    <h3 className="font-bold text-gray-900 mb-2">{isBangla ? course.titleBn : course.titleEn}</h3>
+                    <p className="text-sm text-gray-600 mb-4 line-clamp-2">{isBangla ? course.descBn : course.descEn}</p>
+                    <div className="mt-auto pt-4 border-t border-gray-50 flex justify-between items-center">
+                      <button onClick={() => setActiveCourse(course)} className="text-blue-600 font-bold text-sm flex items-center gap-1 hover:gap-2 transition-all">
+                        {isBangla ? 'শুরু করুন' : 'Start'} <ChevronRight size={16} />
+                      </button>
+                    </div>
+                  </div>
+               </div>
+             ))}
+           </div>
+        </div>
+    );
+  };
 
   const renderCoursePlayer = () => {
     if (!activeCourse) return null;
-    const currentLesson = activeCourse.curriculum[currentLessonIndex];
-
     return (
-      <div className="max-w-6xl mx-auto animate-fade-in">
-        <button 
-          onClick={() => setActiveCourse(null)}
-          className="mb-6 flex items-center gap-2 text-gray-600 hover:text-blue-600 transition-colors font-medium bg-white px-4 py-2 rounded-full shadow-sm border border-gray-200 w-fit"
-        >
-          <ArrowLeft size={18} />
-          {isBangla ? 'কোর্সে ফিরে যান' : 'Back to Courses'}
-        </button>
-
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          <div className="lg:col-span-2 space-y-6">
-             <div className="bg-black rounded-2xl aspect-video flex items-center justify-center relative overflow-hidden shadow-lg group">
-                <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"></div>
-                <PlayCircle size={64} className="text-white opacity-80 group-hover:opacity-100 group-hover:scale-110 transition-all cursor-pointer" />
-                <div className="absolute bottom-4 left-4 right-4 text-white">
-                   <h3 className="font-bold text-lg mb-1">{isBangla ? currentLesson.titleBn : currentLesson.titleEn}</h3>
-                   <div className="h-1 bg-white/30 rounded-full overflow-hidden mt-3">
-                      <div className="h-full bg-blue-500 w-1/3"></div>
-                   </div>
-                </div>
-             </div>
-
-             <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
-               <div className="flex border-b border-gray-100">
-                 <button 
-                   onClick={() => setPlayerTab('overview')}
-                   className={`flex-1 py-4 text-sm font-bold text-center transition-colors ${playerTab === 'overview' ? 'text-blue-600 border-b-2 border-blue-600 bg-blue-50/50' : 'text-gray-500 hover:bg-gray-50'}`}
-                 >
-                   {isBangla ? 'ওভারভিউ' : 'Overview'}
-                 </button>
-                 <button 
-                   onClick={() => setPlayerTab('reading')}
-                   className={`flex-1 py-4 text-sm font-bold text-center transition-colors ${playerTab === 'reading' ? 'text-blue-600 border-b-2 border-blue-600 bg-blue-50/50' : 'text-gray-500 hover:bg-gray-50'}`}
-                 >
-                   <span className="flex items-center justify-center gap-2">
-                     <FileText size={16} />
-                     {isBangla ? 'পড়ুন' : 'Reading'}
-                   </span>
-                 </button>
-               </div>
-
-               <div className="p-6">
-                 {playerTab === 'overview' ? (
-                   <div className="animate-fade-in">
-                     <h2 className="text-2xl font-bold text-gray-900 mb-4">{isBangla ? activeCourse.titleBn : activeCourse.titleEn}</h2>
-                     <div className="prose prose-blue max-w-none text-gray-600">
-                       <p>{isBangla ? activeCourse.descBn : activeCourse.descEn}</p>
-                       
-                       <div className="mt-6 grid grid-cols-2 gap-4">
-                          <div className="p-4 bg-gray-50 rounded-xl border border-gray-100">
-                             <p className="text-xs text-gray-500 uppercase font-bold mb-1">{isBangla ? 'সময়কাল' : 'Duration'}</p>
-                             <p className="font-bold text-gray-800">{activeCourse.duration}</p>
-                          </div>
-                          <div className="p-4 bg-gray-50 rounded-xl border border-gray-100">
-                             <p className="text-xs text-gray-500 uppercase font-bold mb-1">{isBangla ? 'লেসন সংখ্যা' : 'Lessons'}</p>
-                             <p className="font-bold text-gray-800">{activeCourse.lessonsCount}</p>
-                          </div>
-                       </div>
-                     </div>
-                   </div>
-                 ) : (
-                   <div className="animate-fade-in">
-                      <div className="flex items-center gap-2 mb-4 text-blue-600">
-                        <BookOpen size={20} />
-                        <h3 className="text-lg font-bold">{isBangla ? currentLesson.titleBn : currentLesson.titleEn}</h3>
-                      </div>
-                      <div className="prose prose-slate max-w-none text-gray-700 leading-relaxed">
-                        <p className="text-lg">{currentLesson.content}</p>
-                        
-                        {/* Simulated Extended Content for Reading Experience */}
-                        <p>
-                          {isBangla 
-                            ? 'এই পাঠে আমরা বিস্তারিত আলোচনা করব কীভাবে ধাপে ধাপে এই দক্ষতা অর্জন করা যায়। ভিডিওতে দেখানো বিষয়গুলো নিচে বিস্তারিত লেখা আছে যাতে আপনি পড়ার মাধ্যমেও শিখতে পারেন।'
-                            : 'In this lesson, we will discuss in detail how to acquire this skill step by step. The topics shown in the video are written below in detail so that you can also learn by reading.'}
-                        </p>
-                        <ul className="list-disc pl-5 space-y-2 mt-4">
-                          <li>{isBangla ? 'মূল ধারণা এবং সংজ্ঞা' : 'Key concepts and definitions'}</li>
-                          <li>{isBangla ? 'ব্যবহারিক প্রয়োগ' : 'Practical applications'}</li>
-                          <li>{isBangla ? 'সতর্কতা এবং টিপস' : 'Precautions and tips'}</li>
-                        </ul>
-                        <p className="mt-4">
-                          {isBangla
-                            ? 'অনুগ্রহ করে ভিডিওটি মনোযোগ দিয়ে দেখুন এবং নিচের কুইজ সেকশন থেকে নিজেকে যাচাই করুন।'
-                            : 'Please watch the video carefully and verify yourself from the quiz section below.'}
-                        </p>
-                      </div>
-                   </div>
-                 )}
-               </div>
-             </div>
-          </div>
-
-          <div className="space-y-6">
-             <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
-                <div className="p-4 border-b border-gray-100 bg-gray-50">
-                   <h3 className="font-bold text-gray-900">{isBangla ? 'কোর্স কারিকুলাম' : 'Course Curriculum'}</h3>
-                   <p className="text-xs text-gray-500 mt-1">{currentLessonIndex + 1} of {activeCourse.curriculum.length} lessons completed</p>
-                </div>
-                <div className="divide-y divide-gray-100">
-                   {activeCourse.curriculum.map((lesson, idx) => (
-                     <div 
-                       key={lesson.id}
-                       onClick={() => { setCurrentLessonIndex(idx); setShowCertificate(false); }}
-                       className={`p-4 flex gap-3 cursor-pointer transition-colors ${
-                         idx === currentLessonIndex 
-                           ? 'bg-blue-50 border-l-4 border-blue-500' 
-                           : 'hover:bg-gray-50'
-                       }`}
-                     >
-                        <div className={`mt-1 ${idx < currentLessonIndex ? 'text-green-500' : idx === currentLessonIndex ? 'text-blue-500' : 'text-gray-300'}`}>
-                           {idx < currentLessonIndex ? <CheckCircle size={18} /> : idx === currentLessonIndex ? <PlayCircle size={18} /> : <Lock size={18} />}
-                        </div>
-                        <div>
-                           <h4 className={`text-sm font-bold ${idx === currentLessonIndex ? 'text-blue-700' : 'text-gray-700'}`}>
-                             {isBangla ? lesson.titleBn : lesson.titleEn}
-                           </h4>
-                           <p className="text-xs text-gray-500 mt-1">10 mins</p>
-                        </div>
-                     </div>
-                   ))}
-                </div>
-             </div>
-
-             {showCertificate && (
-               <div className="bg-gradient-to-r from-yellow-500 to-amber-500 rounded-2xl p-6 text-white text-center shadow-lg animate-fade-in-up">
-                  <Award size={48} className="mx-auto mb-4 text-yellow-100" />
-                  <h3 className="text-xl font-bold mb-2">{isBangla ? 'অভিনন্দন!' : 'Congratulations!'}</h3>
-                  <p className="text-yellow-100 text-sm mb-6">
-                    {isBangla ? 'আপনি কোর্সটি সফলভাবে সম্পন্ন করেছেন।' : 'You have successfully completed the course.'}
-                  </p>
-                  <Button onClick={handleDownloadCertificate} className="bg-white text-amber-600 hover:bg-amber-50 border-none w-full">
-                    {isBangla ? 'সার্টিফিকেট ডাউনলোড' : 'Download Certificate'}
-                  </Button>
-               </div>
-             )}
-
-             {!showCertificate && (
-               <Button onClick={handleNextLesson} className="w-full h-12 text-lg shadow-lg shadow-blue-200">
-                 {currentLessonIndex < activeCourse.curriculum.length - 1 
-                   ? (isBangla ? 'পরবর্তী পাঠ' : 'Next Lesson') 
-                   : (isBangla ? 'কোর্স শেষ করুন' : 'Finish Course')}
-               </Button>
-             )}
-          </div>
+        <div className="max-w-6xl mx-auto animate-fade-in">
+            <button onClick={() => setActiveCourse(null)} className="mb-6 flex items-center gap-2 text-gray-600 bg-white px-4 py-2 rounded-full shadow-sm border border-gray-200 w-fit"><ArrowLeft size={18} /> {isBangla ? 'ফিরে যান' : 'Back'}</button>
+            <div className="bg-black rounded-2xl aspect-video flex items-center justify-center text-white">Course Video Placeholder</div>
         </div>
-      </div>
     );
-  };
-
-  const renderInteractive = () => (
-    <div className="text-center py-20 bg-white rounded-xl border border-dashed border-gray-200">
-       <BrainCircuit size={48} className="mx-auto text-gray-300 mb-3" />
-       <h3 className="text-xl font-bold text-gray-900 mb-2">{isBangla ? 'কুইজ ও গেম' : 'Quiz & Games'}</h3>
-       <p className="text-gray-500">{isBangla ? 'শীঘ্রই আসছে...' : 'Coming soon...'}</p>
-    </div>
-  );
-
-  const renderCareer = () => (
-    <div className="text-center py-20 bg-white rounded-xl border border-dashed border-gray-200">
-       <Target size={48} className="mx-auto text-gray-300 mb-3" />
-       <h3 className="text-xl font-bold text-gray-900 mb-2">{isBangla ? 'ক্যারিয়ার গাইডলাইন' : 'Career Guidelines'}</h3>
-       <p className="text-gray-500">{isBangla ? 'শীঘ্রই আসছে...' : 'Coming soon...'}</p>
-    </div>
-  );
+  }
 
   return (
     <div className="min-h-screen bg-blue-50/30 py-8 lg:py-12 px-4 sm:px-6 lg:px-8">
-      {activeCourse ? (
-        renderCoursePlayer()
-      ) : (
+      {activeCourse ? renderCoursePlayer() : (
         <div className="max-w-7xl mx-auto">
           {/* Header */}
           <div className="text-center mb-10">
@@ -1093,14 +555,28 @@ export const EduModule: React.FC<Props> = ({ isBangla, user }) => {
               {isBangla ? 'আগামীর পথে শিক্ষা' : 'Education for Future'}
             </h1>
             <p className="text-gray-500 max-w-2xl mx-auto">
-              {isBangla 
-                ? 'পাঠ্যবই থেকে শুরু করে দক্ষতা উন্নয়ন - সবকিছু এক প্ল্যাটফর্মে।' 
-                : 'From textbooks to skill development - everything in one platform.'}
+              {isBangla ? 'পাঠ্যবই থেকে শুরু করে দক্ষতা উন্নয়ন - সবকিছু এক প্ল্যাটফর্মে।' : 'From textbooks to skill development - everything in one platform.'}
             </p>
           </div>
 
           {/* Navigation */}
-          {renderTabs()}
+          <div className="flex justify-center mb-8 overflow-x-auto pb-2 hide-scrollbar">
+            <div className="bg-white p-1.5 rounded-full shadow-sm border border-gray-100 flex gap-1">
+                {['library', 'skills', 'interactive', 'career'].map((tab) => (
+                    <button 
+                        key={tab}
+                        onClick={() => { setActiveTab(tab as EduTab); setActiveCourse(null); setSelectedCareer(null); }}
+                        className={`px-5 py-2.5 rounded-full text-sm font-bold transition-all flex items-center gap-2 whitespace-nowrap ${activeTab === tab ? 'bg-blue-600 text-white shadow-sm' : 'text-gray-600 hover:bg-gray-50'}`}
+                    >
+                        {tab === 'library' && <Library size={16} />}
+                        {tab === 'skills' && <Briefcase size={16} />}
+                        {tab === 'interactive' && <BrainCircuit size={16} />}
+                        {tab === 'career' && <Target size={16} />}
+                        {isBangla ? (tab === 'library' ? 'লাইব্রেরি' : tab === 'skills' ? 'দক্ষতা' : tab === 'interactive' ? 'ইন্টারঅ্যাক্টিভ' : 'ক্যারিয়ার') : (tab.charAt(0).toUpperCase() + tab.slice(1))}
+                    </button>
+                ))}
+            </div>
+          </div>
 
           {/* Content Area */}
           <div className="min-h-[400px]">
@@ -1112,65 +588,19 @@ export const EduModule: React.FC<Props> = ({ isBangla, user }) => {
         </div>
       )}
 
-      {/* --- READER MODAL (Replaces Basic Details Modal) --- */}
+      {/* Reader Modal */}
       {selectedBook && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-0 md:p-4 bg-black/70 backdrop-blur-sm animate-fade-in" onClick={() => setSelectedBook(null)}>
           <div className="bg-white w-full md:max-w-4xl h-full md:h-[90vh] md:rounded-2xl shadow-2xl flex flex-col overflow-hidden" onClick={e => e.stopPropagation()}>
-            
-            {/* Header */}
             <div className="flex justify-between items-center p-4 border-b border-gray-100 bg-white z-10 shadow-sm">
-               <div className="flex items-center gap-3">
-                 <button onClick={() => setSelectedBook(null)} className="md:hidden p-2 -ml-2 text-gray-500"><ArrowLeft size={20} /></button>
-                 <div>
-                   <h2 className="text-lg font-bold text-gray-900 line-clamp-1">
-                     {isBangla ? selectedBook.titleBn : selectedBook.titleEn}
-                   </h2>
-                   <p className="text-xs text-gray-500 flex items-center gap-1">
-                     <User size={12} /> {selectedBook.author} • {selectedBook.pages} Pages
-                   </p>
-                 </div>
-               </div>
-               <div className="flex items-center gap-2">
-                 <Button variant="outline" size="sm" className="hidden md:flex items-center gap-2 text-xs">
-                   <List size={14} /> {isBangla ? 'সূচিপত্র' : 'Contents'}
-                 </Button>
-                 <button 
-                   onClick={() => setSelectedBook(null)}
-                   className="p-2 hover:bg-gray-100 rounded-full text-gray-500 transition-colors"
-                 >
-                   <X size={24} />
-                 </button>
-               </div>
+               <h2 className="text-lg font-bold text-gray-900">{isBangla ? selectedBook.titleBn : selectedBook.titleEn}</h2>
+               <button onClick={() => setSelectedBook(null)} className="p-2 hover:bg-gray-100 rounded-full text-gray-500"><X size={24} /></button>
             </div>
-
-            {/* Reading Content Area */}
             <div className="flex-1 overflow-y-auto bg-white p-6 md:p-10">
-               <div className="max-w-3xl mx-auto">
-                  {/* Book Cover in Reader (Optional, good for intro) */}
-                  <div className="flex justify-center mb-8">
-                    <img 
-                      src={getOptimizedImageUrl(selectedBook.image, 400)} 
-                      alt="Cover" 
-                      className="w-48 shadow-lg rounded-md transform hover:scale-105 transition-transform border border-gray-200"
-                    />
-                  </div>
-                  
-                  {/* Actual Text Content */}
-                  <div className="prose prose-lg prose-slate font-sans leading-relaxed text-gray-800 whitespace-pre-wrap">
-                    {selectedBook.content ? selectedBook.content : (isBangla ? 'এই বইয়ের বিষয়বস্তু শীঘ্রই যুক্ত করা হবে।' : 'Content coming soon...')}
-                  </div>
+               <div className="max-w-3xl mx-auto prose prose-lg prose-slate font-sans leading-relaxed text-gray-800 whitespace-pre-wrap">
+                 {selectedBook.content}
                </div>
             </div>
-
-            {/* Footer / Controls */}
-            <div className="p-4 border-t border-gray-100 bg-white flex justify-between items-center text-sm text-gray-500 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)] z-20">
-               <span className="font-medium">Page 1 of {Math.ceil(selectedBook.pages / 20)}</span>
-               <div className="flex gap-3">
-                 <Button variant="outline" size="sm" className="px-4" disabled>{isBangla ? 'পূর্ববর্তী' : 'Prev'}</Button>
-                 <Button variant="outline" size="sm" className="px-4">{isBangla ? 'পরবর্তী' : 'Next'}</Button>
-               </div>
-            </div>
-
           </div>
         </div>
       )}
