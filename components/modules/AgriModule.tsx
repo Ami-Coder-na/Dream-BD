@@ -766,129 +766,181 @@ export const AgriModule: React.FC<Props> = ({ isBangla }) => {
   );
 
   const renderCalculator = () => (
-    <div className="bg-white rounded-3xl p-6 shadow-sm border border-brand-100 animate-fade-in">
-      <div className="flex flex-col md:flex-row gap-8">
-        <div className="flex-1 space-y-6">
-          <h3 className="text-xl font-bold text-gray-900 flex items-center gap-2">
-            <Calculator className="text-brand-600" />
-            {isBangla ? 'সার ও বীজ ক্যালকুলেটর' : 'Fertilizer & Seed Calculator'}
-          </h3>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <label className="block text-sm font-bold text-gray-700 mb-1">{isBangla ? 'জমির পরিমাণ' : 'Land Size'}</label>
+    <div className="space-y-8 animate-fade-in">
+      <div className="bg-white p-8 rounded-3xl shadow-sm border border-gray-100">
+        <h2 className="text-2xl font-bold text-gray-900 mb-6 flex items-center gap-3">
+          <div className="p-2 bg-brand-100 rounded-lg text-brand-600">
+            <Calculator size={24} />
+          </div>
+          {isBangla ? 'সার ও বীজ ক্যালকুলেটর' : 'Fertilizer & Seed Calculator'}
+        </h2>
+        
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div>
+            <label className="block text-sm font-bold text-gray-700 mb-2">{isBangla ? 'জমির পরিমাণ' : 'Land Size'}</label>
+            <div className="relative">
               <input 
                 type="number" 
                 value={landSize}
                 onChange={(e) => setLandSize(e.target.value)}
+                className="w-full p-4 rounded-xl outline-none transition-all bg-gray-50 border border-gray-200 text-gray-900 text-lg font-medium placeholder-gray-400 focus:ring-2 focus:ring-green-500 focus:bg-white focus:border-transparent"
                 placeholder="Ex: 10"
-                className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-brand-500 outline-none"
               />
             </div>
-            <div>
-              <label className="block text-sm font-bold text-gray-700 mb-1">{isBangla ? 'একক' : 'Unit'}</label>
+          </div>
+          <div>
+            <label className="block text-sm font-bold text-gray-700 mb-2">{isBangla ? 'একক' : 'Unit'}</label>
+            <div className="relative">
               <select 
-                value={unit}
+                value={unit} 
                 onChange={(e) => setUnit(e.target.value)}
-                className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-brand-500 outline-none"
+                className="w-full p-4 rounded-xl outline-none transition-all bg-gray-50 border border-gray-200 text-gray-900 text-lg font-medium cursor-pointer focus:ring-2 focus:ring-green-500 focus:bg-white focus:border-transparent appearance-none"
               >
                 <option value="decimal">{isBangla ? 'শতাংশ (Decimal)' : 'Decimal'}</option>
                 <option value="katha">{isBangla ? 'কাঠা (Katha)' : 'Katha'}</option>
                 <option value="bigha">{isBangla ? 'বিঘা (Bigha)' : 'Bigha'}</option>
               </select>
+              <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-500 pointer-events-none" size={20} />
             </div>
           </div>
+        </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-             <div>
-              <label className="block text-sm font-bold text-gray-700 mb-1">{isBangla ? 'ফসলের ধরন' : 'Crop Type'}</label>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
+          <div>
+            <label className="block text-sm font-bold text-gray-700 mb-2">{isBangla ? 'ফসলের ধরন' : 'Crop Type'}</label>
+            <div className="relative">
               <select 
                 value={cropType}
                 onChange={(e) => setCropType(e.target.value)}
-                className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-brand-500 outline-none"
+                className="w-full p-4 rounded-xl outline-none transition-all bg-gray-50 border border-gray-200 text-gray-900 text-lg font-medium cursor-pointer focus:ring-2 focus:ring-green-500 focus:bg-white focus:border-transparent appearance-none"
               >
                 <option value="Rice">{isBangla ? 'ধান' : 'Rice'}</option>
                 <option value="Wheat">{isBangla ? 'গম' : 'Wheat'}</option>
                 <option value="Maize">{isBangla ? 'ভুট্টা' : 'Maize'}</option>
                 <option value="Potato">{isBangla ? 'আলু' : 'Potato'}</option>
               </select>
+              <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-500 pointer-events-none" size={20} />
             </div>
-            <div>
-               <label className="block text-sm font-bold text-gray-700 mb-1">{isBangla ? 'বীজের জাত' : 'Seed Variety'}</label>
-               <select 
-                  value={seedVariety}
-                  onChange={(e) => setSeedVariety(e.target.value)}
-                  className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-brand-500 outline-none"
-               >
-                  <option value="HYV">{isBangla ? 'উফশী (HYV)' : 'HYV'}</option>
-                  <option value="Hybrid">{isBangla ? 'হাইব্রিড' : 'Hybrid'}</option>
-                  <option value="Local">{isBangla ? 'স্থানীয়' : 'Local'}</option>
-               </select>
+          </div>
+          <div>
+            <label className="block text-sm font-bold text-gray-700 mb-2">{isBangla ? 'বীজের জাত' : 'Seed Variety'}</label>
+            <div className="relative">
+              <select 
+                value={seedVariety}
+                onChange={(e) => setSeedVariety(e.target.value)}
+                className="w-full p-4 rounded-xl outline-none transition-all bg-gray-50 border border-gray-200 text-gray-900 text-lg font-medium cursor-pointer focus:ring-2 focus:ring-green-500 focus:bg-white focus:border-transparent appearance-none"
+              >
+                <option value="HYV">{isBangla ? 'উফশী (HYV)' : 'High Yielding (HYV)'}</option>
+                <option value="Hybrid">{isBangla ? 'হাইব্রিড' : 'Hybrid'}</option>
+                <option value="Local">{isBangla ? 'দেশি' : 'Local'}</option>
+              </select>
+              <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-500 pointer-events-none" size={20} />
+            </div>
+          </div>
+        </div>
+
+        <Button onClick={handleCalculate} className="w-full mt-8 h-14 text-lg font-bold shadow-lg shadow-green-200 bg-green-600 hover:bg-green-700 text-white">
+          {isBangla ? 'হিসাব করুন' : 'Calculate'}
+        </Button>
+      </div>
+
+      {calculatedResult && (
+        <div className="animate-fade-in-up space-y-6">
+          {/* Summary Cards */}
+          <div className="grid grid-cols-2 gap-4">
+             <div className="bg-gradient-to-br from-green-600 to-green-700 text-white p-6 rounded-2xl shadow-lg relative overflow-hidden">
+                <div className="absolute top-0 right-0 w-24 h-24 bg-white/10 rounded-full -mr-8 -mt-8"></div>
+                <p className="text-green-100 text-sm font-medium mb-1">{isBangla ? 'প্রয়োজনীয় বীজ' : 'Seed Required'}</p>
+                <div className="flex items-baseline gap-1">
+                  <h3 className="text-3xl font-bold">{calculatedResult.seed}</h3>
+                  <span className="text-sm opacity-80">kg</span>
+                </div>
+                <div className="mt-2 flex items-center gap-1 text-xs bg-white/20 w-fit px-2 py-1 rounded">
+                   <Sprout size={12} />
+                   {isBangla ? 'ভাল ফলনের জন্য' : 'For best yield'}
+                </div>
+             </div>
+             <div className="bg-gradient-to-br from-orange-500 to-red-600 text-white p-6 rounded-2xl shadow-lg relative overflow-hidden">
+                <div className="absolute top-0 right-0 w-24 h-24 bg-white/10 rounded-full -mr-8 -mt-8"></div>
+                <p className="text-orange-100 text-sm font-medium mb-1">{isBangla ? 'আনুমানিক খরচ' : 'Estimated Cost'}</p>
+                <div className="flex items-baseline gap-1">
+                  <h3 className="text-3xl font-bold">৳ {calculatedResult.cost}</h3>
+                </div>
+                <div className="mt-2 flex items-center gap-1 text-xs bg-white/20 w-fit px-2 py-1 rounded">
+                   <CircleDollarSign size={12} />
+                   {isBangla ? 'সার ও বীজ বাবদ' : 'Fertilizer & Seed'}
+                </div>
+             </div>
+          </div>
+
+          {/* Detailed Fertilizer Breakdown */}
+          <div className="bg-white border border-brand-100 rounded-3xl p-6 shadow-sm">
+            <h3 className="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
+              <Leaf className="text-brand-600" size={20} />
+              {isBangla ? 'সারের পরিমাণ' : 'Fertilizer Amount'}
+            </h3>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              {[
+                { name: 'Urea', val: calculatedResult.urea, color: 'bg-blue-50 text-blue-700', desc: isBangla ? 'গাছ বৃদ্ধিতে সহায়ক' : 'Leaf growth' },
+                { name: 'TSP', val: calculatedResult.tsp, color: 'bg-gray-100 text-gray-800', desc: isBangla ? 'শিকড় মজবুত করে' : 'Root strength' },
+                { name: 'MOP', val: calculatedResult.mop, color: 'bg-red-50 text-red-700', desc: isBangla ? 'রোগ প্রতিরোধ করে' : 'Disease resistance' },
+                { name: 'Gypsum', val: calculatedResult.gypsum, color: 'bg-yellow-50 text-yellow-700', desc: isBangla ? 'মাটির পুষ্টি যোগায়' : 'Soil nutrient' },
+              ].map((item, idx) => (
+                <div key={idx} className={`p-4 rounded-2xl ${item.color} text-center`}>
+                  <p className="text-xs font-bold uppercase opacity-70 mb-1">{item.name}</p>
+                  <p className="text-xl font-bold mb-1">{item.val} <span className="text-xs">kg</span></p>
+                  <p className="text-[10px] opacity-80">{item.desc}</p>
+                </div>
+              ))}
             </div>
           </div>
 
-          <Button onClick={handleCalculate} className="w-full bg-brand-600 hover:bg-brand-700 text-lg">
-            {isBangla ? 'হিসাব করুন' : 'Calculate Now'}
-          </Button>
-        </div>
+          {/* Application Schedule (Pagination Logic Applied Here) */}
+          <div className="bg-white border border-gray-200 rounded-3xl overflow-hidden shadow-sm">
+             <div className="p-6 border-b border-gray-100 bg-gray-50 flex items-center justify-between">
+                <h3 className="text-lg font-bold text-gray-900 flex items-center gap-2">
+                  <CalendarClock className="text-brand-600" size={20} />
+                  {isBangla ? 'সার প্রয়োগের সময়সূচী' : 'Application Schedule'}
+                </h3>
+                <span className="text-xs bg-white border border-gray-200 px-2 py-1 rounded text-gray-500">
+                  {calculatedResult.schedule.length} Steps
+                </span>
+             </div>
+             
+             <div className="divide-y divide-gray-100">
+                {calculatedResult.schedule.slice(0, showFullSchedule ? undefined : 2).map((step, idx) => (
+                  <div key={idx} className="p-5 flex gap-4 hover:bg-gray-50 transition-colors">
+                     <div className="flex flex-col items-center gap-1">
+                        <div className="w-8 h-8 rounded-full bg-brand-100 text-brand-700 flex items-center justify-center font-bold text-sm">
+                          {idx + 1}
+                        </div>
+                        {idx !== calculatedResult.schedule.length - 1 && (
+                          <div className="w-0.5 h-full bg-gray-200 my-1"></div>
+                        )}
+                     </div>
+                     <div>
+                        <h4 className="font-bold text-gray-800 text-base mb-1">{isBangla ? step.stageBn : step.stageEn}</h4>
+                        <p className="text-sm text-gray-600 leading-relaxed">{isBangla ? step.detailBn : step.detailEn}</p>
+                     </div>
+                  </div>
+                ))}
+             </div>
 
-        {/* Results */}
-        <div className="flex-1 bg-gray-50 rounded-2xl p-6 border border-gray-100 relative min-h-[300px] flex flex-col justify-center">
-          {calculatedResult ? (
-            <div className="animate-fade-in-up w-full">
-              <h4 className="text-center font-bold text-gray-800 mb-4 border-b border-gray-200 pb-2">
-                {isBangla ? 'প্রয়োজনীয় উপকরণ ও খরচ' : 'Required Inputs & Cost'}
-              </h4>
-              <div className="space-y-3 mb-6">
-                <div className="flex justify-between items-center bg-white p-2 rounded-lg shadow-sm">
-                  <span className="text-sm font-medium text-gray-600">Urea</span>
-                  <span className="font-bold text-brand-700">{calculatedResult.urea} kg</span>
-                </div>
-                <div className="flex justify-between items-center bg-white p-2 rounded-lg shadow-sm">
-                  <span className="text-sm font-medium text-gray-600">TSP</span>
-                  <span className="font-bold text-brand-700">{calculatedResult.tsp} kg</span>
-                </div>
-                <div className="flex justify-between items-center bg-white p-2 rounded-lg shadow-sm">
-                  <span className="text-sm font-medium text-gray-600">MOP</span>
-                  <span className="font-bold text-brand-700">{calculatedResult.mop} kg</span>
-                </div>
-                 <div className="flex justify-between items-center bg-white p-2 rounded-lg shadow-sm">
-                  <span className="text-sm font-medium text-gray-600">Seed</span>
-                  <span className="font-bold text-brand-700">{calculatedResult.seed} kg</span>
-                </div>
-                <div className="mt-4 pt-2 border-t border-gray-200 flex justify-between items-center">
-                  <span className="font-bold text-gray-900">{isBangla ? 'আনুমানিক খরচ' : 'Est. Cost'}</span>
-                  <span className="font-bold text-xl text-brand-600">৳ {calculatedResult.cost}</span>
-                </div>
-              </div>
-
-              {!showFullSchedule ? (
-                <Button variant="outline" className="w-full" onClick={() => setShowFullSchedule(true)}>
-                  {isBangla ? 'সার প্রয়োগের সময়সূচী দেখুন' : 'View Application Schedule'}
-                </Button>
-              ) : (
-                <div className="mt-4 space-y-3 animate-fade-in">
-                  <h5 className="font-bold text-gray-800 text-sm">{isBangla ? 'প্রয়োগের সময়সূচী:' : 'Application Schedule:'}</h5>
-                  {calculatedResult.schedule.map((step, idx) => (
-                    <div key={idx} className="bg-white p-3 rounded-lg border border-gray-100 text-sm">
-                      <p className="font-bold text-brand-600 text-xs mb-1">{isBangla ? step.stageBn : step.stageEn}</p>
-                      <p className="text-gray-600">{isBangla ? step.detailBn : step.detailEn}</p>
-                    </div>
-                  ))}
-                  <Button variant="ghost" size="sm" className="w-full text-gray-500" onClick={() => setShowFullSchedule(false)}>
-                    {isBangla ? 'লুকান' : 'Hide Schedule'}
-                  </Button>
-                </div>
-              )}
-            </div>
-          ) : (
-            <div className="text-center text-gray-400">
-               <Calculator size={48} className="mx-auto mb-2 opacity-20" />
-               <p className="text-sm">{isBangla ? 'তথ্য দিয়ে হিসাব করুন' : 'Enter data to calculate'}</p>
-            </div>
-          )}
+             {/* Pagination / Load More Button */}
+             <div className="p-4 bg-gray-50 text-center border-t border-gray-100">
+                <button 
+                  onClick={() => setShowFullSchedule(!showFullSchedule)}
+                  className="inline-flex items-center gap-2 text-sm font-bold text-brand-600 hover:text-brand-700 transition-colors"
+                >
+                  {showFullSchedule 
+                    ? (isBangla ? 'কম দেখান' : 'Show Less') 
+                    : (isBangla ? 'আরও ধাপ দেখুন' : 'Show Full Schedule')}
+                  {showFullSchedule ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
+                </button>
+             </div>
+          </div>
         </div>
-      </div>
+      )}
     </div>
   );
 

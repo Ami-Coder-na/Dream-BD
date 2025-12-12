@@ -5,7 +5,7 @@ import {
   Bus, Trash2, Fish, AlertOctagon, CheckCircle, Star, Sparkles,
   ArrowRight, MapPin, Calendar, ShieldAlert, TrendingUp, CloudRain, Phone, Activity,
   UserPlus, LayoutGrid, Smile, Building2, Landmark, Truck, Globe,
-  CloudSun, Stethoscope, Recycle
+  CloudSun, Stethoscope, Recycle, Navigation, Clock, Fuel, ChevronDown
 } from 'lucide-react';
 import { Button } from './ui/Button';
 import { User, AppModule, Notification } from '../types';
@@ -44,6 +44,12 @@ export const LandingPage: React.FC<Props> = ({
   // Rotating Headline State
   const [currentHeadlineIndex, setCurrentHeadlineIndex] = useState(0);
 
+  // Distance Calculator State
+  const [fromDistrict, setFromDistrict] = useState('');
+  const [toDistrict, setToDistrict] = useState('');
+  const [distanceResult, setDistanceResult] = useState<{km: number, time: string, fare: number} | null>(null);
+  const [calculating, setCalculating] = useState(false);
+
   const headlines = [
     {
       bn: <>এক প্ল্যাটফর্মে <span className="text-brand-600">কৃষি, শিক্ষা, স্বাস্থ্য ও পরিবহন</span></>,
@@ -77,6 +83,28 @@ export const LandingPage: React.FC<Props> = ({
   const scrollToSection = (id: string) => {
     document.getElementById(id)?.scrollIntoView({ behavior: 'smooth' });
   };
+
+  const handleCalculateDistance = () => {
+    if (!fromDistrict || !toDistrict) return;
+    setCalculating(true);
+    setDistanceResult(null);
+
+    // Mock Calculation Logic based on string length mainly for demo variety
+    setTimeout(() => {
+      const baseDist = Math.abs(fromDistrict.length - toDistrict.length) * 50 + 120;
+      const hours = Math.floor(baseDist / 40); // Avg speed 40km/h
+      const mins = Math.round((baseDist % 40) * 1.5);
+      
+      setDistanceResult({
+        km: baseDist,
+        time: `${hours}h ${mins}m`,
+        fare: baseDist * 2.5 // Approx bus fare rate
+      });
+      setCalculating(false);
+    }, 800);
+  };
+
+  const districts = ['Dhaka', 'Chittagong', 'Sylhet', 'Rajshahi', 'Khulna', 'Barisal', 'Rangpur', 'Mymensingh', 'Comilla', 'Cox\'s Bazar'];
 
   return (
     <div className="min-h-screen bg-white font-sans text-gray-900 flex flex-col">
@@ -451,7 +479,7 @@ export const LandingPage: React.FC<Props> = ({
         </div>
       </div>
 
-      {/* --- TRANSPORT SECTION --- */}
+      {/* --- TRANSPORT SECTION: DISTANCE CALCULATOR (NEW UI) --- */}
       <div id="transport" className="py-24 bg-indigo-900 text-white relative overflow-hidden">
         {/* Background Patterns */}
         <div className="absolute top-0 left-0 w-full h-full opacity-10 pointer-events-none">
@@ -462,47 +490,98 @@ export const LandingPage: React.FC<Props> = ({
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
            <div className="flex flex-col md:flex-row items-center justify-between gap-12">
               <div className="md:w-1/2">
-                <span className="text-indigo-300 font-bold tracking-wider uppercase text-sm mb-2 block">{isBangla ? 'পরিবহন ও যাতায়াত' : 'Transport & Travel'}</span>
+                <span className="text-indigo-300 font-bold tracking-wider uppercase text-sm mb-2 block">{isBangla ? 'ভ্রমণ ও দূরত্ব' : 'Travel & Distance'}</span>
                 <h2 className="text-3xl md:text-4xl font-bold mb-6">
-                  {isBangla ? 'সহজ টিকেট বুকিং ও লাইভ ট্র্যাকিং' : 'Easy Ticketing & Live Tracking'}
+                  {isBangla ? 'জেলা ভিত্তিক দূরত্ব ও রুট প্ল্যানিং' : 'District Distance Calculator & Route Info'}
                 </h2>
                 <p className="text-indigo-200 text-lg mb-8 leading-relaxed">
                   {isBangla 
-                    ? 'বাস, ট্রেন বা লঞ্চের টিকেট কাটুন ঘরে বসেই। আপনার পরিবহন এখন কোথায় আছে তা ম্যাপে দেখুন।'
-                    : 'Book Bus, Train or Launch tickets from home. Track your vehicle location in real-time on the map.'}
+                    ? 'বাংলাদেশের যেকোনো দুটি জেলার দূরত্ব জানুন এবং ভ্রমণের সম্ভাব্য সময় হিসাব করুন। আপনার যাত্রা হোক সহজ ও নিরাপদ।'
+                    : 'Calculate the distance between any two districts in Bangladesh. Estimate travel time and plan your journey efficiently.'}
                 </p>
                 <Button onClick={() => onModuleSelect(AppModule.TRANSPORT)} className="!bg-white !text-indigo-900 hover:!bg-indigo-50 border-none font-bold px-8">
-                  {isBangla ? 'টিকেট বুক করুন' : 'Book Tickets'}
+                  {isBangla ? 'বিস্তারিত ম্যাপ দেখুন' : 'View Full Map'}
                 </Button>
               </div>
               
-              <div className="md:w-1/2 w-full max-w-md bg-white rounded-2xl p-6 shadow-2xl">
-                 <div className="flex items-center gap-4 mb-6 border-b border-gray-100 pb-4">
-                   <div className="w-10 h-10 bg-indigo-100 rounded-full flex items-center justify-center text-indigo-600">
-                     <Bus size={20} />
-                   </div>
-                   <div>
-                     <p className="text-gray-900 font-bold">{isBangla ? 'ঢাকা থেকে চট্টগ্রাম' : 'Dhaka to Chittagong'}</p>
-                     <p className="text-xs text-gray-500">Hanif Enterprise • AC</p>
-                   </div>
-                   <div className="ml-auto text-indigo-600 font-bold">৳ 850</div>
-                 </div>
-                 <div className="space-y-3">
-                   <div className="flex justify-between text-sm">
-                     <span className="text-gray-500">{isBangla ? 'তারিখ' : 'Date'}</span>
-                     <span className="text-gray-900 font-medium">25 Oct, 2023</span>
-                   </div>
-                   <div className="flex justify-between text-sm">
-                     <span className="text-gray-500">{isBangla ? 'সময়' : 'Time'}</span>
-                     <span className="text-gray-900 font-medium">10:00 AM</span>
-                   </div>
-                   <div className="flex justify-between text-sm">
-                     <span className="text-gray-500">{isBangla ? 'সিট' : 'Seats'}</span>
-                     <span className="text-green-600 font-bold">12 Available</span>
-                   </div>
-                   <div className="h-2 bg-gray-100 rounded-full mt-2 overflow-hidden">
-                     <div className="h-full bg-green-500 w-3/4"></div>
-                   </div>
+              <div className="md:w-1/2 w-full max-w-md">
+                 <div className="bg-white rounded-2xl p-6 shadow-2xl text-gray-900 relative">
+                    <div className="flex items-center gap-3 mb-6 border-b border-gray-100 pb-4">
+                       <div className="w-10 h-10 bg-indigo-100 rounded-full flex items-center justify-center text-indigo-600">
+                         <Navigation size={20} />
+                       </div>
+                       <h3 className="font-bold text-lg">{isBangla ? 'দূরত্ব ক্যালকুলেটর' : 'Distance Calculator'}</h3>
+                    </div>
+
+                    <div className="space-y-4 relative">
+                       {/* Connector Line */}
+                       <div className="absolute left-[19px] top-10 bottom-10 w-0.5 bg-gray-200 z-0"></div>
+
+                       <div className="relative z-10">
+                          <label className="block text-xs font-bold text-gray-500 uppercase mb-1 ml-1">{isBangla ? 'কোথা থেকে' : 'From'}</label>
+                          <div className="flex items-center bg-gray-50 border border-gray-200 rounded-xl px-3 py-2.5 focus-within:ring-2 focus-within:ring-indigo-500 transition-all">
+                             <MapPin className="text-indigo-500 mr-3" size={18} />
+                             <select 
+                               className="bg-transparent w-full outline-none text-gray-800 font-medium appearance-none cursor-pointer"
+                               value={fromDistrict}
+                               onChange={(e) => setFromDistrict(e.target.value)}
+                             >
+                                <option value="">{isBangla ? 'জেলা নির্বাচন করুন' : 'Select District'}</option>
+                                {districts.map(d => <option key={d} value={d}>{d}</option>)}
+                             </select>
+                             <ChevronDown className="text-gray-400" size={16} />
+                          </div>
+                       </div>
+
+                       <div className="relative z-10">
+                          <label className="block text-xs font-bold text-gray-500 uppercase mb-1 ml-1">{isBangla ? 'কোথায় যাবেন' : 'To'}</label>
+                          <div className="flex items-center bg-gray-50 border border-gray-200 rounded-xl px-3 py-2.5 focus-within:ring-2 focus-within:ring-indigo-500 transition-all">
+                             <MapPin className="text-red-500 mr-3" size={18} />
+                             <select 
+                               className="bg-transparent w-full outline-none text-gray-800 font-medium appearance-none cursor-pointer"
+                               value={toDistrict}
+                               onChange={(e) => setToDistrict(e.target.value)}
+                             >
+                                <option value="">{isBangla ? 'জেলা নির্বাচন করুন' : 'Select District'}</option>
+                                {districts.map(d => <option key={d} value={d}>{d}</option>)}
+                             </select>
+                             <ChevronDown className="text-gray-400" size={16} />
+                          </div>
+                       </div>
+                    </div>
+
+                    {distanceResult ? (
+                      <div className="mt-6 animate-fade-in-up bg-indigo-50 border border-indigo-100 rounded-xl p-4">
+                         <div className="grid grid-cols-2 gap-4 text-center">
+                            <div>
+                               <p className="text-xs text-gray-500 uppercase font-bold">{isBangla ? 'দূরত্ব' : 'Distance'}</p>
+                               <p className="text-2xl font-bold text-indigo-700">{distanceResult.km} km</p>
+                            </div>
+                            <div>
+                               <p className="text-xs text-gray-500 uppercase font-bold">{isBangla ? 'সময়' : 'Time'}</p>
+                               <p className="text-2xl font-bold text-indigo-700">{distanceResult.time}</p>
+                            </div>
+                         </div>
+                         <div className="mt-3 pt-3 border-t border-indigo-100 flex justify-between items-center text-sm">
+                            <span className="text-gray-600 flex items-center gap-1"><Fuel size={14} /> {isBangla ? 'আনুমানিক ভাড়া' : 'Est. Bus Fare'}</span>
+                            <span className="font-bold text-gray-800">৳ {distanceResult.fare}</span>
+                         </div>
+                         <button 
+                           onClick={() => setDistanceResult(null)}
+                           className="w-full mt-3 text-xs text-indigo-600 hover:underline text-center"
+                         >
+                           {isBangla ? 'আবার হিসাব করুন' : 'Calculate Again'}
+                         </button>
+                      </div>
+                    ) : (
+                      <Button 
+                        onClick={handleCalculateDistance} 
+                        disabled={calculating || !fromDistrict || !toDistrict}
+                        className="w-full mt-6 bg-indigo-600 hover:bg-indigo-700 h-12 text-lg shadow-lg shadow-indigo-200"
+                      >
+                        {calculating ? (isBangla ? 'হিসাব হচ্ছে...' : 'Calculating...') : (isBangla ? 'দূরত্ব দেখুন' : 'Calculate Distance')}
+                      </Button>
+                    )}
                  </div>
               </div>
            </div>

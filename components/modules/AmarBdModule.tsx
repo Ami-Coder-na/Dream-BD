@@ -1,6 +1,6 @@
 
 import React, { useState, useMemo } from 'react';
-import { MapPin, ArrowRight, Search, Info, ChevronRight, X, Users, BookOpen, HeartPulse, Camera, Building2, Map, ChevronDown } from 'lucide-react';
+import { MapPin, ArrowRight, Search, Info, ChevronRight, X, Users, BookOpen, HeartPulse, Camera, Building2, Map, ChevronDown, Gem, Utensils, Shirt, Coffee, Leaf, Droplets, Gift } from 'lucide-react';
 import { Button } from '../ui/Button';
 import { AppModule } from '../../types';
 import { getOptimizedImageUrl } from '../utils/imageUtils';
@@ -22,6 +22,63 @@ interface DivisionData {
   nameEn: string;
   districts: DistrictData[];
 }
+
+// --- NEW DATA: District Branding (Famous For) ---
+const DISTRICT_BRANDING = {
+  dhaka: [
+    { nameBn: 'টাঙ্গাইল', nameEn: 'Tangail', productBn: 'তাঁতের শাড়ি ও চমচম', productEn: 'Handloom Saree & Chomchom', type: 'cloth' },
+    { nameBn: 'গাজীপুর', nameEn: 'Gazipur', productBn: 'কাঁঠাল ও পেয়ারা', productEn: 'Jackfruit & Guava', type: 'fruit' },
+    { nameBn: 'নরসিংদী', nameEn: 'Narsingdi', productBn: 'কলা ও তাঁত শিল্প', productEn: 'Banana & Loom Industry', type: 'fruit' },
+    { nameBn: 'মুন্সীগঞ্জ', nameEn: 'Munshiganj', productBn: 'আলু ও ভাগ্যকুলের মিষ্টি', productEn: 'Potato & Sweets', type: 'food' },
+    { nameBn: 'কিশোরগঞ্জ', nameEn: 'Kishoreganj', productBn: 'বালিশ মিষ্টি ও পনির', productEn: 'Balish Misti & Cheese', type: 'food' },
+    { nameBn: 'ঢাকা', nameEn: 'Dhaka', productBn: 'বেনারসি শাড়ি ও বাকরখানি', productEn: 'Benarosi Saree & Bakarkhani', type: 'cloth' },
+  ],
+  chattogram: [
+    { nameBn: 'কুমিল্লা', nameEn: 'Comilla', productBn: 'রসমলাই ও খাদি কাপড়', productEn: 'Rasmalai & Khadi Cloth', type: 'food' },
+    { nameBn: 'চাঁদপুর', nameEn: 'Chandpur', productBn: 'ইলিশ মাছ', productEn: 'Hilsa Fish', type: 'nature' },
+    { nameBn: 'ফেনী', nameEn: 'Feni', productBn: 'মহিষের ঘি', productEn: 'Buffalo Ghee', type: 'food' },
+    { nameBn: 'কক্সবাজার', nameEn: "Cox's Bazar", productBn: 'শুঁটকি ও লবণ', productEn: 'Dry Fish & Salt', type: 'food' },
+    { nameBn: 'রাঙ্গামাটি', nameEn: 'Rangamati', productBn: 'আনারস ও কাজুবাদাম', productEn: 'Pineapple & Cashew Nut', type: 'fruit' },
+    { nameBn: 'বান্দরবান', nameEn: 'Bandarban', productBn: 'পাহাড়ি তাঁত ও কফি', productEn: 'Hill Loom & Coffee', type: 'nature' },
+  ],
+  rajshahi: [
+    { nameBn: 'রাজশাহী', nameEn: 'Rajshahi', productBn: 'রেশম (সিল্ক) ও আম', productEn: 'Silk & Mango', type: 'cloth' },
+    { nameBn: 'বগুড়া', nameEn: 'Bogra', productBn: 'দই ও কটকটি', productEn: 'Curd (Doi) & Kotkoti', type: 'food' },
+    { nameBn: 'নাটোর', nameEn: 'Natore', productBn: 'কাঁচাগোল্লা', productEn: 'Kachagolla (Sweet)', type: 'food' },
+    { nameBn: 'পাবনা', nameEn: 'Pabna', productBn: 'ঘি ও হোসিয়ারি পণ্য', productEn: 'Ghee & Hosiery', type: 'food' },
+    { nameBn: 'নওগাঁ', nameEn: 'Naogaon', productBn: 'নকশী কাঁথা ও চাল', productEn: 'Nakshi Kantha & Rice', type: 'cloth' },
+    { nameBn: 'চাপাইনবাবগঞ্জ', nameEn: 'Chapainawabganj', productBn: 'ফজলির আম ও কলাই রুটি', productEn: 'Fazli Mango & Kalai Ruti', type: 'fruit' },
+  ],
+  khulna: [
+    { nameBn: 'খুলনা', nameEn: 'Khulna', productBn: 'চিংড়ি ও সুন্দরবনের মধু', productEn: 'Shrimp & Honey', type: 'nature' },
+    { nameBn: 'সাতক্ষীরা', nameEn: 'Satkhira', productBn: 'দুধের সন্দেশ ও আম', productEn: 'Milk Sandesh & Mango', type: 'food' },
+    { nameBn: 'যশোর', nameEn: 'Jessore', productBn: 'খেজুরের গুড় ও ফুল', productEn: 'Date Molasses & Flowers', type: 'nature' },
+    { nameBn: 'বাগেরহাট', nameEn: 'Bagerhat', productBn: 'নারিকেল ও চিংড়ি', productEn: 'Coconut & Shrimp', type: 'fruit' },
+    { nameBn: 'কুষ্টিয়া', nameEn: 'Kushtia', productBn: 'তিলের খাজা ও কুলফি', productEn: 'Sesame Khaja & Kulfi', type: 'food' },
+    { nameBn: 'চুয়াডাঙ্গা', nameEn: 'Chuadanga', productBn: 'পান ও ভুট্টা', productEn: 'Betel Leaf & Corn', type: 'nature' },
+  ],
+  barisal: [
+    { nameBn: 'বরিশাল', nameEn: 'Barisal', productBn: 'আমড়া ও পেয়ারা', productEn: 'Hog Plum & Guava', type: 'fruit' },
+    { nameBn: 'ঝালকাঠি', nameEn: 'Jhalokati', productBn: 'পেয়ারা ও শীতল পাটি', productEn: 'Guava & Shital Pati', type: 'craft' },
+    { nameBn: 'ভোলা', nameEn: 'Bhola', productBn: 'মহিষের দই ও নারিকেল', productEn: 'Buffalo Curd & Coconut', type: 'food' },
+    { nameBn: 'পিরোজপুর', nameEn: 'Pirojpur', productBn: 'নারিকেল ও সুপারি', productEn: 'Coconut & Betel Nut', type: 'fruit' },
+  ],
+  sylhet: [
+    { nameBn: 'সিলেট', nameEn: 'Sylhet', productBn: 'চা পাতা ও সাতকরা', productEn: 'Tea & Satkora (Citrus)', type: 'nature' },
+    { nameBn: 'মৌলভীবাজার', nameEn: 'Moulvibazar', productBn: 'চা ও আগর আতর', productEn: 'Tea & Agar Ator', type: 'nature' },
+    { nameBn: 'সুনামগঞ্জ', nameEn: 'Sunamganj', productBn: 'শুঁটকি ও মাছ', productEn: 'Dry Fish & Fish', type: 'food' },
+  ],
+  rangpur: [
+    { nameBn: 'রংপুর', nameEn: 'Rangpur', productBn: 'শতরঞ্জি ও তামাক', productEn: 'Shataranji & Tobacco', type: 'craft' },
+    { nameBn: 'দিনাজপুর', nameEn: 'Dinajpur', productBn: 'লিচু ও কাটারিভোগ চাল', productEn: 'Lychee & Kataribhog Rice', type: 'fruit' },
+    { nameBn: 'গাইবান্ধা', nameEn: 'Gaibandha', productBn: 'রসমঞ্জুরী', productEn: 'Rasmanjari (Sweet)', type: 'food' },
+  ],
+  mymensingh: [
+    { nameBn: 'ময়মনসিংহ', nameEn: 'Mymensingh', productBn: 'মুক্তাগাছার মন্ডা', productEn: 'Monda of Muktagacha', type: 'food' },
+    { nameBn: 'জামালপুর', nameEn: 'Jamalpur', productBn: 'নকশী কাঁথা', productEn: 'Nakshi Kantha', type: 'craft' },
+    { nameBn: 'নেত্রকোনা', nameEn: 'Netrokona', productBn: 'বালিশ মিষ্টি', productEn: 'Balish Sweet', type: 'food' },
+  ]
+};
 
 // Static data moved outside component to prevent reallocation on re-renders
 const tourismData: DivisionData[] = [
@@ -164,6 +221,9 @@ export const AmarBdModule: React.FC<Props> = ({ isBangla, onModuleSelect }) => {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedDistrictForDetails, setSelectedDistrictForDetails] = useState<{ district: DistrictData, divisionName: string } | null>(null);
   const [treeOpenDivision, setTreeOpenDivision] = useState<string | null>(null);
+  
+  // State for the new Branding Tree section
+  const [brandingDivision, setBrandingDivision] = useState<string>('dhaka');
 
   // Optimized filtering with useMemo
   const filteredList = useMemo(() => {
@@ -187,6 +247,111 @@ export const AmarBdModule: React.FC<Props> = ({ isBangla, onModuleSelect }) => {
 
     return districts;
   }, [activeDivision, searchQuery, isBangla]);
+
+  // Helper to get icon for branding type
+  const getBrandingIcon = (type: string) => {
+    switch(type) {
+      case 'food': return <Utensils size={14} className="text-orange-500" />;
+      case 'cloth': return <Shirt size={14} className="text-purple-500" />;
+      case 'fruit': return <Gem size={14} className="text-pink-500" />; // Used Gem for premium fruits look
+      case 'nature': return <Leaf size={14} className="text-green-500" />;
+      case 'craft': return <Gift size={14} className="text-blue-500" />;
+      default: return <Info size={14} className="text-gray-500" />;
+    }
+  };
+
+  const renderBrandingTree = () => {
+    const districts = DISTRICT_BRANDING[brandingDivision as keyof typeof DISTRICT_BRANDING] || [];
+    const divInfo = tourismData.find(d => d.id === brandingDivision);
+
+    return (
+      <div className="py-20 bg-emerald-50/50 relative overflow-hidden">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+          <div className="text-center mb-12">
+            <h2 className="text-3xl font-bold text-gray-900 mb-3 flex items-center justify-center gap-2">
+              <Gem className="text-emerald-600" />
+              {isBangla ? 'জেলা ব্র্যান্ডিং' : 'District Branding'}
+            </h2>
+            <p className="text-gray-500">{isBangla ? 'কোন জেলা কিসের জন্য বিখ্যাত? এক নজরে দেখুন।' : 'What is each district famous for? Explore at a glance.'}</p>
+          </div>
+
+          <div className="flex flex-col lg:flex-row gap-8">
+            {/* Left Controller: Division List */}
+            <div className="w-full lg:w-1/4 bg-white rounded-2xl shadow-sm border border-gray-100 p-2 h-fit">
+              <p className="text-xs font-bold text-gray-400 uppercase p-3">{isBangla ? 'বিভাগ নির্বাচন করুন' : 'Select Division'}</p>
+              <div className="space-y-1">
+                {tourismData.map(div => (
+                  <button
+                    key={div.id}
+                    onClick={() => setBrandingDivision(div.id)}
+                    className={`w-full text-left px-4 py-3 rounded-xl text-sm font-medium transition-all flex justify-between items-center ${
+                      brandingDivision === div.id 
+                        ? 'bg-emerald-600 text-white shadow-md' 
+                        : 'text-gray-600 hover:bg-emerald-50 hover:text-emerald-700'
+                    }`}
+                  >
+                    {isBangla ? div.nameBn : div.nameEn}
+                    {brandingDivision === div.id && <ChevronRight size={16} />}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Right Canvas: The Tree Visualization */}
+            <div className="w-full lg:w-3/4 min-h-[500px] flex items-center">
+               <div className="relative w-full">
+                  {/* Root Node: Division */}
+                  <div className="absolute left-0 top-1/2 -translate-y-1/2 z-20 hidden md:block">
+                     <div className="w-24 h-24 rounded-full bg-emerald-600 border-4 border-white shadow-xl flex items-center justify-center text-center text-white p-2 animate-pulse">
+                        <span className="font-bold text-sm leading-tight">
+                          {isBangla ? divInfo?.nameBn.replace(' বিভাগ', '') : divInfo?.nameEn.replace(' Division', '')}
+                        </span>
+                     </div>
+                  </div>
+
+                  {/* Connectors & Nodes Container */}
+                  <div className="md:pl-32 grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-6">
+                     {districts.map((item, index) => (
+                       <div key={index} className="relative group perspective-1000">
+                          {/* SVG Connector Line (Desktop Only) */}
+                          <svg className="absolute top-1/2 -left-32 w-32 h-20 -translate-y-1/2 hidden md:block pointer-events-none z-0" style={{ overflow: 'visible' }}>
+                             <path 
+                               d="M0,0 C60,0 40,0 120,0" 
+                               fill="none" 
+                               stroke="#d1fae5" 
+                               strokeWidth="2" 
+                               className="group-hover:stroke-emerald-400 transition-colors duration-500"
+                             />
+                             <circle cx="120" cy="0" r="3" fill="#10b981" />
+                          </svg>
+
+                          {/* District Node Card */}
+                          <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-100 hover:shadow-lg hover:border-emerald-200 transition-all duration-300 relative z-10 flex items-center gap-4 transform hover:-translate-y-1">
+                             <div className={`w-12 h-12 rounded-full flex items-center justify-center shrink-0 ${
+                               item.type === 'food' ? 'bg-orange-50' : 
+                               item.type === 'cloth' ? 'bg-purple-50' : 
+                               item.type === 'nature' ? 'bg-green-50' : 
+                               item.type === 'fruit' ? 'bg-pink-50' : 'bg-blue-50'
+                             }`}>
+                                {getBrandingIcon(item.type)}
+                             </div>
+                             <div>
+                                <h4 className="font-bold text-gray-800 text-lg">{isBangla ? item.nameBn : item.nameEn}</h4>
+                                <p className="text-sm text-emerald-600 font-medium">
+                                  {isBangla ? item.productBn : item.productEn}
+                                </p>
+                             </div>
+                          </div>
+                       </div>
+                     ))}
+                  </div>
+               </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  };
 
   return (
     <div className="bg-white min-h-screen animate-fade-in">
@@ -250,6 +415,9 @@ export const AmarBdModule: React.FC<Props> = ({ isBangla, onModuleSelect }) => {
           </div>
         </div>
       </div>
+
+      {/* NEW SECTION: District Branding Tree */}
+      {renderBrandingTree()}
 
       {/* Administrative Tree */}
       <div className="py-20 bg-white">
