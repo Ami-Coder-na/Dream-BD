@@ -5,7 +5,7 @@ import {
   Bus, Trash2, Fish, AlertOctagon, CheckCircle, Star, Sparkles,
   ArrowRight, MapPin, Calendar, ShieldAlert, TrendingUp, CloudRain, Phone, Activity,
   UserPlus, LayoutGrid, Smile, Building2, Landmark, Truck, Globe,
-  CloudSun, Stethoscope, Recycle, Navigation, Clock, Fuel, ChevronDown
+  CloudSun, Stethoscope, Recycle, Navigation, Clock, Fuel, ChevronDown, Camera
 } from 'lucide-react';
 import { Button } from './ui/Button';
 import { User, AppModule, Notification } from '../types';
@@ -711,6 +711,87 @@ export const LandingPage: React.FC<Props> = ({
                  {isBangla ? 'সতর্কবার্তা দেখুন' : 'Check Alerts'}
                </Button>
             </div>
+          </div>
+        </div>
+      </div>
+
+      {/* --- BEAUTIFUL BANGLADESH GALLERY SECTION --- */}
+      <div className="py-24 bg-white">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-16">
+            <span className="text-teal-600 font-bold tracking-wider uppercase text-sm mb-2 block">
+              {isBangla ? 'রূপসী বাংলা' : 'Beautiful Bangladesh'}
+            </span>
+            <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
+              {isBangla ? 'ছবির ক্যানভাসে বাংলাদেশ' : 'Capturing the Essence of Bengal'}
+            </h2>
+            <p className="text-lg text-gray-600 max-w-2xl mx-auto">
+              {isBangla 
+                ? 'প্রকৃতি, ঐতিহ্য এবং মানুষের জীবনের এক অনন্য মেলবন্ধন।' 
+                : 'A unique blend of nature, heritage, and vibrant life.'}
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+             {/* Image 1: Tea Garden */}
+             <div className="group relative h-72 rounded-2xl overflow-hidden cursor-pointer shadow-lg">
+               <img 
+                 src="https://images.unsplash.com/photo-1596895111956-bf1cf0599ce5" 
+                 alt="Sylhet Tea Garden" 
+                 className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" 
+               />
+               <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end p-6">
+                 <div className="text-white transform translate-y-4 group-hover:translate-y-0 transition-transform duration-300">
+                   <h4 className="font-bold text-lg">{isBangla ? 'সিলেটের চা বাগান' : 'Sylhet Tea Gardens'}</h4>
+                   <p className="text-sm text-gray-200 flex items-center gap-1"><MapPin size={14}/> Sylhet</p>
+                 </div>
+               </div>
+             </div>
+
+             {/* Image 2: Boats */}
+             <div className="group relative h-72 rounded-2xl overflow-hidden cursor-pointer shadow-lg lg:col-span-2">
+               <img 
+                 src="https://images.unsplash.com/photo-1628189873998-25f00e95a947" 
+                 alt="Riverine Life" 
+                 className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" 
+               />
+               <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end p-6">
+                 <div className="text-white transform translate-y-4 group-hover:translate-y-0 transition-transform duration-300">
+                   <h4 className="font-bold text-lg">{isBangla ? 'নদীমাতৃক বাংলাদেশ' : 'Riverine Bangladesh'}</h4>
+                   <p className="text-sm text-gray-200 flex items-center gap-1"><MapPin size={14}/> Barisal</p>
+                 </div>
+               </div>
+             </div>
+
+             {/* Image 3: Heritage */}
+             <div className="group relative h-72 rounded-2xl overflow-hidden cursor-pointer shadow-lg lg:col-span-2">
+               <img 
+                 src="https://images.unsplash.com/photo-1594196163273-5a02796fb322" 
+                 alt="Ahsan Manzil" 
+                 className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" 
+               />
+               <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end p-6">
+                 <div className="text-white transform translate-y-4 group-hover:translate-y-0 transition-transform duration-300">
+                   <h4 className="font-bold text-lg">{isBangla ? 'আহসান মঞ্জিল' : 'Ahsan Manzil'}</h4>
+                   <p className="text-sm text-gray-200 flex items-center gap-1"><MapPin size={14}/> Dhaka</p>
+                 </div>
+               </div>
+             </div>
+
+             {/* Image 4: Sundarbans */}
+             <div className="group relative h-72 rounded-2xl overflow-hidden cursor-pointer shadow-lg">
+               <img 
+                 src="https://images.unsplash.com/photo-1548013146-72479768bada" 
+                 alt="Sundarbans" 
+                 className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" 
+               />
+               <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end p-6">
+                 <div className="text-white transform translate-y-4 group-hover:translate-y-0 transition-transform duration-300">
+                   <h4 className="font-bold text-lg">{isBangla ? 'সুন্দরবন' : 'The Sundarbans'}</h4>
+                   <p className="text-sm text-gray-200 flex items-center gap-1"><MapPin size={14}/> Khulna</p>
+                 </div>
+               </div>
+             </div>
           </div>
         </div>
       </div>

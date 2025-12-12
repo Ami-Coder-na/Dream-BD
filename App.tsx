@@ -196,7 +196,7 @@ const App: React.FC = () => {
               case AppModule.BAZAR_SODAI: return <BazarSodaiModule isBangla={isBangla} />;
               case AppModule.CRAFT: return <CraftModule isBangla={isBangla} />;
               case AppModule.AGRI: return <AgriModule isBangla={isBangla} />;
-              case AppModule.EDU: return <EduModule isBangla={isBangla} />;
+              case AppModule.EDU: return <EduModule isBangla={isBangla} user={user} />;
               case AppModule.HEALTH: return <HealthModule isBangla={isBangla} />;
               case AppModule.TRANSPORT: return <TransportModule isBangla={isBangla} />;
               case AppModule.WASTE: return <WasteModule isBangla={isBangla} />;

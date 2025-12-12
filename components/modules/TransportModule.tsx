@@ -1,138 +1,409 @@
-import React, { useState } from 'react';
-import { Bus, MapPin, Search, ArrowRight, Navigation, Clock } from 'lucide-react';
+
+import React, { useState, useMemo } from 'react';
+import { 
+  Bus, Train, Ship, MapPin, Search, ArrowRight, Navigation, Clock, 
+  AlertTriangle, Shield, Phone, Truck, Ticket, Info, ExternalLink,
+  Siren, Users, Map, RefreshCw, ChevronDown, Filter
+} from 'lucide-react';
 import { Button } from '../ui/Button';
 
 interface Props {
   isBangla: boolean;
 }
 
+type TransportMode = 'bus' | 'train' | 'launch';
+type TransportTab = 'routes' | 'traffic' | 'safety' | 'logistics';
+
+// --- STATIC DATA (Optimized outside component) ---
+
+const ROUTES_DB = [
+  { id: 1, mode: 'bus', operator: 'Hanif Enterprise', route: 'Dhaka - Chattogram', dep: '10:00 AM', arr: '04:00 PM', price: '850-1200', type: 'AC/Non-AC', duration: '6h' },
+  { id: 2, mode: 'bus', operator: 'Ena Transport', route: 'Dhaka - Sylhet', dep: '11:30 AM', arr: '04:30 PM', price: '600-900', type: 'AC/Non-AC', duration: '5h' },
+  { id: 3, mode: 'train', operator: 'Subarna Express', route: 'Dhaka - Chattogram', dep: '03:00 PM', arr: '08:00 PM', price: '450-1100', type: 'Intercity', duration: '5h' },
+  { id: 4, mode: 'train', operator: 'Parabat Express', route: 'Dhaka - Sylhet', dep: '06:20 AM', arr: '01:00 PM', price: '380-900', type: 'Intercity', duration: '6.5h' },
+  { id: 5, mode: 'launch', operator: 'MV Sundarban 10', route: 'Dhaka - Barisal', dep: '09:00 PM', arr: '05:00 AM', price: '300-4500', type: 'Launch', duration: '8h' },
+  { id: 6, mode: 'launch', operator: 'Green Line Water', route: 'Dhaka - Barisal', dep: '08:00 AM', arr: '01:00 PM', price: '700-1000', type: 'Catamaran', duration: '5h' },
+];
+
+const TRAFFIC_ALERTS = [
+  { id: 1, locationBn: 'মহাখালী ফ্লাইওভার', locationEn: 'Mohakhali Flyover', status: 'jam', messageBn: 'তীব্র যানজট, ৩০ মিনিট দেরি হতে পারে।', messageEn: 'Heavy traffic, expect 30 min delay.', time: '10 mins ago' },
+  { id: 2, locationBn: 'ঢাকা-চট্টগ্রাম হাইওয়ে', locationEn: 'Dhaka-Ctg Highway', status: 'clear', messageBn: 'রাস্তা পরিষ্কার, স্বাভাবিক গতি।', messageEn: 'Road clear, normal speed.', time: '25 mins ago' },
+  { id: 3, locationBn: 'গুলিস্তান জিরো পয়েন্ট', locationEn: 'Gulistan Zero Point', status: 'diversion', messageBn: 'রাস্তা মেরামত চলছে, বিকল্প পথ ব্যবহার করুন।', messageEn: 'Road work, use alternative route.', time: '1 hour ago' },
+];
+
+const EMERGENCY_CONTACTS = [
+  { titleBn: 'জাতীয় জরুরি সেবা', titleEn: 'National Emergency', number: '999', icon: <Siren size={20}/>, color: 'bg-red-500' },
+  { titleBn: 'হাইওয়ে পুলিশ', titleEn: 'Highway Police', number: '01320-181888', icon: <Shield size={20}/>, color: 'bg-blue-600' },
+  { titleBn: 'ফায়ার সার্ভিস', titleEn: 'Fire Service', number: '16163', icon: <AlertTriangle size={20}/>, color: 'bg-orange-500' },
+];
+
+const COURIER_SERVICES = [
+  { id: 1, name: 'Sundarban Courier', type: 'Nationwide', contact: '09666-700700', areaBn: 'সমগ্র বাংলাদেশ', areaEn: 'All Bangladesh' },
+  { id: 2, name: 'Pathao Courier', type: 'E-commerce', contact: '09678-100800', areaBn: 'ঢাকা ও প্রধান শহর', areaEn: 'Dhaka & Major Cities' },
+  { id: 3, name: 'RedX', type: 'Logistics', contact: '09610-007339', areaBn: '৬৪ জেলা', areaEn: '64 Districts' },
+  { id: 4, name: 'SA Paribahan', type: 'Parcel', contact: '02-9332052', areaBn: 'সমগ্র বাংলাদেশ', areaEn: 'All Bangladesh' },
+];
+
 export const TransportModule: React.FC<Props> = ({ isBangla }) => {
-  const [activeTab, setActiveTab] = useState<'bus' | 'train' | 'launch'>('bus');
+  const [activeTab, setActiveTab] = useState<TransportTab>('routes');
+  const [selectedMode, setSelectedMode] = useState<TransportMode>('bus');
+  const [fromLocation, setFromLocation] = useState('Dhaka');
+  const [toLocation, setToLocation] = useState('');
+  const [isSearching, setIsSearching] = useState(false);
 
-  const routes = [
-    { id: 1, operator: 'Hanif Enterprise', from: 'Dhaka', to: 'Chittagong', time: '10:00 AM', price: 850, type: 'AC', seats: 12 },
-    { id: 2, operator: 'Ena Transport', from: 'Dhaka', to: 'Sylhet', time: '11:30 AM', price: 600, type: 'Non-AC', seats: 5 },
-    { id: 3, operator: 'Nabil Paribahan', from: 'Dhaka', to: 'Rangpur', time: '09:15 PM', price: 1100, type: 'AC Scania', seats: 20 },
-  ];
+  // Search Logic
+  const filteredRoutes = useMemo(() => {
+    if (!toLocation) return ROUTES_DB.filter(r => r.mode === selectedMode).slice(0, 3);
+    
+    return ROUTES_DB.filter(r => 
+      r.mode === selectedMode && 
+      (r.route.toLowerCase().includes(fromLocation.toLowerCase()) || 
+       r.route.toLowerCase().includes(toLocation.toLowerCase()))
+    );
+  }, [selectedMode, fromLocation, toLocation]);
 
-  return (
-    <div className="space-y-6 animate-fade-in">
-      {/* Search Box Card */}
-      <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
-        <div className="flex gap-4 border-b border-gray-100 pb-4 mb-6 overflow-x-auto">
-          {['bus', 'train', 'launch'].map((mode) => (
-             <button 
-               key={mode}
-               onClick={() => setActiveTab(mode as any)}
-               className={`flex items-center gap-2 px-6 py-2 rounded-full capitalize font-medium transition-colors whitespace-nowrap ${
-                 activeTab === mode 
-                   ? 'bg-indigo-600 text-white shadow-md' 
-                   : 'bg-gray-50 text-gray-600 hover:bg-gray-100'
-               }`}
-             >
-               {mode === 'bus' && <Bus size={18} />}
-               {mode === 'train' && <div className="text-lg">🚂</div>}
-               {mode === 'launch' && <div className="text-lg">🚢</div>}
-               {isBangla 
-                 ? (mode === 'bus' ? 'বাস' : mode === 'train' ? 'ট্রেন' : 'লঞ্চ') 
-                 : mode}
-             </button>
+  const handleSearch = () => {
+    setIsSearching(true);
+    setTimeout(() => setIsSearching(false), 800); // Simulate API call
+  };
+
+  // --- RENDER FUNCTIONS ---
+
+  const renderRouteFinder = () => (
+    <div className="space-y-8 animate-fade-in">
+      {/* Search Box */}
+      <div className="bg-indigo-900 rounded-3xl p-6 md:p-8 text-white shadow-xl relative overflow-hidden">
+        <div className="absolute top-0 right-0 w-64 h-64 bg-white/5 rounded-full -mr-16 -mt-16 blur-3xl pointer-events-none"></div>
+        
+        <h2 className="text-2xl font-bold mb-6 relative z-10">
+          {isBangla ? 'রুট এবং ভাড়া খুঁজুন' : 'Find Routes & Fares'}
+        </h2>
+
+        {/* Mode Selector */}
+        <div className="flex gap-4 mb-6 relative z-10 overflow-x-auto pb-2">
+          {[
+            { id: 'bus', icon: <Bus />, labelBn: 'বাস', labelEn: 'Bus' },
+            { id: 'train', icon: <Train />, labelBn: 'ট্রেন', labelEn: 'Train' },
+            { id: 'launch', icon: <Ship />, labelBn: 'লঞ্চ', labelEn: 'Launch' },
+          ].map(m => (
+            <button
+              key={m.id}
+              onClick={() => setSelectedMode(m.id as TransportMode)}
+              className={`flex items-center gap-2 px-5 py-3 rounded-xl font-bold transition-all whitespace-nowrap ${
+                selectedMode === m.id 
+                  ? 'bg-white text-indigo-900 shadow-lg scale-105' 
+                  : 'bg-indigo-800/50 text-indigo-200 hover:bg-indigo-700'
+              }`}
+            >
+              {m.icon} {isBangla ? m.labelBn : m.labelEn}
+            </button>
           ))}
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-7 gap-4 items-end">
-          <div className="md:col-span-3">
-             <label className="block text-xs font-bold text-gray-500 uppercase mb-1">
-               {isBangla ? 'কোথা থেকে' : 'From'}
-             </label>
-             <div className="flex items-center bg-gray-50 border border-gray-200 rounded-xl px-4 py-3">
-               <MapPin className="text-indigo-500 mr-2" size={20} />
-               <input type="text" defaultValue="Dhaka" className="bg-transparent w-full outline-none font-semibold text-gray-800" />
-             </div>
-          </div>
-          
-          <div className="hidden md:flex justify-center pb-3 text-gray-400">
-            <ArrowRight />
+        {/* Inputs */}
+        <div className="grid grid-cols-1 md:grid-cols-12 gap-4 relative z-10 bg-white/10 p-2 rounded-2xl">
+          <div className="md:col-span-5 flex items-center bg-white rounded-xl px-4 py-3">
+            <div className="p-2 bg-indigo-50 rounded-full mr-3 text-indigo-600"><MapPin size={20} /></div>
+            <div className="flex-1">
+              <label className="block text-xs text-gray-400 font-bold uppercase">{isBangla ? 'কোথা থেকে' : 'From'}</label>
+              <input 
+                type="text" 
+                value={fromLocation}
+                onChange={(e) => setFromLocation(e.target.value)}
+                className="w-full text-gray-900 font-bold outline-none bg-transparent"
+              />
+            </div>
           </div>
 
-          <div className="md:col-span-3">
-             <label className="block text-xs font-bold text-gray-500 uppercase mb-1">
-               {isBangla ? 'কোথায় যাবেন' : 'To'}
-             </label>
-             <div className="flex items-center bg-gray-50 border border-gray-200 rounded-xl px-4 py-3">
-               <MapPin className="text-gray-400 mr-2" size={20} />
-               <input type="text" placeholder={isBangla ? 'গন্তব্য লিখুন' : 'Enter Destination'} className="bg-transparent w-full outline-none text-gray-800" />
-             </div>
+          <div className="md:col-span-1 flex items-center justify-center">
+            <div className="p-2 bg-indigo-500 rounded-full text-white shadow-lg rotate-90 md:rotate-0">
+              <ArrowRight size={20} />
+            </div>
+          </div>
+
+          <div className="md:col-span-5 flex items-center bg-white rounded-xl px-4 py-3">
+            <div className="p-2 bg-indigo-50 rounded-full mr-3 text-indigo-600"><Navigation size={20} /></div>
+            <div className="flex-1">
+              <label className="block text-xs text-gray-400 font-bold uppercase">{isBangla ? 'কোথায় যাবেন' : 'To'}</label>
+              <input 
+                type="text" 
+                placeholder={isBangla ? 'গন্তব্য লিখুন' : 'Enter Destination'}
+                value={toLocation}
+                onChange={(e) => setToLocation(e.target.value)}
+                className="w-full text-gray-900 font-bold outline-none bg-transparent placeholder-gray-300"
+              />
+            </div>
+          </div>
+
+          <div className="md:col-span-1">
+             <button 
+               onClick={handleSearch}
+               className="w-full h-full bg-indigo-500 hover:bg-indigo-400 text-white rounded-xl flex items-center justify-center shadow-lg transition-colors"
+             >
+               {isSearching ? <RefreshCw className="animate-spin" /> : <Search />}
+             </button>
           </div>
         </div>
-
-        <Button className="w-full mt-6 bg-indigo-600 hover:bg-indigo-700 h-12 text-lg">
-          {isBangla ? 'সার্চ করুন' : 'Search Routes'}
-        </Button>
       </div>
 
-      {/* Available Routes */}
+      {/* Results */}
       <div>
-        <h3 className="font-bold text-gray-800 mb-4 ml-1">
-          {isBangla ? 'জনপ্রিয় রুটসমূহ' : 'Available Routes Today'}
+        <h3 className="text-lg font-bold text-gray-800 mb-4 flex items-center gap-2">
+          <Ticket size={20} className="text-indigo-600" />
+          {isBangla ? 'উপলব্ধ টিকেট ও সময়সূচী' : 'Available Schedules & Tickets'}
         </h3>
-        <div className="space-y-4">
-          {routes.map(route => (
-            <div key={route.id} className="bg-white p-5 rounded-xl shadow-sm border border-gray-100 hover:border-indigo-100 transition-all flex flex-col md:flex-row justify-between md:items-center gap-4">
-              <div className="flex items-center gap-4">
-                <div className="w-12 h-12 bg-indigo-50 rounded-lg flex items-center justify-center text-indigo-600">
-                  <Bus />
-                </div>
-                <div>
-                  <h4 className="font-bold text-gray-900">{route.operator}</h4>
-                  <div className="flex items-center gap-2 text-sm text-gray-500 mt-1">
-                    <span className="font-medium text-gray-700">{route.type}</span>
-                    <span>•</span>
-                    <span className="flex items-center gap-1"><Clock size={12} /> {route.time}</span>
+        
+        <div className="grid grid-cols-1 gap-4">
+          {filteredRoutes.length > 0 ? (
+            filteredRoutes.map((route) => (
+              <div key={route.id} className="bg-white p-5 rounded-2xl shadow-sm border border-gray-100 hover:shadow-md transition-all flex flex-col md:flex-row justify-between items-center gap-4 group">
+                <div className="flex items-center gap-4 w-full md:w-auto">
+                  <div className="w-14 h-14 bg-indigo-50 rounded-2xl flex items-center justify-center text-indigo-600 text-xl font-bold group-hover:bg-indigo-600 group-hover:text-white transition-colors">
+                    {route.mode === 'bus' && <Bus />}
+                    {route.mode === 'train' && <Train />}
+                    {route.mode === 'launch' && <Ship />}
+                  </div>
+                  <div>
+                    <h4 className="font-bold text-lg text-gray-900">{route.operator}</h4>
+                    <div className="flex items-center gap-3 text-sm text-gray-500 mt-1">
+                      <span className="bg-gray-100 px-2 py-0.5 rounded text-xs font-semibold">{route.type}</span>
+                      <span className="flex items-center gap-1"><Clock size={12}/> {route.duration}</span>
+                    </div>
                   </div>
                 </div>
-              </div>
 
-              <div className="flex flex-col md:items-end">
-                <div className="flex items-center gap-2 text-gray-600 text-sm font-medium mb-1">
-                  <span>{route.from}</span>
-                  <ArrowRight size={14} />
-                  <span>{route.to}</span>
-                </div>
-                <div className="text-xs text-green-600 bg-green-50 px-2 py-0.5 rounded w-fit">
-                   {route.seats} {isBangla ? 'টি সিট বাকি' : 'Seats Left'}
+                <div className="flex items-center gap-8 w-full md:w-auto justify-between md:justify-end border-t md:border-t-0 pt-4 md:pt-0 border-gray-100">
+                  <div className="text-center md:text-right">
+                    <p className="text-xs text-gray-400 font-bold uppercase">{isBangla ? 'সময়' : 'Time'}</p>
+                    <p className="font-bold text-gray-800">{route.dep} - {route.arr}</p>
+                  </div>
+                  <div className="text-center md:text-right">
+                    <p className="text-xs text-gray-400 font-bold uppercase">{isBangla ? 'ভাড়া' : 'Fare'}</p>
+                    <p className="font-bold text-indigo-600 text-lg">৳ {route.price}</p>
+                  </div>
+                  <Button size="sm" className="bg-indigo-600 hover:bg-indigo-700 shadow-lg shadow-indigo-200">
+                    {isBangla ? 'বুক করুন' : 'Book Now'} <ExternalLink size={14} className="ml-1" />
+                  </Button>
                 </div>
               </div>
+            ))
+          ) : (
+            <div className="text-center py-10 text-gray-500 bg-gray-50 rounded-2xl">
+              {isBangla ? 'কোন রুট পাওয়া যায়নি।' : 'No routes found.'}
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
 
-              <div className="flex items-center justify-between md:justify-end gap-6 border-t md:border-t-0 pt-4 md:pt-0 mt-2 md:mt-0">
-                <span className="text-xl font-bold text-indigo-700">৳ {route.price}</span>
-                <Button size="sm" className="bg-indigo-600">
-                   {isBangla ? 'বুক করুন' : 'Book Now'}
-                </Button>
+  const renderTraffic = () => (
+    <div className="space-y-6 animate-fade-in">
+      <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
+        <h3 className="text-xl font-bold text-gray-900 mb-6 flex items-center gap-2">
+          <Map className="text-indigo-600" />
+          {isBangla ? 'লাইভ ট্রাফিক আপডেট' : 'Live Traffic Updates'}
+        </h3>
+        
+        {/* Mock Map Placeholder */}
+        <div className="w-full h-64 bg-gray-100 rounded-xl relative overflow-hidden mb-6 flex items-center justify-center group cursor-pointer">
+           <div className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1477959858617-67f85cf4f1df?auto=format&fit=crop&q=80&w=1000')] bg-cover bg-center opacity-40 group-hover:opacity-50 transition-opacity"></div>
+           <div className="bg-white/90 backdrop-blur px-6 py-3 rounded-full font-bold text-gray-800 shadow-lg z-10 flex items-center gap-2">
+             <Navigation size={18} className="text-indigo-600" />
+             {isBangla ? 'ম্যাপ দেখতে ক্লিক করুন' : 'Click to View Live Map'}
+           </div>
+        </div>
+
+        <div className="space-y-4">
+          {TRAFFIC_ALERTS.map(alert => (
+            <div key={alert.id} className={`p-4 rounded-xl border-l-4 flex gap-4 items-start ${
+              alert.status === 'jam' ? 'bg-red-50 border-red-500' : 
+              alert.status === 'clear' ? 'bg-green-50 border-green-500' : 'bg-orange-50 border-orange-500'
+            }`}>
+              <div className={`p-2 rounded-full shrink-0 ${
+                alert.status === 'jam' ? 'bg-red-100 text-red-600' : 
+                alert.status === 'clear' ? 'bg-green-100 text-green-600' : 'bg-orange-100 text-orange-600'
+              }`}>
+                {alert.status === 'jam' ? <AlertTriangle size={20} /> : alert.status === 'clear' ? <Navigation size={20} /> : <Info size={20} />}
+              </div>
+              <div className="flex-1">
+                <div className="flex justify-between items-start">
+                  <h4 className="font-bold text-gray-900">{isBangla ? alert.locationBn : alert.locationEn}</h4>
+                  <span className="text-xs text-gray-500">{alert.time}</span>
+                </div>
+                <p className="text-sm text-gray-600 mt-1">{isBangla ? alert.messageBn : alert.messageEn}</p>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+
+  const renderSafety = () => (
+    <div className="space-y-8 animate-fade-in">
+      {/* Emergency Numbers */}
+      <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
+        <h3 className="text-xl font-bold text-gray-900 mb-6">
+          {isBangla ? 'জরুরি যোগাযোগ' : 'Emergency Contacts'}
+        </h3>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          {EMERGENCY_CONTACTS.map((contact, idx) => (
+            <div key={idx} className="bg-gray-50 p-5 rounded-2xl border border-gray-100 hover:shadow-md transition-all flex items-center gap-4 group">
+              <div className={`w-12 h-12 rounded-full flex items-center justify-center text-white ${contact.color} shadow-lg group-hover:scale-110 transition-transform`}>
+                {contact.icon}
+              </div>
+              <div>
+                <p className="text-xs font-bold text-gray-500 uppercase">{isBangla ? contact.titleBn : contact.titleEn}</p>
+                <a href={`tel:${contact.number}`} className="text-2xl font-bold text-gray-900 hover:text-indigo-600 transition-colors">
+                  {contact.number}
+                </a>
               </div>
             </div>
           ))}
         </div>
       </div>
 
-      {/* Live Tracking Promo */}
-      <div className="bg-gradient-to-r from-gray-900 to-gray-800 rounded-2xl p-6 text-white flex justify-between items-center overflow-hidden relative">
-        <div className="relative z-10">
-          <h3 className="text-xl font-bold mb-2">
-            {isBangla ? 'বাস ট্র্যাকিং' : 'Live Bus Tracking'}
+      {/* Safety Guidelines */}
+      <div className="bg-orange-50 p-6 rounded-2xl border border-orange-100">
+        <h3 className="text-lg font-bold text-orange-900 mb-4 flex items-center gap-2">
+          <Shield size={20} />
+          {isBangla ? 'নিরাপত্তা নির্দেশিকা (নারী ও শিশু)' : 'Safety Guidelines (Women & Children)'}
+        </h3>
+        <ul className="space-y-3">
+          {[
+            isBangla ? 'রাতের বেলা পরিচিত পরিবহন ব্যবহার করার চেষ্টা করুন।' : 'Try to use familiar transport at night.',
+            isBangla ? 'লাইভ লোকেশন পরিবারের সাথে শেয়ার করুন।' : 'Share live location with family.',
+            isBangla ? 'যেকোনো বিপদে ৯৯৯ এ কল করুন বা প্যানিক বাটন চাপুন।' : 'Call 999 or press panic button in emergency.',
+            isBangla ? 'সন্দেহজনক আচরণ দেখলে চালক বা হেল্পারকে জানান।' : 'Report suspicious behavior to driver or helper.'
+          ].map((tip, i) => (
+            <li key={i} className="flex items-start gap-3 bg-white p-3 rounded-lg text-sm text-gray-700 shadow-sm">
+              <div className="w-1.5 h-1.5 rounded-full bg-orange-500 mt-1.5 shrink-0"></div>
+              {tip}
+            </li>
+          ))}
+        </ul>
+      </div>
+    </div>
+  );
+
+  const renderLogistics = () => (
+    <div className="space-y-6 animate-fade-in">
+      <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
+        <div className="flex flex-col md:flex-row justify-between items-center gap-4 mb-6">
+          <h3 className="text-xl font-bold text-gray-900 flex items-center gap-2">
+            <Truck className="text-indigo-600" />
+            {isBangla ? 'পণ্য পরিবহন ও কুরিয়ার' : 'Logistics & Courier Directory'}
           </h3>
-          <p className="text-gray-400 text-sm max-w-xs mb-4">
-            {isBangla 
-              ? 'আপনার বাস এখন কোথায় আছে তা ম্যাপে দেখুন সরাসরি।' 
-              : 'Track your bus location in real-time on the map.'}
-          </p>
-          <Button variant="outline" size="sm" className="border-gray-600 text-white hover:bg-white/10">
-             <Navigation size={16} className="mr-2" />
-             {isBangla ? 'ট্র্যাক করুন' : 'Track Now'}
+          <Button variant="outline" size="sm" className="flex items-center gap-2">
+            <Filter size={16} /> {isBangla ? 'ফিল্টার' : 'Filter'}
           </Button>
         </div>
-        <div className="absolute right-0 top-0 h-full w-1/3 bg-indigo-600/20 skew-x-12"></div>
-        <MapPin size={100} className="text-white/10 absolute right-4 bottom-[-20px]" />
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {COURIER_SERVICES.map(courier => (
+            <div key={courier.id} className="border border-gray-200 p-5 rounded-xl hover:border-indigo-300 hover:bg-indigo-50/30 transition-all group">
+              <div className="flex justify-between items-start mb-2">
+                <h4 className="font-bold text-lg text-gray-900">{courier.name}</h4>
+                <span className="text-xs font-bold bg-gray-100 text-gray-600 px-2 py-1 rounded">{courier.type}</span>
+              </div>
+              
+              <div className="space-y-2 text-sm text-gray-600 mb-4">
+                <p className="flex items-center gap-2">
+                  <MapPin size={14} className="text-indigo-500" />
+                  {isBangla ? `সার্ভিস এরিয়া: ${courier.areaBn}` : `Area: ${courier.areaEn}`}
+                </p>
+                <p className="flex items-center gap-2">
+                  <Phone size={14} className="text-indigo-500" />
+                  {courier.contact}
+                </p>
+              </div>
+
+              <div className="flex gap-2">
+                <Button size="sm" className="flex-1 bg-indigo-600 hover:bg-indigo-700">
+                  {isBangla ? 'কল করুন' : 'Call Now'}
+                </Button>
+                <Button size="sm" variant="outline" className="flex-1">
+                  {isBangla ? 'রেট চার্ট' : 'Rate Chart'}
+                </Button>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+
+  return (
+    <div className="bg-indigo-50/30 min-h-screen py-12 px-4 sm:px-6 lg:px-8">
+      <div className="max-w-6xl mx-auto">
+        
+        {/* Header */}
+        <div className="text-center mb-10">
+          <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-indigo-100 text-indigo-700 text-sm font-bold mb-4 border border-indigo-200">
+            <Navigation size={16} />
+            {isBangla ? 'স্মার্ট পরিবহন সেবা' : 'Smart Transport Services'}
+          </div>
+          <h1 className="text-4xl font-bold text-gray-900 mb-4">
+            {isBangla ? 'পরিবহন ও যোগাযোগ' : 'Transport & Communication'}
+          </h1>
+          <p className="text-gray-500 max-w-2xl mx-auto">
+            {isBangla 
+              ? 'বাস, ট্রেন ও লঞ্চের সময়সূচী জানুন, টিকেট কাটুন এবং নিরাপদ ভ্রমণ নিশ্চিত করুন।' 
+              : 'Find schedules, book tickets, check traffic, and ensure safe travel across Bangladesh.'}
+          </p>
+        </div>
+
+        {/* Navigation Tabs */}
+        <div className="flex justify-center mb-10">
+          <div className="bg-white p-1.5 rounded-2xl shadow-sm border border-gray-100 flex flex-wrap justify-center gap-1">
+            <button 
+              onClick={() => setActiveTab('routes')}
+              className={`px-5 py-2.5 rounded-xl text-sm font-bold transition-all flex items-center gap-2 ${
+                activeTab === 'routes' ? 'bg-indigo-600 text-white shadow-md' : 'text-gray-600 hover:bg-gray-50'
+              }`}
+            >
+              <Search size={16} />
+              {isBangla ? 'রুট ও টিকেট' : 'Routes & Tickets'}
+            </button>
+            <button 
+              onClick={() => setActiveTab('traffic')}
+              className={`px-5 py-2.5 rounded-xl text-sm font-bold transition-all flex items-center gap-2 ${
+                activeTab === 'traffic' ? 'bg-indigo-600 text-white shadow-md' : 'text-gray-600 hover:bg-gray-50'
+              }`}
+            >
+              <AlertTriangle size={16} />
+              {isBangla ? 'ট্রাফিক অ্যালার্ট' : 'Traffic Alerts'}
+            </button>
+            <button 
+              onClick={() => setActiveTab('safety')}
+              className={`px-5 py-2.5 rounded-xl text-sm font-bold transition-all flex items-center gap-2 ${
+                activeTab === 'safety' ? 'bg-indigo-600 text-white shadow-md' : 'text-gray-600 hover:bg-gray-50'
+              }`}
+            >
+              <Shield size={16} />
+              {isBangla ? 'নিরাপত্তা' : 'Safety'}
+            </button>
+            <button 
+              onClick={() => setActiveTab('logistics')}
+              className={`px-5 py-2.5 rounded-xl text-sm font-bold transition-all flex items-center gap-2 ${
+                activeTab === 'logistics' ? 'bg-indigo-600 text-white shadow-md' : 'text-gray-600 hover:bg-gray-50'
+              }`}
+            >
+              <Truck size={16} />
+              {isBangla ? 'কুরিয়ার' : 'Courier'}
+            </button>
+          </div>
+        </div>
+
+        {/* Content Area */}
+        <div className="min-h-[400px]">
+          {activeTab === 'routes' && renderRouteFinder()}
+          {activeTab === 'traffic' && renderTraffic()}
+          {activeTab === 'safety' && renderSafety()}
+          {activeTab === 'logistics' && renderLogistics()}
+        </div>
+
       </div>
     </div>
   );
