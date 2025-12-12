@@ -869,6 +869,7 @@ export const LandingPage: React.FC<Props> = ({
         isBangla={isBangla} 
         toggleLanguage={toggleLanguage} 
         onNavigateHome={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+        onModuleSelect={onModuleSelect}
       />
     </div>
   );

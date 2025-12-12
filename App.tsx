@@ -27,6 +27,7 @@ const WasteModule = lazy(() => import('./components/modules/WasteModule').then(m
 const FisheryModule = lazy(() => import('./components/modules/FisheryModule').then(module => ({ default: module.FisheryModule })));
 const DisasterModule = lazy(() => import('./components/modules/DisasterModule').then(module => ({ default: module.DisasterModule })));
 const ProfilePage = lazy(() => import('./components/ProfilePage').then(module => ({ default: module.ProfilePage })));
+const AdminModule = lazy(() => import('./components/modules/AdminModule').then(module => ({ default: module.AdminModule })));
 
 const LoadingFallback = () => (
   <div className="min-h-screen flex items-center justify-center bg-gray-50">
@@ -188,6 +189,7 @@ const App: React.FC = () => {
                   );
                 }
                 return <ProfilePage user={user} onUpdateUser={handleUpdateUser} isBangla={isBangla} />;
+              case AppModule.ADMIN: return <AdminModule isBangla={isBangla} onExit={handleNavigateHome} />;
               case AppModule.JOB: return <JobModule isBangla={isBangla} />;
               case AppModule.BLOG: return <BlogModule isBangla={isBangla} />;
               case AppModule.CONTACT: return <ContactModule isBangla={isBangla} />;
@@ -234,6 +236,17 @@ const App: React.FC = () => {
     );
   }
 
+  // Admin module has its own layout, so we render it without the standard header/footer
+  if (activeModule === AppModule.ADMIN) {
+    return (
+      <ErrorBoundary>
+        <Suspense fallback={<LoadingFallback />}>
+          <AdminModule isBangla={isBangla} onExit={handleNavigateHome} />
+        </Suspense>
+      </ErrorBoundary>
+    );
+  }
+
   return (
     <ErrorBoundary>
       <div className="min-h-screen bg-white font-sans text-gray-900 flex flex-col">
@@ -265,6 +278,7 @@ const App: React.FC = () => {
           isBangla={isBangla} 
           toggleLanguage={() => setIsBangla(!isBangla)} 
           onNavigateHome={handleNavigateHome}
+          onModuleSelect={handleModuleSelect}
         />
         <GeminiAssistant currentModule={activeModule as AppModule} isBangla={isBangla} />
       </div>

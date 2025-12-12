@@ -1,4 +1,3 @@
-
 import React, { useState, useMemo, useEffect } from 'react';
 import { 
   BookOpen, MonitorPlay, GraduationCap, BrainCircuit, Search, 
@@ -377,7 +376,7 @@ export const EduModule: React.FC<Props> = ({ isBangla, user }) => {
               <div className="bg-white rounded-3xl p-6 shadow-lg border border-blue-100 text-center relative overflow-hidden">
                 <div className="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-blue-500 to-indigo-600"></div>
                 <div className="w-20 h-20 bg-blue-50 rounded-full flex items-center justify-center mx-auto mb-4 text-blue-600">
-                  {React.cloneElement(selectedCareer.icon as React.ReactElement, { size: 40 })}
+                  {React.cloneElement(selectedCareer.icon as React.ReactElement<any>, { size: 40 })}
                 </div>
                 <h2 className="text-2xl font-bold text-gray-900 mb-2">{isBangla ? selectedCareer.titleBn : selectedCareer.titleEn}</h2>
                 <p className="text-gray-600 text-sm mb-6">{isBangla ? selectedCareer.descBn : selectedCareer.descEn}</p>
@@ -469,7 +468,7 @@ export const EduModule: React.FC<Props> = ({ isBangla, user }) => {
               className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 hover:shadow-lg hover:-translate-y-1 transition-all cursor-pointer group flex flex-col items-center text-center"
             >
               <div className="w-16 h-16 bg-blue-50 rounded-2xl flex items-center justify-center text-blue-600 mb-4 group-hover:scale-110 transition-transform">
-                {React.cloneElement(career.icon as React.ReactElement, { size: 32 })}
+                {React.cloneElement(career.icon as React.ReactElement<any>, { size: 32 })}
               </div>
               <h3 className="text-lg font-bold text-gray-900 mb-2">{isBangla ? career.titleBn : career.titleEn}</h3>
               <p className="text-sm text-gray-500 mb-4 line-clamp-2">{isBangla ? career.descBn : career.descEn}</p>

@@ -1,14 +1,16 @@
 
 import React from 'react';
-import { Globe, MapPin, Phone, Mail } from 'lucide-react';
+import { Globe, MapPin, Phone, Mail, Shield } from 'lucide-react';
+import { AppModule } from '../../types';
 
 interface FooterProps {
   isBangla: boolean;
   toggleLanguage: () => void;
   onNavigateHome: () => void;
+  onModuleSelect?: (module: AppModule) => void;
 }
 
-export const Footer: React.FC<FooterProps> = ({ isBangla, toggleLanguage, onNavigateHome }) => {
+export const Footer: React.FC<FooterProps> = ({ isBangla, toggleLanguage, onNavigateHome, onModuleSelect }) => {
   return (
     <footer className="bg-gray-900 text-gray-400 py-16">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -69,11 +71,23 @@ export const Footer: React.FC<FooterProps> = ({ isBangla, toggleLanguage, onNavi
         
         <div className="border-t border-gray-800 pt-8 flex flex-col md:flex-row justify-between items-center gap-4 text-sm">
           <p>© 2024 Dream BD. All rights reserved.</p>
-          <div className="flex items-center gap-2">
-              <Globe size={14} />
-              <button onClick={toggleLanguage} className="hover:text-white">
-                {isBangla ? 'English' : 'বাংলা'}
-              </button>
+          <div className="flex items-center gap-4">
+              <div className="flex items-center gap-2">
+                  <Globe size={14} />
+                  <button onClick={toggleLanguage} className="hover:text-white">
+                    {isBangla ? 'English' : 'বাংলা'}
+                  </button>
+              </div>
+              {/* Admin Button */}
+              {onModuleSelect && (
+                <button 
+                  onClick={() => onModuleSelect(AppModule.ADMIN)}
+                  className="flex items-center gap-1 text-xs text-gray-600 hover:text-brand-500 transition-colors"
+                  title="Admin Access"
+                >
+                  <Shield size={12} /> Admin
+                </button>
+              )}
           </div>
         </div>
       </div>
