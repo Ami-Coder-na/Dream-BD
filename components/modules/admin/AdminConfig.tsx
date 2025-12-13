@@ -35,10 +35,29 @@ const ADMIN_WASTE_ZONES = [
   { id: 2, zone: 'Dhanmondi West', truck: 'Truck-B05', timing: '7 AM - 9 AM', status: 'Inactive' },
 ];
 
-// Fallback data for other tabs
-const GENERIC_DATA = [
-  { id: 1, name: 'Sample Item 1', info: 'Details A', status: 'Active' },
-  { id: 2, name: 'Sample Item 2', info: 'Details B', status: 'Inactive' },
+const ADMIN_BOOKS = [
+  { id: 1, title: 'Amar Bangla Boi', level: 'Class 5', subject: 'Bangla', status: 'Active' },
+  { id: 2, title: 'English For Today', level: 'Class 9', subject: 'English', status: 'Active' },
+];
+
+const ADMIN_SHELTERS = [
+  { id: 1, name: 'Model School', district: 'Cox\'s Bazar', capacity: '500', status: 'Active' },
+  { id: 2, name: 'Union Parishad', district: 'Bhola', capacity: '300', status: 'Active' },
+];
+
+const ADMIN_FISHES = [
+  { id: 1, name: 'Rui', type: 'Freshwater', feed: 'Commercial', status: 'Active' },
+  { id: 2, name: 'Hilsha', type: 'Saltwater', feed: 'Natural', status: 'Active' },
+];
+
+const ADMIN_CRAFTS = [
+  { id: 1, name: 'Nakshi Kantha', category: 'Textile', artisan: 'Rahima Begum', status: 'Active' },
+  { id: 2, name: 'Clay Pot', category: 'Pottery', artisan: 'Pal Para', status: 'Active' },
+];
+
+const ADMIN_DISTRICTS = [
+  { id: 1, name: 'Dhaka', division: 'Dhaka', spots: 'Lalbagh Fort', status: 'Active' },
+  { id: 2, name: 'Cox\'s Bazar', division: 'Chattogram', spots: 'Sea Beach', status: 'Active' },
 ];
 
 export const AdminConfig: React.FC<Props> = ({ isBangla }) => {
@@ -54,7 +73,11 @@ export const AdminConfig: React.FC<Props> = ({ isBangla }) => {
   const [adminHospitals, setAdminHospitals] = useState(ADMIN_HOSPITALS);
   const [adminRoutes, setAdminRoutes] = useState(ADMIN_ROUTES);
   const [adminWasteZones, setAdminWasteZones] = useState(ADMIN_WASTE_ZONES);
-  const [genericData, setGenericData] = useState(GENERIC_DATA);
+  const [adminBooks, setAdminBooks] = useState(ADMIN_BOOKS);
+  const [adminShelters, setAdminShelters] = useState(ADMIN_SHELTERS);
+  const [adminFishes, setAdminFishes] = useState(ADMIN_FISHES);
+  const [adminCrafts, setAdminCrafts] = useState(ADMIN_CRAFTS);
+  const [adminDistricts, setAdminDistricts] = useState(ADMIN_DISTRICTS);
 
   // --- ACTIONS ---
 
@@ -65,7 +88,11 @@ export const AdminConfig: React.FC<Props> = ({ isBangla }) => {
     else if(activeConfigTab === 'health') setAdminHospitals(prev => prev.filter(i => i.id !== id));
     else if(activeConfigTab === 'transport') setAdminRoutes(prev => prev.filter(i => i.id !== id));
     else if(activeConfigTab === 'waste') setAdminWasteZones(prev => prev.filter(i => i.id !== id));
-    else setGenericData(prev => prev.filter(i => i.id !== id));
+    else if(activeConfigTab === 'edu') setAdminBooks(prev => prev.filter(i => i.id !== id));
+    else if(activeConfigTab === 'disaster') setAdminShelters(prev => prev.filter(i => i.id !== id));
+    else if(activeConfigTab === 'fishery') setAdminFishes(prev => prev.filter(i => i.id !== id));
+    else if(activeConfigTab === 'craft') setAdminCrafts(prev => prev.filter(i => i.id !== id));
+    else if(activeConfigTab === 'jela') setAdminDistricts(prev => prev.filter(i => i.id !== id));
   };
 
   const openModal = () => {
@@ -81,9 +108,28 @@ export const AdminConfig: React.FC<Props> = ({ isBangla }) => {
     else if(activeConfigTab === 'health') setAdminHospitals([newItem, ...adminHospitals]);
     else if(activeConfigTab === 'transport') setAdminRoutes([newItem, ...adminRoutes]);
     else if(activeConfigTab === 'waste') setAdminWasteZones([newItem, ...adminWasteZones]);
-    else setGenericData([newItem, ...genericData]);
+    else if(activeConfigTab === 'edu') setAdminBooks([newItem, ...adminBooks]);
+    else if(activeConfigTab === 'disaster') setAdminShelters([newItem, ...adminShelters]);
+    else if(activeConfigTab === 'fishery') setAdminFishes([newItem, ...adminFishes]);
+    else if(activeConfigTab === 'craft') setAdminCrafts([newItem, ...adminCrafts]);
+    else if(activeConfigTab === 'jela') setAdminDistricts([newItem, ...adminDistricts]);
 
     setIsConfigModalOpen(false);
+  };
+
+  const getItemLabel = () => {
+    switch(activeConfigTab) {
+        case 'agri': return 'Crop';
+        case 'health': return 'Hospital';
+        case 'edu': return 'Book';
+        case 'transport': return 'Route';
+        case 'disaster': return 'Shelter';
+        case 'fishery': return 'Fish';
+        case 'craft': return 'Craft';
+        case 'waste': return 'Zone';
+        case 'jela': return 'District';
+        default: return 'Item';
+    }
   };
 
   // --- RENDERING HELPERS ---
@@ -170,16 +216,66 @@ export const AdminConfig: React.FC<Props> = ({ isBangla }) => {
                 </>
             );
             break;
-        default:
-            headers = ['Item Name', 'Details', 'Status'];
-            data = genericData;
+        case 'edu':
+            headers = ['Book Title', 'Class/Level', 'Subject', 'Status'];
+            data = adminBooks;
             renderRow = (item) => (
                 <>
-                    <td className="p-5 text-black font-bold text-base border-r border-gray-300">{item.name}</td>
-                    <td className="p-5 text-black font-bold border-r border-gray-300">{item.info}</td>
+                    <td className="p-5 text-black font-bold text-base border-r border-gray-300">{item.title}</td>
+                    <td className="p-5 text-black font-bold border-r border-gray-300">{item.level}</td>
+                    <td className="p-5 text-black font-bold border-r border-gray-300">{item.subject}</td>
                     <td className="p-5">{renderStatusBadge(item.status)}</td>
                 </>
             );
+            break;
+        case 'disaster':
+            headers = ['Shelter Name', 'District', 'Capacity', 'Status'];
+            data = adminShelters;
+            renderRow = (item) => (
+                <>
+                    <td className="p-5 text-black font-bold text-base border-r border-gray-300">{item.name}</td>
+                    <td className="p-5 text-black font-bold border-r border-gray-300">{item.district}</td>
+                    <td className="p-5 text-black font-bold border-r border-gray-300">{item.capacity}</td>
+                    <td className="p-5">{renderStatusBadge(item.status)}</td>
+                </>
+            );
+            break;
+        case 'fishery':
+            headers = ['Fish Name', 'Water Type', 'Feed Type', 'Status'];
+            data = adminFishes;
+            renderRow = (item) => (
+                <>
+                    <td className="p-5 text-black font-bold text-base border-r border-gray-300">{item.name}</td>
+                    <td className="p-5 text-black font-bold border-r border-gray-300">{item.type}</td>
+                    <td className="p-5 text-black font-bold border-r border-gray-300">{item.feed}</td>
+                    <td className="p-5">{renderStatusBadge(item.status)}</td>
+                </>
+            );
+            break;
+        case 'craft':
+            headers = ['Product Name', 'Category', 'Artisan', 'Status'];
+            data = adminCrafts;
+            renderRow = (item) => (
+                <>
+                    <td className="p-5 text-black font-bold text-base border-r border-gray-300">{item.name}</td>
+                    <td className="p-5 text-black font-bold border-r border-gray-300">{item.category}</td>
+                    <td className="p-5 text-black font-bold border-r border-gray-300">{item.artisan}</td>
+                    <td className="p-5">{renderStatusBadge(item.status)}</td>
+                </>
+            );
+            break;
+        case 'jela':
+            headers = ['District', 'Division', 'Famous Spots', 'Status'];
+            data = adminDistricts;
+            renderRow = (item) => (
+                <>
+                    <td className="p-5 text-black font-bold text-base border-r border-gray-300">{item.name}</td>
+                    <td className="p-5 text-black font-bold border-r border-gray-300">{item.division}</td>
+                    <td className="p-5 text-black font-bold border-r border-gray-300">{item.spots}</td>
+                    <td className="p-5">{renderStatusBadge(item.status)}</td>
+                </>
+            );
+            break;
     }
 
     const filtered = filterData(data);
@@ -248,7 +344,7 @@ export const AdminConfig: React.FC<Props> = ({ isBangla }) => {
                   placeholder="Search database..." 
                   value={configSearch} 
                   onChange={(e) => setConfigSearch(e.target.value)} 
-                  className="w-full pl-10 pr-4 py-2.5 border-2 border-black text-black rounded-xl text-sm font-bold focus:outline-none focus:ring-2 focus:ring-blue-600 placeholder-gray-600 shadow-sm"
+                  className="w-full pl-10 pr-4 py-2.5 bg-white border-2 border-black text-black rounded-xl text-sm font-bold focus:outline-none focus:ring-2 focus:ring-blue-600 placeholder-gray-500 shadow-sm"
                 />
               </div>
             </div>
@@ -259,12 +355,12 @@ export const AdminConfig: React.FC<Props> = ({ isBangla }) => {
             {[
               { id: 'agri', label: 'Agriculture', icon: <Sprout size={16}/>, color: 'bg-green-700' },
               { id: 'health', label: 'Health', icon: <Stethoscope size={16}/>, color: 'bg-teal-700' },
-              { id: 'transport', label: 'Transport', icon: <Navigation size={16}/>, color: 'bg-indigo-700' },
-              { id: 'waste', label: 'Waste', icon: <Recycle size={16}/>, color: 'bg-emerald-700' },
               { id: 'edu', label: 'Education', icon: <BookOpen size={16}/>, color: 'bg-blue-700' },
+              { id: 'transport', label: 'Transport', icon: <Navigation size={16}/>, color: 'bg-indigo-700' },
               { id: 'disaster', label: 'Disaster', icon: <Home size={16}/>, color: 'bg-red-700' },
               { id: 'fishery', label: 'Fishery', icon: <Fish size={16}/>, color: 'bg-cyan-700' },
               { id: 'craft', label: 'Craft', icon: <Hammer size={16}/>, color: 'bg-orange-700' },
+              { id: 'waste', label: 'Waste', icon: <Recycle size={16}/>, color: 'bg-emerald-700' },
               { id: 'jela', label: 'Amar Jela', icon: <MapPin size={16}/>, color: 'bg-purple-700' },
             ].map(tab => (
               <button
@@ -289,7 +385,7 @@ export const AdminConfig: React.FC<Props> = ({ isBangla }) => {
                  Data Table: <span className="capitalize text-blue-800 underline">{activeConfigTab}</span>
                </h4>
                <Button onClick={openModal} size="sm" className="shadow-lg shadow-black/20 flex items-center gap-2 bg-black hover:bg-gray-800 text-white font-bold border-2 border-gray-600 px-6">
-                 <Plus size={18} /> Add New Item
+                 <Plus size={18} /> Add New {getItemLabel()}
                </Button>
             </div>
             {renderTable()}
@@ -301,7 +397,7 @@ export const AdminConfig: React.FC<Props> = ({ isBangla }) => {
         <div className="fixed inset-0 bg-black/80 z-50 flex items-center justify-center p-4 backdrop-blur-sm animate-fade-in">
             <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden animate-fade-in-up border-4 border-black">
                 <div className="p-5 border-b-2 border-black flex justify-between items-center bg-gray-100">
-                    <h3 className="font-black text-xl text-black">Add {activeConfigTab.charAt(0).toUpperCase() + activeConfigTab.slice(1)} Item</h3>
+                    <h3 className="font-black text-xl text-black">Add {getItemLabel()}</h3>
                     <button onClick={() => setIsConfigModalOpen(false)} className="p-1 hover:bg-gray-300 rounded-full border-2 border-transparent hover:border-black transition-all"><X size={24} className="text-black" /></button>
                 </div>
                 <form onSubmit={handleSubmit} className="p-6 space-y-5">
@@ -320,11 +416,53 @@ export const AdminConfig: React.FC<Props> = ({ isBangla }) => {
                             <div><label className="block text-sm font-black text-black mb-1">Type</label><select className="w-full border-2 border-black p-3 rounded-lg text-black font-bold text-lg" onChange={e => setConfigForm({...configForm, type: e.target.value})}><option>Public</option><option>Private</option></select></div>
                         </>
                     )}
-                    {/* Fallback for other tabs */}
-                    {!['agri','health'].includes(activeConfigTab) && (
+                    {activeConfigTab === 'transport' && (
                         <>
-                            <div><label className="block text-sm font-black text-black mb-1">Name / Title</label><input required className="w-full border-2 border-black p-3 rounded-lg text-black font-bold text-lg" onChange={e => setConfigForm({...configForm, name: e.target.value})} /></div>
-                            <div><label className="block text-sm font-black text-black mb-1">Details / Info</label><input required className="w-full border-2 border-black p-3 rounded-lg text-black font-bold text-lg" onChange={e => setConfigForm({...configForm, info: e.target.value})} /></div>
+                            <div><label className="block text-sm font-black text-black mb-1">Route Name</label><input required className="w-full border-2 border-black p-3 rounded-lg text-black font-bold text-lg" onChange={e => setConfigForm({...configForm, route: e.target.value})} placeholder="Dhaka - Ctg" /></div>
+                            <div><label className="block text-sm font-black text-black mb-1">Mode</label><select className="w-full border-2 border-black p-3 rounded-lg text-black font-bold text-lg" onChange={e => setConfigForm({...configForm, mode: e.target.value})}><option>Bus</option><option>Train</option><option>Launch</option></select></div>
+                            <div><label className="block text-sm font-black text-black mb-1">Fare (Tk)</label><input required type="number" className="w-full border-2 border-black p-3 rounded-lg text-black font-bold text-lg" onChange={e => setConfigForm({...configForm, fare: e.target.value})} /></div>
+                        </>
+                    )}
+                    {activeConfigTab === 'edu' && (
+                        <>
+                            <div><label className="block text-sm font-black text-black mb-1">Book Title</label><input required className="w-full border-2 border-black p-3 rounded-lg text-black font-bold text-lg" onChange={e => setConfigForm({...configForm, title: e.target.value})} /></div>
+                            <div><label className="block text-sm font-black text-black mb-1">Class/Level</label><input required className="w-full border-2 border-black p-3 rounded-lg text-black font-bold text-lg" onChange={e => setConfigForm({...configForm, level: e.target.value})} /></div>
+                            <div><label className="block text-sm font-black text-black mb-1">Subject</label><input required className="w-full border-2 border-black p-3 rounded-lg text-black font-bold text-lg" onChange={e => setConfigForm({...configForm, subject: e.target.value})} /></div>
+                        </>
+                    )}
+                    {activeConfigTab === 'disaster' && (
+                        <>
+                            <div><label className="block text-sm font-black text-black mb-1">Shelter Name</label><input required className="w-full border-2 border-black p-3 rounded-lg text-black font-bold text-lg" onChange={e => setConfigForm({...configForm, name: e.target.value})} /></div>
+                            <div><label className="block text-sm font-black text-black mb-1">District</label><input required className="w-full border-2 border-black p-3 rounded-lg text-black font-bold text-lg" onChange={e => setConfigForm({...configForm, district: e.target.value})} /></div>
+                            <div><label className="block text-sm font-black text-black mb-1">Capacity</label><input required type="number" className="w-full border-2 border-black p-3 rounded-lg text-black font-bold text-lg" onChange={e => setConfigForm({...configForm, capacity: e.target.value})} /></div>
+                        </>
+                    )}
+                    {activeConfigTab === 'fishery' && (
+                        <>
+                            <div><label className="block text-sm font-black text-black mb-1">Fish Name</label><input required className="w-full border-2 border-black p-3 rounded-lg text-black font-bold text-lg" onChange={e => setConfigForm({...configForm, name: e.target.value})} /></div>
+                            <div><label className="block text-sm font-black text-black mb-1">Water Type</label><select className="w-full border-2 border-black p-3 rounded-lg text-black font-bold text-lg" onChange={e => setConfigForm({...configForm, type: e.target.value})}><option>Freshwater</option><option>Saltwater</option><option>Mixed</option></select></div>
+                            <div><label className="block text-sm font-black text-black mb-1">Feed Type</label><input required className="w-full border-2 border-black p-3 rounded-lg text-black font-bold text-lg" onChange={e => setConfigForm({...configForm, feed: e.target.value})} /></div>
+                        </>
+                    )}
+                    {activeConfigTab === 'craft' && (
+                        <>
+                            <div><label className="block text-sm font-black text-black mb-1">Product Name</label><input required className="w-full border-2 border-black p-3 rounded-lg text-black font-bold text-lg" onChange={e => setConfigForm({...configForm, name: e.target.value})} /></div>
+                            <div><label className="block text-sm font-black text-black mb-1">Category</label><input required className="w-full border-2 border-black p-3 rounded-lg text-black font-bold text-lg" onChange={e => setConfigForm({...configForm, category: e.target.value})} /></div>
+                            <div><label className="block text-sm font-black text-black mb-1">Artisan/Source</label><input required className="w-full border-2 border-black p-3 rounded-lg text-black font-bold text-lg" onChange={e => setConfigForm({...configForm, artisan: e.target.value})} /></div>
+                        </>
+                    )}
+                    {activeConfigTab === 'waste' && (
+                        <>
+                            <div><label className="block text-sm font-black text-black mb-1">Zone Area</label><input required className="w-full border-2 border-black p-3 rounded-lg text-black font-bold text-lg" onChange={e => setConfigForm({...configForm, zone: e.target.value})} /></div>
+                            <div><label className="block text-sm font-black text-black mb-1">Vehicle</label><input required className="w-full border-2 border-black p-3 rounded-lg text-black font-bold text-lg" onChange={e => setConfigForm({...configForm, truck: e.target.value})} /></div>
+                            <div><label className="block text-sm font-black text-black mb-1">Timing</label><input required className="w-full border-2 border-black p-3 rounded-lg text-black font-bold text-lg" onChange={e => setConfigForm({...configForm, timing: e.target.value})} /></div>
+                        </>
+                    )}
+                    {activeConfigTab === 'jela' && (
+                        <>
+                            <div><label className="block text-sm font-black text-black mb-1">District Name</label><input required className="w-full border-2 border-black p-3 rounded-lg text-black font-bold text-lg" onChange={e => setConfigForm({...configForm, name: e.target.value})} /></div>
+                            <div><label className="block text-sm font-black text-black mb-1">Division</label><input required className="w-full border-2 border-black p-3 rounded-lg text-black font-bold text-lg" onChange={e => setConfigForm({...configForm, division: e.target.value})} /></div>
+                            <div><label className="block text-sm font-black text-black mb-1">Tourist Spots</label><input required className="w-full border-2 border-black p-3 rounded-lg text-black font-bold text-lg" onChange={e => setConfigForm({...configForm, spots: e.target.value})} /></div>
                         </>
                     )}
 
