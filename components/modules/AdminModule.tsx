@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { 
   LayoutDashboard, Users, Settings, Database, Activity, 
@@ -8,7 +7,8 @@ import {
   ShoppingBag, Truck, AlertOctagon, MessageSquare, Check, RotateCcw,
   TrendingUp, DollarSign, PieChart, Clock, Briefcase,
   Sprout, Stethoscope, BookOpen, Home, Navigation, Plus,
-  ArrowLeft, MapPin, Phone, Calendar, Fish, Recycle, Hammer, Filter, MoreHorizontal, User, Save
+  ArrowLeft, MapPin, Phone, Calendar, Fish, Recycle, Hammer, Filter, MoreHorizontal, User, Save,
+  UserCheck, UserX, CalendarDays, XCircle, PenTool, BarChart3, ChevronRight
 } from 'lucide-react';
 import { Button } from '../ui/Button';
 import { AppModule } from '../../types';
@@ -21,8 +21,10 @@ interface Props {
 type AdminSection = 'overview' | 'users' | 'content' | 'module-config' | 'market' | 'grievance' | 'emergency' | 'settings';
 type ConfigTab = 'agri' | 'health' | 'edu' | 'transport' | 'disaster' | 'fishery' | 'craft' | 'waste' | 'jela';
 type UserViewMode = 'list' | 'add' | 'details';
+type ContentTab = 'jobs' | 'blogs' | 'requests';
+type ContentViewMode = 'list' | 'form' | 'details';
 
-// --- MOCK DATA FOR MANAGEMENT ---
+// --- MOCK DATA ---
 
 const MOCK_USERS = [
   { id: '1', name: 'Rahim Uddin', role: 'Farmer', email: 'rahim@agri.com', status: 'Active', date: '2023-10-01' },
@@ -32,7 +34,6 @@ const MOCK_USERS = [
   { id: '5', name: 'Rafiqul Islam', role: 'Citizen', email: 'rafiq@mail.com', status: 'Active', date: '2024-01-10' },
 ];
 
-// Add mock activity logs generator
 const getMockActivity = (userName: string) => [
   { action: 'Logged in', date: 'Today, 9:00 AM' },
   { action: 'Updated profile picture', date: 'Yesterday, 4:30 PM' },
@@ -41,14 +42,17 @@ const getMockActivity = (userName: string) => [
   { action: 'Changed password', date: 'Oct 10, 2023' }
 ];
 
-const PENDING_JOBS = [
-  { id: 101, title: 'Assistant Teacher', company: 'Little Flower School', postedBy: 'Admin', date: '1 hour ago' },
-  { id: 102, title: 'Farm Manager', company: 'Green Agro', postedBy: 'User', date: '3 hours ago' },
+const INITIAL_JOBS = [
+  { id: 101, title: 'Assistant Teacher', company: 'Little Flower School', type: 'Full Time', location: 'Dhaka', salary: '15k-20k', description: 'Teaching mathematics to primary students.', postedBy: 'Admin', authorName: 'Admin', date: '2023-10-25', status: 'Active', views: 1250 },
+  { id: 102, title: 'Farm Manager', company: 'Green Agro', type: 'Contract', location: 'Rangpur', salary: '25k', description: 'Managing daily farm operations and labor.', postedBy: 'User', authorName: 'Rahim Uddin', date: '2023-10-26', status: 'Pending', views: 0 },
+  { id: 103, title: 'Software Engineer', company: 'Tech BD', type: 'Remote', location: 'Dhaka', salary: '50k+', description: 'React and Node.js developer needed.', postedBy: 'Admin', authorName: 'Admin', date: '2023-10-20', status: 'Active', views: 3400 },
+  { id: 104, title: 'Driver Needed', company: 'Desh Transport', type: 'Full Time', location: 'Chittagong', salary: '18k', description: 'Bus driver with 5 years experience.', postedBy: 'User', authorName: 'Karim Transport', date: '2023-10-27', status: 'Pending', views: 0 },
 ];
 
-const PENDING_BLOGS = [
-  { id: 201, title: 'Winter Farming Tips', author: 'Abdul Malek', date: 'Yesterday' },
-  { id: 202, title: 'Village Health Awareness', author: 'Dr. Kuddus', date: '2 days ago' },
+const INITIAL_BLOGS = [
+  { id: 201, title: 'Winter Farming Tips', category: 'Agriculture', content: 'Detailed guide on winter vegetables...', author: 'Abdul Malek', postedBy: 'User', date: '2023-10-24', status: 'Pending', views: 0 },
+  { id: 202, title: 'Digital Health Services', category: 'Health', content: 'How telemedicine is changing lives...', author: 'Dr. Nusrat', postedBy: 'Admin', date: '2023-10-15', status: 'Active', views: 5600 },
+  { id: 203, title: 'Safe Driving Rules', category: 'Transport', content: 'Traffic rules everyone must obey...', author: 'Admin', postedBy: 'Admin', date: '2023-10-10', status: 'Active', views: 2100 },
 ];
 
 const MARKET_ITEMS_INIT = [
@@ -148,14 +152,25 @@ export const AdminModule: React.FC<Props> = ({ isBangla, onExit }) => {
   const [newUserForm, setNewUserForm] = useState({ name: '', email: '', role: 'Citizen', password: '' });
   const [viewingUser, setViewingUser] = useState<any>(null);
 
+  // Content Management State
+  const [jobs, setJobs] = useState(INITIAL_JOBS);
+  const [blogs, setBlogs] = useState(INITIAL_BLOGS);
+  
+  const [activeContentTab, setActiveContentTab] = useState<ContentTab>('jobs');
+  const [contentViewMode, setContentViewMode] = useState<ContentViewMode>('list');
+  const [contentSearch, setContentSearch] = useState('');
+  const [viewingContent, setViewingContent] = useState<any>(null); // For Details view or Editing
+  
+  // Forms
+  const [jobForm, setJobForm] = useState({ title: '', company: '', type: 'Full Time', location: '', salary: '', description: '', deadline: '' });
+  const [blogForm, setBlogForm] = useState({ title: '', category: '', content: '', author: '', readTime: '', image: '' });
+
   const [modules, setModules] = useState(MODULE_STATUS);
   const [configSearch, setConfigSearch] = useState('');
   
   // Feature Data State
   const [marketItems, setMarketItems] = useState(MARKET_ITEMS_INIT);
   const [wasteReports, setWasteReports] = useState(WASTE_REPORTS_INIT);
-  const [pendingJobs, setPendingJobs] = useState(PENDING_JOBS);
-  const [pendingBlogs, setPendingBlogs] = useState(PENDING_BLOGS);
   
   // Config Data State
   const [adminCrops, setAdminCrops] = useState(ADMIN_CROPS);
@@ -173,6 +188,10 @@ export const AdminModule: React.FC<Props> = ({ isBangla, onExit }) => {
   const [alertType, setAlertType] = useState<'info' | 'warning' | 'danger'>('info');
   const [broadcastSent, setBroadcastSent] = useState(false);
 
+  // Derived State for Overview
+  const pendingJobsCount = jobs.filter(j => j.status === 'Pending').length;
+  const pendingBlogsCount = blogs.filter(b => b.status === 'Pending').length;
+
   // Authentication Handler
   const handleLogin = (e: React.FormEvent) => {
     e.preventDefault();
@@ -188,7 +207,96 @@ export const AdminModule: React.FC<Props> = ({ isBangla, onExit }) => {
     setPassword('admin123');
   };
 
-  // --- ACTIONS ---
+  // --- CONTENT ACTIONS ---
+
+  const handleCreateContent = (e: React.FormEvent) => {
+    e.preventDefault();
+    const date = new Date().toISOString().split('T')[0];
+    
+    if (activeContentTab === 'jobs') {
+      const newJob = {
+        id: Date.now(),
+        ...jobForm,
+        postedBy: 'Admin',
+        authorName: 'Admin',
+        date,
+        status: 'Active',
+        views: 0
+      };
+      if (viewingContent?.id) {
+        // Edit Mode
+        setJobs(jobs.map(j => j.id === viewingContent.id ? { ...j, ...jobForm } : j));
+      } else {
+        setJobs([newJob, ...jobs]);
+      }
+      setJobForm({ title: '', company: '', type: 'Full Time', location: '', salary: '', description: '', deadline: '' });
+    } else {
+      const newBlog = {
+        id: Date.now(),
+        ...blogForm,
+        postedBy: 'Admin',
+        date,
+        status: 'Active',
+        views: 0
+      };
+      if (viewingContent?.id) {
+        setBlogs(blogs.map(b => b.id === viewingContent.id ? { ...b, ...blogForm } : b));
+      } else {
+        setBlogs([newBlog, ...blogs]);
+      }
+      setBlogForm({ title: '', category: '', content: '', author: 'Admin', readTime: '5 min', image: '' });
+    }
+    setContentViewMode('list');
+    setViewingContent(null);
+  };
+
+  const handleEditContent = (item: any, type: 'job' | 'blog') => {
+    setViewingContent(item);
+    if (type === 'job') {
+      setJobForm({ 
+        title: item.title, company: item.company, type: item.type, 
+        location: item.location, salary: item.salary, description: item.description, deadline: item.deadline || ''
+      });
+      setActiveContentTab('jobs');
+    } else {
+      setBlogForm({ 
+        title: item.title, category: item.category, content: item.content, 
+        author: item.author, readTime: item.readTime || '5 min', image: item.image || ''
+      });
+      setActiveContentTab('blogs');
+    }
+    setContentViewMode('form');
+  };
+
+  const handleViewContent = (item: any) => {
+    setViewingContent(item);
+    setContentViewMode('details');
+  };
+
+  const handleDeleteContent = (id: number, type: 'job' | 'blog') => {
+    if(!confirm('Are you sure you want to delete this?')) return;
+    if (type === 'job') setJobs(jobs.filter(j => j.id !== id));
+    else setBlogs(blogs.filter(b => b.id !== id));
+    
+    if (viewingContent && viewingContent.id === id) {
+      setContentViewMode('list');
+      setViewingContent(null);
+    }
+  };
+
+  const handleStatusChange = (id: number, type: 'job' | 'blog', newStatus: string) => {
+    if (type === 'job') {
+      setJobs(jobs.map(j => j.id === id ? { ...j, status: newStatus } : j));
+    } else {
+      setBlogs(blogs.map(b => b.id === id ? { ...b, status: newStatus } : b));
+    }
+    // If viewing details, update the view state too
+    if (viewingContent && viewingContent.id === id) {
+        setViewingContent(prev => ({ ...prev, status: newStatus }));
+    }
+  };
+
+  // --- USER ACTIONS ---
 
   const handleToggleUserStatus = (id: string) => {
     setUsers(users.map(u => u.id === id ? { ...u, status: u.status === 'Active' ? 'Suspended' : 'Active' } : u));
@@ -220,27 +328,13 @@ export const AdminModule: React.FC<Props> = ({ isBangla, onExit }) => {
     };
     setUsers([user, ...users]);
     setNewUserForm({ name: '', email: '', role: 'Citizen', password: '' });
-    setUserViewMode('list'); // Go back to list
+    setUserViewMode('list');
     alert(isBangla ? 'ব্যবহারকারী সফলভাবে তৈরি হয়েছে!' : 'User created successfully!');
   };
 
   const handleViewUser = (user: any) => {
     setViewingUser(user);
     setUserViewMode('details');
-  };
-
-  const handleApproveJob = (id: number) => {
-    setPendingJobs(pendingJobs.filter(j => j.id !== id));
-    alert('Job Approved & Published');
-  };
-
-  const handleRejectJob = (id: number) => {
-    setPendingJobs(pendingJobs.filter(j => j.id !== id));
-  };
-
-  const handleApproveBlog = (id: number) => {
-    setPendingBlogs(pendingBlogs.filter(b => b.id !== id));
-    alert('Blog Published');
   };
 
   const handleUpdatePrice = (id: number, newPrice: string) => {
@@ -333,9 +427,321 @@ export const AdminModule: React.FC<Props> = ({ isBangla, onExit }) => {
     );
   }
 
+  // --- CONTENT SUB-COMPONENTS ---
+
+  const renderContentForm = () => (
+    <div className="bg-white p-8 rounded-2xl shadow-sm border border-gray-100 animate-fade-in max-w-4xl mx-auto">
+        <div className="flex items-center justify-between mb-8 border-b border-gray-100 pb-4">
+            <h3 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
+                {activeContentTab === 'jobs' ? <Briefcase size={24}/> : <PenTool size={24}/>} 
+                {viewingContent ? 'Edit' : 'Create'} {activeContentTab === 'jobs' ? 'Job' : 'Blog'}
+            </h3>
+            <Button onClick={() => { setContentViewMode('list'); setViewingContent(null); }} variant="outline" className="flex items-center gap-2">
+                <ArrowLeft size={18} /> Back to List
+            </Button>
+        </div>
+        
+        <form onSubmit={handleCreateContent} className="space-y-6">
+            {activeContentTab === 'jobs' ? (
+               <>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                     <div>
+                        <label className="block text-sm font-bold text-gray-700 mb-2">Job Title</label>
+                        <input required type="text" className="w-full p-3 bg-gray-50 border border-gray-200 rounded-xl" value={jobForm.title} onChange={e => setJobForm({...jobForm, title: e.target.value})} placeholder="Software Engineer" />
+                     </div>
+                     <div>
+                        <label className="block text-sm font-bold text-gray-700 mb-2">Company</label>
+                        <input required type="text" className="w-full p-3 bg-gray-50 border border-gray-200 rounded-xl" value={jobForm.company} onChange={e => setJobForm({...jobForm, company: e.target.value})} />
+                     </div>
+                     <div>
+                        <label className="block text-sm font-bold text-gray-700 mb-2">Job Type</label>
+                        <select className="w-full p-3 bg-gray-50 border border-gray-200 rounded-xl" value={jobForm.type} onChange={e => setJobForm({...jobForm, type: e.target.value})}>
+                           <option>Full Time</option><option>Part Time</option><option>Contract</option><option>Remote</option>
+                        </select>
+                     </div>
+                     <div>
+                        <label className="block text-sm font-bold text-gray-700 mb-2">Location</label>
+                        <input type="text" className="w-full p-3 bg-gray-50 border border-gray-200 rounded-xl" value={jobForm.location} onChange={e => setJobForm({...jobForm, location: e.target.value})} placeholder="Dhaka" />
+                     </div>
+                     <div>
+                        <label className="block text-sm font-bold text-gray-700 mb-2">Salary Range</label>
+                        <input type="text" className="w-full p-3 bg-gray-50 border border-gray-200 rounded-xl" value={jobForm.salary} onChange={e => setJobForm({...jobForm, salary: e.target.value})} placeholder="20k-30k" />
+                     </div>
+                     <div>
+                        <label className="block text-sm font-bold text-gray-700 mb-2">Deadline</label>
+                        <input type="date" className="w-full p-3 bg-gray-50 border border-gray-200 rounded-xl" value={jobForm.deadline} onChange={e => setJobForm({...jobForm, deadline: e.target.value})} />
+                     </div>
+                  </div>
+                  <div>
+                     <label className="block text-sm font-bold text-gray-700 mb-2">Description</label>
+                     <textarea required rows={6} className="w-full p-3 bg-gray-50 border border-gray-200 rounded-xl" value={jobForm.description} onChange={e => setJobForm({...jobForm, description: e.target.value})} placeholder="Job details..."></textarea>
+                  </div>
+               </>
+            ) : (
+               <>
+                  <div>
+                     <label className="block text-sm font-bold text-gray-700 mb-2">Blog Title</label>
+                     <input required type="text" className="w-full p-3 bg-gray-50 border border-gray-200 rounded-xl" value={blogForm.title} onChange={e => setBlogForm({...blogForm, title: e.target.value})} placeholder="Article Headline" />
+                  </div>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                     <div>
+                        <label className="block text-sm font-bold text-gray-700 mb-2">Category</label>
+                        <select className="w-full p-3 bg-gray-50 border border-gray-200 rounded-xl" value={blogForm.category} onChange={e => setBlogForm({...blogForm, category: e.target.value})}>
+                           <option value="">Select Category</option><option>Agriculture</option><option>Health</option><option>Education</option><option>Transport</option>
+                        </select>
+                     </div>
+                     <div>
+                        <label className="block text-sm font-bold text-gray-700 mb-2">Author</label>
+                        <input required type="text" className="w-full p-3 bg-gray-50 border border-gray-200 rounded-xl" value={blogForm.author} onChange={e => setBlogForm({...blogForm, author: e.target.value})} />
+                     </div>
+                  </div>
+                  <div>
+                     <label className="block text-sm font-bold text-gray-700 mb-2">Content</label>
+                     <textarea required rows={10} className="w-full p-3 bg-gray-50 border border-gray-200 rounded-xl" value={blogForm.content} onChange={e => setBlogForm({...blogForm, content: e.target.value})} placeholder="Write blog content here..."></textarea>
+                  </div>
+               </>
+            )}
+            <div className="pt-4 flex justify-end gap-3">
+               <Button type="button" variant="outline" onClick={() => { setContentViewMode('list'); setViewingContent(null); }}>Cancel</Button>
+               <Button type="submit">{viewingContent ? 'Update' : 'Publish'}</Button>
+            </div>
+        </form>
+    </div>
+  );
+
+  const renderContentDetails = () => {
+    if (!viewingContent) return null;
+    const isJob = 'company' in viewingContent;
+
+    return (
+      <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden animate-fade-in max-w-4xl mx-auto">
+         <div className="bg-gray-50 p-6 border-b border-gray-100 flex justify-between items-center">
+            <Button onClick={() => setContentViewMode('list')} variant="outline" className="flex items-center gap-2">
+               <ArrowLeft size={18} /> Back
+            </Button>
+            <div className="flex gap-2">
+               {viewingContent.status === 'Pending' && (
+                 <>
+                   <Button onClick={() => handleStatusChange(viewingContent.id, isJob ? 'job' : 'blog', 'Active')} className="bg-green-600 hover:bg-green-700 text-white flex items-center gap-2">
+                     <Check size={18} /> Approve
+                   </Button>
+                   <Button onClick={() => handleStatusChange(viewingContent.id, isJob ? 'job' : 'blog', 'Rejected')} className="bg-red-600 hover:bg-red-700 text-white flex items-center gap-2">
+                     <X size={18} /> Reject
+                   </Button>
+                 </>
+               )}
+               <Button onClick={() => handleEditContent(viewingContent, isJob ? 'job' : 'blog')} variant="outline">
+                 <Edit3 size={18} />
+               </Button>
+            </div>
+         </div>
+         <div className="p-8">
+            <span className={`inline-block px-3 py-1 rounded-full text-xs font-bold mb-4 ${viewingContent.status === 'Active' ? 'bg-green-100 text-green-700' : 'bg-orange-100 text-orange-700'}`}>
+               {viewingContent.status}
+            </span>
+            <h1 className="text-3xl font-bold text-gray-900 mb-4">{viewingContent.title}</h1>
+            
+            <div className="flex flex-wrap gap-6 text-sm text-gray-600 mb-8 border-b border-gray-100 pb-6">
+               <span className="flex items-center gap-2"><User size={16}/> {viewingContent.author || viewingContent.authorName}</span>
+               <span className="flex items-center gap-2"><Calendar size={16}/> {viewingContent.date}</span>
+               <span className="flex items-center gap-2"><Eye size={16}/> {viewingContent.views} views</span>
+               {isJob && (
+                 <>
+                   <span className="flex items-center gap-2"><Briefcase size={16}/> {viewingContent.company}</span>
+                   <span className="flex items-center gap-2"><MapPin size={16}/> {viewingContent.location}</span>
+                   <span className="flex items-center gap-2 font-bold text-green-600"><DollarSign size={16}/> {viewingContent.salary}</span>
+                 </>
+               )}
+            </div>
+
+            <div className="prose max-w-none text-gray-800">
+               <h3 className="text-lg font-bold mb-3">{isJob ? 'Job Description' : 'Content'}</h3>
+               <p className="whitespace-pre-wrap leading-relaxed">{isJob ? viewingContent.description : viewingContent.content}</p>
+            </div>
+         </div>
+      </div>
+    );
+  };
+
+  const renderContentManagement = () => {
+    if (contentViewMode === 'form') return renderContentForm();
+    if (contentViewMode === 'details') return renderContentDetails();
+
+    // List View Logic
+    const pendingJobs = jobs.filter(j => j.status === 'Pending');
+    const pendingBlogs = blogs.filter(b => b.status === 'Pending');
+
+    const activeList = activeContentTab === 'jobs' ? jobs.filter(j => j.status !== 'Pending') 
+                     : activeContentTab === 'blogs' ? blogs.filter(b => b.status !== 'Pending')
+                     : []; // Requests tab handles its own lists
+
+    const filteredList = activeList.filter((item: any) => 
+        item.title.toLowerCase().includes(contentSearch.toLowerCase())
+    );
+
+    return (
+      <div className="space-y-6 animate-fade-in">
+        
+        {/* Controls Bar */}
+        <div className="bg-white p-4 rounded-2xl shadow-sm border border-gray-100 flex flex-col md:flex-row justify-between items-center gap-4">
+           {/* Tab Switcher */}
+           <div className="flex bg-gray-100 p-1 rounded-xl w-full md:w-auto">
+              <button 
+                onClick={() => { setActiveContentTab('jobs'); }}
+                className={`flex-1 md:flex-none px-6 py-2 rounded-lg text-sm font-bold transition-all ${activeContentTab === 'jobs' ? 'bg-white text-brand-700 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
+              >
+                Jobs
+              </button>
+              <button 
+                onClick={() => { setActiveContentTab('blogs'); }}
+                className={`flex-1 md:flex-none px-6 py-2 rounded-lg text-sm font-bold transition-all ${activeContentTab === 'blogs' ? 'bg-white text-brand-700 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
+              >
+                Blogs
+              </button>
+              <button 
+                onClick={() => { setActiveContentTab('requests'); }}
+                className={`flex-1 md:flex-none px-6 py-2 rounded-lg text-sm font-bold transition-all flex items-center gap-2 ${activeContentTab === 'requests' ? 'bg-white text-orange-600 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
+              >
+                Requests 
+                {(pendingJobsCount + pendingBlogsCount) > 0 && (
+                  <span className="bg-orange-500 text-white text-[10px] px-1.5 py-0.5 rounded-full">{pendingJobsCount + pendingBlogsCount}</span>
+                )}
+              </button>
+           </div>
+
+           {/* Search & Actions (Only for main lists) */}
+           {activeContentTab !== 'requests' && (
+             <div className="flex flex-col sm:flex-row gap-3 w-full md:w-auto">
+                <div className="relative flex-1">
+                  <Search className="absolute left-3 top-2.5 text-gray-400" size={18} />
+                  <input 
+                    type="text" 
+                    placeholder="Search..." 
+                    value={contentSearch} 
+                    onChange={(e) => setContentSearch(e.target.value)} 
+                    className="pl-10 pr-4 py-2.5 border border-gray-200 bg-gray-50 text-gray-900 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 w-full" 
+                  />
+                </div>
+
+                <Button onClick={() => { setContentViewMode('form'); setViewingContent(null); }} className="whitespace-nowrap">
+                   <Plus size={18} className="mr-2" /> 
+                   {activeContentTab === 'jobs' ? 'Post Job' : 'Write Blog'}
+                </Button>
+             </div>
+           )}
+        </div>
+
+        {/* Requests Tab Content */}
+        {activeContentTab === 'requests' ? (
+           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              {/* Pending Jobs */}
+              <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
+                 <h3 className="font-bold text-lg text-gray-800 mb-4 flex items-center gap-2">
+                    <Briefcase className="text-purple-600" size={20}/> Pending Jobs ({pendingJobs.length})
+                 </h3>
+                 <div className="space-y-3">
+                    {pendingJobs.map(job => (
+                       <div key={job.id} className="p-4 border border-gray-100 rounded-xl hover:bg-purple-50/50 transition-colors bg-white">
+                          <div className="flex justify-between items-start mb-2">
+                             <div>
+                                <h4 className="font-bold text-gray-900">{job.title}</h4>
+                                <p className="text-sm text-gray-500">{job.company} • {job.location}</p>
+                             </div>
+                             <span className="text-xs text-gray-400">{job.date}</span>
+                          </div>
+                          <div className="flex justify-between items-center mt-3">
+                             <span className="text-xs bg-gray-100 px-2 py-1 rounded text-gray-600">Posted by: {job.postedBy}</span>
+                             <div className="flex gap-2">
+                                <button onClick={() => handleViewContent(job)} className="p-1.5 text-gray-500 hover:bg-gray-100 rounded" title="View"><Eye size={16}/></button>
+                                <button onClick={() => handleStatusChange(job.id, 'job', 'Active')} className="p-1.5 text-green-600 hover:bg-green-50 rounded" title="Approve"><Check size={16}/></button>
+                                <button onClick={() => handleStatusChange(job.id, 'job', 'Rejected')} className="p-1.5 text-red-600 hover:bg-red-50 rounded" title="Reject"><X size={16}/></button>
+                             </div>
+                          </div>
+                       </div>
+                    ))}
+                    {pendingJobs.length === 0 && <p className="text-gray-400 text-sm text-center py-4">No pending jobs.</p>}
+                 </div>
+              </div>
+
+              {/* Pending Blogs */}
+              <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
+                 <h3 className="font-bold text-lg text-gray-800 mb-4 flex items-center gap-2">
+                    <FileText className="text-blue-600" size={20}/> Pending Blogs ({pendingBlogs.length})
+                 </h3>
+                 <div className="space-y-3">
+                    {pendingBlogs.map(blog => (
+                       <div key={blog.id} className="p-4 border border-gray-100 rounded-xl hover:bg-blue-50/50 transition-colors bg-white">
+                          <div className="flex justify-between items-start mb-2">
+                             <div>
+                                <h4 className="font-bold text-gray-900">{blog.title}</h4>
+                                <p className="text-sm text-gray-500">Category: {blog.category}</p>
+                             </div>
+                             <span className="text-xs text-gray-400">{blog.date}</span>
+                          </div>
+                          <div className="flex justify-between items-center mt-3">
+                             <span className="text-xs bg-gray-100 px-2 py-1 rounded text-gray-600">Author: {blog.author}</span>
+                             <div className="flex gap-2">
+                                <button onClick={() => handleViewContent(blog)} className="p-1.5 text-gray-500 hover:bg-gray-100 rounded" title="View"><Eye size={16}/></button>
+                                <button onClick={() => handleStatusChange(blog.id, 'blog', 'Active')} className="p-1.5 text-green-600 hover:bg-green-50 rounded" title="Approve"><Check size={16}/></button>
+                                <button onClick={() => handleStatusChange(blog.id, 'blog', 'Rejected')} className="p-1.5 text-red-600 hover:bg-red-50 rounded" title="Reject"><X size={16}/></button>
+                             </div>
+                          </div>
+                       </div>
+                    ))}
+                    {pendingBlogs.length === 0 && <p className="text-gray-400 text-sm text-center py-4">No pending blogs.</p>}
+                 </div>
+              </div>
+           </div>
+        ) : (
+           /* Active Content List Table */
+           <div className="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden">
+              <div className="overflow-x-auto">
+                 <table className="w-full text-sm text-left">
+                    <thead className="bg-gray-50 text-gray-600 font-bold uppercase text-xs">
+                       <tr>
+                          <th className="p-4">{activeContentTab === 'jobs' ? 'Job Title' : 'Blog Title'}</th>
+                          <th className="p-4">{activeContentTab === 'jobs' ? 'Company/Details' : 'Category/Author'}</th>
+                          <th className="p-4">Posted Date</th>
+                          <th className="p-4">Views</th>
+                          <th className="p-4">Status</th>
+                          <th className="p-4 text-right">Actions</th>
+                       </tr>
+                    </thead>
+                    <tbody className="divide-y divide-gray-100">
+                       {filteredList.map((item: any) => (
+                          <tr key={item.id} className="hover:bg-gray-50 transition-colors group">
+                             <td className="p-4 font-bold text-gray-900">{item.title}</td>
+                             <td className="p-4 text-gray-600">
+                                {activeContentTab === 'jobs' ? `${item.company} (${item.type})` : `${item.category} by ${item.author}`}
+                             </td>
+                             <td className="p-4 text-gray-500">{item.date}</td>
+                             <td className="p-4"><span className="bg-gray-100 px-2 py-1 rounded text-xs font-bold text-gray-600">{item.views}</span></td>
+                             <td className="p-4"><span className="bg-green-100 text-green-700 px-2 py-1 rounded text-xs font-bold">Active</span></td>
+                             <td className="p-4 text-right">
+                                <div className="flex justify-end gap-2">
+                                   <button onClick={() => handleViewContent(item)} className="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"><Eye size={18}/></button>
+                                   <button onClick={() => handleEditContent(item, activeContentTab === 'jobs' ? 'job' : 'blog')} className="p-2 text-gray-400 hover:text-orange-600 hover:bg-orange-50 rounded-lg transition-colors"><Edit3 size={18}/></button>
+                                   <button onClick={() => handleDeleteContent(item.id, activeContentTab === 'jobs' ? 'job' : 'blog')} className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"><Trash2 size={18}/></button>
+                                </div>
+                             </td>
+                          </tr>
+                       ))}
+                       {filteredList.length === 0 && (
+                          <tr><td colSpan={6} className="p-12 text-center text-gray-400">No content found.</td></tr>
+                       )}
+                    </tbody>
+                 </table>
+              </div>
+           </div>
+        )}
+      </div>
+    );
+  };
+
   // --- DASHBOARD SECTIONS ---
 
-  const renderOverview = () => (
+  const renderOverview = () => {
+    return (
     <div className="space-y-6 animate-fade-in">
       {/* 1. Top Stats Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
@@ -379,7 +785,7 @@ export const AdminModule: React.FC<Props> = ({ isBangla, onExit }) => {
         <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm flex items-center justify-between group hover:shadow-md transition-all">
           <div>
             <p className="text-gray-500 text-xs font-bold uppercase tracking-wider">Pending Tasks</p>
-            <h3 className="text-3xl font-bold text-gray-800 mt-1">{pendingJobs.length + pendingBlogs.length}</h3>
+            <h3 className="text-3xl font-bold text-gray-800 mt-1">{pendingJobsCount + pendingBlogsCount}</h3>
             <p className="text-orange-500 text-xs mt-2 font-medium">Requires attention</p>
           </div>
           <div className="p-4 bg-orange-50 text-orange-600 rounded-2xl group-hover:scale-110 transition-transform">
@@ -488,7 +894,8 @@ export const AdminModule: React.FC<Props> = ({ isBangla, onExit }) => {
         </div>
       </div>
     </div>
-  );
+    );
+  };
 
   // --- SUB-COMPONENT: ADD USER FORM VIEW ---
   const renderAddUserView = () => (
@@ -584,113 +991,66 @@ export const AdminModule: React.FC<Props> = ({ isBangla, onExit }) => {
   const renderUserDetailsView = () => {
     if (!viewingUser) return null;
     
+    // Mock user activity for the detailed view
+    const activities = getMockActivity(viewingUser.name);
+
     return (
-      <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden animate-fade-in max-w-5xl mx-auto">
-         {/* Header Background */}
-         <div className="h-40 bg-[#0f172a] relative">
-            <button onClick={() => setUserViewMode('list')} className="absolute top-8 left-8 bg-white/10 hover:bg-white/20 text-white px-5 py-2.5 rounded-xl backdrop-blur-md flex items-center gap-2 text-sm font-bold transition-all border border-white/10">
-                <ArrowLeft size={18}/> Back to List
-            </button>
-         </div>
-         
-         <div className="px-8 pb-12">
-            {/* Profile Header Block */}
-            <div className="flex flex-col md:flex-row items-start md:items-end -mt-16 mb-10 gap-6 relative z-10">
-               <div className="w-32 h-32 rounded-3xl bg-white p-1.5 shadow-2xl shrink-0 rotate-3 hover:rotate-0 transition-transform duration-300">
-                  <div className="w-full h-full rounded-2xl bg-gradient-to-br from-brand-100 to-brand-50 flex items-center justify-center text-brand-600 font-bold text-5xl border border-brand-100">
+      <div className="bg-white p-8 rounded-2xl shadow-sm border border-gray-100 animate-fade-in max-w-4xl mx-auto">
+        <div className="flex items-center justify-between mb-8 border-b border-gray-100 pb-4">
+            <h3 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
+                <User className="text-brand-600" size={28} /> User Profile
+            </h3>
+            <Button onClick={() => setUserViewMode('list')} variant="outline" className="flex items-center gap-2">
+                <ArrowLeft size={18} /> Back to Users
+            </Button>
+        </div>
+
+        <div className="flex flex-col md:flex-row gap-8">
+            {/* Profile Info */}
+            <div className="w-full md:w-1/3 text-center border-r border-gray-100 pr-0 md:pr-8">
+                <div className="w-24 h-24 rounded-full bg-brand-50 text-brand-600 flex items-center justify-center font-bold text-3xl mx-auto mb-4 border-4 border-brand-100">
                     {viewingUser.name[0]}
-                  </div>
-               </div>
-               
-               <div className="flex-1 pt-2 md:pt-0">
-                  <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-3">{viewingUser.name}</h2>
-                  <div className="flex flex-wrap items-center gap-3">
-                     <span className="px-3 py-1 bg-gray-100 text-gray-600 text-sm font-bold rounded-lg border border-gray-200 flex items-center gap-2">
-                       <Mail size={16} className="text-gray-400" /> {viewingUser.email}
-                     </span>
-                     <span className="px-3 py-1 bg-blue-50 text-blue-700 text-sm font-bold rounded-lg border border-blue-100 flex items-center gap-2">
-                       <Briefcase size={16} /> {viewingUser.role}
-                     </span>
-                     <span className={`px-3 py-1 rounded-lg text-sm font-bold border flex items-center gap-2 ${viewingUser.status === 'Active' ? 'bg-green-50 text-green-700 border-green-200' : 'bg-red-50 text-red-700 border-red-200'}`}>
-                        {viewingUser.status === 'Active' ? <CheckCircle size={16} /> : <Lock size={16} />} {viewingUser.status}
-                     </span>
-                  </div>
-               </div>
-
-               <div className="flex gap-3 w-full md:w-auto mt-4 md:mt-0">
-                  <Button 
-                    onClick={() => handleToggleUserStatus(viewingUser.id)} 
-                    variant="outline" 
-                    className={`flex-1 md:flex-none border-gray-200 h-11 ${viewingUser.status === 'Active' ? 'text-orange-600 hover:bg-orange-50' : 'text-green-600 hover:bg-green-50'}`}
-                  >
-                    {viewingUser.status === 'Active' ? 'Suspend User' : 'Activate User'}
-                  </Button>
-                  <Button 
-                    onClick={() => handleDeleteUser(viewingUser.id)} 
-                    className="flex-1 md:flex-none bg-red-50 text-red-600 border border-red-100 hover:bg-red-100 h-11"
-                  >
-                    Delete User
-                  </Button>
-               </div>
+                </div>
+                <h2 className="text-xl font-bold text-gray-900">{viewingUser.name}</h2>
+                <p className="text-sm text-gray-500 mb-2">{viewingUser.email}</p>
+                <span className="inline-block px-3 py-1 bg-gray-100 text-gray-700 rounded-full text-xs font-bold mb-6">{viewingUser.role}</span>
+                
+                <div className="space-y-3">
+                    <Button onClick={() => handleToggleUserStatus(viewingUser.id)} className={`w-full ${viewingUser.status === 'Active' ? 'bg-orange-100 text-orange-700 hover:bg-orange-200' : 'bg-green-100 text-green-700 hover:bg-green-200'} border-none shadow-none`}>
+                        {viewingUser.status === 'Active' ? 'Suspend User' : 'Activate User'}
+                    </Button>
+                    <Button onClick={() => handleDeleteUser(viewingUser.id)} variant="danger" className="w-full bg-red-50 text-red-600 border border-red-100 hover:bg-red-100 shadow-none">
+                        Delete Account
+                    </Button>
+                </div>
             </div>
 
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-10">
-                {/* Activity Timeline */}
-                <div className="lg:col-span-2">
-                  <div className="flex items-center gap-3 mb-8">
-                    <div className="p-2 bg-brand-50 rounded-lg text-brand-600">
-                      <Activity size={24} />
+            {/* Stats & Activity */}
+            <div className="w-full md:w-2/3">
+                <div className="grid grid-cols-2 gap-4 mb-8">
+                    <div className="bg-gray-50 p-4 rounded-xl text-center">
+                        <p className="text-xs text-gray-500 font-bold uppercase">Status</p>
+                        <p className={`font-bold ${viewingUser.status === 'Active' ? 'text-green-600' : 'text-red-600'}`}>{viewingUser.status}</p>
                     </div>
-                    <h4 className="font-bold text-xl text-gray-900">
-                      Recent Activity Log
-                    </h4>
-                  </div>
-                  
-                  <div className="relative pl-4 ml-2 space-y-8 before:absolute before:inset-y-0 before:left-0 before:w-0.5 before:bg-gray-100">
-                     {getMockActivity(viewingUser.name).map((log, idx) => (
-                       <div key={idx} className="relative pl-8 group">
-                          <div className="absolute left-[-5px] top-1.5 w-3 h-3 rounded-full bg-gray-200 border-2 border-white ring-4 ring-gray-50 group-hover:bg-brand-500 group-hover:ring-brand-100 transition-all"></div>
-                          <div className="bg-gray-50 p-4 rounded-xl border border-gray-100 hover:border-brand-200 hover:bg-white hover:shadow-sm transition-all">
-                            <p className="text-base font-bold text-gray-800">{log.action}</p>
-                            <p className="text-sm text-gray-500 mt-1 flex items-center gap-2">
-                              <Clock size={14} /> {log.date}
-                            </p>
-                          </div>
-                       </div>
-                     ))}
-                  </div>
+                    <div className="bg-gray-50 p-4 rounded-xl text-center">
+                        <p className="text-xs text-gray-500 font-bold uppercase">Joined</p>
+                        <p className="font-bold text-gray-800">{viewingUser.date}</p>
+                    </div>
                 </div>
 
-                {/* Info Card */}
-                <div className="space-y-6">
-                   <div className="bg-white rounded-2xl p-6 border border-gray-200 shadow-sm">
-                      <h4 className="font-bold text-gray-900 mb-6 uppercase text-xs tracking-widest text-gray-400 border-b border-gray-100 pb-4">Account Details</h4>
-                      <div className="space-y-5">
-                          <div>
-                              <p className="text-xs text-gray-500 font-bold mb-1.5">JOIN DATE</p>
-                              <div className="flex items-center gap-3 bg-gray-50 p-3 rounded-xl border border-gray-100">
-                                <Calendar size={20} className="text-gray-400"/> 
-                                <span className="font-bold text-gray-800">{viewingUser.date}</span>
-                              </div>
-                          </div>
-                          <div>
-                              <p className="text-xs text-gray-500 font-bold mb-1.5">USER ID</p>
-                              <div className="flex items-center gap-3 bg-gray-50 p-3 rounded-xl border border-gray-100">
-                                <div className="font-mono text-sm font-bold text-gray-600">#{viewingUser.id.toString().padStart(4, '0')}</div>
-                              </div>
-                          </div>
-                          <div>
-                              <p className="text-xs text-gray-500 font-bold mb-1.5">VERIFICATION</p>
-                              <div className="flex items-center gap-2 text-green-600 bg-green-50 p-3 rounded-xl border border-green-100">
-                                <Shield size={18}/>
-                                <span className="font-bold text-sm">Email Verified</span>
-                              </div>
-                          </div>
-                      </div>
-                   </div>
+                <h4 className="font-bold text-gray-800 mb-4 flex items-center gap-2 text-sm uppercase tracking-wider border-b border-gray-100 pb-2">
+                    <Activity size={16} /> Recent Activity
+                </h4>
+                <div className="space-y-4">
+                    {activities.map((act, idx) => (
+                        <div key={idx} className="flex items-center justify-between text-sm">
+                            <span className="text-gray-700">{act.action}</span>
+                            <span className="text-xs text-gray-400">{act.date}</span>
+                        </div>
+                    ))}
                 </div>
             </div>
-         </div>
+        </div>
       </div>
     );
   };
@@ -702,8 +1062,62 @@ export const AdminModule: React.FC<Props> = ({ isBangla, onExit }) => {
       return matchesSearch && matchesRole;
     });
 
+    // Stats Calculation
+    const totalCount = users.length;
+    const activeCount = users.filter(u => u.status === 'Active').length;
+    const suspendedCount = users.filter(u => u.status === 'Suspended').length;
+    
+    // Calculate new users (created in the current month)
+    const currentMonth = new Date().getMonth();
+    const currentYear = new Date().getFullYear();
+    const newCount = users.filter(u => {
+        const d = new Date(u.date);
+        return !isNaN(d.getTime()) && d.getMonth() === currentMonth && d.getFullYear() === currentYear;
+    }).length;
+
     return (
       <div className="space-y-6 animate-fade-in">
+        
+        {/* Stats Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            <div className="bg-white p-5 rounded-2xl border border-gray-100 shadow-sm flex items-center justify-between">
+                <div>
+                    <p className="text-gray-500 text-xs font-bold uppercase tracking-wider">Total Users</p>
+                    <h4 className="text-2xl font-bold text-gray-900 mt-1">{totalCount}</h4>
+                </div>
+                <div className="p-3 bg-blue-50 text-blue-600 rounded-xl">
+                    <Users size={24} />
+                </div>
+            </div>
+            <div className="bg-white p-5 rounded-2xl border border-gray-100 shadow-sm flex items-center justify-between">
+                <div>
+                    <p className="text-gray-500 text-xs font-bold uppercase tracking-wider">Active Users</p>
+                    <h4 className="text-2xl font-bold text-gray-900 mt-1">{activeCount}</h4>
+                </div>
+                <div className="p-3 bg-emerald-50 text-emerald-600 rounded-xl">
+                    <UserCheck size={24} />
+                </div>
+            </div>
+            <div className="bg-white p-5 rounded-2xl border border-gray-100 shadow-sm flex items-center justify-between">
+                <div>
+                    <p className="text-gray-500 text-xs font-bold uppercase tracking-wider">Suspended</p>
+                    <h4 className="text-2xl font-bold text-gray-900 mt-1">{suspendedCount}</h4>
+                </div>
+                <div className="p-3 bg-red-50 text-red-600 rounded-xl">
+                    <UserX size={24} />
+                </div>
+            </div>
+            <div className="bg-white p-5 rounded-2xl border border-gray-100 shadow-sm flex items-center justify-between">
+                <div>
+                    <p className="text-gray-500 text-xs font-bold uppercase tracking-wider">New (This Month)</p>
+                    <h4 className="text-2xl font-bold text-gray-900 mt-1">{newCount}</h4>
+                </div>
+                <div className="p-3 bg-purple-50 text-purple-600 rounded-xl">
+                    <CalendarDays size={24} />
+                </div>
+            </div>
+        </div>
+
         <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
           <div className="flex flex-col sm:flex-row justify-between items-center gap-4 mb-6">
             <div>
@@ -829,53 +1243,6 @@ export const AdminModule: React.FC<Props> = ({ isBangla, onExit }) => {
         default: return renderUsersList();
     }
   };
-
-  const renderContentModeration = () => (
-    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 animate-fade-in">
-      <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
-        <h3 className="font-bold text-lg text-gray-800 mb-4 flex items-center gap-2"><Briefcase className="text-purple-600"/> Pending Jobs</h3>
-        <div className="space-y-3">
-          {pendingJobs.map(job => (
-            <div key={job.id} className="p-4 border border-gray-100 rounded-xl hover:bg-gray-50 transition-colors">
-              <div className="flex justify-between items-start mb-2">
-                <div>
-                  <h4 className="font-bold text-gray-900">{job.title}</h4>
-                  <p className="text-sm text-gray-500">{job.company} • {job.postedBy}</p>
-                </div>
-                <span className="text-xs text-gray-400">{job.date}</span>
-              </div>
-              <div className="flex gap-2 mt-3">
-                <Button size="sm" onClick={() => handleApproveJob(job.id)} className="bg-green-600 hover:bg-green-700 h-8 text-xs">Approve</Button>
-                <Button size="sm" onClick={() => handleRejectJob(job.id)} variant="danger" className="bg-red-50 text-red-600 border border-red-200 h-8 text-xs">Reject</Button>
-              </div>
-            </div>
-          ))}
-          {pendingJobs.length === 0 && <p className="text-gray-400 text-center py-4 text-sm">No pending jobs.</p>}
-        </div>
-      </div>
-      <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
-        <h3 className="font-bold text-lg text-gray-800 mb-4 flex items-center gap-2"><FileText className="text-blue-600"/> Pending Blogs</h3>
-        <div className="space-y-3">
-          {pendingBlogs.map(blog => (
-            <div key={blog.id} className="p-4 border border-gray-100 rounded-xl hover:bg-gray-50 transition-colors">
-              <div className="flex justify-between items-start mb-2">
-                <div>
-                  <h4 className="font-bold text-gray-900">{blog.title}</h4>
-                  <p className="text-sm text-gray-500">By {blog.author}</p>
-                </div>
-                <span className="text-xs text-gray-400">{blog.date}</span>
-              </div>
-              <div className="flex gap-2 mt-3">
-                <Button size="sm" onClick={() => handleApproveBlog(blog.id)} className="bg-green-600 hover:bg-green-700 h-8 text-xs">Publish</Button>
-                <Button size="sm" variant="outline" className="h-8 text-xs">Review</Button>
-              </div>
-            </div>
-          ))}
-          {pendingBlogs.length === 0 && <p className="text-gray-400 text-center py-4 text-sm">No pending blogs.</p>}
-        </div>
-      </div>
-    </div>
-  );
 
   const renderMarket = () => (
     <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 animate-fade-in">
@@ -1332,7 +1699,7 @@ export const AdminModule: React.FC<Props> = ({ isBangla, onExit }) => {
 
         {activeSection === 'overview' && renderOverview()}
         {activeSection === 'users' && renderUsers()}
-        {activeSection === 'content' && renderContentModeration()}
+        {activeSection === 'content' && renderContentManagement()}
         {activeSection === 'module-config' && renderModuleConfig()}
         {activeSection === 'market' && renderMarket()}
         {activeSection === 'grievance' && renderGrievance()}
