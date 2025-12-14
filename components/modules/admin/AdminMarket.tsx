@@ -8,26 +8,15 @@ import {
 import { Button } from '../../ui/Button';
 import { useData } from '../../../contexts/DataContext';
 
-const INITIAL_RETAIL_PRODUCTS = [
-  { id: 1, nameBn: 'তাজা আলু', nameEn: 'Fresh Potato', price: 45, unit: 'kg', category: 'Vegetable', stock: 'Available' },
-  { id: 2, nameBn: 'রুই মাছ', nameEn: 'Rui Fish', price: 350, unit: 'kg', category: 'Fish', stock: 'Low Stock' },
-  { id: 3, nameBn: 'মসুর ডাল', nameEn: 'Lentils', price: 130, unit: 'kg', category: 'Grocery', stock: 'Available' },
-];
-
-const INITIAL_WHOLESALE_ADS = [
-  { id: 1, product: 'Dinajpur Lychee', quantity: '5000 pcs', price: '3.5/pc', seller: 'Karim Fruit Store', status: 'Active', date: '2023-10-25' },
-  { id: 2, product: 'Bogra Doi', quantity: '100 pots', price: '180/pot', seller: 'Misty Bari', status: 'Pending', date: '2023-10-26' },
-  { id: 3, product: 'Miniket Rice', quantity: '50 Mon', price: '2800/mon', seller: 'Bhai Bhai Traders', status: 'Pending', date: '2023-10-26' },
-];
-
 export const AdminMarket = () => {
-  const { marketPrices, updateMarketPrices } = useData();
+  const { 
+    marketPrices, updateMarketPrices,
+    retailProducts, addRetailProduct, updateRetailProduct, deleteRetailProduct,
+    wholesaleAds, updateWholesaleAd, deleteWholesaleAd
+  } = useData();
+
   const [activeTab, setActiveTab] = useState<'prices' | 'retail' | 'wholesale'>('prices');
   const [searchQuery, setSearchQuery] = useState('');
-
-  // Data States
-  const [retailProducts, setRetailProducts] = useState(INITIAL_RETAIL_PRODUCTS);
-  const [wholesaleAds, setWholesaleAds] = useState(INITIAL_WHOLESALE_ADS);
 
   // Modal States
   const [showPriceModal, setShowPriceModal] = useState(false);
@@ -56,24 +45,25 @@ export const AdminMarket = () => {
   const handleProductSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (editingItem.id) {
-      setRetailProducts(retailProducts.map(p => p.id === editingItem.id ? editingItem : p));
+      updateRetailProduct(editingItem);
     } else {
-      setRetailProducts([...retailProducts, { ...editingItem, id: Date.now(), stock: 'Available' }]);
+      addRetailProduct({ ...editingItem, stock: 'Available' });
     }
     setShowProductModal(false);
     setEditingItem(null);
   };
 
   const deleteProduct = (id: number) => {
-    if(confirm('Delete this product?')) setRetailProducts(retailProducts.filter(p => p.id !== id));
+    if(confirm('Delete this product?')) deleteRetailProduct(id);
   };
 
   // --- ACTIONS: WHOLESALE ---
   const handleWholesaleAction = (id: number, action: 'approve' | 'reject') => {
     if (action === 'approve') {
-      setWholesaleAds(wholesaleAds.map(ad => ad.id === id ? { ...ad, status: 'Active' } : ad));
+      const ad = wholesaleAds.find((a: any) => a.id === id);
+      if (ad) updateWholesaleAd({ ...ad, status: 'Active' });
     } else {
-      setWholesaleAds(wholesaleAds.filter(ad => ad.id !== id));
+      deleteWholesaleAd(id);
     }
   };
 
@@ -145,7 +135,7 @@ export const AdminMarket = () => {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {retailProducts.map(prod => (
+        {retailProducts.map((prod: any) => (
           <div key={prod.id} className="bg-white p-4 rounded-xl border border-gray-200 shadow-sm flex flex-col gap-3 group hover:shadow-md transition-all">
             <div className="flex justify-between items-start">
               <div>
@@ -182,13 +172,13 @@ export const AdminMarket = () => {
         </h3>
         <div className="flex gap-2">
            <span className="flex items-center gap-1 text-xs font-bold bg-orange-100 text-orange-700 px-3 py-1 rounded-full">
-             {wholesaleAds.filter(a => a.status === 'Pending').length} Pending
+             {wholesaleAds.filter((a: any) => a.status === 'Pending').length} Pending
            </span>
         </div>
       </div>
 
       <div className="space-y-4">
-        {wholesaleAds.map(ad => (
+        {wholesaleAds.map((ad: any) => (
           <div key={ad.id} className="bg-white p-5 rounded-xl border border-gray-200 shadow-sm flex flex-col md:flex-row justify-between items-center gap-4">
              <div className="flex-1">
                <div className="flex items-center gap-3 mb-1">

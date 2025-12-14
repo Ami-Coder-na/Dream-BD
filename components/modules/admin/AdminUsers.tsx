@@ -6,30 +6,22 @@ import {
   Briefcase, Key, MoreVertical, Phone, MapPin, Shield, Activity, Unlock
 } from 'lucide-react';
 import { Button } from '../../ui/Button';
-
-// Mock Data matching the screenshot
-const MOCK_USERS = [
-  { id: '1', name: 'Rahim Uddin', email: 'rahim@agri.com', role: 'Farmer', status: 'Active', date: '2023-10-01' },
-  { id: '2', name: 'Dr. Nusrat', email: 'nusrat@health.com', role: 'Doctor', status: 'Active', date: '2023-09-15' },
-  { id: '3', name: 'Karim Transport', email: 'karim@bus.com', role: 'Transport Operator', status: 'Suspended', date: '2023-11-20' },
-  { id: '4', name: 'Sumaiya Akter', email: 'sumaiya@craft.com', role: 'Vendor', status: 'Active', date: '2023-12-05' },
-  { id: '5', name: 'Rafiqul Islam', email: 'rafiq@mail.com', role: 'Citizen', status: 'Active', date: '2024-01-10' },
-];
+import { useData } from '../../../contexts/DataContext';
 
 export const AdminUsers = () => {
+  const { users, addUser, updateUserStatus, deleteUser } = useData(); // Use Context
   const [view, setView] = useState<'list' | 'add' | 'details'>('list');
-  const [users, setUsers] = useState(MOCK_USERS);
   const [userSearch, setUserSearch] = useState('');
   const [userRoleFilter, setUserRoleFilter] = useState('All');
   const [selectedUser, setSelectedUser] = useState<any>(null);
 
   // Stats Calculation
   const totalUsers = users.length;
-  const activeUsers = users.filter(u => u.status === 'Active').length;
-  const suspendedUsers = users.filter(u => u.status === 'Suspended').length;
-  const newUsers = 0; // Hardcoded as per screenshot example
+  const activeUsers = users.filter((u: any) => u.status === 'Active').length;
+  const suspendedUsers = users.filter((u: any) => u.status === 'Suspended').length;
+  const newUsers = 0; // In a real app, filter by date range
 
-  const filteredUsers = users.filter(u => {
+  const filteredUsers = users.filter((u: any) => {
     const matchesSearch = u.name.toLowerCase().includes(userSearch.toLowerCase()) || u.email.toLowerCase().includes(userSearch.toLowerCase());
     const matchesRole = userRoleFilter === 'All' || u.role === userRoleFilter;
     return matchesSearch && matchesRole;
@@ -43,26 +35,47 @@ export const AdminUsers = () => {
   };
 
   const handleSuspendUser = (id: string) => {
-    const user = users.find(u => u.id === id);
-    const action = user?.status === 'Active' ? 'suspend' : 'activate';
+    const user = users.find((u: any) => u.id === id);
+    const action = user?.status === 'Active' ? 'Suspended' : 'Active';
+    const actionLabel = user?.status === 'Active' ? 'suspend' : 'activate';
     
-    if(confirm(`Are you sure you want to ${action} this user?`)) {
-      setUsers(users.map(u => 
-        u.id === id 
-          ? { ...u, status: u.status === 'Active' ? 'Suspended' : 'Active' } 
-          : u
-      ));
+    if(confirm(`Are you sure you want to ${actionLabel} this user?`)) {
+      updateUserStatus(id, action);
     }
   };
 
   const handleDeleteUser = (id: string) => {
     if(confirm('Are you sure you want to permanently delete this user? This action cannot be undone.')) {
-      setUsers(users.filter(u => u.id !== id));
+      deleteUser(id);
       if (selectedUser?.id === id) {
           setView('list');
           setSelectedUser(null);
       }
     }
+  };
+
+  const handleAddUser = (e: React.FormEvent) => {
+      e.preventDefault();
+      const form = e.target as HTMLFormElement;
+      const name = (form.elements.namedItem('name') as HTMLInputElement).value;
+      const email = (form.elements.namedItem('email') as HTMLInputElement).value;
+      const role = (form.elements.namedItem('role') as HTMLSelectElement).value;
+      const password = (form.elements.namedItem('password') as HTMLInputElement).value;
+      
+      const newUser = {
+          id: Date.now().toString(),
+          name,
+          email,
+          role,
+          password: password, // In real app, hash this
+          status: 'Active',
+          date: new Date().toLocaleDateString(),
+          avatar: `https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&q=80&w=150`
+      };
+      
+      addUser(newUser);
+      alert('User created successfully!');
+      setView('list');
   };
 
   // --- RENDERERS ---
@@ -136,10 +149,14 @@ export const AdminUsers = () => {
             <div className="px-8 pb-8">
                 <div className="relative flex justify-between items-end -mt-12 mb-6">
                     <div className="relative">
-                        <div className="w-24 h-24 rounded-full bg-white p-1 shadow-md">
-                            <div className="w-full h-full rounded-full bg-gray-100 flex items-center justify-center text-3xl font-bold text-gray-500">
-                                {selectedUser.name.charAt(0)}
-                            </div>
+                        <div className="w-24 h-24 rounded-full bg-white p-1 shadow-md overflow-hidden">
+                            {selectedUser.avatar ? (
+                                <img src={selectedUser.avatar} alt={selectedUser.name} className="w-full h-full object-cover" />
+                            ) : (
+                                <div className="w-full h-full rounded-full bg-gray-100 flex items-center justify-center text-3xl font-bold text-gray-500">
+                                    {selectedUser.name.charAt(0)}
+                                </div>
+                            )}
                         </div>
                         <span className={`absolute bottom-1 right-1 w-5 h-5 border-2 border-white rounded-full ${selectedUser.status === 'Active' ? 'bg-green-500' : 'bg-red-500'}`}></span>
                     </div>
@@ -155,7 +172,7 @@ export const AdminUsers = () => {
                             <Calendar size={14} /> Joined: {selectedUser.date}
                         </span>
                         <span className="flex items-center gap-1">
-                            <Shield size={14} /> User ID: #{selectedUser.id.padStart(4, '0')}
+                            <Shield size={14} /> User ID: #{selectedUser.id}
                         </span>
                     </div>
                 </div>
@@ -175,14 +192,14 @@ export const AdminUsers = () => {
                                 <div className="w-8 h-8 rounded-lg bg-green-50 flex items-center justify-center text-green-600"><Phone size={16}/></div>
                                 <div>
                                     <p className="text-xs text-gray-500">Phone Number</p>
-                                    <p className="font-medium">+880 1700 000000</p>
+                                    <p className="font-medium">{selectedUser.phone || 'N/A'}</p>
                                 </div>
                             </div>
                             <div className="flex items-center gap-3 text-gray-700">
                                 <div className="w-8 h-8 rounded-lg bg-purple-50 flex items-center justify-center text-purple-600"><MapPin size={16}/></div>
                                 <div>
                                     <p className="text-xs text-gray-500">Location</p>
-                                    <p className="font-medium">Dhaka, Bangladesh</p>
+                                    <p className="font-medium">{selectedUser.location || 'N/A'}</p>
                                 </div>
                             </div>
                         </div>
@@ -194,15 +211,8 @@ export const AdminUsers = () => {
                             <div className="flex gap-3">
                                 <div className="mt-1"><Activity size={16} className="text-gray-400"/></div>
                                 <div>
-                                    <p className="text-sm text-gray-800">Logged in from new device</p>
-                                    <p className="text-xs text-gray-500">2 hours ago</p>
-                                </div>
-                            </div>
-                            <div className="flex gap-3">
-                                <div className="mt-1"><Activity size={16} className="text-gray-400"/></div>
-                                <div>
-                                    <p className="text-sm text-gray-800">Updated profile information</p>
-                                    <p className="text-xs text-gray-500">Yesterday</p>
+                                    <p className="text-sm text-gray-800">Account Created</p>
+                                    <p className="text-xs text-gray-500">{selectedUser.date}</p>
                                 </div>
                             </div>
                         </div>
@@ -232,7 +242,7 @@ export const AdminUsers = () => {
           </div>
           
           <div className="p-8">
-            <form className="space-y-8" onSubmit={(e) => { e.preventDefault(); alert('User created!'); setView('list'); }}>
+            <form className="space-y-8" onSubmit={handleAddUser}>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                 <div className="space-y-2">
                   <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider">FULL NAME</label>
@@ -240,6 +250,8 @@ export const AdminUsers = () => {
                     <span className="absolute left-3 top-3 text-gray-400"><Users size={18}/></span>
                     <input 
                       type="text" 
+                      name="name"
+                      required
                       placeholder="e.g. Rahim Uddin" 
                       className="w-full pl-10 pr-4 py-3 bg-white border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-gray-900 transition-all text-sm font-medium"
                     />
@@ -252,6 +264,8 @@ export const AdminUsers = () => {
                     <span className="absolute left-3 top-3 text-gray-400"><Mail size={18}/></span>
                     <input 
                       type="email" 
+                      name="email"
+                      required
                       placeholder="user@example.com" 
                       className="w-full pl-10 pr-4 py-3 bg-white border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-gray-900 transition-all text-sm font-medium"
                     />
@@ -264,6 +278,8 @@ export const AdminUsers = () => {
                     <span className="absolute left-3 top-3 text-gray-400"><Key size={18}/></span>
                     <input 
                       type="text" 
+                      name="password"
+                      required
                       placeholder="Set a temporary password" 
                       className="w-full pl-10 pr-4 py-3 bg-white border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-gray-900 transition-all text-sm font-medium"
                     />
@@ -275,7 +291,7 @@ export const AdminUsers = () => {
                   <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider">ROLE</label>
                   <div className="relative">
                     <span className="absolute left-3 top-3 text-gray-400"><Briefcase size={18}/></span>
-                    <select className="w-full pl-10 pr-4 py-3 bg-white border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-gray-900 transition-all text-sm font-medium appearance-none cursor-pointer">
+                    <select name="role" className="w-full pl-10 pr-4 py-3 bg-white border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-gray-900 transition-all text-sm font-medium appearance-none cursor-pointer">
                       <option>Citizen</option>
                       <option>Farmer</option>
                       <option>Doctor</option>
@@ -357,12 +373,16 @@ export const AdminUsers = () => {
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-50">
-              {filteredUsers.map((user) => (
+              {filteredUsers.map((user: any) => (
                 <tr key={user.id} className="hover:bg-gray-50/50 transition-colors group">
                   <td className="p-4">
                     <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 rounded-full bg-green-100 flex items-center justify-center text-green-700 font-bold text-sm">
-                        {user.name.charAt(0)}
+                      <div className="w-10 h-10 rounded-full bg-green-100 flex items-center justify-center text-green-700 font-bold text-sm overflow-hidden">
+                        {user.avatar ? (
+                            <img src={user.avatar} alt={user.name} className="w-full h-full object-cover" />
+                        ) : (
+                            user.name.charAt(0)
+                        )}
                       </div>
                       <div>
                         <p className="font-bold text-gray-900 text-sm">{user.name}</p>
@@ -403,6 +423,9 @@ export const AdminUsers = () => {
                   </td>
                 </tr>
               ))}
+              {filteredUsers.length === 0 && (
+                  <tr><td colSpan={5} className="p-10 text-center text-gray-400 font-medium">No users found. Add a user to start.</td></tr>
+              )}
             </tbody>
           </table>
         </div>

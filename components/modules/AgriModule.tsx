@@ -9,9 +9,12 @@ import {
 } from 'lucide-react';
 import { Button } from '../ui/Button';
 import { getOptimizedImageUrl } from '../utils/imageUtils';
+import { User } from '../../types';
 
 interface Props {
   isBangla: boolean;
+  user?: User | null;
+  onLogin?: () => void;
 }
 
 type Tab = 'overview' | 'encyclopedia' | 'calculator' | 'community';
@@ -222,7 +225,7 @@ interface CalculationResult {
   }[];
 }
 
-export const AgriModule: React.FC<Props> = ({ isBangla }) => {
+export const AgriModule: React.FC<Props> = ({ isBangla, user, onLogin }) => {
   const [activeTab, setActiveTab] = useState<Tab>('overview');
   const [selectedCrop, setSelectedCrop] = useState<typeof CROPS_DB[0] | null>(null);
   
@@ -388,7 +391,7 @@ export const AgriModule: React.FC<Props> = ({ isBangla }) => {
 
     const newPost: ForumPost = {
       id: Date.now(),
-      user: isBangla ? 'আমি' : 'Me',
+      user: user ? user.name : 'User',
       text: newPostText,
       image: newPostImage || undefined,
       likes: 0,
@@ -402,6 +405,14 @@ export const AgriModule: React.FC<Props> = ({ isBangla }) => {
     setNewPostText('');
     setNewPostImage(null);
     setShowPostModal(false);
+  };
+
+  const handleAuthAction = (action: () => void) => {
+      if (!user) {
+          if (onLogin) onLogin();
+          return;
+      }
+      action();
   };
 
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -436,11 +447,15 @@ export const AgriModule: React.FC<Props> = ({ isBangla }) => {
 
   const addComment = (postId: number, text: string) => {
     if (!text.trim()) return;
+    if (!user) {
+        if (onLogin) onLogin();
+        return;
+    }
     setPosts(posts.map(post => {
       if (post.id === postId) {
         return {
           ...post,
-          comments: [...post.comments, { id: Date.now(), user: isBangla ? 'আমি' : 'Me', text }]
+          comments: [...post.comments, { id: Date.now(), user: user.name, text }]
         };
       }
       return post;
@@ -755,7 +770,7 @@ export const AgriModule: React.FC<Props> = ({ isBangla }) => {
               <Button size="sm" variant="danger" className="flex-1 shadow-lg shadow-red-200">
                 {isBangla ? 'ঔষধ কিনুন' : 'Buy Medicine'}
               </Button>
-              <Button size="sm" variant="outline" className="flex-1 bg-white hover:bg-gray-50 border-red-200 text-red-700">
+              <Button size="sm" variant="outline" onClick={() => handleAuthAction(() => setShowExpertModal(true))} className="flex-1 bg-white hover:bg-gray-50 border-red-200 text-red-700">
                 {isBangla ? 'বিশেষজ্ঞের পরামর্শ' : 'Ask Expert'}
               </Button>
             </div>
@@ -956,7 +971,7 @@ export const AgriModule: React.FC<Props> = ({ isBangla }) => {
              {isBangla ? 'আপনার সমস্যা ও অভিজ্ঞতা শেয়ার করুন' : 'Share your problems and experiences'}
            </p>
         </div>
-        <Button onClick={() => setShowPostModal(true)} className="bg-brand-600 hover:bg-brand-700 shadow-lg shadow-brand-200">
+        <Button onClick={() => handleAuthAction(() => setShowPostModal(true))} className="bg-brand-600 hover:bg-brand-700 shadow-lg shadow-brand-200">
            <MessageSquare size={18} className="mr-2" />
            {isBangla ? 'নতুন পোস্ট' : 'Create Post'}
         </Button>
@@ -1153,11 +1168,11 @@ export const AgriModule: React.FC<Props> = ({ isBangla }) => {
               {/* User Info (Optional enhancement for 'social' feel) */}
               <div className="flex items-center gap-3 mb-4">
                  <div className="w-10 h-10 bg-brand-100 rounded-full flex items-center justify-center text-brand-700 font-bold">
-                   {isBangla ? 'আ' : 'Me'}
+                   {user ? user.name.charAt(0) : (isBangla ? 'আ' : 'U')}
                  </div>
                  <div>
-                   <p className="text-sm font-bold text-gray-900">{isBangla ? 'আমি' : 'Me'}</p>
-                   <p className="text-xs text-gray-500 bg-gray-100 px-2 py-0.5 rounded-full w-fit">Farmer</p>
+                   <p className="text-sm font-bold text-gray-900">{user ? user.name : (isBangla ? 'আমি' : 'Me')}</p>
+                   <p className="text-xs text-gray-500 bg-gray-100 px-2 py-0.5 rounded-full w-fit">{user ? user.role : 'Farmer'}</p>
                  </div>
               </div>
 

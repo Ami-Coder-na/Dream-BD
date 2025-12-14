@@ -7,9 +7,13 @@ import {
   Info, AlertOctagon, LocateFixed, Hammer, Upload, Truck, AlertCircle, Check
 } from 'lucide-react';
 import { Button } from '../ui/Button';
+import { useData } from '../../contexts/DataContext';
+import { User } from '../../types';
 
 interface Props {
   isBangla: boolean;
+  user?: User | null;
+  onLogin?: () => void;
 }
 
 type WasteTab = 'services' | 'guide' | 'recycle' | 'eco';
@@ -81,7 +85,8 @@ const DIY_PROJECTS = [
   { id: 3, titleBn: 'কাগজের ঝুড়ি', titleEn: 'Paper Basket', category: 'Craft', duration: '45 mins' },
 ];
 
-export const WasteModule: React.FC<Props> = ({ isBangla }) => {
+export const WasteModule: React.FC<Props> = ({ isBangla, user, onLogin }) => {
+  const { addGrievance } = useData();
   const [activeTab, setActiveTab] = useState<WasteTab>('services');
   
   // Grievance State
@@ -138,14 +143,30 @@ export const WasteModule: React.FC<Props> = ({ isBangla }) => {
   };
 
   const handleSubmitGrievance = () => {
+    if (!user) {
+        if (onLogin) onLogin();
+        return;
+    }
+
     if (!userAddress || !grievanceDesc) {
       alert(isBangla ? 'অনুগ্রহ করে ঠিকানা এবং সমস্যার বিবরণ দিন।' : 'Please provide location and description.');
       return;
     }
 
     setIsSubmitting(true);
+    
     // Simulate API call
     setTimeout(() => {
+      const report = {
+          location: userAddress,
+          issue: grievanceDesc,
+          type: 'Waste',
+          image: grievanceImage,
+          user: user.name
+      };
+      
+      addGrievance(report);
+      
       setIsSubmitting(false);
       alert(isBangla ? 'অভিযোগ সফলভাবে জমা দেওয়া হয়েছে!' : 'Grievance submitted successfully!');
       // Reset Form

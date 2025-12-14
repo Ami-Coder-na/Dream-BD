@@ -15,10 +15,8 @@ interface Broadcast {
   sentBy: string;
 }
 
-const INITIAL_BROADCASTS: Broadcast[] = [
-  { id: 1, message: 'Cyclone Warning Signal 4 for Coastal Areas.', severity: 'Danger', time: '10 mins ago', status: 'Active', sentBy: 'Admin' },
-  { id: 2, message: 'Heavy rainfall expected in Sylhet division.', severity: 'Warning', time: '2 hours ago', status: 'Active', sentBy: 'System' },
-];
+// Mock Data (CLEARED)
+const INITIAL_BROADCASTS: Broadcast[] = [];
 
 export const AdminEmergency = () => {
   const [broadcasts, setBroadcasts] = useState<Broadcast[]>(INITIAL_BROADCASTS);

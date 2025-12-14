@@ -15,7 +15,7 @@ import { AdminEmergency } from './admin/AdminEmergency';
 import { AdminMarket } from './admin/AdminMarket';
 import { AdminWebsiteManage } from './admin/AdminWebsiteManage';
 import { Button } from '../ui/Button';
-import { AppModule } from '../../types';
+import { useData } from '../../contexts/DataContext';
 
 interface Props {
   isBangla: boolean;
@@ -25,6 +25,8 @@ interface Props {
 type AdminSection = 'overview' | 'website-manage' | 'users' | 'content' | 'module-config' | 'market' | 'grievance' | 'emergency' | 'settings';
 
 export const AdminModule: React.FC<Props> = ({ isBangla, onExit }) => {
+  const { requests } = useData(); // Get dynamic data
+
   // Auth State
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [email, setEmail] = useState('');
@@ -32,12 +34,12 @@ export const AdminModule: React.FC<Props> = ({ isBangla, onExit }) => {
   const [showPassword, setShowPassword] = useState(false);
   const [activeSection, setActiveSection] = useState<AdminSection>('overview');
 
-  // Dashboard Stats (Matching the screenshot)
+  // Dashboard Stats (Reset to 0 / Dynamic)
   const stats = {
-    users: '12,450',
-    revenue: '৳ 8.5M',
-    health: '98%',
-    pending: 3
+    users: '0', // In a real app, fetch from UserContext
+    revenue: '৳ 0',
+    health: '100%',
+    pending: requests.length // Dynamic based on DataContext
   };
 
   // Login Handler
@@ -66,7 +68,7 @@ export const AdminModule: React.FC<Props> = ({ isBangla, onExit }) => {
             <div>
                 <p className="text-gray-500 text-xs font-bold uppercase tracking-wider">Total Users</p>
                 <h3 className="text-3xl font-bold text-gray-900 mt-2">{stats.users}</h3>
-                <p className="text-green-500 text-xs font-bold mt-1">↗ +12% this week</p>
+                <p className="text-gray-400 text-xs font-bold mt-1">No new users</p>
             </div>
             <div className="p-4 rounded-2xl bg-blue-50 text-blue-600">
                 <Users size={24} />
@@ -78,7 +80,7 @@ export const AdminModule: React.FC<Props> = ({ isBangla, onExit }) => {
             <div>
                 <p className="text-gray-500 text-xs font-bold uppercase tracking-wider">Total Revenue</p>
                 <h3 className="text-3xl font-bold text-gray-900 mt-2">{stats.revenue}</h3>
-                <p className="text-green-500 text-xs font-bold mt-1">↗ +5.4% this month</p>
+                <p className="text-gray-400 text-xs font-bold mt-1">No revenue yet</p>
             </div>
             <div className="p-4 rounded-2xl bg-green-50 text-green-600">
                 <DollarSign size={24} />
@@ -90,7 +92,7 @@ export const AdminModule: React.FC<Props> = ({ isBangla, onExit }) => {
             <div>
                 <p className="text-gray-500 text-xs font-bold uppercase tracking-wider">System Health</p>
                 <h3 className="text-3xl font-bold text-gray-900 mt-2">{stats.health}</h3>
-                <p className="text-gray-400 text-xs mt-1">All systems operational</p>
+                <p className="text-green-500 text-xs mt-1 font-bold">Operational</p>
             </div>
             <div className="p-4 rounded-2xl bg-purple-50 text-purple-600">
                 <Activity size={24} />
@@ -102,7 +104,9 @@ export const AdminModule: React.FC<Props> = ({ isBangla, onExit }) => {
             <div>
                 <p className="text-gray-500 text-xs font-bold uppercase tracking-wider">Pending Tasks</p>
                 <h3 className="text-3xl font-bold text-gray-900 mt-2">{stats.pending}</h3>
-                <p className="text-orange-500 text-xs font-bold mt-1">Requires attention</p>
+                <p className={`${stats.pending > 0 ? 'text-orange-500' : 'text-green-500'} text-xs font-bold mt-1`}>
+                  {stats.pending > 0 ? 'Requires attention' : 'All caught up'}
+                </p>
             </div>
             <div className="p-4 rounded-2xl bg-orange-50 text-orange-600">
                 <Bell size={24} />
@@ -121,19 +125,19 @@ export const AdminModule: React.FC<Props> = ({ isBangla, onExit }) => {
                     This Year <ChevronDown size={14} />
                 </button>
             </div>
-            {/* Mock Chart Area */}
+            {/* Chart Area (Empty State) */}
             <div className="flex-1 flex items-end justify-between gap-2 px-2 pb-2">
-                {/* Simulated Bars */}
                 {['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'].map((m, i) => (
                     <div key={m} className="flex flex-col items-center gap-2 w-full group cursor-pointer">
                         <div 
-                            className="w-full bg-blue-50 rounded-t-lg relative group-hover:bg-blue-100 transition-all" 
-                            style={{ height: `${[30, 45, 35, 60, 50, 70, 65, 80, 75, 90, 85, 95][i]}%` }}
+                            className="w-full bg-gray-100 rounded-t-lg relative transition-all" 
+                            style={{ height: '0%' }} // Reset to 0
                         ></div>
                         <span className="text-[10px] text-gray-400 font-medium">{m}</span>
                     </div>
                 ))}
             </div>
+            <p className="text-center text-xs text-gray-400 mt-4">No data available to display</p>
         </div>
 
         {/* User Roles Donut Chart */}
@@ -144,25 +148,21 @@ export const AdminModule: React.FC<Props> = ({ isBangla, onExit }) => {
             </h3>
             
             <div className="flex-1 flex flex-col items-center justify-center relative">
-                {/* Donut Chart Visual using CSS Conic Gradient */}
                 <div 
-                    className="w-48 h-48 rounded-full relative"
-                    style={{
-                        background: 'conic-gradient(#3b82f6 0% 35%, #22c55e 35% 60%, #f97316 60% 80%, #ef4444 80% 100%)'
-                    }}
+                    className="w-48 h-48 rounded-full relative bg-gray-100"
                 >
                     <div className="absolute inset-4 bg-white rounded-full flex flex-col items-center justify-center">
-                        <span className="text-3xl font-bold text-gray-900">12.4k</span>
+                        <span className="text-3xl font-bold text-gray-900">0</span>
                         <span className="text-xs text-gray-400 uppercase tracking-widest">Total</span>
                     </div>
                 </div>
             </div>
 
-            <div className="mt-8 grid grid-cols-2 gap-4 text-xs">
-                <div className="flex items-center gap-2"><span className="w-3 h-3 rounded-full bg-blue-500"></span> Citizens (35%)</div>
-                <div className="flex items-center gap-2"><span className="w-3 h-3 rounded-full bg-green-500"></span> Farmers (25%)</div>
-                <div className="flex items-center gap-2"><span className="w-3 h-3 rounded-full bg-orange-500"></span> Vendors (20%)</div>
-                <div className="flex items-center gap-2"><span className="w-3 h-3 rounded-full bg-red-500"></span> Transport (10%)</div>
+            <div className="mt-8 grid grid-cols-2 gap-4 text-xs opacity-50">
+                <div className="flex items-center gap-2"><span className="w-3 h-3 rounded-full bg-blue-500"></span> Citizens (0%)</div>
+                <div className="flex items-center gap-2"><span className="w-3 h-3 rounded-full bg-green-500"></span> Farmers (0%)</div>
+                <div className="flex items-center gap-2"><span className="w-3 h-3 rounded-full bg-orange-500"></span> Vendors (0%)</div>
+                <div className="flex items-center gap-2"><span className="w-3 h-3 rounded-full bg-red-500"></span> Transport (0%)</div>
             </div>
         </div>
       </div>
@@ -175,39 +175,9 @@ export const AdminModule: React.FC<Props> = ({ isBangla, onExit }) => {
             <h3 className="font-bold text-gray-800 mb-6 flex items-center gap-2">
                 <Clock size={20} className="text-gray-400"/> Recent Activity
             </h3>
-            <div className="space-y-6">
-                <div className="flex gap-4 items-start">
-                    <div className="w-10 h-10 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center shrink-0"><UserPlus size={18}/></div>
-                    <div>
-                        <h4 className="text-sm font-bold text-gray-800">New User Registered</h4>
-                        <p className="text-xs text-gray-500">Rahim Uddin joined as Farmer</p>
-                    </div>
-                    <span className="ml-auto text-xs text-gray-400">5 min ago</span>
-                </div>
-                <div className="flex gap-4 items-start">
-                    <div className="w-10 h-10 rounded-full bg-purple-50 text-purple-600 flex items-center justify-center shrink-0"><FilePlus size={18}/></div>
-                    <div>
-                        <h4 className="text-sm font-bold text-gray-800">New Job Posted</h4>
-                        <p className="text-xs text-gray-500">Assistant Teacher at Dhaka School</p>
-                    </div>
-                    <span className="ml-auto text-xs text-gray-400">20 min ago</span>
-                </div>
-                <div className="flex gap-4 items-start">
-                    <div className="w-10 h-10 rounded-full bg-red-50 text-red-600 flex items-center justify-center shrink-0"><AlertTriangle size={18}/></div>
-                    <div>
-                        <h4 className="text-sm font-bold text-gray-800">Alert Broadcasted</h4>
-                        <p className="text-xs text-gray-500">Cyclone Warning Signal 4</p>
-                    </div>
-                    <span className="ml-auto text-xs text-gray-400">1 hr ago</span>
-                </div>
-                <div className="flex gap-4 items-start">
-                    <div className="w-10 h-10 rounded-full bg-green-50 text-green-600 flex items-center justify-center shrink-0"><ShoppingBag size={18}/></div>
-                    <div>
-                        <h4 className="text-sm font-bold text-gray-800">Market Price Updated</h4>
-                        <p className="text-xs text-gray-500">Daily commodities price list updated</p>
-                    </div>
-                    <span className="ml-auto text-xs text-gray-400">2 hrs ago</span>
-                </div>
+            <div className="flex flex-col items-center justify-center h-48 text-gray-400">
+               <Activity size={32} className="mb-2 opacity-50"/>
+               <p className="text-sm">No recent activity logs.</p>
             </div>
         </div>
 

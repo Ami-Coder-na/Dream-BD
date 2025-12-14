@@ -3,6 +3,7 @@ import React, { useState } from 'react';
 import { Mail, Lock, User, Briefcase, ArrowLeft, Eye, EyeOff, ChevronDown } from 'lucide-react';
 import { Button } from '../ui/Button';
 import { UserRole } from '../../types';
+import { useData } from '../../contexts/DataContext';
 
 interface SignUpPageProps {
   onSignUpSuccess: (user: any) => void;
@@ -17,6 +18,7 @@ export const SignUpPage: React.FC<SignUpPageProps> = ({
   onBack,
   isBangla 
 }) => {
+  const { addUser } = useData(); // Use context to save user
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -28,15 +30,26 @@ export const SignUpPage: React.FC<SignUpPageProps> = ({
     e.preventDefault();
     setLoading(true);
 
-    // Simulate API delay and account creation
-    setTimeout(() => {
-      onSignUpSuccess({
+    const newUser = {
         id: `u${Date.now()}`,
         name: name,
+        email: email,
+        password: password, // In real app, this should be hashed
         role: role,
         avatar: `https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&q=80&w=150`,
-        email: email
-      });
+        status: 'Active',
+        date: new Date().toLocaleDateString()
+    };
+
+    // Simulate API delay and account creation
+    setTimeout(() => {
+      // 1. Save to Central Data Context (For Admin & Login)
+      addUser(newUser);
+      
+      // 2. Log user in immediately
+      onSignUpSuccess(newUser);
+      
+      setLoading(false);
     }, 1200);
   };
 

@@ -8,9 +8,12 @@ import {
 import { Button } from '../ui/Button';
 import { getOptimizedImageUrl } from '../utils/imageUtils';
 import { useData } from '../../contexts/DataContext';
+import { User as UserType } from '../../types';
 
 interface Props {
   isBangla: boolean;
+  user?: UserType | null;
+  onLogin?: () => void;
 }
 
 interface FilterCheckboxProps {
@@ -54,8 +57,8 @@ const SEASONAL_INFO_BASE = [
   { seasonBn: 'গ্রীষ্মকাল', seasonEn: 'Summer', type: 'summer' as const, cropsBn: 'আম, কাঁঠাল, লিচু, পটল', cropsEn: 'Mango, Jackfruit, Lychee, Pointed Gourd' },
 ];
 
-export const BazarSodaiModule: React.FC<Props> = ({ isBangla }) => {
-  const { marketPrices } = useData(); // Consume Market Prices from Context
+export const BazarSodaiModule: React.FC<Props> = ({ isBangla, user, onLogin }) => {
+  const { marketPrices, addWholesaleAd } = useData(); 
   const [activeTab, setActiveTab] = useState<'retail' | 'paikari' | 'trends'>('retail');
   const [searchQuery, setSearchQuery] = useState('');
   const [showMobileFilters, setShowMobileFilters] = useState(false);
@@ -123,6 +126,32 @@ export const BazarSodaiModule: React.FC<Props> = ({ isBangla }) => {
     setSelectedLocations([]);
     setSelectedSellerTypes([]);
     setSearchQuery('');
+  };
+
+  // --- AUTH CHECK HANDLERS ---
+  const handleAction = (action: 'buy' | 'post_ad') => {
+      if (!user) {
+          if (onLogin) onLogin();
+          return;
+      }
+      
+      if (action === 'buy') {
+          alert(isBangla ? 'পণ্যটি কার্টে যোগ করা হয়েছে।' : 'Product added to cart.');
+      } else if (action === 'post_ad') {
+          // In a real app, this would open a modal
+          // For now, let's simulate adding a request
+          const demoAd = {
+              product: 'New Wholesale Product',
+              quantity: '100 kg',
+              price: '5000',
+              seller: user.name,
+              sellerType: 'Farmer',
+              location: 'Dhaka',
+              date: 'Just now'
+          };
+          addWholesaleAd(demoAd);
+          alert(isBangla ? 'আপনার বিজ্ঞাপনটি সফলভাবে জমা দেওয়া হয়েছে।' : 'Your ad request has been submitted.');
+      }
   };
 
   return (
@@ -268,7 +297,7 @@ export const BazarSodaiModule: React.FC<Props> = ({ isBangla }) => {
                             <p className="text-gray-400 text-xs font-medium uppercase tracking-wider">{isBangla ? 'প্রতি' : 'Per'} {prod.unit}</p>
                             <p className="text-lime-700 font-bold text-xl">৳ {prod.price}</p>
                           </div>
-                          <button className="bg-lime-600 hover:bg-lime-700 text-white p-2.5 rounded-xl shadow-lg shadow-lime-600/20 transform active:scale-95 transition-all">
+                          <button onClick={() => handleAction('buy')} className="bg-lime-600 hover:bg-lime-700 text-white p-2.5 rounded-xl shadow-lg shadow-lime-600/20 transform active:scale-95 transition-all">
                             <PlusCircle size={20} />
                           </button>
                         </div>
@@ -329,7 +358,7 @@ export const BazarSodaiModule: React.FC<Props> = ({ isBangla }) => {
                   <h2 className="text-xl font-bold text-orange-900 mb-2">{isBangla ? 'আপনার পণ্য বিক্রি করুন' : 'Sell Your Produce Bulk'}</h2>
                   <p className="text-orange-800 text-sm max-w-lg">{isBangla ? 'কৃষক বা পাইকারি বিক্রেতারা এখানে সরাসরি বিজ্ঞাপন দিতে পারেন।' : 'Farmers and wholesalers can post ads here directly.'}</p>
                 </div>
-                <Button className="bg-orange-600 hover:bg-orange-700 border-none shadow-lg shadow-orange-600/20 whitespace-nowrap">
+                <Button onClick={() => handleAction('post_ad')} className="bg-orange-600 hover:bg-orange-700 border-none shadow-lg shadow-orange-600/20 whitespace-nowrap">
                   <PlusCircle size={18} className="mr-2" />{isBangla ? 'বিজ্ঞাপন দিন (ফ্রি)' : 'Post Ad (Free)'}
                 </Button>
               </div>
@@ -377,7 +406,7 @@ export const BazarSodaiModule: React.FC<Props> = ({ isBangla }) => {
                           <div className="w-8 h-8 bg-gray-100 rounded-full flex items-center justify-center text-gray-500"><User size={14} /></div>
                           <span className="text-sm font-medium text-gray-700">{item.seller}</span>
                         </div>
-                        <Button size="sm" className="bg-orange-600 hover:bg-orange-700 border-none shadow-md shadow-orange-600/10">{isBangla ? 'যোগাযোগ' : 'Contact'}</Button>
+                        <Button size="sm" onClick={() => handleAction('buy')} className="bg-orange-600 hover:bg-orange-700 border-none shadow-md shadow-orange-600/10">{isBangla ? 'যোগাযোগ' : 'Contact'}</Button>
                       </div>
                     </div>
                   ))}

@@ -4,26 +4,60 @@ import { Search, Calendar, User, ArrowRight, Tag, PenTool, X, CheckCircle, Image
 import { Button } from '../ui/Button';
 import { getOptimizedImageUrl } from '../utils/imageUtils';
 import { useData } from '../../contexts/DataContext';
+import { User as UserType } from '../../types';
 
 interface Props {
   isBangla: boolean;
+  user?: UserType | null;
+  onLogin?: () => void;
 }
 
-export const BlogModule: React.FC<Props> = ({ isBangla }) => {
-  const { blogs } = useData(); // Consume blogs from context
+export const BlogModule: React.FC<Props> = ({ isBangla, user, onLogin }) => {
+  const { blogs, addRequest } = useData();
   const [showPostModal, setShowPostModal] = useState(false);
   const [postSubmitted, setPostSubmitted] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   
+  // New Blog State
+  const [newBlogData, setNewBlogData] = useState({
+      title: '',
+      category: '',
+      content: ''
+  });
+  
   // State for Detail View
   const [selectedPost, setSelectedPost] = useState<any | null>(null);
 
-  const handlePostSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    setPostSubmitted(true);
+  const handlePostClick = () => {
+      if (!user) {
+          if(onLogin) onLogin();
+          return;
+      }
+      setShowPostModal(true);
+      setPostSubmitted(false);
   };
 
-  const handlePostClick = (post: any) => {
+  const handlePostSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    const request = {
+        contentType: 'blog',
+        title: newBlogData.title,
+        category: newBlogData.category,
+        content: newBlogData.content,
+        author: user ? user.name : 'User', // Use real user name
+        date: new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
+        postedDate: new Date().toLocaleDateString(),
+        image: 'https://images.unsplash.com/photo-1542435503-956c469947f6', // Placeholder or upload logic
+        readTime: '3 min read',
+        excerpt: newBlogData.content.substring(0, 100) + '...'
+    };
+    
+    addRequest(request);
+    setPostSubmitted(true);
+    setNewBlogData({ title: '', category: '', content: '' });
+  };
+
+  const handleReadMore = (post: any) => {
     setSelectedPost(post);
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
@@ -151,7 +185,7 @@ export const BlogModule: React.FC<Props> = ({ isBangla }) => {
               {blogs.filter((p: any) => p.id !== selectedPost.id).slice(0, 2).map((post: any) => (
                 <div 
                   key={post.id} 
-                  onClick={() => handlePostClick(post)}
+                  onClick={() => handleReadMore(post)}
                   className="bg-white p-4 rounded-xl shadow-sm border border-gray-100 flex gap-4 cursor-pointer hover:shadow-md transition-all group"
                 >
                   <div className="w-24 h-24 shrink-0 rounded-lg overflow-hidden">
@@ -202,7 +236,7 @@ export const BlogModule: React.FC<Props> = ({ isBangla }) => {
                />
              </div>
              <Button 
-                onClick={() => { setShowPostModal(true); setPostSubmitted(false); }}
+                onClick={handlePostClick}
                 className="bg-emerald-600 hover:bg-emerald-700 text-white shadow-lg shadow-emerald-600/20 flex items-center justify-center gap-2 px-6 py-3 rounded-xl whitespace-nowrap"
              >
                <PenTool size={18} />
@@ -217,7 +251,7 @@ export const BlogModule: React.FC<Props> = ({ isBangla }) => {
             filteredPosts.map((post: any) => (
               <div 
                 key={post.id} 
-                onClick={() => handlePostClick(post)}
+                onClick={() => handleReadMore(post)}
                 className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden hover:shadow-xl hover:-translate-y-1 transition-all duration-300 group flex flex-col h-full cursor-pointer"
               >
                 <div className="relative h-56 overflow-hidden">
@@ -321,12 +355,12 @@ export const BlogModule: React.FC<Props> = ({ isBangla }) => {
                 <form onSubmit={handlePostSubmit} className="space-y-6">
                   <div>
                     <label className="block text-sm font-semibold text-gray-700 mb-2">{isBangla ? 'ব্লগের শিরোনাম' : 'Blog Title'} *</label>
-                    <input type="text" required className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl" />
+                    <input type="text" required value={newBlogData.title} onChange={e => setNewBlogData({...newBlogData, title: e.target.value})} className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl" />
                   </div>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div>
                       <label className="block text-sm font-semibold text-gray-700 mb-2">{isBangla ? 'ক্যাটাগরি' : 'Category'} *</label>
-                      <select className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl">
+                      <select className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl" value={newBlogData.category} onChange={e => setNewBlogData({...newBlogData, category: e.target.value})}>
                         <option value="">{isBangla ? 'নির্বাচন করুন...' : 'Select...'}</option>
                         {categories.map((cat) => (
                           <option key={cat.id} value={cat.id}>
@@ -342,7 +376,7 @@ export const BlogModule: React.FC<Props> = ({ isBangla }) => {
                   </div>
                   <div>
                     <label className="block text-sm font-semibold text-gray-700 mb-2">{isBangla ? 'বিস্তারিত' : 'Content'} *</label>
-                    <textarea required rows={6} className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl"></textarea>
+                    <textarea required rows={6} className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl" value={newBlogData.content} onChange={e => setNewBlogData({...newBlogData, content: e.target.value})}></textarea>
                   </div>
                   <Button type="submit" className="w-full bg-emerald-600 hover:bg-emerald-700">{isBangla ? 'জমা দিন' : 'Submit'}</Button>
                 </form>

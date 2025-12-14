@@ -13,52 +13,16 @@ interface Props {
 
 type ConfigTab = 'agri' | 'health' | 'edu' | 'transport' | 'disaster' | 'fishery' | 'craft' | 'waste' | 'jela';
 
-// --- MOCK DATA ---
-const ADMIN_CROPS = [
-  { id: 1, name: 'Rice (Paddy)', season: 'Monsoon', water: 'High', status: 'Active' },
-  { id: 2, name: 'Potato', season: 'Winter', water: 'Medium', status: 'Active' },
-  { id: 3, name: 'Jute', season: 'Summer', water: 'Medium', status: 'Inactive' },
-];
-
-const ADMIN_HOSPITALS = [
-  { id: 1, name: 'Dhaka Medical College', district: 'Dhaka', type: 'Public', status: 'Active' },
-  { id: 2, name: 'Square Hospital', district: 'Dhaka', type: 'Private', status: 'Active' },
-];
-
-const ADMIN_ROUTES = [
-  { id: 1, route: 'Dhaka - Chittagong', mode: 'Bus', fare: '800', status: 'Active' },
-  { id: 2, route: 'Dhaka - Sylhet', mode: 'Train', fare: '450', status: 'Active' },
-];
-
-const ADMIN_WASTE_ZONES = [
-  { id: 1, zone: 'Mirpur Zone-1', truck: 'Truck-A12', timing: '6 AM - 8 AM', status: 'Active' },
-  { id: 2, zone: 'Dhanmondi West', truck: 'Truck-B05', timing: '7 AM - 9 AM', status: 'Inactive' },
-];
-
-const ADMIN_BOOKS = [
-  { id: 1, title: 'Amar Bangla Boi', level: 'Class 5', subject: 'Bangla', status: 'Active' },
-  { id: 2, title: 'English For Today', level: 'Class 9', subject: 'English', status: 'Active' },
-];
-
-const ADMIN_SHELTERS = [
-  { id: 1, name: 'Model School', district: 'Cox\'s Bazar', capacity: '500', status: 'Active' },
-  { id: 2, name: 'Union Parishad', district: 'Bhola', capacity: '300', status: 'Active' },
-];
-
-const ADMIN_FISHES = [
-  { id: 1, name: 'Rui', type: 'Freshwater', feed: 'Commercial', status: 'Active' },
-  { id: 2, name: 'Hilsha', type: 'Saltwater', feed: 'Natural', status: 'Active' },
-];
-
-const ADMIN_CRAFTS = [
-  { id: 1, name: 'Nakshi Kantha', category: 'Textile', artisan: 'Rahima Begum', status: 'Active' },
-  { id: 2, name: 'Clay Pot', category: 'Pottery', artisan: 'Pal Para', status: 'Active' },
-];
-
-const ADMIN_DISTRICTS = [
-  { id: 1, name: 'Dhaka', division: 'Dhaka', spots: 'Lalbagh Fort', status: 'Active' },
-  { id: 2, name: 'Cox\'s Bazar', division: 'Chattogram', spots: 'Sea Beach', status: 'Active' },
-];
+// --- MOCK DATA (CLEARED) ---
+const ADMIN_CROPS: any[] = [];
+const ADMIN_HOSPITALS: any[] = [];
+const ADMIN_ROUTES: any[] = [];
+const ADMIN_WASTE_ZONES: any[] = [];
+const ADMIN_BOOKS: any[] = [];
+const ADMIN_SHELTERS: any[] = [];
+const ADMIN_FISHES: any[] = [];
+const ADMIN_CRAFTS: any[] = [];
+const ADMIN_DISTRICTS: any[] = [];
 
 export const AdminConfig: React.FC<Props> = ({ isBangla }) => {
   const [activeConfigTab, setActiveConfigTab] = useState<ConfigTab>('agri');
@@ -324,7 +288,7 @@ export const AdminConfig: React.FC<Props> = ({ isBangla }) => {
                         </tr>
                     ))}
                     {filtered.length === 0 && (
-                        <tr><td colSpan={headers.length + 1} className="p-10 text-center text-gray-400 font-medium">No items found matching your criteria.</td></tr>
+                        <tr><td colSpan={headers.length + 1} className="p-10 text-center text-gray-400 font-medium">No items found. Add new items to start.</td></tr>
                     )}
                 </tbody>
             </table>

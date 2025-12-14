@@ -129,6 +129,14 @@ const App: React.FC = () => {
     setActiveModule('LANDING');
   };
 
+  const handleOpenAiChat = () => {
+    if (!user) {
+        setAuthView('login');
+        return;
+    }
+    setShowAiChat(true);
+  };
+
   // --- MAINTENANCE MODE CHECK ---
   // Allow admins to bypass maintenance
   if (settings.maintenanceMode && activeModule !== AppModule.ADMIN && user?.role !== 'Admin') {
@@ -204,34 +212,23 @@ const App: React.FC = () => {
             switch (activeModule) {
               case AppModule.PROFILE:
                 if (!user) {
-                  return (
-                    <div className="flex flex-col items-center justify-center py-20">
-                      <div className="text-gray-500 mb-4 font-medium">
-                        {isBangla ? 'প্রোফাইল দেখতে অনুগ্রহ করে লগইন করুন।' : 'Please log in to view your profile.'}
-                      </div>
-                      <button 
-                        onClick={navigateToLogin}
-                        className="px-6 py-2 bg-brand-600 text-white rounded-lg hover:bg-brand-700 transition-colors shadow-md"
-                      >
-                        {isBangla ? 'লগইন' : 'Login'}
-                      </button>
-                    </div>
-                  );
+                  setAuthView('login');
+                  return null;
                 }
                 return <ProfilePage user={user} onUpdateUser={handleUpdateUser} isBangla={isBangla} />;
               case AppModule.ADMIN: return <AdminModule isBangla={isBangla} onExit={handleNavigateHome} />;
-              case AppModule.JOB: return <JobModule isBangla={isBangla} />;
-              case AppModule.BLOG: return <BlogModule isBangla={isBangla} />;
+              case AppModule.JOB: return <JobModule isBangla={isBangla} user={user} onLogin={navigateToLogin} />;
+              case AppModule.BLOG: return <BlogModule isBangla={isBangla} user={user} onLogin={navigateToLogin} />;
               case AppModule.CONTACT: return <ContactModule isBangla={isBangla} />;
               case AppModule.AMAR_BD: return <AmarBdModule isBangla={isBangla} onModuleSelect={handleModuleSelect} />;
               case AppModule.AMAR_JELA: return <AmarJelaModule isBangla={isBangla} />;
-              case AppModule.BAZAR_SODAI: return <BazarSodaiModule isBangla={isBangla} />;
+              case AppModule.BAZAR_SODAI: return <BazarSodaiModule isBangla={isBangla} user={user} onLogin={navigateToLogin} />;
               case AppModule.CRAFT: return <CraftModule isBangla={isBangla} />;
-              case AppModule.AGRI: return <AgriModule isBangla={isBangla} />;
+              case AppModule.AGRI: return <AgriModule isBangla={isBangla} user={user} onLogin={navigateToLogin} />;
               case AppModule.EDU: return <EduModule isBangla={isBangla} user={user} />;
               case AppModule.HEALTH: return <HealthModule isBangla={isBangla} />;
               case AppModule.TRANSPORT: return <TransportModule isBangla={isBangla} />;
-              case AppModule.WASTE: return <WasteModule isBangla={isBangla} />;
+              case AppModule.WASTE: return <WasteModule isBangla={isBangla} user={user} onLogin={navigateToLogin} />;
               case AppModule.FISHERY: return <FisheryModule isBangla={isBangla} />;
               case AppModule.DISASTER: return <DisasterModule isBangla={isBangla} />;
               case 'LANDING':
@@ -242,7 +239,7 @@ const App: React.FC = () => {
                     onLogin={navigateToLogin}
                     onRegister={navigateToSignUp}
                     onLogout={handleLogout}
-                    onOpenAiChat={() => setShowAiChat(true)}
+                    onOpenAiChat={handleOpenAiChat}
                     onModuleSelect={handleModuleSelect}
                     isBangla={isBangla} 
                     toggleLanguage={() => setIsBangla(!isBangla)}

@@ -3,9 +3,12 @@ import React, { useState, useMemo } from 'react';
 import { Briefcase, MapPin, Clock, DollarSign, Search, X, CheckCircle, Calendar, Building2, Filter, ChevronDown, RefreshCw, PlusCircle, Send } from 'lucide-react';
 import { Button } from '../ui/Button';
 import { useData } from '../../contexts/DataContext';
+import { User } from '../../types';
 
 interface Props {
   isBangla: boolean;
+  user?: User | null;
+  onLogin?: () => void;
 }
 
 type JobCategory = 'Government' | 'Private' | 'NGO' | 'International' | 'Autonomous' | 'Local Government' | 'Public University';
@@ -23,8 +26,8 @@ const categoryLabels: Record<string, { bn: string; en: string }> = {
   'International': { bn: 'আন্তর্জাতিক', en: 'International' },
 };
 
-export const JobModule: React.FC<Props> = ({ isBangla }) => {
-  const { jobs } = useData(); // Consume data from context
+export const JobModule: React.FC<Props> = ({ isBangla, user, onLogin }) => {
+  const { jobs, addRequest } = useData();
   const [selectedJob, setSelectedJob] = useState<any | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
   
@@ -37,6 +40,14 @@ export const JobModule: React.FC<Props> = ({ isBangla }) => {
   // Post Job States
   const [showPostModal, setShowPostModal] = useState(false);
   const [postSubmitted, setPostSubmitted] = useState(false);
+  const [newJobData, setNewJobData] = useState({
+      title: '',
+      company: '',
+      description: '',
+      location: '',
+      salary: '',
+      type: 'Full Time'
+  });
 
   // Memoized Filtering Logic
   const filteredJobs = useMemo(() => {
@@ -70,9 +81,43 @@ export const JobModule: React.FC<Props> = ({ isBangla }) => {
     setSearchTerm('');
   };
 
+  const handlePostClick = () => {
+      if (!user) {
+          if (onLogin) onLogin();
+          return;
+      }
+      setShowPostModal(true);
+      setPostSubmitted(false);
+  };
+
+  const handleApplyClick = () => {
+      if (!user) {
+          if (onLogin) onLogin();
+          return;
+      }
+      alert(isBangla ? 'আবেদন সফল হয়েছে!' : 'Application Submitted Successfully!');
+      setSelectedJob(null);
+  };
+
   const handlePostSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    // Create the request object
+    const request = {
+        contentType: 'job',
+        title: newJobData.title,
+        company: newJobData.company,
+        description: newJobData.description,
+        location: newJobData.location,
+        salary: newJobData.salary,
+        type: newJobData.type,
+        postedBy: user ? user.name : 'Guest', // Use real user name
+        category: 'Private', // Default for user submission
+        level: 'Entry' // Default
+    };
+    
+    addRequest(request);
     setPostSubmitted(true);
+    setNewJobData({ title: '', company: '', description: '', location: '', salary: '', type: 'Full Time' });
   };
 
   const getCategoryColor = (cat: string) => {
@@ -113,7 +158,7 @@ export const JobModule: React.FC<Props> = ({ isBangla }) => {
           
           <div className="flex justify-center">
             <Button 
-              onClick={() => { setShowPostModal(true); setPostSubmitted(false); }}
+              onClick={handlePostClick}
               className="bg-brand-600 hover:bg-brand-700 text-white shadow-lg shadow-brand-600/20 rounded-full px-8 py-3 flex items-center gap-2 text-lg font-bold"
             >
               <PlusCircle size={20} />
@@ -342,16 +387,26 @@ export const JobModule: React.FC<Props> = ({ isBangla }) => {
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div className="space-y-2">
                       <label className="text-sm font-semibold text-gray-700">{isBangla ? 'পদের নাম' : 'Job Title'} *</label>
-                      <input type="text" required className="w-full px-4 py-2 bg-gray-50 border border-gray-200 rounded-lg" />
+                      <input type="text" required className="w-full px-4 py-2 bg-gray-50 border border-gray-200 rounded-lg" value={newJobData.title} onChange={e => setNewJobData({...newJobData, title: e.target.value})} />
                     </div>
                     <div className="space-y-2">
                       <label className="text-sm font-semibold text-gray-700">{isBangla ? 'প্রতিষ্ঠান' : 'Company'} *</label>
-                      <input type="text" required className="w-full px-4 py-2 bg-gray-50 border border-gray-200 rounded-lg" />
+                      <input type="text" required className="w-full px-4 py-2 bg-gray-50 border border-gray-200 rounded-lg" value={newJobData.company} onChange={e => setNewJobData({...newJobData, company: e.target.value})} />
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div className="space-y-2">
+                      <label className="text-sm font-semibold text-gray-700">{isBangla ? 'অবস্থান' : 'Location'} *</label>
+                      <input type="text" required className="w-full px-4 py-2 bg-gray-50 border border-gray-200 rounded-lg" value={newJobData.location} onChange={e => setNewJobData({...newJobData, location: e.target.value})} />
+                    </div>
+                    <div className="space-y-2">
+                      <label className="text-sm font-semibold text-gray-700">{isBangla ? 'বেতন (যেমন: ৳ 20k-30k)' : 'Salary (e.g. ৳ 20k-30k)'}</label>
+                      <input type="text" className="w-full px-4 py-2 bg-gray-50 border border-gray-200 rounded-lg" value={newJobData.salary} onChange={e => setNewJobData({...newJobData, salary: e.target.value})} />
                     </div>
                   </div>
                   <div className="space-y-2">
                     <label className="text-sm font-semibold text-gray-700">{isBangla ? 'বিবরণ' : 'Description'} *</label>
-                    <textarea required rows={4} className="w-full px-4 py-2 bg-gray-50 border border-gray-200 rounded-lg"></textarea>
+                    <textarea required rows={4} className="w-full px-4 py-2 bg-gray-50 border border-gray-200 rounded-lg" value={newJobData.description} onChange={e => setNewJobData({...newJobData, description: e.target.value})}></textarea>
                   </div>
                   <Button type="submit" className="w-full">{isBangla ? 'জমা দিন' : 'Submit'}</Button>
                 </form>
@@ -405,7 +460,7 @@ export const JobModule: React.FC<Props> = ({ isBangla }) => {
             </div>
             <div className="p-6 border-t border-gray-100 bg-gray-50 flex justify-end gap-3 sticky bottom-0">
                <Button variant="outline" onClick={() => setSelectedJob(null)}>{isBangla ? 'বন্ধ করুন' : 'Close'}</Button>
-               <Button>{isBangla ? 'আবেদন করুন' : 'Apply Now'}</Button>
+               <Button onClick={handleApplyClick}>{isBangla ? 'আবেদন করুন' : 'Apply Now'}</Button>
             </div>
           </div>
         </div>

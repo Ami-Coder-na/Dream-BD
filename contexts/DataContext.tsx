@@ -1,106 +1,77 @@
 
 import React, { createContext, useState, useContext, useEffect, ReactNode } from 'react';
 
-// --- INITIAL MOCK DATA (Moved from individual files) ---
+// --- INITIAL MOCK DATA (CLEARED FOR FRESH START) ---
 
-const INITIAL_JOBS = [
+const INITIAL_JOBS: any[] = [];
+const INITIAL_BLOGS: any[] = [];
+const INITIAL_MARKET_PRICES: any[] = [];
+const INITIAL_RETAIL_PRODUCTS: any[] = [];
+const INITIAL_WHOLESALE_ADS: any[] = [];
+const INITIAL_REQUESTS: any[] = [];
+const INITIAL_GRIEVANCES: any[] = [];
+// Initial admin user to ensure system is accessible if localStorage is empty
+const INITIAL_USERS: any[] = [
   {
-    id: 1,
-    title: 'Assistant Director / সহকারী পরিচালক',
-    company: 'Bangladesh Bank',
-    location: 'Dhaka',
-    salary: 'Grade 9',
-    category: 'Autonomous',
-    type: 'Full Time',
-    level: 'Entry',
-    posted: '2 days ago',
-    deadline: '2023-10-30',
-    description: 'Bangladesh Bank is looking for Assistant Directors for their General Banking division. / বাংলাদেশ ব্যাংক তাদের সাধারণ ব্যাংকিং বিভাগের জন্য সহকারী পরিচালক খুঁজছে।',
-    responsibilities: ['Policy formulation', 'Supervising banking activities', 'Preparing reports'],
+    id: 'admin_01',
+    name: 'Super Admin',
+    email: 'admin@dreambd.com',
+    password: 'admin123', // In real app, never store plain text
+    role: 'Admin',
+    avatar: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?auto=format&fit=crop&q=80&w=150',
     status: 'Active',
-    postedBy: 'Admin',
-    views: 1250,
-    postedDate: '2023-10-25'
-  },
-  {
-    id: 2,
-    title: 'Software Engineer / সফটওয়্যার ইঞ্জিনিয়ার',
-    company: 'Pathao',
-    location: 'Dhaka',
-    salary: '৳ 60,000 - 80,000',
-    category: 'Private',
-    type: 'Full Time',
-    level: 'Mid',
-    posted: '1 day ago',
-    deadline: '2023-11-15',
-    description: 'We are looking for a skilled Full-Stack Developer to join our core team.',
-    responsibilities: ['Developing new features', 'Optimizing code', 'Bug fixing'],
-    status: 'Active',
-    postedBy: 'Admin',
-    views: 3400,
-    postedDate: '2023-10-20'
+    date: new Date().toLocaleDateString()
   }
-];
-
-const INITIAL_BLOGS = [
-  {
-    id: 201,
-    title: 'Adoption of Modern Agriculture / আধুনিক কৃষি প্রযুক্তি',
-    category: 'Agriculture',
-    author: 'Dr. Rahim',
-    postedDate: '2023-10-15',
-    views: 5600,
-    status: 'Active',
-    content: 'Smart sensors and drones are revolutionizing farming in Bangladesh...',
-    image: 'https://images.unsplash.com/photo-1625246333195-58197bd47d26',
-    excerpt: 'How farmers are increasing yields using smart sensors.',
-    readTime: '5 min read',
-    date: 'Oct 15, 2023'
-  },
-  {
-    id: 203,
-    title: 'Safe Driving Rules / নিরাপদ কি',
-    category: 'Transport',
-    author: 'Admin',
-    postedDate: '2023-10-10',
-    views: 2100,
-    status: 'Active',
-    content: 'Traffic rules you must follow for safety...',
-    image: 'https://images.unsplash.com/photo-1477959858617-67f85cf4f1df',
-    excerpt: 'Traffic rules you must follow...',
-    readTime: '3 min read',
-    date: 'Oct 10, 2023'
-  },
-];
-
-const INITIAL_MARKET_PRICES = [
-  { id: 1, nameBn: 'বেগুন (গোল)', nameEn: 'Eggplant (Round)', today: 60, yesterday: 55, unit: 'kg', trend: 'up' },
-  { id: 2, nameBn: 'কাঁচা মরিচ', nameEn: 'Green Chili', today: 120, yesterday: 140, unit: 'kg', trend: 'down' },
-  { id: 3, nameBn: 'টমেটো', nameEn: 'Tomato', today: 40, yesterday: 40, unit: 'kg', trend: 'stable' },
-  { id: 4, nameBn: 'মুরগি (ব্রয়লার)', nameEn: 'Chicken (Broiler)', today: 210, yesterday: 200, unit: 'kg', trend: 'up' },
-  { id: 5, nameBn: 'পেঁয়াজ (দেশি)', nameEn: 'Onion (Local)', today: 90, yesterday: 85, unit: 'kg', trend: 'up' },
-];
-
-const INITIAL_REQUESTS = [
-  { id: 301, contentType: 'job', title: 'Farm Manager', company: 'Green Agro', location: 'Rangpur', salary: '25k', postedBy: 'Rahim Uddin', postedDate: '2023-10-26', views: 0, status: 'Pending', description: 'Managing daily farm operations.', category: 'Private', type: 'Full Time', level: 'Mid' },
-  { id: 303, contentType: 'blog', title: 'Winter Farming Tips', category: 'Agriculture', author: 'Abdul Malek', postedDate: '2023-10-24', views: 0, status: 'Pending', content: 'Best crops to grow in winter...', image: '', excerpt: 'Tips for winter...', readTime: '3 min', date: 'Today' },
 ];
 
 // --- CONTEXT SETUP ---
 
 interface DataContextType {
+  // Content State
   jobs: any[];
   blogs: any[];
   requests: any[];
+  grievances: any[];
+  users: any[]; // Added Users State
+  
+  // Market State
   marketPrices: any[];
+  retailProducts: any[];
+  wholesaleAds: any[];
+
+  // Content Actions
   addJob: (job: any) => void;
   deleteJob: (id: number) => void;
-  updateJob: (job: any) => void; // Added for edit
+  updateJob: (job: any) => void;
   addBlog: (blog: any) => void;
   deleteBlog: (id: number) => void;
-  updateBlog: (blog: any) => void; // Added for edit
-  updateMarketPrices: (prices: any[]) => void;
+  updateBlog: (blog: any) => void;
+  
+  // Request Actions (User Side)
+  addRequest: (request: any) => void;
   handleRequestAction: (item: any, action: 'approve' | 'reject') => void;
+
+  // Grievance Actions
+  addGrievance: (report: any) => void;
+  updateGrievanceStatus: (id: number, status: string) => void;
+  deleteGrievance: (id: number) => void;
+
+  // User Actions
+  addUser: (user: any) => void;
+  updateUserStatus: (id: string, status: 'Active' | 'Suspended') => void;
+  deleteUser: (id: string) => void;
+  resetPassword: (email: string, newPass: string) => void; // New Action
+
+  // Market Actions
+  updateMarketPrices: (prices: any[]) => void;
+  addRetailProduct: (product: any) => void;
+  deleteRetailProduct: (id: number) => void;
+  updateRetailProduct: (product: any) => void;
+  
+  // Wholesale Actions
+  addWholesaleAd: (ad: any) => void;
+  updateWholesaleAd: (ad: any) => void; // For approving/rejecting or editing
+  deleteWholesaleAd: (id: number) => void;
 }
 
 const DataContext = createContext<DataContextType | undefined>(undefined);
@@ -122,16 +93,40 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     return saved ? JSON.parse(saved) : INITIAL_REQUESTS;
   });
 
+  const [grievances, setGrievances] = useState(() => {
+    const saved = localStorage.getItem('db_grievances');
+    return saved ? JSON.parse(saved) : INITIAL_GRIEVANCES;
+  });
+
+  const [users, setUsers] = useState(() => {
+    const saved = localStorage.getItem('db_users');
+    return saved ? JSON.parse(saved) : INITIAL_USERS;
+  });
+
   const [marketPrices, setMarketPrices] = useState(() => {
     const saved = localStorage.getItem('db_prices');
     return saved ? JSON.parse(saved) : INITIAL_MARKET_PRICES;
   });
 
-  // Persist to localStorage whenever state changes
+  const [retailProducts, setRetailProducts] = useState(() => {
+    const saved = localStorage.getItem('db_retail');
+    return saved ? JSON.parse(saved) : INITIAL_RETAIL_PRODUCTS;
+  });
+
+  const [wholesaleAds, setWholesaleAds] = useState(() => {
+    const saved = localStorage.getItem('db_wholesale');
+    return saved ? JSON.parse(saved) : INITIAL_WHOLESALE_ADS;
+  });
+
+  // Persist to localStorage
   useEffect(() => localStorage.setItem('db_jobs', JSON.stringify(jobs)), [jobs]);
   useEffect(() => localStorage.setItem('db_blogs', JSON.stringify(blogs)), [blogs]);
   useEffect(() => localStorage.setItem('db_requests', JSON.stringify(requests)), [requests]);
+  useEffect(() => localStorage.setItem('db_grievances', JSON.stringify(grievances)), [grievances]);
+  useEffect(() => localStorage.setItem('db_users', JSON.stringify(users)), [users]);
   useEffect(() => localStorage.setItem('db_prices', JSON.stringify(marketPrices)), [marketPrices]);
+  useEffect(() => localStorage.setItem('db_retail', JSON.stringify(retailProducts)), [retailProducts]);
+  useEffect(() => localStorage.setItem('db_wholesale', JSON.stringify(wholesaleAds)), [wholesaleAds]);
 
   // --- ACTIONS ---
 
@@ -176,29 +171,115 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     setBlogs(blogs.filter((b: any) => b.id !== id));
   };
 
-  const updateMarketPrices = (newPrices: any[]) => {
-    setMarketPrices(newPrices);
+  const addRequest = (request: any) => {
+    const newRequest = {
+        ...request,
+        id: Date.now(),
+        status: 'Pending',
+        postedDate: new Date().toLocaleDateString(),
+        views: 0
+    };
+    setRequests([newRequest, ...requests]);
   };
 
   const handleRequestAction = (item: any, action: 'approve' | 'reject') => {
     setRequests(requests.filter((r: any) => r.id !== item.id));
     if (action === 'approve') {
       if (item.contentType === 'job') {
-        const newJob = { ...item, status: 'Active', postedDate: new Date().toLocaleDateString(), id: Date.now() };
-        setJobs([newJob, ...jobs]);
+        addJob(item);
       } else {
-        const newBlog = { ...item, status: 'Active', postedDate: new Date().toLocaleDateString(), id: Date.now() };
-        setBlogs([newBlog, ...blogs]);
+        addBlog(item);
       }
     }
   };
 
+  const addGrievance = (report: any) => {
+    const newReport = {
+        ...report,
+        id: Date.now(),
+        status: 'Pending',
+        date: new Date().toLocaleDateString() + ' ' + new Date().toLocaleTimeString(),
+        severity: 'Medium' // Default
+    };
+    setGrievances([newReport, ...grievances]);
+  };
+
+  const updateGrievanceStatus = (id: number, status: string) => {
+    setGrievances(grievances.map((g: any) => g.id === id ? { ...g, status } : g));
+  };
+
+  const deleteGrievance = (id: number) => {
+    setGrievances(grievances.filter((g: any) => g.id !== id));
+  };
+
+  // User Actions
+  const addUser = (user: any) => {
+    // Check if email already exists
+    if (users.some((u: any) => u.email === user.email)) {
+      alert('Email already registered!');
+      return;
+    }
+    const newUser = {
+      ...user,
+      id: user.id || Date.now().toString(),
+      status: 'Active',
+      date: new Date().toLocaleDateString()
+    };
+    setUsers([...users, newUser]);
+  };
+
+  const updateUserStatus = (id: string, status: 'Active' | 'Suspended') => {
+    setUsers(users.map((u: any) => u.id === id ? { ...u, status } : u));
+  };
+
+  const deleteUser = (id: string) => {
+    setUsers(users.filter((u: any) => u.id !== id));
+  };
+
+  const resetPassword = (email: string, newPass: string) => {
+    setUsers(users.map((u: any) => u.email.toLowerCase() === email.toLowerCase() ? { ...u, password: newPass } : u));
+  };
+
+  const updateMarketPrices = (newPrices: any[]) => {
+    setMarketPrices(newPrices);
+  };
+
+  const addRetailProduct = (product: any) => {
+      setRetailProducts([...retailProducts, { ...product, id: Date.now() }]);
+  };
+
+  const updateRetailProduct = (product: any) => {
+      setRetailProducts(retailProducts.map((p: any) => p.id === product.id ? product : p));
+  };
+
+  const deleteRetailProduct = (id: number) => {
+      setRetailProducts(retailProducts.filter((p: any) => p.id !== id));
+  };
+
+  const addWholesaleAd = (ad: any) => {
+      const newAd = { ...ad, id: Date.now(), status: 'Pending', date: new Date().toLocaleDateString() };
+      setWholesaleAds([newAd, ...wholesaleAds]);
+  };
+
+  const updateWholesaleAd = (updatedAd: any) => {
+      setWholesaleAds(wholesaleAds.map((ad: any) => ad.id === updatedAd.id ? updatedAd : ad));
+  };
+
+  const deleteWholesaleAd = (id: number) => {
+      setWholesaleAds(wholesaleAds.filter((ad: any) => ad.id !== id));
+  };
+
   return (
     <DataContext.Provider value={{ 
-      jobs, blogs, requests, marketPrices,
+      jobs, blogs, requests, grievances, users, marketPrices, retailProducts, wholesaleAds,
       addJob, deleteJob, updateJob,
       addBlog, deleteBlog, updateBlog,
-      updateMarketPrices, handleRequestAction 
+      addRequest, handleRequestAction,
+      addGrievance, updateGrievanceStatus, deleteGrievance,
+      addUser, updateUserStatus, deleteUser, resetPassword,
+      updateMarketPrices,
+      addRetailProduct, updateRetailProduct, deleteRetailProduct,
+      addWholesaleAd, updateWholesaleAd, deleteWholesaleAd
     }}>
       {children}
     </DataContext.Provider>

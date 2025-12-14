@@ -30,7 +30,7 @@ export const AdminContent = () => {
 
   const handleEdit = (item: any) => {
     setSelectedItem(item);
-    if (item.category && item.author) { // Simple check if it's a blog
+    if (item.category && item.author) { // Check if it's a blog based on properties
         setBlogForm({ ...item });
         setView('edit_blog');
     } else {
