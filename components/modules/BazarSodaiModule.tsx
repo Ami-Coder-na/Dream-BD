@@ -7,6 +7,7 @@ import {
 } from 'lucide-react';
 import { Button } from '../ui/Button';
 import { getOptimizedImageUrl } from '../utils/imageUtils';
+import { useData } from '../../contexts/DataContext';
 
 interface Props {
   isBangla: boolean;
@@ -28,8 +29,6 @@ const FilterCheckbox: React.FC<FilterCheckboxProps> = ({ label, checked, onChang
   </label>
 );
 
-// --- STATIC DATA MOVED OUTSIDE ---
-
 const RETAIL_PRODUCTS = [
   { id: 1, nameBn: 'তাজা আলু', nameEn: 'Fresh Potato', price: 45, unit: 'kg', img: 'https://images.unsplash.com/photo-1518977676601-b53f82aba655', category: 'Vegetable' },
   { id: 2, nameBn: 'দেশি পেঁয়াজ', nameEn: 'Local Onion', price: 90, unit: 'kg', img: 'https://images.unsplash.com/photo-1618512496248-a07fe83aa8cb', category: 'Vegetable' },
@@ -49,13 +48,6 @@ const WHOLESALE_LISTINGS = [
   { id: 5, productEn: 'Tangail Saree', productBn: 'টাঙ্গাইলের শাড়ি', quantity: '50 pcs', price: '৳ 450 / pc', location: 'Tangail', seller: ' তাঁত ঘর', sellerType: 'Weaver', date: '3 hrs ago' },
 ];
 
-const MARKET_PRICES = [
-  { nameBn: 'বেগুন (গোল)', nameEn: 'Eggplant (Round)', today: 60, yesterday: 55, trend: 'up' },
-  { nameBn: 'কাঁচা মরিচ', nameEn: 'Green Chili', today: 120, yesterday: 140, trend: 'down' },
-  { nameBn: 'টমেটো', nameEn: 'Tomato', today: 40, yesterday: 40, trend: 'stable' },
-  { nameBn: 'মুরগি (ব্রয়লার)', nameEn: 'Chicken (Broiler)', today: 210, yesterday: 200, trend: 'up' },
-];
-
 const SEASONAL_INFO_BASE = [
   { seasonBn: 'শীতকাল', seasonEn: 'Winter', type: 'winter' as const, cropsBn: 'ফুলকপি, বাঁধাকপি, গাজর, টমেটো', cropsEn: 'Cauliflower, Cabbage, Carrot, Tomato' },
   { seasonBn: 'বর্ষাকাল', seasonEn: 'Monsoon', type: 'monsoon' as const, cropsBn: 'চাল কুমড়া, ঝিঙ্গা, চিচিঙ্গা', cropsEn: 'Ash Gourd, Ridge Gourd, Snake Gourd' },
@@ -63,6 +55,7 @@ const SEASONAL_INFO_BASE = [
 ];
 
 export const BazarSodaiModule: React.FC<Props> = ({ isBangla }) => {
+  const { marketPrices } = useData(); // Consume Market Prices from Context
   const [activeTab, setActiveTab] = useState<'retail' | 'paikari' | 'trends'>('retail');
   const [searchQuery, setSearchQuery] = useState('');
   const [showMobileFilters, setShowMobileFilters] = useState(false);
@@ -430,7 +423,7 @@ export const BazarSodaiModule: React.FC<Props> = ({ isBangla }) => {
                     <tr><th className="px-6 py-4">{isBangla ? 'পণ্য' : 'Product'}</th><th className="px-6 py-4">{isBangla ? 'বর্তমান দাম' : 'Current Price'}</th><th className="px-6 py-4">{isBangla ? 'গতকালের দাম' : 'Yesterday'}</th><th className="px-6 py-4">{isBangla ? 'অবস্থা' : 'Trend'}</th></tr>
                   </thead>
                   <tbody className="divide-y divide-gray-100">
-                    {MARKET_PRICES.map((item, idx) => (
+                    {marketPrices.map((item: any, idx: number) => (
                       <tr key={idx} className="hover:bg-gray-50/50 transition-colors">
                         <td className="px-6 py-4 font-medium text-gray-900">{isBangla ? item.nameBn : item.nameEn}</td>
                         <td className="px-6 py-4 font-bold text-gray-800">৳ {item.today}</td>

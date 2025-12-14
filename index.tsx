@@ -3,6 +3,7 @@ import React from 'react';
 import ReactDOM from 'react-dom/client';
 import App from './App';
 import { SiteConfigProvider } from './contexts/SiteConfigContext';
+import { DataProvider } from './contexts/DataContext';
 
 const rootElement = document.getElementById('root');
 if (!rootElement) {
@@ -13,7 +14,9 @@ const root = ReactDOM.createRoot(rootElement);
 root.render(
   <React.StrictMode>
     <SiteConfigProvider>
-      <App />
+      <DataProvider>
+        <App />
+      </DataProvider>
     </SiteConfigProvider>
   </React.StrictMode>
 );

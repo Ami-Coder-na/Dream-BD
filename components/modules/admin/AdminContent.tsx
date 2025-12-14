@@ -2,64 +2,67 @@
 import React, { useState } from 'react';
 import { 
   Briefcase, FileText, Plus, Search, Eye, Edit3, Trash2, 
-  Check, X, MessageSquare, Clock, ArrowLeft, Save, 
+  Check, X, ArrowLeft, Save, 
   MapPin, DollarSign, Calendar, Tag, User, Building2 
 } from 'lucide-react';
 import { Button } from '../../ui/Button';
-
-// Mock Data
-const INITIAL_JOBS = [
-  { id: 101, title: 'Assistant Teacher', company: 'Little Flower School', type: 'Full Time', location: 'Dhaka', salary: '15k-20k', postedBy: 'Admin', postedDate: '2023-10-25', views: 1250, status: 'Active', description: 'Teaching mathematics to primary students.' },
-  { id: 103, title: 'Software Engineer', company: 'Tech BD', type: 'Remote', location: 'Dhaka', salary: '50k+', postedBy: 'Admin', postedDate: '2023-10-20', views: 3400, status: 'Active', description: 'Developing web applications using React and Node.js.' },
-];
-
-const INITIAL_BLOGS = [
-  { id: 201, title: 'Digital Health Services', category: 'Health', author: 'Dr. Nusrat', postedDate: '2023-10-15', views: 5600, status: 'Active', content: 'How telemedicine is changing lives...' },
-  { id: 203, title: 'Safe Driving Rules', category: 'Transport', author: 'Admin', postedDate: '2023-10-10', views: 2100, status: 'Active', content: 'Traffic rules you must follow...' },
-];
-
-const INITIAL_REQUESTS = [
-  { id: 301, contentType: 'job', title: 'Farm Manager', company: 'Green Agro', location: 'Rangpur', salary: '25k', postedBy: 'Rahim Uddin', postedDate: '2023-10-26', views: 0, status: 'Pending', description: 'Managing daily farm operations and labor.' },
-  { id: 302, contentType: 'job', title: 'Driver Needed', company: 'Desh Transport', location: 'Chittagong', salary: '12k', postedBy: 'User', postedDate: '2023-10-27', views: 0, status: 'Pending', description: 'Experienced heavy vehicle driver needed.' },
-  { id: 303, contentType: 'blog', title: 'Winter Farming Tips', category: 'Agriculture', author: 'Abdul Malek', postedDate: '2023-10-24', views: 0, status: 'Pending', content: 'Best crops to grow in winter...' },
-];
+import { useData } from '../../../contexts/DataContext';
 
 export const AdminContent = () => {
-  const [view, setView] = useState<'list' | 'create_job' | 'create_blog' | 'details'>('list');
+  const { jobs, blogs, requests, addJob, addBlog, deleteJob, deleteBlog, handleRequestAction, updateJob, updateBlog } = useData();
+  
+  const [view, setView] = useState<'list' | 'create_job' | 'create_blog' | 'details' | 'edit_job' | 'edit_blog'>('list');
   const [activeTab, setActiveTab] = useState<'jobs' | 'blogs' | 'requests'>('jobs');
   const [contentSearch, setContentSearch] = useState('');
-  
-  const [jobs, setJobs] = useState(INITIAL_JOBS);
-  const [blogs, setBlogs] = useState(INITIAL_BLOGS);
-  const [requests, setRequests] = useState(INITIAL_REQUESTS);
   const [selectedItem, setSelectedItem] = useState<any>(null);
+
+  // Form States
+  const [jobForm, setJobForm] = useState<any>({});
+  const [blogForm, setBlogForm] = useState<any>({});
 
   // --- ACTIONS ---
   const handleDelete = (id: number, type: 'job' | 'blog') => {
     if(!confirm('Are you sure you want to delete this content?')) return;
-    if (type === 'job') setJobs(jobs.filter(j => j.id !== id));
-    else setBlogs(blogs.filter(b => b.id !== id));
+    if (type === 'job') deleteJob(id);
+    else deleteBlog(id);
     if (view === 'details') setView('list');
   };
 
   const handleEdit = (item: any) => {
-    alert(`Editing functionality for "${item.title}" will be implemented here. \n(Pre-filling edit form...)`);
+    setSelectedItem(item);
+    if (item.category && item.author) { // Simple check if it's a blog
+        setBlogForm({ ...item });
+        setView('edit_blog');
+    } else {
+        setJobForm({ ...item });
+        setView('edit_job');
+    }
   };
 
-  const handleRequestAction = (item: any, action: 'approve' | 'reject') => {
-    setRequests(requests.filter(r => r.id !== item.id));
-    if (action === 'approve') {
-        const newItem = { ...item, status: 'Active' };
-        if (item.contentType === 'job') {
-            setJobs([newItem, ...jobs]);
-        } else {
-            setBlogs([newItem, ...blogs]);
-        }
-        alert(`${item.contentType === 'job' ? 'Job' : 'Blog'} approved!`);
-    } else {
-        alert('Request rejected.');
-    }
-    setView('list');
+  const handleJobSubmit = (e: React.FormEvent) => {
+      e.preventDefault();
+      if (view === 'edit_job') {
+          updateJob(jobForm);
+          alert('Job Updated Successfully!');
+      } else {
+          addJob({ ...jobForm, category: 'Private', postedBy: 'Admin' }); // Defaults
+          alert('Job Created Successfully!');
+      }
+      setJobForm({});
+      setView('list');
+  };
+
+  const handleBlogSubmit = (e: React.FormEvent) => {
+      e.preventDefault();
+      if (view === 'edit_blog') {
+          updateBlog(blogForm);
+          alert('Blog Updated Successfully!');
+      } else {
+          addBlog({ ...blogForm, author: 'Admin' });
+          alert('Blog Published Successfully!');
+      }
+      setBlogForm({});
+      setView('list');
   };
 
   const renderStatusBadge = (status: string) => (
@@ -80,13 +83,13 @@ export const AdminContent = () => {
   };
 
   // --- RENDER FORMS ---
-  if (view === 'create_job') {
+  if (view === 'create_job' || view === 'edit_job') {
     return (
       <div className="space-y-6 animate-fade-in max-w-5xl mx-auto">
         <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
           <div className="p-6 border-b border-gray-100 flex justify-between items-center">
             <h3 className="text-xl font-bold text-gray-900 flex items-center gap-2">
-              <Briefcase className="text-gray-800" size={24} /> Create Job
+              <Briefcase className="text-gray-800" size={24} /> {view === 'edit_job' ? 'Edit Job' : 'Create Job'}
             </h3>
             <Button variant="outline" onClick={() => setView('list')} className="flex items-center gap-2 text-gray-600 bg-white hover:bg-gray-50 border-gray-200">
               <ArrowLeft size={16} /> Back to List
@@ -94,19 +97,19 @@ export const AdminContent = () => {
           </div>
           
           <div className="p-8">
-            <form className="space-y-6" onSubmit={(e) => { e.preventDefault(); alert('Job Created!'); setView('list'); }}>
+            <form className="space-y-6" onSubmit={handleJobSubmit}>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="space-y-2">
                   <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider">Job Title</label>
-                  <input type="text" placeholder="e.g. Software Engineer" className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-gray-900 transition-all text-sm font-medium" />
+                  <input required type="text" value={jobForm.title || ''} onChange={e => setJobForm({...jobForm, title: e.target.value})} placeholder="e.g. Software Engineer" className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-gray-900 transition-all text-sm font-medium" />
                 </div>
                 <div className="space-y-2">
                   <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider">Company</label>
-                  <input type="text" placeholder="Company Name" className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-gray-900 transition-all text-sm font-medium" />
+                  <input required type="text" value={jobForm.company || ''} onChange={e => setJobForm({...jobForm, company: e.target.value})} placeholder="Company Name" className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-gray-900 transition-all text-sm font-medium" />
                 </div>
                 <div className="space-y-2">
                   <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider">Job Type</label>
-                  <select className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-gray-900 transition-all text-sm font-medium appearance-none">
+                  <select value={jobForm.type || 'Full Time'} onChange={e => setJobForm({...jobForm, type: e.target.value})} className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-gray-900 transition-all text-sm font-medium appearance-none">
                     <option>Full Time</option>
                     <option>Part Time</option>
                     <option>Remote</option>
@@ -114,26 +117,26 @@ export const AdminContent = () => {
                 </div>
                 <div className="space-y-2">
                   <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider">Location</label>
-                  <input type="text" placeholder="Dhaka" className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-gray-900 transition-all text-sm font-medium" />
+                  <input required type="text" value={jobForm.location || ''} onChange={e => setJobForm({...jobForm, location: e.target.value})} placeholder="Dhaka" className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-gray-900 transition-all text-sm font-medium" />
                 </div>
                 <div className="space-y-2">
                   <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider">Salary Range</label>
-                  <input type="text" placeholder="20k-30k" className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-gray-900 transition-all text-sm font-medium" />
+                  <input required type="text" value={jobForm.salary || ''} onChange={e => setJobForm({...jobForm, salary: e.target.value})} placeholder="20k-30k" className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-gray-900 transition-all text-sm font-medium" />
                 </div>
                 <div className="space-y-2">
                   <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider">Deadline</label>
-                  <input type="date" className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-gray-900 transition-all text-sm font-medium text-gray-500" />
+                  <input required type="date" value={jobForm.deadline || ''} onChange={e => setJobForm({...jobForm, deadline: e.target.value})} className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-gray-900 transition-all text-sm font-medium text-gray-500" />
                 </div>
               </div>
               <div className="space-y-2">
                 <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider">Description</label>
-                <textarea rows={5} placeholder="Job details..." className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-gray-900 transition-all text-sm font-medium resize-none"></textarea>
+                <textarea required rows={5} value={jobForm.description || ''} onChange={e => setJobForm({...jobForm, description: e.target.value})} placeholder="Job details..." className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-gray-900 transition-all text-sm font-medium resize-none"></textarea>
               </div>
 
               <div className="flex justify-end gap-3 pt-4 border-t border-gray-50">
                 <Button type="button" variant="outline" onClick={() => setView('list')} className="px-6 bg-white hover:bg-gray-50 border-gray-200 text-gray-700">Cancel</Button>
                 <Button type="submit" className="bg-green-600 hover:bg-green-700 text-white px-6 font-bold">
-                  Publish
+                  {view === 'edit_job' ? 'Update Job' : 'Publish Job'}
                 </Button>
               </div>
             </form>
@@ -143,13 +146,13 @@ export const AdminContent = () => {
     );
   }
 
-  if (view === 'create_blog') {
+  if (view === 'create_blog' || view === 'edit_blog') {
     return (
       <div className="space-y-6 animate-fade-in max-w-5xl mx-auto">
         <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
           <div className="p-6 border-b border-gray-100 flex justify-between items-center">
             <h3 className="text-xl font-bold text-gray-900 flex items-center gap-2">
-              <FileText className="text-gray-800" size={24} /> Create Blog
+              <FileText className="text-gray-800" size={24} /> {view === 'edit_blog' ? 'Edit Blog' : 'Create Blog'}
             </h3>
             <Button variant="outline" onClick={() => setView('list')} className="flex items-center gap-2 text-gray-600 bg-white hover:bg-gray-50 border-gray-200">
               <ArrowLeft size={16} /> Back to List
@@ -157,35 +160,36 @@ export const AdminContent = () => {
           </div>
           
           <div className="p-8">
-            <form className="space-y-6" onSubmit={(e) => { e.preventDefault(); alert('Blog Published!'); setView('list'); }}>
+            <form className="space-y-6" onSubmit={handleBlogSubmit}>
               <div className="space-y-2">
                 <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider">Blog Title</label>
-                <input type="text" placeholder="Article Headline" className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-gray-900 transition-all text-sm font-medium" />
+                <input required type="text" value={blogForm.title || ''} onChange={e => setBlogForm({...blogForm, title: e.target.value})} placeholder="Article Headline" className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-gray-900 transition-all text-sm font-medium" />
               </div>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="space-y-2">
                   <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider">Category</label>
-                  <select className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-gray-900 transition-all text-sm font-medium appearance-none">
-                    <option>Select Category</option>
+                  <select value={blogForm.category || ''} onChange={e => setBlogForm({...blogForm, category: e.target.value})} className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-gray-900 transition-all text-sm font-medium appearance-none">
+                    <option value="">Select Category</option>
                     <option>Agriculture</option>
                     <option>Health</option>
                     <option>Education</option>
+                    <option>Transport</option>
                   </select>
                 </div>
                 <div className="space-y-2">
                   <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider">Author</label>
-                  <input type="text" className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-gray-900 transition-all text-sm font-medium" />
+                  <input type="text" value={blogForm.author || ''} onChange={e => setBlogForm({...blogForm, author: e.target.value})} className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-gray-900 transition-all text-sm font-medium" />
                 </div>
               </div>
               <div className="space-y-2">
-                <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider">Content</label>
-                <textarea rows={8} placeholder="Write blog content here..." className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-gray-900 transition-all text-sm font-medium resize-none"></textarea>
+                <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider">Content (HTML Supported)</label>
+                <textarea required rows={8} value={blogForm.content || ''} onChange={e => setBlogForm({...blogForm, content: e.target.value})} placeholder="Write blog content here..." className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-gray-900 transition-all text-sm font-medium resize-none"></textarea>
               </div>
 
               <div className="flex justify-end gap-3 pt-4 border-t border-gray-50">
                 <Button type="button" variant="outline" onClick={() => setView('list')} className="px-6 bg-white hover:bg-gray-50 border-gray-200 text-gray-700">Cancel</Button>
                 <Button type="submit" className="bg-green-600 hover:bg-green-700 text-white px-6 font-bold">
-                  Publish
+                  {view === 'edit_blog' ? 'Update Blog' : 'Publish Blog'}
                 </Button>
               </div>
             </form>
@@ -208,10 +212,10 @@ export const AdminContent = () => {
                     <div className="flex gap-2">
                         {isPending ? (
                             <>
-                                <Button onClick={() => handleRequestAction(selectedItem, 'approve')} className="bg-green-600 hover:bg-green-700 text-white flex items-center gap-2">
+                                <Button onClick={() => { handleRequestAction(selectedItem, 'approve'); setView('list'); }} className="bg-green-600 hover:bg-green-700 text-white flex items-center gap-2">
                                     <Check size={16} /> Approve
                                 </Button>
-                                <Button onClick={() => handleRequestAction(selectedItem, 'reject')} className="bg-red-600 hover:bg-red-700 text-white flex items-center gap-2">
+                                <Button onClick={() => { handleRequestAction(selectedItem, 'reject'); setView('list'); }} className="bg-red-600 hover:bg-red-700 text-white flex items-center gap-2">
                                     <X size={16} /> Reject
                                 </Button>
                             </>
@@ -328,7 +332,15 @@ export const AdminContent = () => {
                      />
                    </div>
                    <Button 
-                     onClick={() => setView(activeTab === 'jobs' ? 'create_job' : 'create_blog')}
+                     onClick={() => {
+                         if (activeTab === 'jobs') {
+                             setJobForm({});
+                             setView('create_job');
+                         } else {
+                             setBlogForm({});
+                             setView('create_blog');
+                         }
+                     }}
                      className="bg-green-600 hover:bg-green-700 text-white font-bold px-4 h-10 rounded-lg shadow-sm flex items-center gap-2"
                    >
                       <Plus size={16} /> {activeTab === 'jobs' ? 'Post Job' : 'Write Blog'}
@@ -343,10 +355,10 @@ export const AdminContent = () => {
                  {/* Pending Jobs */}
                  <div className="bg-white border border-gray-100 rounded-2xl p-6 shadow-sm h-full">
                     <h4 className="font-bold text-lg text-gray-800 mb-6 flex items-center gap-2">
-                       <Briefcase size={20} className="text-purple-600"/> Pending Jobs ({requests.filter(r => r.contentType === 'job').length})
+                       <Briefcase size={20} className="text-purple-600"/> Pending Jobs ({requests.filter((r:any) => r.contentType === 'job').length})
                     </h4>
                     <div className="space-y-4">
-                       {requests.filter(r => r.contentType === 'job').map(req => (
+                       {requests.filter((r:any) => r.contentType === 'job').map((req:any) => (
                           <div key={req.id} className="p-4 bg-white border border-gray-100 rounded-xl hover:shadow-md transition-all">
                              <div className="flex justify-between items-start mb-2">
                                 <div>
@@ -365,17 +377,17 @@ export const AdminContent = () => {
                              </div>
                           </div>
                        ))}
-                       {requests.filter(r => r.contentType === 'job').length === 0 && <p className="text-center text-gray-400 py-4">No pending jobs.</p>}
+                       {requests.filter((r:any) => r.contentType === 'job').length === 0 && <p className="text-center text-gray-400 py-4">No pending jobs.</p>}
                     </div>
                  </div>
 
                  {/* Pending Blogs */}
                  <div className="bg-white border border-gray-100 rounded-2xl p-6 shadow-sm h-full">
                     <h4 className="font-bold text-lg text-gray-800 mb-6 flex items-center gap-2">
-                       <FileText size={20} className="text-blue-600"/> Pending Blogs ({requests.filter(r => r.contentType === 'blog').length})
+                       <FileText size={20} className="text-blue-600"/> Pending Blogs ({requests.filter((r:any) => r.contentType === 'blog').length})
                     </h4>
                     <div className="space-y-4">
-                       {requests.filter(r => r.contentType === 'blog').map(req => (
+                       {requests.filter((r:any) => r.contentType === 'blog').map((req:any) => (
                           <div key={req.id} className="p-4 bg-white border border-gray-100 rounded-xl hover:shadow-md transition-all">
                              <div className="flex justify-between items-start mb-2">
                                 <div>
@@ -394,7 +406,7 @@ export const AdminContent = () => {
                              </div>
                           </div>
                        ))}
-                       {requests.filter(r => r.contentType === 'blog').length === 0 && <p className="text-center text-gray-400 py-4">No pending blogs.</p>}
+                       {requests.filter((r:any) => r.contentType === 'blog').length === 0 && <p className="text-center text-gray-400 py-4">No pending blogs.</p>}
                     </div>
                  </div>
               </div>

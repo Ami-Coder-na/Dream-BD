@@ -6,15 +6,7 @@ import {
   DollarSign, Package
 } from 'lucide-react';
 import { Button } from '../../ui/Button';
-
-// --- MOCK DATA ---
-const INITIAL_MARKET_PRICES = [
-  { id: 1, nameBn: 'বেগুন (গোল)', nameEn: 'Eggplant (Round)', today: 60, yesterday: 55, unit: 'kg' },
-  { id: 2, nameBn: 'কাঁচা মরিচ', nameEn: 'Green Chili', today: 120, yesterday: 140, unit: 'kg' },
-  { id: 3, nameBn: 'টমেটো', nameEn: 'Tomato', today: 40, yesterday: 40, unit: 'kg' },
-  { id: 4, nameBn: 'মুরগি (ব্রয়লার)', nameEn: 'Chicken (Broiler)', today: 210, yesterday: 200, unit: 'kg' },
-  { id: 5, nameBn: 'পেঁয়াজ (দেশি)', nameEn: 'Onion (Local)', today: 90, yesterday: 85, unit: 'kg' },
-];
+import { useData } from '../../../contexts/DataContext';
 
 const INITIAL_RETAIL_PRODUCTS = [
   { id: 1, nameBn: 'তাজা আলু', nameEn: 'Fresh Potato', price: 45, unit: 'kg', category: 'Vegetable', stock: 'Available' },
@@ -29,11 +21,11 @@ const INITIAL_WHOLESALE_ADS = [
 ];
 
 export const AdminMarket = () => {
+  const { marketPrices, updateMarketPrices } = useData();
   const [activeTab, setActiveTab] = useState<'prices' | 'retail' | 'wholesale'>('prices');
   const [searchQuery, setSearchQuery] = useState('');
 
   // Data States
-  const [prices, setPrices] = useState(INITIAL_MARKET_PRICES);
   const [retailProducts, setRetailProducts] = useState(INITIAL_RETAIL_PRODUCTS);
   const [wholesaleAds, setWholesaleAds] = useState(INITIAL_WHOLESALE_ADS);
 
@@ -47,17 +39,17 @@ export const AdminMarket = () => {
     e.preventDefault();
     if (editingItem.id) {
       // Update existing
-      setPrices(prices.map(p => p.id === editingItem.id ? editingItem : p));
+      updateMarketPrices(marketPrices.map((p: any) => p.id === editingItem.id ? editingItem : p));
     } else {
       // Add new
-      setPrices([...prices, { ...editingItem, id: Date.now() }]);
+      updateMarketPrices([...marketPrices, { ...editingItem, id: Date.now() }]);
     }
     setShowPriceModal(false);
     setEditingItem(null);
   };
 
   const deletePrice = (id: number) => {
-    if(confirm('Delete this price record?')) setPrices(prices.filter(p => p.id !== id));
+    if(confirm('Delete this price record?')) updateMarketPrices(marketPrices.filter((p: any) => p.id !== id));
   };
 
   // --- ACTIONS: RETAIL ---
@@ -111,7 +103,7 @@ export const AdminMarket = () => {
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-50">
-            {prices.map(item => {
+            {marketPrices.map((item: any) => {
               const diff = item.today - item.yesterday;
               return (
                 <tr key={item.id} className="hover:bg-gray-50 transition-colors">

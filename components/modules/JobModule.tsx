@@ -2,6 +2,7 @@
 import React, { useState, useMemo } from 'react';
 import { Briefcase, MapPin, Clock, DollarSign, Search, X, CheckCircle, Calendar, Building2, Filter, ChevronDown, RefreshCw, PlusCircle, Send } from 'lucide-react';
 import { Button } from '../ui/Button';
+import { useData } from '../../contexts/DataContext';
 
 interface Props {
   isBangla: boolean;
@@ -11,23 +12,8 @@ type JobCategory = 'Government' | 'Private' | 'NGO' | 'International' | 'Autonom
 type JobType = 'Full Time' | 'Part Time' | 'Contract' | 'Remote';
 type JobLevel = 'Entry' | 'Mid' | 'Senior';
 
-interface Job {
-  id: number;
-  title: string;
-  company: string;
-  location: string;
-  salary: string;
-  category: JobCategory;
-  type: JobType;
-  level: JobLevel;
-  posted: string;
-  deadline: string;
-  description: string;
-  responsibilities: string[];
-}
-
 // Translations for categories
-const categoryLabels: Record<JobCategory, { bn: string; en: string }> = {
+const categoryLabels: Record<string, { bn: string; en: string }> = {
   'Government': { bn: 'সরকারি', en: 'Government' },
   'Autonomous': { bn: 'স্বায়ত্বশাসিত', en: 'Autonomous' },
   'Public University': { bn: 'পাবলিক ভার্সিটি', en: 'Public Univ.' },
@@ -37,124 +23,9 @@ const categoryLabels: Record<JobCategory, { bn: string; en: string }> = {
   'International': { bn: 'আন্তর্জাতিক', en: 'International' },
 };
 
-// Static Data Moved Outside Component
-const JOBS_DATA: Job[] = [
-  {
-    id: 1,
-    title: 'Assistant Director / সহকারী পরিচালক',
-    company: 'Bangladesh Bank',
-    location: 'Dhaka',
-    salary: 'Grade 9',
-    category: 'Autonomous',
-    type: 'Full Time',
-    level: 'Entry',
-    posted: '2 days ago',
-    deadline: '30 Oct, 2023',
-    description: 'Bangladesh Bank is looking for Assistant Directors for their General Banking division. / বাংলাদেশ ব্যাংক তাদের সাধারণ ব্যাংকিং বিভাগের জন্য সহকারী পরিচালক খুঁজছে।',
-    responsibilities: ['Policy formulation', 'Supervising banking activities', 'Preparing reports']
-  },
-  {
-    id: 2,
-    title: 'Software Engineer / সফটওয়্যার ইঞ্জিনিয়ার',
-    company: 'Pathao',
-    location: 'Dhaka',
-    salary: '৳ 60,000 - 80,000',
-    category: 'Private',
-    type: 'Full Time',
-    level: 'Mid',
-    posted: '1 day ago',
-    deadline: '15 Nov, 2023',
-    description: 'We are looking for a skilled Full-Stack Developer to join our core team. / আমরা একজন দক্ষ ফুল-স্ট্যাক ডেভেলপার খুঁজছি।',
-    responsibilities: ['Developing new features', 'Optimizing code', 'Bug fixing']
-  },
-  {
-    id: 3,
-    title: 'Field Worker / মাঠ কর্মী',
-    company: 'BRAC',
-    location: 'Rangpur',
-    salary: '৳ 18,000',
-    category: 'NGO',
-    type: 'Contract',
-    level: 'Entry',
-    posted: '3 days ago',
-    deadline: '20 Nov, 2023',
-    description: 'Field workers needed for rural development programs. / গ্রামীণ উন্নয়ন কর্মসূচির জন্য মাঠ কর্মী প্রয়োজন।',
-    responsibilities: ['Conducting surveys', 'Data collection', 'Weekly reporting']
-  },
-  {
-    id: 4,
-    title: 'Agriculture Officer / কৃষি কর্মকর্তা',
-    company: 'Dept of Agricultural Extension',
-    location: 'Rajshahi',
-    salary: 'Grade 10',
-    category: 'Government',
-    type: 'Full Time',
-    level: 'Mid',
-    posted: '5 days ago',
-    deadline: '25 Oct, 2023',
-    description: 'Recruitment of officers for advising farmers. / কৃষকদের পরামর্শ প্রদানের জন্য কর্মকর্তা নিয়োগ।',
-    responsibilities: ['Training farmers', 'Crop monitoring', 'Incentive distribution']
-  },
-  {
-    id: 5,
-    title: 'Graphics Designer / গ্রাফিক্স ডিজাইনার',
-    company: 'Creative IT',
-    location: 'Remote',
-    salary: '৳ 30,000',
-    category: 'Private',
-    type: 'Remote',
-    level: 'Entry',
-    posted: '1 week ago',
-    deadline: '10 Nov, 2023',
-    description: 'Creative designer needed for social media content. / সোশ্যাল মিডিয়া কন্টেন্ট তৈরির জন্য ডিজাইনার প্রয়োজন।',
-    responsibilities: ['Banner design', 'Video editing', 'Branding']
-  },
-  {
-    id: 6,
-    title: 'Project Manager / প্রজেক্ট ম্যানেজার',
-    company: 'CARE Bangladesh',
-    location: 'Chattogram',
-    salary: '৳ 90,000',
-    category: 'NGO',
-    type: 'Contract',
-    level: 'Senior',
-    posted: '2 weeks ago',
-    deadline: '01 Nov, 2023',
-    description: 'Experienced Project Manager needed for Health project. / স্বাস্থ্য প্রকল্পের জন্য প্রজেক্ট ম্যানেজার প্রয়োজন।',
-    responsibilities: ['Project planning', 'Budget control', 'Donor reporting']
-  },
-  {
-    id: 7,
-    title: 'Lecturer (CSE) / প্রভাষক',
-    company: 'University of Dhaka',
-    location: 'Dhaka',
-    salary: 'Grade 9',
-    category: 'Public University',
-    type: 'Full Time',
-    level: 'Entry',
-    posted: '1 day ago',
-    deadline: '20 Nov, 2023',
-    description: 'Department of CSE is inviting applications for Lecturer position. / সিএসই বিভাগ প্রভাষক পদে দরখাস্ত আহ্বান করছে।',
-    responsibilities: ['Conducting lectures', 'Research supervision', 'Academic counseling']
-  },
-  {
-    id: 8,
-    title: 'Assistant Engineer / সহকারী প্রকৌশলী',
-    company: 'Dhaka North City Corporation',
-    location: 'Dhaka',
-    salary: 'Grade 9',
-    category: 'Local Government',
-    type: 'Full Time',
-    level: 'Entry',
-    posted: '3 days ago',
-    deadline: '25 Nov, 2023',
-    description: 'DNCC requires engineers for urban planning projects. / ডিএনসিসি নগর পরিকল্পনা প্রকল্পের জন্য প্রকৌশলী খুঁজছে।',
-    responsibilities: ['Site inspection', 'Project estimation', 'Maintenance supervision']
-  }
-];
-
 export const JobModule: React.FC<Props> = ({ isBangla }) => {
-  const [selectedJob, setSelectedJob] = useState<Job | null>(null);
+  const { jobs } = useData(); // Consume data from context
+  const [selectedJob, setSelectedJob] = useState<any | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
   
   // Filter States
@@ -169,7 +40,7 @@ export const JobModule: React.FC<Props> = ({ isBangla }) => {
 
   // Memoized Filtering Logic
   const filteredJobs = useMemo(() => {
-    return JOBS_DATA.filter(job => {
+    return jobs.filter((job: any) => {
       const term = searchTerm.toLowerCase();
       const matchesSearch = 
         job.title.toLowerCase().includes(term) ||
@@ -182,7 +53,7 @@ export const JobModule: React.FC<Props> = ({ isBangla }) => {
 
       return matchesSearch && matchesCategory && matchesType && matchesLevel;
     });
-  }, [searchTerm, selectedCategories, selectedTypes, selectedLevels]);
+  }, [jobs, searchTerm, selectedCategories, selectedTypes, selectedLevels]);
 
   const toggleFilter = <T extends string>(item: T, current: T[], setter: (val: T[]) => void) => {
     if (current.includes(item)) {
@@ -204,7 +75,7 @@ export const JobModule: React.FC<Props> = ({ isBangla }) => {
     setPostSubmitted(true);
   };
 
-  const getCategoryColor = (cat: JobCategory) => {
+  const getCategoryColor = (cat: string) => {
     switch (cat) {
       case 'Government': return 'bg-green-100 text-green-800 border-green-200';
       case 'Autonomous': return 'bg-teal-100 text-teal-800 border-teal-200';
@@ -378,14 +249,14 @@ export const JobModule: React.FC<Props> = ({ isBangla }) => {
 
             <div className="space-y-4">
               {filteredJobs.length > 0 ? (
-                filteredJobs.map(job => (
+                filteredJobs.map((job: any) => (
                   <div 
                     key={job.id} 
                     onClick={() => setSelectedJob(job)}
                     className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 hover:shadow-lg hover:border-brand-200 transition-all cursor-pointer group relative overflow-hidden"
                   >
                     <div className={`absolute top-0 right-0 px-4 py-1 text-xs font-bold rounded-bl-xl border-l border-b ${getCategoryColor(job.category)}`}>
-                      {isBangla ? categoryLabels[job.category].bn : categoryLabels[job.category].en}
+                      {isBangla ? categoryLabels[job.category]?.bn || job.category : categoryLabels[job.category]?.en || job.category}
                     </div>
 
                     <div className="flex flex-col md:flex-row gap-5 items-start">
@@ -522,12 +393,14 @@ export const JobModule: React.FC<Props> = ({ isBangla }) => {
                     <h3 className="text-lg font-bold text-gray-900 mb-2">{isBangla ? 'বিবরণ' : 'Description'}</h3>
                     <p className="text-gray-600 leading-relaxed">{selectedJob.description}</p>
                   </div>
-                  <div>
-                    <h3 className="text-lg font-bold text-gray-900 mb-2">{isBangla ? 'দায়িত্বসমূহ' : 'Responsibilities'}</h3>
-                    <ul className="list-disc pl-5 space-y-1 text-gray-600">
-                      {selectedJob.responsibilities.map((res, i) => <li key={i}>{res}</li>)}
-                    </ul>
-                  </div>
+                  {selectedJob.responsibilities && (
+                    <div>
+                      <h3 className="text-lg font-bold text-gray-900 mb-2">{isBangla ? 'দায়িত্বসমূহ' : 'Responsibilities'}</h3>
+                      <ul className="list-disc pl-5 space-y-1 text-gray-600">
+                        {selectedJob.responsibilities.map((res: string, i: number) => <li key={i}>{res}</li>)}
+                      </ul>
+                    </div>
+                  )}
                </div>
             </div>
             <div className="p-6 border-t border-gray-100 bg-gray-50 flex justify-end gap-3 sticky bottom-0">

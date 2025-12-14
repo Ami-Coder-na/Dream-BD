@@ -3,132 +3,27 @@ import React, { useState } from 'react';
 import { Search, Calendar, User, ArrowRight, Tag, PenTool, X, CheckCircle, Image as ImageIcon, ArrowLeft, Share2, Clock, Printer, Facebook, Linkedin, Twitter } from 'lucide-react';
 import { Button } from '../ui/Button';
 import { getOptimizedImageUrl } from '../utils/imageUtils';
+import { useData } from '../../contexts/DataContext';
 
 interface Props {
   isBangla: boolean;
 }
 
-// Extended Data with Full Content
-const BLOG_POSTS = [
-  {
-    id: 1,
-    title: 'Adoption of Modern Agriculture Technology / আধুনিক কৃষি প্রযুক্তির ব্যবহার',
-    excerpt: 'Detailed discussion on how farmers are increasing yields using drones and smart sensors. / ড্রোন এবং স্মার্ট সেন্সর ব্যবহার করে কীভাবে কৃষকরা ফলন বৃদ্ধি করছেন তার বিস্তারিত আলোচনা।',
-    content: `
-      <p class="mb-4">Agriculture in Bangladesh is undergoing a silent revolution. With the advent of the 4th Industrial Revolution, traditional farming methods are being replaced by smart, data-driven technologies. <strong>Smart Agriculture</strong> or Precision Farming is no longer a concept of the west; it is happening right here in our green delta.</p>
-      
-      <h3 class="text-xl font-bold text-gray-800 mb-3 mt-6">Use of Drones in Farming</h3>
-      <p class="mb-4">Farmers in various districts are now piloting drones for pesticide spraying. This not only saves time but also ensures that chemicals are not wasted. Manual spraying often leads to health hazards for farmers, which drones effectively eliminate.</p>
-      
-      <h3 class="text-xl font-bold text-gray-800 mb-3 mt-6">Smart Sensors & IoT</h3>
-      <p class="mb-4">IoT-based soil sensors are being used to measure moisture, pH levels, and nutrient content of the soil real-time. This data helps farmers decide exactly how much water or fertilizer is needed, reducing costs by up to 30%.</p>
-
-      <div class="bg-emerald-50 border-l-4 border-emerald-500 p-4 my-6">
-        <p class="font-medium text-emerald-800">"বাংলাদেশে স্মার্ট ফার্মিং প্রযুক্তির ব্যবহার আগামী ৫ বছরে ফসলের উৎপাদন ২০% বাড়িয়ে দেবে বলে আশা করা হচ্ছে।"</p>
-      </div>
-
-      <p class="mb-4">আমাদের দেশের তরুণ উদ্যোক্তারা কৃষি খাতে নতুন নতুন উদ্ভাবন নিয়ে আসছেন। ড্রিম বিডি অ্যাপের মতো প্ল্যাটফর্ম ব্যবহার করে কৃষকরা এখন ঘরে বসেই আবহাওয়ার পূর্বাভাস এবং বাজার দর জানতে পারছেন। এটি মধ্যস্বত্বভোগীদের দৌরাত্ম্য কমাতেও সাহায্য করছে।</p>
-    `,
-    author: 'Dr. Rahim Ahmed',
-    date: 'Oct 15, 2023',
-    readTime: '5 min read',
-    category: 'Agriculture',
-    image: 'https://images.unsplash.com/photo-1625246333195-58197bd47d26'
-  },
-  {
-    id: 2,
-    title: 'Tips for Winter Vegetable Farming / শীতকালীন সবজি চাষের টিপস',
-    excerpt: 'Correct rules for pest control and fertilizer application in winter vegetable farming. / শীতের সবজি চাষে পোকা দমন এবং সার প্রয়োগের সঠিক নিয়মাবলী।',
-    content: `
-      <p class="mb-4">Winter is the golden season for vegetables in Bangladesh. Cauliflower, Cabbage, Tomato, Carrot, and various leafy greens thrive during this time. However, proper care is essential to ensure a bumper harvest.</p>
-      
-      <h3 class="text-xl font-bold text-gray-800 mb-3 mt-6">Soil Preparation (জমি তৈরি)</h3>
-      <p class="mb-4">For winter vegetables, the soil should be loose and friable. Adding organic compost or cow dung (গোবর সার) during the final ploughing enriches the soil nutrients. Ensure proper drainage so that water does not stagnate.</p>
-      
-      <h3 class="text-xl font-bold text-gray-800 mb-3 mt-6">Pest Control (পোকামাকড় দমন)</h3>
-      <p class="mb-4">Aphids and cutworms are common threats in winter. Instead of heavy chemical usage, farmers are encouraged to use:
-      <ul class="list-disc pl-5 mt-2 space-y-1">
-        <li>Pheromone traps (সেক্স ফেরোমোন ফাঁদ)</li>
-        <li>Neem oil spray (নিম তেলের স্প্রে)</li>
-        <li>Yellow sticky traps</li>
-      </ul>
-      </p>
-
-      <p class="mb-4">শীতকালীন সবজির ফলন ভালো পেতে নিয়মিত সেচ দেওয়া জরুরি। তবে খেয়াল রাখতে হবে যেন গোড়ায় পানি না জমে। বিশেষ করে টমেটো এবং আলু চাষে ফাঙ্গাস আক্রমণ রোধে আগাম সতর্কতামূলক ব্যবস্থা নিতে হবে।</p>
-    `,
-    author: 'Fatema Begum',
-    date: 'Oct 12, 2023',
-    readTime: '4 min read',
-    category: 'Farming',
-    image: 'https://images.unsplash.com/photo-1598170845058-32b9d6a5da37'
-  },
-  {
-    id: 3,
-    title: 'Potential of Cottage Industry / কুটির শিল্পের সম্ভাবনা',
-    excerpt: 'Demand for our Nakshi Kantha and Jamdani is increasing day by day in the global market. / বিশ্ববাজারে আমাদের নকশী কাঁথা এবং জামদানির চাহিদা দিন দিন বাড়ছে।',
-    content: `
-      <p class="mb-4">Bangladesh has a rich heritage of handicrafts. The Cottage Industry (কুটির শিল্প) plays a vital role in our rural economy, especially in empowering women.</p>
-      
-      <h3 class="text-xl font-bold text-gray-800 mb-3 mt-6">Nakshi Kantha: A Global Brand</h3>
-      <p class="mb-4">Once a household item, Nakshi Kantha is now a luxury product in Europe and America. The intricate designs tell stories of rural life. Digital platforms are now enabling artisans from Jessore and Jamalpur to sell directly to international buyers.</p>
-      
-      <h3 class="text-xl font-bold text-gray-800 mb-3 mt-6">Challenges & Solutions</h3>
-      <p class="mb-4">The main challenge has been fair pricing and market access. Middlemen often take the lion's share of the profit. However, e-commerce platforms like <strong>Dream BD Craft</strong> are eliminating these barriers.</p>
-
-      <div class="bg-orange-50 border-l-4 border-orange-500 p-4 my-6">
-        <p class="font-medium text-orange-800">"ঐতিহ্যবাহী পণ্যকে আধুনিক ডিজাইনের সাথে মিলিয়ে উপস্থাপন করতে পারলে বিশ্ববাজারে এর চাহিদা আকাশচুম্বী।"</p>
-      </div>
-
-      <p class="mb-4">জামদানি শাড়ি আমাদের গর্ব। জিআই (GI) পণ্য হিসেবে স্বীকৃতি পাওয়ার পর এর কদর আরও বেড়েছে। নতুন উদ্যোক্তাদের উচিত পণ্যের গুণগত মান বজায় রেখে ব্র্যান্ডিংয়ে নজর দেওয়া।</p>
-    `,
-    author: 'Kamrul Hasan',
-    date: 'Oct 08, 2023',
-    readTime: '6 min read',
-    category: 'Trade',
-    image: 'https://images.unsplash.com/photo-1605333527878-43d9a5b1064a'
-  },
-  {
-    id: 4,
-    title: 'Primary Healthcare from Home / ঘরে বসে প্রাথমিক স্বাস্থ্যসেবা',
-    excerpt: 'Villagers are now easily getting expert doctor advice through telemedicine services. / টেলিমেডিসিন সেবার মাধ্যমে গ্রামের মানুষ এখন সহজেই বিশেষজ্ঞ ডাক্তারের পরামর্শ পাচ্ছেন।',
-    content: `
-      <p class="mb-4">Access to quality healthcare has always been a challenge in remote areas of Bangladesh. But technology is bridging this gap rapidly through Telemedicine.</p>
-      
-      <h3 class="text-xl font-bold text-gray-800 mb-3 mt-6">The Rise of Telemedicine</h3>
-      <p class="mb-4">With high-speed internet reaching unions, villagers can now consult specialists from Dhaka via video calls. This saves travel time and money. Apps like Dream BD Health allow users to:</p>
-      <ul class="list-disc pl-5 mb-4 space-y-1">
-        <li>Book appointments instantly</li>
-        <li>Get digital prescriptions</li>
-        <li>Order medicines online</li>
-      </ul>
-      
-      <h3 class="text-xl font-bold text-gray-800 mb-3 mt-6">Health Awareness</h3>
-      <p class="mb-4">Beyond treatment, digital platforms are spreading awareness about nutrition, maternal health, and hygiene. Prevention is better than cure, and information is the key tool.</p>
-
-      <p class="mb-4">জরুরী মুহূর্তে রক্তদাতার খোঁজ করা বা অ্যাম্বুলেন্স ডাকা এখন স্মার্টফোনের এক ক্লিকেই সম্ভব। ডিজিটাল স্বাস্থ্যসেবা আমাদের জীবনযাত্রার মান উন্নয়নে এক বৈপ্লবিক পরিবর্তন এনেছে।</p>
-    `,
-    author: 'Dr. Nusrat Jahan',
-    date: 'Oct 05, 2023',
-    readTime: '3 min read',
-    category: 'Health',
-    image: 'https://images.unsplash.com/photo-1576091160550-2187d80a1830'
-  }
-];
-
 export const BlogModule: React.FC<Props> = ({ isBangla }) => {
+  const { blogs } = useData(); // Consume blogs from context
   const [showPostModal, setShowPostModal] = useState(false);
   const [postSubmitted, setPostSubmitted] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   
   // State for Detail View
-  const [selectedPost, setSelectedPost] = useState<typeof BLOG_POSTS[0] | null>(null);
+  const [selectedPost, setSelectedPost] = useState<any | null>(null);
 
   const handlePostSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     setPostSubmitted(true);
   };
 
-  const handlePostClick = (post: typeof BLOG_POSTS[0]) => {
+  const handlePostClick = (post: any) => {
     setSelectedPost(post);
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
@@ -138,7 +33,7 @@ export const BlogModule: React.FC<Props> = ({ isBangla }) => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
-  const filteredPosts = BLOG_POSTS.filter(post => 
+  const filteredPosts = blogs.filter((post: any) => 
     post.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
     post.category.toLowerCase().includes(searchQuery.toLowerCase())
   );
@@ -192,6 +87,7 @@ export const BlogModule: React.FC<Props> = ({ isBangla }) => {
                 src={getOptimizedImageUrl(selectedPost.image, 1200)} 
                 alt={selectedPost.title} 
                 className="w-full h-full object-cover"
+                onError={(e) => { e.currentTarget.src = "https://placehold.co/1200x600/f3f4f6/9ca3af?text=Article+Image"; }}
               />
               <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent"></div>
               <div className="absolute bottom-6 left-6 md:left-10 text-white">
@@ -252,7 +148,7 @@ export const BlogModule: React.FC<Props> = ({ isBangla }) => {
               {isBangla ? 'আরও পড়ুন' : 'You Might Also Like'}
             </h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {BLOG_POSTS.filter(p => p.id !== selectedPost.id).slice(0, 2).map(post => (
+              {blogs.filter((p: any) => p.id !== selectedPost.id).slice(0, 2).map((post: any) => (
                 <div 
                   key={post.id} 
                   onClick={() => handlePostClick(post)}
@@ -318,7 +214,7 @@ export const BlogModule: React.FC<Props> = ({ isBangla }) => {
         {/* Blog Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
           {filteredPosts.length > 0 ? (
-            filteredPosts.map((post) => (
+            filteredPosts.map((post: any) => (
               <div 
                 key={post.id} 
                 onClick={() => handlePostClick(post)}
