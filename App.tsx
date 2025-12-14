@@ -9,7 +9,8 @@ import { SignUpPage } from './components/auth/SignUpPage';
 import { Header } from './components/layout/Header';
 import { Footer } from './components/layout/Footer';
 import { ErrorBoundary } from './components/ErrorBoundary';
-import { Loader2 } from 'lucide-react';
+import { Loader2, AlertTriangle, Lock } from 'lucide-react';
+import { useSiteConfig } from './contexts/SiteConfigContext';
 
 // Lazy Load Modules for Bundle Splitting
 const JobModule = lazy(() => import('./components/modules/JobModule').then(module => ({ default: module.JobModule })));
@@ -47,6 +48,8 @@ const App: React.FC = () => {
   const [isBangla, setIsBangla] = useState(true);
   const [showAiChat, setShowAiChat] = useState(false);
   const [authView, setAuthView] = useState<'none' | 'login' | 'signup'>('none');
+  
+  const { settings } = useSiteConfig();
 
   // Notification State
   const [notifications, setNotifications] = useState<Notification[]>([
@@ -125,6 +128,33 @@ const App: React.FC = () => {
   const handleNavigateHome = () => {
     setActiveModule('LANDING');
   };
+
+  // --- MAINTENANCE MODE CHECK ---
+  // Allow admins to bypass maintenance
+  if (settings.maintenanceMode && activeModule !== AppModule.ADMIN && user?.role !== 'Admin') {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
+        <div className="bg-white p-10 rounded-3xl shadow-xl text-center max-w-lg w-full border border-gray-100">
+           <div className="w-24 h-24 bg-red-50 rounded-full flex items-center justify-center mx-auto mb-6 animate-pulse">
+             <Lock size={48} className="text-red-500" />
+           </div>
+           <h1 className="text-3xl font-bold text-gray-900 mb-4">{isBangla ? 'রক্ষণাবেক্ষণ চলছে' : 'Under Maintenance'}</h1>
+           <p className="text-gray-600 text-lg mb-8 leading-relaxed">
+             {isBangla 
+               ? 'আমাদের ওয়েবসাইটটি বর্তমানে রক্ষণাবেক্ষণের কাজ চলছে। সাময়িক অসুবিধার জন্য আমরা দুঃখিত। অনুগ্রহ করে কিছুক্ষণ পর আবার চেষ্টা করুন।'
+               : 'Our website is currently undergoing scheduled maintenance. We apologize for the inconvenience. Please check back soon.'}
+           </p>
+           {/* Allow admin login backdoor during maintenance */}
+           <button 
+             onClick={() => setActiveModule(AppModule.ADMIN)} 
+             className="text-sm text-gray-400 hover:text-brand-600 underline"
+           >
+             {isBangla ? 'অ্যাডমিন লগইন' : 'Admin Login'}
+           </button>
+        </div>
+      </div>
+    );
+  }
 
   // Render AI Chat Page if requested
   if (showAiChat) {
@@ -228,14 +258,6 @@ const App: React.FC = () => {
     );
   };
 
-  if (activeModule === 'LANDING') {
-    return (
-      <>
-        {renderContent()}
-      </>
-    );
-  }
-
   // Admin module has its own layout, so we render it without the standard header/footer
   if (activeModule === AppModule.ADMIN) {
     return (
@@ -265,7 +287,7 @@ const App: React.FC = () => {
         />
         <div className="flex-1">
             {/* Wrapper to ensure full page modules look good */}
-            {activeModule === AppModule.JOB || activeModule === AppModule.BLOG || activeModule === AppModule.CONTACT || activeModule === AppModule.AMAR_BD || activeModule === AppModule.AMAR_JELA || activeModule === AppModule.BAZAR_SODAI
+            {activeModule === AppModule.JOB || activeModule === AppModule.BLOG || activeModule === AppModule.CONTACT || activeModule === AppModule.AMAR_BD || activeModule === AppModule.AMAR_JELA || activeModule === AppModule.BAZAR_SODAI || activeModule === 'LANDING'
               ? renderContent() // These already have container
               : (
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 min-h-screen">
