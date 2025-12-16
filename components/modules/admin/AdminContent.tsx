@@ -3,7 +3,7 @@ import React, { useState } from 'react';
 import { 
   Briefcase, FileText, Plus, Search, Eye, Edit3, Trash2, 
   Check, X, ArrowLeft, Save, 
-  MapPin, DollarSign, Calendar, Tag, User, Building2 
+  MapPin, DollarSign, Calendar, Tag, User, Building2, Image as ImageIcon 
 } from 'lucide-react';
 import { Button } from '../../ui/Button';
 import { useData } from '../../../contexts/DataContext';
@@ -112,6 +112,7 @@ export const AdminContent = () => {
                   <select value={jobForm.type || 'Full Time'} onChange={e => setJobForm({...jobForm, type: e.target.value})} className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-gray-900 transition-all text-sm font-medium appearance-none">
                     <option>Full Time</option>
                     <option>Part Time</option>
+                    <option>Contract</option>
                     <option>Remote</option>
                   </select>
                 </div>
@@ -174,6 +175,8 @@ export const AdminContent = () => {
                     <option>Health</option>
                     <option>Education</option>
                     <option>Transport</option>
+                    <option>Crafts</option>
+                    <option>Technology</option>
                   </select>
                 </div>
                 <div className="space-y-2">
@@ -181,6 +184,16 @@ export const AdminContent = () => {
                   <input type="text" value={blogForm.author || ''} onChange={e => setBlogForm({...blogForm, author: e.target.value})} className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-gray-900 transition-all text-sm font-medium" />
                 </div>
               </div>
+              
+              {/* Added Image Input to match User Form capability */}
+              <div className="space-y-2">
+                 <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider">Blog Image</label>
+                 <div className="relative">
+                    <input type="file" className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-gray-900 transition-all text-sm text-gray-500" />
+                    <ImageIcon className="absolute right-4 top-3 text-gray-400" size={20} />
+                 </div>
+              </div>
+
               <div className="space-y-2">
                 <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider">Content (HTML Supported)</label>
                 <textarea required rows={8} value={blogForm.content || ''} onChange={e => setBlogForm({...blogForm, content: e.target.value})} placeholder="Write blog content here..." className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-gray-900 transition-all text-sm font-medium resize-none"></textarea>

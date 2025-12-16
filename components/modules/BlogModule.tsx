@@ -355,12 +355,12 @@ export const BlogModule: React.FC<Props> = ({ isBangla, user, onLogin }) => {
                 <form onSubmit={handlePostSubmit} className="space-y-6">
                   <div>
                     <label className="block text-sm font-semibold text-gray-700 mb-2">{isBangla ? 'ব্লগের শিরোনাম' : 'Blog Title'} *</label>
-                    <input type="text" required value={newBlogData.title} onChange={e => setNewBlogData({...newBlogData, title: e.target.value})} className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl" />
+                    <input type="text" required value={newBlogData.title} onChange={e => setNewBlogData({...newBlogData, title: e.target.value})} className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500 transition-all text-sm font-medium" />
                   </div>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div>
                       <label className="block text-sm font-semibold text-gray-700 mb-2">{isBangla ? 'ক্যাটাগরি' : 'Category'} *</label>
-                      <select className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl" value={newBlogData.category} onChange={e => setNewBlogData({...newBlogData, category: e.target.value})}>
+                      <select className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500 transition-all text-sm font-medium appearance-none cursor-pointer" value={newBlogData.category} onChange={e => setNewBlogData({...newBlogData, category: e.target.value})}>
                         <option value="">{isBangla ? 'নির্বাচন করুন...' : 'Select...'}</option>
                         {categories.map((cat) => (
                           <option key={cat.id} value={cat.id}>
@@ -370,15 +370,18 @@ export const BlogModule: React.FC<Props> = ({ isBangla, user, onLogin }) => {
                       </select>
                     </div>
                     <div>
-                       <label className="block text-sm font-semibold text-gray-700 mb-2">{isBangla ? 'ছবি' : 'Image'}</label>
-                       <input type="file" className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl" />
+                       <label className="block text-sm font-semibold text-gray-700 mb-2">{isBangla ? 'ছবি' : 'Image'} *</label>
+                       <div className="relative">
+                         <input type="file" className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500 transition-all text-sm" />
+                         <ImageIcon className="absolute right-4 top-3 text-gray-400" size={20} />
+                       </div>
                     </div>
                   </div>
                   <div>
                     <label className="block text-sm font-semibold text-gray-700 mb-2">{isBangla ? 'বিস্তারিত' : 'Content'} *</label>
-                    <textarea required rows={6} className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl" value={newBlogData.content} onChange={e => setNewBlogData({...newBlogData, content: e.target.value})}></textarea>
+                    <textarea required rows={6} className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500 transition-all text-sm font-medium resize-none" value={newBlogData.content} onChange={e => setNewBlogData({...newBlogData, content: e.target.value})}></textarea>
                   </div>
-                  <Button type="submit" className="w-full bg-emerald-600 hover:bg-emerald-700">{isBangla ? 'জমা দিন' : 'Submit'}</Button>
+                  <Button type="submit" className="w-full bg-emerald-600 hover:bg-emerald-700 font-bold py-3 rounded-xl shadow-lg shadow-emerald-200">{isBangla ? 'জমা দিন' : 'Submit'}</Button>
                 </form>
               )}
             </div>

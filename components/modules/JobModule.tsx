@@ -46,7 +46,8 @@ export const JobModule: React.FC<Props> = ({ isBangla, user, onLogin }) => {
       description: '',
       location: '',
       salary: '',
-      type: 'Full Time'
+      type: 'Full Time',
+      deadline: ''
   });
 
   // Memoized Filtering Logic
@@ -110,6 +111,7 @@ export const JobModule: React.FC<Props> = ({ isBangla, user, onLogin }) => {
         location: newJobData.location,
         salary: newJobData.salary,
         type: newJobData.type,
+        deadline: newJobData.deadline,
         postedBy: user ? user.name : 'Guest', // Use real user name
         category: 'Private', // Default for user submission
         level: 'Entry' // Default
@@ -117,7 +119,7 @@ export const JobModule: React.FC<Props> = ({ isBangla, user, onLogin }) => {
     
     addRequest(request);
     setPostSubmitted(true);
-    setNewJobData({ title: '', company: '', description: '', location: '', salary: '', type: 'Full Time' });
+    setNewJobData({ title: '', company: '', description: '', location: '', salary: '', type: 'Full Time', deadline: '' });
   };
 
   const getCategoryColor = (cat: string) => {
@@ -351,7 +353,7 @@ export const JobModule: React.FC<Props> = ({ isBangla, user, onLogin }) => {
         </div>
       </div>
 
-      {/* Post Job Modal */}
+      {/* Post Job Modal - Updated to match Admin Form */}
       {showPostModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fade-in" onClick={() => setShowPostModal(false)}>
           <div className="bg-white w-full max-w-2xl rounded-2xl shadow-2xl overflow-hidden transform transition-all" onClick={e => e.stopPropagation()}>
@@ -370,7 +372,7 @@ export const JobModule: React.FC<Props> = ({ isBangla, user, onLogin }) => {
               <button onClick={() => setShowPostModal(false)} className="p-2 hover:bg-white rounded-full text-gray-400 hover:text-red-500 transition-colors shadow-sm"><X size={20} /></button>
             </div>
 
-            <div className="p-8">
+            <div className="p-8 max-h-[80vh] overflow-y-auto">
               {postSubmitted ? (
                 <div className="text-center py-12 flex flex-col items-center animate-fade-in-up">
                   <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mb-6 text-green-600 shadow-lg shadow-green-100">
@@ -387,28 +389,53 @@ export const JobModule: React.FC<Props> = ({ isBangla, user, onLogin }) => {
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div className="space-y-2">
                       <label className="text-sm font-semibold text-gray-700">{isBangla ? 'পদের নাম' : 'Job Title'} *</label>
-                      <input type="text" required className="w-full px-4 py-2 bg-gray-50 border border-gray-200 rounded-lg" value={newJobData.title} onChange={e => setNewJobData({...newJobData, title: e.target.value})} />
+                      <input type="text" required className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-gray-900 transition-all text-sm" value={newJobData.title} onChange={e => setNewJobData({...newJobData, title: e.target.value})} placeholder="e.g. Manager" />
                     </div>
                     <div className="space-y-2">
                       <label className="text-sm font-semibold text-gray-700">{isBangla ? 'প্রতিষ্ঠান' : 'Company'} *</label>
-                      <input type="text" required className="w-full px-4 py-2 bg-gray-50 border border-gray-200 rounded-lg" value={newJobData.company} onChange={e => setNewJobData({...newJobData, company: e.target.value})} />
+                      <input type="text" required className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-gray-900 transition-all text-sm" value={newJobData.company} onChange={e => setNewJobData({...newJobData, company: e.target.value})} placeholder="Company Name" />
                     </div>
                   </div>
+                  
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div className="space-y-2">
-                      <label className="text-sm font-semibold text-gray-700">{isBangla ? 'অবস্থান' : 'Location'} *</label>
-                      <input type="text" required className="w-full px-4 py-2 bg-gray-50 border border-gray-200 rounded-lg" value={newJobData.location} onChange={e => setNewJobData({...newJobData, location: e.target.value})} />
+                        <label className="text-sm font-semibold text-gray-700">{isBangla ? 'কাজের ধরন' : 'Job Type'} *</label>
+                        <select 
+                            className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-gray-900 transition-all text-sm appearance-none cursor-pointer"
+                            value={newJobData.type}
+                            onChange={(e) => setNewJobData({...newJobData, type: e.target.value})}
+                        >
+                            <option value="Full Time">Full Time</option>
+                            <option value="Part Time">Part Time</option>
+                            <option value="Contract">Contract</option>
+                            <option value="Remote">Remote</option>
+                        </select>
                     </div>
                     <div className="space-y-2">
-                      <label className="text-sm font-semibold text-gray-700">{isBangla ? 'বেতন (যেমন: ৳ 20k-30k)' : 'Salary (e.g. ৳ 20k-30k)'}</label>
-                      <input type="text" className="w-full px-4 py-2 bg-gray-50 border border-gray-200 rounded-lg" value={newJobData.salary} onChange={e => setNewJobData({...newJobData, salary: e.target.value})} />
+                      <label className="text-sm font-semibold text-gray-700">{isBangla ? 'অবস্থান' : 'Location'} *</label>
+                      <input type="text" required className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-gray-900 transition-all text-sm" value={newJobData.location} onChange={e => setNewJobData({...newJobData, location: e.target.value})} placeholder="e.g. Dhaka" />
                     </div>
                   </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div className="space-y-2">
+                      <label className="text-sm font-semibold text-gray-700">{isBangla ? 'বেতন' : 'Salary Range'} (Optional)</label>
+                      <input type="text" className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-gray-900 transition-all text-sm" value={newJobData.salary} onChange={e => setNewJobData({...newJobData, salary: e.target.value})} placeholder="e.g. 20k-30k" />
+                    </div>
+                    <div className="space-y-2">
+                      <label className="text-sm font-semibold text-gray-700">{isBangla ? 'আবেদনের শেষ তারিখ' : 'Deadline'} *</label>
+                      <input type="date" required className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-gray-900 transition-all text-sm text-gray-600" value={newJobData.deadline} onChange={e => setNewJobData({...newJobData, deadline: e.target.value})} />
+                    </div>
+                  </div>
+
                   <div className="space-y-2">
                     <label className="text-sm font-semibold text-gray-700">{isBangla ? 'বিবরণ' : 'Description'} *</label>
-                    <textarea required rows={4} className="w-full px-4 py-2 bg-gray-50 border border-gray-200 rounded-lg" value={newJobData.description} onChange={e => setNewJobData({...newJobData, description: e.target.value})}></textarea>
+                    <textarea required rows={5} className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-gray-900 transition-all text-sm resize-none" value={newJobData.description} onChange={e => setNewJobData({...newJobData, description: e.target.value})} placeholder="Job details..."></textarea>
                   </div>
-                  <Button type="submit" className="w-full">{isBangla ? 'জমা দিন' : 'Submit'}</Button>
+                  
+                  <div className="flex justify-end pt-2">
+                    <Button type="submit" className="w-full bg-brand-600 hover:bg-brand-700 shadow-lg shadow-brand-500/30 py-3 rounded-xl font-bold">{isBangla ? 'জমা দিন' : 'Submit Job Post'}</Button>
+                  </div>
                 </form>
               )}
             </div>

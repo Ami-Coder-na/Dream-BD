@@ -1,6 +1,6 @@
 
 import React, { useState, useMemo } from 'react';
-import { MapPin, ArrowRight, Search, Info, ChevronRight, X, Users, BookOpen, HeartPulse, Camera, Building2, Map, ChevronDown, Gem, Utensils, Shirt, Coffee, Leaf, Droplets, Gift } from 'lucide-react';
+import { MapPin, ArrowRight, Search, Info, ChevronRight, X, Users, BookOpen, HeartPulse, Camera, Building2, Map, ChevronDown, Gem, Utensils, Shirt, Coffee, Leaf, Droplets, Gift, Calendar, ChevronLeft, List } from 'lucide-react';
 import { Button } from '../ui/Button';
 import { AppModule } from '../../types';
 import { getOptimizedImageUrl } from '../utils/imageUtils';
@@ -99,7 +99,7 @@ const tourismData: DivisionData[] = [
       { nameBn: 'গোপালগঞ্জ', nameEn: 'Gopalganj', spots: ['Mausoleum of Bangabandhu', 'Ulpur Zamindar Bari', 'Modhumoti River'] },
       { nameBn: 'মাদারীপুর', nameEn: 'Madaripur', spots: ['Shakuni Lake', 'Raza Ram Khal', 'Senapati Dighi'] },
       { nameBn: 'শরীয়তপুর', nameEn: 'Shariatpur', spots: ['Fateh Jangpur Fort', 'Modern Fantasy Kingdom', 'River Padma'] },
-      { nameBn: 'রাজবাড়ী', nameEn: 'Rajbari', spots: ['Goalanda Ghat', 'Jor Bangla Temple', 'Gododhi'] }
+      { nameBn: 'राजবাড়ী', nameEn: 'Rajbari', spots: ['Goalanda Ghat', 'Jor Bangla Temple', 'Gododhi'] }
     ]
   },
   {
@@ -216,14 +216,49 @@ const divisionColors: Record<string, string> = {
   mymensingh: 'bg-purple-600 border-purple-600 text-white',
 };
 
+// --- HOLIDAY DATA (Comprehensive) ---
+const GOVT_HOLIDAYS = [
+  { month: 1, date: '21 Feb', nameBn: 'শহীদ দিবস ও আন্তর্জাতিক মাতৃভাষা দিবস', nameEn: 'Shaheed Day & Int. Mother Language Day', type: 'National' },
+  { month: 2, date: '17 Mar', nameBn: 'জাতির পিতার জন্মবার্ষিকী', nameEn: 'Birth Anniversary of Father of the Nation', type: 'National' },
+  { month: 2, date: '26 Mar', nameBn: 'স্বাধীনতা ও জাতীয় দিবস', nameEn: 'Independence & National Day', type: 'National' },
+  { month: 3, date: '14 Apr', nameBn: 'পহেলা বৈশাখ (বাংলা নববর্ষ)', nameEn: 'Pohela Boishakh (Bangla New Year)', type: 'Cultural' },
+  { month: 4, date: '01 May', nameBn: 'মে দিবস', nameEn: 'May Day', type: 'International' },
+  { month: 4, date: 'Subject to Moon', nameBn: 'বুদ্ধ পূর্ণিমা', nameEn: 'Buddha Purnima', type: 'Religious' },
+  { month: 5, date: 'Subject to Moon', nameBn: 'ঈদুল আযহা', nameEn: 'Eid-ul-Azha', type: 'Religious' },
+  { month: 7, date: '15 Aug', nameBn: 'জাতীয় শোক দিবস', nameEn: 'National Mourning Day', type: 'National' },
+  { month: 7, date: 'Subject to Moon', nameBn: 'জন্মাষ্টমী', nameEn: 'Janmashtami', type: 'Religious' },
+  { month: 8, date: 'Subject to Moon', nameBn: 'ঈদে মিলাদুন্নবী (সা.)', nameEn: 'Eid-e-Miladunnabi', type: 'Religious' },
+  { month: 9, date: 'Subject to Moon', nameBn: 'দুর্গাপূজা (বিজয়া দশমী)', nameEn: 'Durga Puja (Bijaya Dashami)', type: 'Religious' },
+  { month: 11, date: '16 Dec', nameBn: 'বিজয় দিবস', nameEn: 'Victory Day', type: 'National' },
+  { month: 11, date: '25 Dec', nameBn: 'বড়দিন', nameEn: 'Christmas Day', type: 'Religious' },
+];
+
+const BANGLA_MONTHS = [
+  { bn: 'বৈশাখ', en: 'Boishakh' }, { bn: 'জ্যৈষ্ঠ', en: 'Joishtho' }, 
+  { bn: 'আষাঢ়', en: 'Ashar' }, { bn: 'শ্রাবণ', en: 'Srabon' },
+  { bn: 'ভাদ্র', en: 'Bhadro' }, { bn: 'আশ্বিন', en: 'Ashwin' },
+  { bn: 'কার্তিক', en: 'Kartik' }, { bn: 'অগ্রহায়ন', en: 'Agrohayon' },
+  { bn: 'পৌষ', en: 'Poush' }, { bn: 'মাঘ', en: 'Magh' },
+  { bn: 'ফাল্গুন', en: 'Falgun' }, { bn: 'চৈত্র', en: 'Choitro' }
+];
+
+const ENGLISH_MONTHS = [
+  'January', 'February', 'March', 'April', 'May', 'June', 
+  'July', 'August', 'September', 'October', 'November', 'December'
+];
+
 export const AmarBdModule: React.FC<Props> = ({ isBangla, onModuleSelect }) => {
   const [activeDivision, setActiveDivision] = useState<string>('All');
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedDistrictForDetails, setSelectedDistrictForDetails] = useState<{ district: DistrictData, divisionName: string } | null>(null);
   const [treeOpenDivision, setTreeOpenDivision] = useState<string | null>(null);
   
-  // State for the new Branding Tree section
+  // State for Branding Tree
   const [brandingDivision, setBrandingDivision] = useState<string>('dhaka');
+
+  // State for Calendar
+  const [calendarView, setCalendarView] = useState<'monthly' | 'yearly'>('monthly');
+  const [currentDate, setCurrentDate] = useState(new Date());
 
   // Optimized filtering with useMemo
   const filteredList = useMemo(() => {
@@ -253,7 +288,7 @@ export const AmarBdModule: React.FC<Props> = ({ isBangla, onModuleSelect }) => {
     switch(type) {
       case 'food': return <Utensils size={14} className="text-orange-500" />;
       case 'cloth': return <Shirt size={14} className="text-purple-500" />;
-      case 'fruit': return <Gem size={14} className="text-pink-500" />; // Used Gem for premium fruits look
+      case 'fruit': return <Gem size={14} className="text-pink-500" />;
       case 'nature': return <Leaf size={14} className="text-green-500" />;
       case 'craft': return <Gift size={14} className="text-blue-500" />;
       default: return <Info size={14} className="text-gray-500" />;
@@ -353,6 +388,223 @@ export const AmarBdModule: React.FC<Props> = ({ isBangla, onModuleSelect }) => {
     );
   };
 
+  const getDaysInMonth = (date: Date) => {
+    return new Date(date.getFullYear(), date.getMonth() + 1, 0).getDate();
+  };
+
+  const getFirstDayOfMonth = (date: Date) => {
+    return new Date(date.getFullYear(), date.getMonth(), 1).getDay();
+  };
+
+  const changeMonth = (offset: number) => {
+    const newDate = new Date(currentDate.setMonth(currentDate.getMonth() + offset));
+    setCurrentDate(new Date(newDate));
+  };
+
+  // Helper to approximate Bangla Month
+  const getBanglaMonthName = (engMonthIndex: number) => {
+    // English Month 0 (Jan) -> Poush/Magh. Mid-Jan is start of Magh.
+    // Simplified: Jan -> Poush-Magh
+    // This is a rough visualization, not precise date converter
+    const index = (engMonthIndex + 8) % 12; // Shifts roughly to match Bangla calendar start (Boishakh is ~April)
+    return isBangla ? BANGLA_MONTHS[index].bn : BANGLA_MONTHS[index].en;
+  };
+
+  const renderMonthlyCalendar = () => {
+    const daysInMonth = getDaysInMonth(currentDate);
+    const firstDay = getFirstDayOfMonth(currentDate);
+    const days = [];
+    const today = new Date();
+
+    // Empty cells for previous month
+    for (let i = 0; i < firstDay; i++) {
+      days.push(<div key={`empty-${i}`} className="h-14 sm:h-20 bg-gray-50/50 border border-gray-100"></div>);
+    }
+
+    // Days
+    for (let i = 1; i <= daysInMonth; i++) {
+      const isToday = i === today.getDate() && currentDate.getMonth() === today.getMonth() && currentDate.getFullYear() === today.getFullYear();
+      const currentMonthIndex = currentDate.getMonth(); // 0-11
+      
+      // Check for holiday (simplified checking)
+      // Note: GOVT_HOLIDAYS use abbreviated dates like "21 Feb". 
+      // We need to map `currentMonthIndex` to a string like "Feb".
+      const monthNamesShort = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+      const dateString = `${i < 10 ? '0' + i : i} ${monthNamesShort[currentMonthIndex]}`;
+      const holiday = GOVT_HOLIDAYS.find(h => h.date.startsWith(`${i} `) && h.month === currentMonthIndex);
+      
+      // Also check specific date strings in array
+      const specificHoliday = GOVT_HOLIDAYS.find(h => h.date === `${i} ${monthNamesShort[currentMonthIndex]}`);
+
+      days.push(
+        <div key={i} className={`h-14 sm:h-20 border border-gray-100 p-1 sm:p-2 relative group hover:bg-gray-50 transition-colors ${isToday ? 'bg-blue-50' : ''}`}>
+          <span className={`text-sm font-bold w-6 h-6 flex items-center justify-center rounded-full ${isToday ? 'bg-blue-600 text-white' : specificHoliday ? 'text-red-600' : 'text-gray-700'}`}>
+            {i}
+          </span>
+          {specificHoliday && (
+            <div className="absolute bottom-1 left-1 right-1">
+              <div className="h-1.5 w-full bg-red-400 rounded-full"></div>
+              {/* Tooltip */}
+              <div className="absolute z-50 bottom-full left-1/2 -translate-x-1/2 mb-2 w-max max-w-[150px] p-2 bg-gray-800 text-white text-xs rounded shadow-lg opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
+                {isBangla ? specificHoliday.nameBn : specificHoliday.nameEn}
+              </div>
+            </div>
+          )}
+        </div>
+      );
+    }
+
+    return (
+      <div className="bg-white rounded-2xl shadow-lg border border-gray-100 overflow-hidden">
+        {/* Calendar Header */}
+        <div className="p-4 bg-gradient-to-r from-red-600 to-red-500 text-white flex justify-between items-center">
+          <button onClick={() => changeMonth(-1)} className="p-2 hover:bg-white/20 rounded-full"><ChevronLeft size={20}/></button>
+          <div className="text-center">
+            <h3 className="text-xl font-bold">
+              {currentDate.toLocaleString(isBangla ? 'bn-BD' : 'en-US', { month: 'long', year: 'numeric' })}
+            </h3>
+            <p className="text-xs text-red-100 opacity-90">
+              {isBangla ? 'বাংলা: ' : 'Bangla: '} {getBanglaMonthName(currentDate.getMonth())} - {getBanglaMonthName((currentDate.getMonth() + 1) % 12)}
+            </p>
+          </div>
+          <button onClick={() => changeMonth(1)} className="p-2 hover:bg-white/20 rounded-full"><ChevronRight size={20}/></button>
+        </div>
+
+        {/* Days Header */}
+        <div className="grid grid-cols-7 text-center bg-gray-50 border-b border-gray-100">
+          {(isBangla ? ['রবি', 'সোম', 'মঙ্গল', 'বুধ', 'বৃহঃ', 'শুক্র', 'শনি'] : ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']).map((d, i) => (
+            <div key={i} className={`py-2 text-xs font-bold uppercase ${i === 5 || i === 6 ? 'text-red-500' : 'text-gray-500'}`}>
+              {d}
+            </div>
+          ))}
+        </div>
+
+        {/* Calendar Grid */}
+        <div className="grid grid-cols-7 bg-white">
+          {days}
+        </div>
+      </div>
+    );
+  };
+
+  const renderYearlyView = () => {
+    return (
+      <div className="bg-white rounded-2xl shadow-lg border border-gray-100 p-6 max-h-[600px] overflow-y-auto custom-scrollbar">
+        <h3 className="text-xl font-bold text-gray-900 mb-6 border-b border-gray-100 pb-4">
+          {isBangla ? '২০২৪-২৫ সালের ছুটির তালিকা' : 'Holiday List 2024-25'}
+        </h3>
+        <div className="space-y-6">
+          {ENGLISH_MONTHS.map((month, mIdx) => {
+            const holidaysInMonth = GOVT_HOLIDAYS.filter(h => h.month === mIdx);
+            if (holidaysInMonth.length === 0) return null;
+
+            return (
+              <div key={mIdx}>
+                <h4 className="font-bold text-red-600 mb-3 flex items-center gap-2">
+                  <Calendar size={16} /> 
+                  {month} 
+                  <span className="text-xs text-gray-400 font-normal">({getBanglaMonthName(mIdx)})</span>
+                </h4>
+                <div className="space-y-2 pl-4 border-l-2 border-red-100">
+                  {holidaysInMonth.map((h, hIdx) => (
+                    <div key={hIdx} className="flex gap-4 items-start">
+                      <div className="min-w-[60px] font-bold text-gray-800 bg-gray-100 px-2 rounded text-center text-sm">
+                        {h.date.split(' ')[0]}
+                      </div>
+                      <div>
+                        <p className="text-sm font-medium text-gray-900">{isBangla ? h.nameBn : h.nameEn}</p>
+                        <span className={`text-[10px] px-2 py-0.5 rounded-full ${h.type === 'National' ? 'bg-green-100 text-green-700' : h.type === 'Religious' ? 'bg-purple-100 text-purple-700' : 'bg-blue-100 text-blue-700'}`}>
+                          {h.type}
+                        </span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+    );
+  };
+
+  const renderCalendarSection = () => {
+    return (
+        <div className="py-20 bg-gray-50 border-t border-gray-200">
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div className="text-center mb-10">
+                    <h2 className="text-3xl font-bold text-gray-900 mb-3 flex items-center justify-center gap-2">
+                        <Calendar className="text-red-600" />
+                        {isBangla ? 'ক্যালেন্ডার ও ছুটির তালিকা' : 'Calendar & Holidays'}
+                    </h2>
+                    <p className="text-gray-500">
+                        {isBangla ? 'সরকারি, ধর্মীয় এবং ঐচ্ছিক ছুটির সম্পূর্ণ তালিকা।' : 'Complete list of Government, Religious, and Optional holidays.'}
+                    </p>
+                </div>
+
+                <div className="flex justify-center mb-8">
+                  <div className="bg-white p-1 rounded-lg shadow-sm border border-gray-200 flex">
+                    <button 
+                      onClick={() => setCalendarView('monthly')}
+                      className={`px-6 py-2 rounded-md text-sm font-bold transition-all ${calendarView === 'monthly' ? 'bg-red-600 text-white shadow' : 'text-gray-600 hover:bg-gray-50'}`}
+                    >
+                      {isBangla ? 'মাসিক ভিউ' : 'Monthly View'}
+                    </button>
+                    <button 
+                      onClick={() => setCalendarView('yearly')}
+                      className={`px-6 py-2 rounded-md text-sm font-bold transition-all ${calendarView === 'yearly' ? 'bg-red-600 text-white shadow' : 'text-gray-600 hover:bg-gray-50'}`}
+                    >
+                      {isBangla ? 'বাৎসরিক তালিকা' : 'Yearly List'}
+                    </button>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
+                    {/* Left: Main Calendar View */}
+                    <div className="lg:col-span-2">
+                        {calendarView === 'monthly' ? renderMonthlyCalendar() : renderYearlyView()}
+                    </div>
+
+                    {/* Right: Upcoming Holidays / Info */}
+                    <div className="lg:col-span-1">
+                        <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
+                            <h3 className="font-bold text-gray-900 mb-4 flex items-center gap-2 border-b border-gray-100 pb-3">
+                                <List className="text-blue-600" size={20} /> 
+                                {isBangla ? 'আসন্ন ছুটি' : 'Upcoming Holidays'}
+                            </h3>
+                            <div className="space-y-4">
+                                {GOVT_HOLIDAYS.slice(0, 4).map((h, i) => ( // Showing first few for demo
+                                  <div key={i} className="flex items-center gap-3 p-3 hover:bg-gray-50 rounded-xl transition-colors cursor-default">
+                                     <div className="bg-red-50 text-red-600 w-12 h-12 flex flex-col items-center justify-center rounded-lg border border-red-100 shrink-0">
+                                        <span className="text-lg font-bold leading-none">{h.date.split(' ')[0]}</span>
+                                        <span className="text-[10px] font-bold uppercase">{h.date.split(' ')[1]}</span>
+                                     </div>
+                                     <div>
+                                        <p className="font-bold text-gray-800 text-sm line-clamp-1">{isBangla ? h.nameBn : h.nameEn}</p>
+                                        <p className="text-xs text-gray-500">{h.type}</p>
+                                     </div>
+                                  </div>
+                                ))}
+                            </div>
+                            <div className="mt-6 pt-4 border-t border-gray-100">
+                               <div className="bg-blue-50 p-4 rounded-xl">
+                                  <h4 className="text-blue-800 font-bold text-sm mb-1">{isBangla ? 'আজকের তারিখ' : 'Today'}</h4>
+                                  <p className="text-2xl font-bold text-blue-900">
+                                    {new Date().toLocaleDateString(isBangla ? 'bn-BD' : 'en-US', { day: 'numeric', month: 'long', year: 'numeric' })}
+                                  </p>
+                                  <p className="text-sm text-blue-700 mt-1">
+                                    {isBangla ? 'বঙ্গাব্দ: ১৪৩১' : 'Bangabda: 1431'} (Approx)
+                                  </p>
+                               </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    );
+  };
+
   return (
     <div className="bg-white min-h-screen animate-fade-in">
       {/* Hero Section */}
@@ -418,6 +670,9 @@ export const AmarBdModule: React.FC<Props> = ({ isBangla, onModuleSelect }) => {
 
       {/* NEW SECTION: District Branding Tree */}
       {renderBrandingTree()}
+
+      {/* NEW SECTION: Calendar & Holidays */}
+      {renderCalendarSection()}
 
       {/* Administrative Tree */}
       <div className="py-20 bg-white">
