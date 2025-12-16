@@ -93,12 +93,24 @@ const App: React.FC = () => {
     }
   ]);
 
-  // Handle URL routing for Admin module
+  // Handle URL routing and browser navigation
   useEffect(() => {
-    const path = window.location.pathname;
-    if (path === '/adminrm') {
-      setActiveModule(AppModule.ADMIN);
-    }
+    const handleNavigation = () => {
+      const path = window.location.pathname;
+      if (path === '/adminrm') {
+        setActiveModule(AppModule.ADMIN);
+      } else if (path === '/') {
+        setActiveModule('LANDING');
+      }
+    };
+
+    // Initial check on mount
+    handleNavigation();
+
+    // Listen for back/forward button clicks
+    window.addEventListener('popstate', handleNavigation);
+    
+    return () => window.removeEventListener('popstate', handleNavigation);
   }, []);
 
   // Simulate incoming notification
@@ -190,7 +202,10 @@ const App: React.FC = () => {
            </p>
            {/* Allow admin login backdoor during maintenance */}
            <button 
-             onClick={() => setActiveModule(AppModule.ADMIN)} 
+             onClick={() => {
+               setActiveModule(AppModule.ADMIN);
+               window.history.pushState({}, '', '/adminrm');
+             }} 
              className="text-sm text-gray-400 hover:text-brand-600 underline"
            >
              {isBangla ? 'অ্যাডমিন লগইন' : 'Admin Login'}
