@@ -37,7 +37,10 @@ const defaultModules: Record<ToggableModule, boolean> = {
   [AppModule.AMAR_JELA]: true,
   [AppModule.BAZAR_SODAI]: true,
   [AppModule.PROFILE]: true,
-  [AppModule.ADMIN]: true, // Always true usually
+  [AppModule.LEGAL]: true,
+  [AppModule.EXPAT]: true,
+  [AppModule.VOCATIONAL]: true,
+  [AppModule.ADMIN]: true,
 };
 
 const defaultSections: Record<LandingSection, boolean> = {

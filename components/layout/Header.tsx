@@ -47,6 +47,9 @@ export const Header: React.FC<HeaderProps> = ({
     { id: AppModule.WASTE, title: isBangla ? 'বর্জ্য' : 'Waste Mgmt' },
     { id: AppModule.FISHERY, title: isBangla ? 'মৎস্য' : 'Fishery' },
     { id: AppModule.DISASTER, title: isBangla ? 'দুর্যোগ' : 'Disaster' },
+    { id: AppModule.LEGAL, title: isBangla ? 'আইনি সহায়তা' : 'Legal Aid' },
+    { id: AppModule.EXPAT, title: isBangla ? 'প্রবাসী' : 'Expat Services' },
+    { id: AppModule.VOCATIONAL, title: isBangla ? 'কারিগরি' : 'Vocational' },
   ];
 
   // Filter visible modules based on config
@@ -133,7 +136,7 @@ export const Header: React.FC<HeaderProps> = ({
                       <ChevronDown size={16} />
                     </button>
                     
-                    <div className="absolute top-full -left-4 w-56 bg-white rounded-xl shadow-xl border border-gray-100 py-2 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 transform translate-y-2 group-hover:translate-y-0 z-50">
+                    <div className="absolute top-full -left-4 w-56 bg-white rounded-xl shadow-xl border border-gray-100 py-2 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 transform translate-y-2 group-hover:translate-y-0 z-50 max-h-96 overflow-y-auto">
                       {visibleModules.map((mod) => (
                         <button
                           key={mod.id}

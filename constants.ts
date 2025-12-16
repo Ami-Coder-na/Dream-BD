@@ -8,7 +8,7 @@ export const MOCK_PRODUCTS: Product[] = [
     nameBn: 'নকশী কাঁথা', 
     price: 2500, 
     category: 'Textile', 
-    image: 'https://images.unsplash.com/photo-1597113366853-fea190b6cd82?auto=format&fit=crop&q=80&w=400', // Embroidered fabric
+    image: 'https://images.unsplash.com/photo-1598532163257-ae3c6b2524b6', // Realistic Fabric/Texture
     ecoFriendly: true 
   },
   { 
@@ -17,7 +17,7 @@ export const MOCK_PRODUCTS: Product[] = [
     nameBn: 'বাঁশের ঝুড়ি', 
     price: 450, 
     category: 'Bamboo', 
-    image: 'https://images.unsplash.com/photo-1519800637379-3732f74164b7?auto=format&fit=crop&q=80&w=400', // Bamboo texture/item
+    image: 'https://images.unsplash.com/photo-1595265677860-9a3143b87c32', // Bamboo Product
     ecoFriendly: true 
   },
   { 
@@ -26,7 +26,7 @@ export const MOCK_PRODUCTS: Product[] = [
     nameBn: 'জামদানি শাড়ি', 
     price: 12000, 
     category: 'Textile', 
-    image: 'https://images.unsplash.com/photo-1610725664285-a3a962e51a46?auto=format&fit=crop&q=80&w=400', // Textile pattern
+    image: 'https://images.unsplash.com/photo-1610725664285-a3a962e51a46', // Saree
     ecoFriendly: false 
   },
   { 
@@ -35,7 +35,7 @@ export const MOCK_PRODUCTS: Product[] = [
     nameBn: 'মাটির কলস', 
     price: 150, 
     category: 'Pottery', 
-    image: 'https://images.unsplash.com/photo-1507646227500-4d389b0012be?auto=format&fit=crop&q=80&w=400', // Pottery
+    image: 'https://images.unsplash.com/photo-1620395461140-5e586043ef7a', // Pottery
     ecoFriendly: true 
   },
 ];
@@ -61,4 +61,9 @@ export const MODULE_CONFIG = {
   [AppModule.AMAR_JELA]: { title: 'Amar Jela', titleBn: 'আমার জেলা', color: 'bg-teal-700' },
   [AppModule.BAZAR_SODAI]: { title: 'Bazar Sodai', titleBn: 'বাজার সদাই', color: 'bg-lime-600' },
   [AppModule.PROFILE]: { title: 'User Profile', titleBn: 'ব্যবহারকারীর প্রোফাইল', color: 'bg-slate-600' },
+  // New Modules
+  [AppModule.LEGAL]: { title: 'Legal Aid', titleBn: 'আইনি সহায়তা', color: 'bg-slate-700' },
+  [AppModule.EXPAT]: { title: 'Expat Corner', titleBn: 'প্রবাসী কর্নার', color: 'bg-cyan-700' },
+  [AppModule.VOCATIONAL]: { title: 'Vocational Training', titleBn: 'কারিগরি শিক্ষা', color: 'bg-amber-600' },
+  [AppModule.ADMIN]: { title: 'Admin', titleBn: 'অ্যাডমিন', color: 'bg-gray-800' },
 };

@@ -26,7 +26,11 @@ export enum AppModule {
   AMAR_BD = 'amar_bd',
   AMAR_JELA = 'amar_jela',
   BAZAR_SODAI = 'bazar_sodai',
-  ADMIN = 'admin'
+  ADMIN = 'admin',
+  // New Modules
+  LEGAL = 'legal',
+  EXPAT = 'expat',
+  VOCATIONAL = 'vocational'
 }
 
 export interface User {
@@ -37,6 +41,8 @@ export interface User {
   email?: string;
   phone?: string;
   location?: string;
+  status?: string;
+  date?: string;
 }
 
 export interface Product {

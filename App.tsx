@@ -27,17 +27,37 @@ const TransportModule = lazy(() => import('./components/modules/TransportModule'
 const WasteModule = lazy(() => import('./components/modules/WasteModule').then(module => ({ default: module.WasteModule })));
 const FisheryModule = lazy(() => import('./components/modules/FisheryModule').then(module => ({ default: module.FisheryModule })));
 const DisasterModule = lazy(() => import('./components/modules/DisasterModule').then(module => ({ default: module.DisasterModule })));
+const LegalModule = lazy(() => import('./components/modules/LegalModule').then(module => ({ default: module.LegalModule })));
+const ExpatModule = lazy(() => import('./components/modules/ExpatModule').then(module => ({ default: module.ExpatModule })));
+const VocationalModule = lazy(() => import('./components/modules/VocationalModule').then(module => ({ default: module.VocationalModule })));
 const ProfilePage = lazy(() => import('./components/ProfilePage').then(module => ({ default: module.ProfilePage })));
 const AdminModule = lazy(() => import('./components/modules/AdminModule').then(module => ({ default: module.AdminModule })));
 
 const LoadingFallback = () => (
-  <div className="min-h-screen flex items-center justify-center bg-gray-50">
-    <div className="flex flex-col items-center gap-4">
-      <div className="relative">
-        <div className="w-12 h-12 border-4 border-gray-200 rounded-full"></div>
-        <div className="w-12 h-12 border-4 border-brand-600 rounded-full border-t-transparent animate-spin absolute top-0 left-0"></div>
+  <div className="min-h-screen flex flex-col items-center justify-center bg-white relative overflow-hidden">
+    {/* Background Decoration */}
+    <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-brand-500 via-red-500 to-brand-500 animate-pulse"></div>
+    <div className="absolute w-96 h-96 bg-brand-50 rounded-full blur-3xl -top-20 -left-20 opacity-50"></div>
+    <div className="absolute w-96 h-96 bg-red-50 rounded-full blur-3xl -bottom-20 -right-20 opacity-50"></div>
+
+    <div className="relative z-10 flex flex-col items-center">
+      {/* Logo Animation */}
+      <div className="relative mb-8">
+        <div className="absolute inset-0 bg-brand-100 rounded-full animate-ping opacity-25"></div>
+        <div className="w-24 h-24 bg-gradient-to-br from-brand-600 to-brand-700 rounded-2xl shadow-xl flex items-center justify-center transform rotate-3 transition-transform hover:rotate-0 border-4 border-white">
+           <span className="text-5xl font-bold text-white">D</span>
+        </div>
+        <div className="absolute -bottom-2 -right-2 w-8 h-8 bg-red-600 rounded-full border-4 border-white shadow-sm flex items-center justify-center">
+           <div className="w-2 h-2 bg-white rounded-full animate-bounce"></div>
+        </div>
       </div>
-      <p className="text-gray-500 font-medium animate-pulse">Loading...</p>
+
+      {/* Text & Loader */}
+      <h2 className="text-2xl font-bold text-gray-900 mb-3 tracking-tight">Dream BD</h2>
+      <div className="flex items-center gap-3 bg-white/80 backdrop-blur-sm px-5 py-2 rounded-full border border-gray-100 shadow-sm">
+        <Loader2 className="w-4 h-4 text-brand-600 animate-spin" />
+        <span className="text-gray-600 font-medium text-sm">লোড হচ্ছে...</span>
+      </div>
     </div>
   </div>
 );
@@ -231,6 +251,9 @@ const App: React.FC = () => {
               case AppModule.WASTE: return <WasteModule isBangla={isBangla} user={user} onLogin={navigateToLogin} />;
               case AppModule.FISHERY: return <FisheryModule isBangla={isBangla} />;
               case AppModule.DISASTER: return <DisasterModule isBangla={isBangla} />;
+              case AppModule.LEGAL: return <LegalModule isBangla={isBangla} />;
+              case AppModule.EXPAT: return <ExpatModule isBangla={isBangla} />;
+              case AppModule.VOCATIONAL: return <VocationalModule isBangla={isBangla} />;
               case 'LANDING':
               default:
                 return (

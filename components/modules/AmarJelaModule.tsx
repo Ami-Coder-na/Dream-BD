@@ -35,6 +35,13 @@ interface DistrictInfo {
 
 // 2. Data Population Helper
 const getDistrictData = (id: string, nameEn: string, nameBn: string, division: string): DistrictInfo => {
+  // Generic fallback images if not customized
+  let districtImages = [
+    'https://images.unsplash.com/photo-1596895111956-bf1cf0599ce5', // General Green BD
+    'https://images.unsplash.com/photo-1628189873998-25f00e95a947', // River
+    'https://images.unsplash.com/photo-1582811466099-28c148f34346'  // Sunset River
+  ];
+
   return {
     id,
     nameEn,
@@ -55,11 +62,7 @@ const getDistrictData = (id: string, nameEn: string, nameBn: string, division: s
       { name: 'District General Clinic', address: 'College Road', phone: '01800-000000' }
     ],
     touristSpots: [`${nameEn} Park`, 'Central Mosque', 'River View Point'],
-    images: [
-      'https://images.unsplash.com/photo-1596895111956-bf1cf0599ce5', // Green Bangladesh
-      'https://images.unsplash.com/photo-1628189873998-25f00e95a947', // Nature
-      'https://images.unsplash.com/photo-1582811466099-28c148f34346'  // River
-    ]
+    images: districtImages
   };
 };
 
@@ -180,7 +183,7 @@ export const AmarJelaModule: React.FC<Props> = ({ isBangla }) => {
       fullData.images = [
         'https://images.unsplash.com/photo-1619671603704-8b6567958611', // Parliament
         'https://images.unsplash.com/photo-1594196163273-5a02796fb322', // Ahsan Manzil
-        'https://images.unsplash.com/photo-1628189873998-25f00e95a947'  // City
+        'https://images.unsplash.com/photo-1572979207066-6f8d0cc6b2c2'  // Dhaka Traffic/City
       ];
     } else if (district.id === 'coxsbazar') {
       fullData.population = '2.3 Million';

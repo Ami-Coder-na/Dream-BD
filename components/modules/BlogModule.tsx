@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { Search, Calendar, User, ArrowRight, Tag, PenTool, X, CheckCircle, Image as ImageIcon, ArrowLeft, Share2, Clock, Printer, Facebook, Linkedin, Twitter } from 'lucide-react';
+import { Search, Calendar, User, ArrowRight, Tag, PenTool, X, CheckCircle, Image as ImageIcon, ArrowLeft, Share2, Clock, Printer, Facebook, Linkedin, Twitter, ExternalLink } from 'lucide-react';
 import { Button } from '../ui/Button';
 import { getOptimizedImageUrl } from '../utils/imageUtils';
 import { useData } from '../../contexts/DataContext';
@@ -13,7 +13,7 @@ interface Props {
 }
 
 export const BlogModule: React.FC<Props> = ({ isBangla, user, onLogin }) => {
-  const { blogs, addRequest } = useData();
+  const { blogs, addRequest, refreshData } = useData();
   const [showPostModal, setShowPostModal] = useState(false);
   const [postSubmitted, setPostSubmitted] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
@@ -58,8 +58,12 @@ export const BlogModule: React.FC<Props> = ({ isBangla, user, onLogin }) => {
   };
 
   const handleReadMore = (post: any) => {
-    setSelectedPost(post);
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    if (post.isExternal && post.link) {
+      window.open(post.link, '_blank');
+    } else {
+      setSelectedPost(post);
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
   };
 
   const handleBack = () => {
@@ -155,7 +159,7 @@ export const BlogModule: React.FC<Props> = ({ isBangla, user, onLogin }) => {
                 </div>
               </div>
 
-              {/* HTML Content Render */}
+              {/* HTML Content Render (Supports both text and HTML from RSS) */}
               <div 
                 className="prose prose-lg prose-emerald max-w-none text-gray-700 leading-relaxed"
                 dangerouslySetInnerHTML={{ __html: selectedPost.content }}
@@ -221,7 +225,7 @@ export const BlogModule: React.FC<Props> = ({ isBangla, user, onLogin }) => {
               {isBangla ? 'ড্রিম বিডি ব্লগ' : 'Dream BD Blog'}
              </h2>
              <p className="text-gray-500 text-lg">
-               {isBangla ? 'কৃষি, স্বাস্থ্য ও প্রযুক্তির সর্বশেষ খবর এবং টিপস জানুন।' : 'Latest insights on agriculture, health, and technology.'}
+               {isBangla ? 'কৃষি, স্বাস্থ্য ও প্রযুক্তির সর্বশেষ খবর এবং টিপস জানুন (লাইভ আপডেট)।' : 'Latest insights on agriculture, health, and technology (Live Updates).'}
              </p>
           </div>
           <div className="flex flex-col sm:flex-row gap-4 w-full md:w-auto">
@@ -242,6 +246,13 @@ export const BlogModule: React.FC<Props> = ({ isBangla, user, onLogin }) => {
                <PenTool size={18} />
                {isBangla ? 'ব্লগ লিখুন' : 'Write Blog'}
              </Button>
+             <Button 
+                onClick={() => refreshData && refreshData()}
+                variant="outline"
+                className="flex items-center justify-center gap-2 px-4 py-3 rounded-xl whitespace-nowrap"
+             >
+               {isBangla ? 'আপডেট' : 'Refresh'}
+             </Button>
           </div>
         </div>
 
@@ -252,8 +263,13 @@ export const BlogModule: React.FC<Props> = ({ isBangla, user, onLogin }) => {
               <div 
                 key={post.id} 
                 onClick={() => handleReadMore(post)}
-                className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden hover:shadow-xl hover:-translate-y-1 transition-all duration-300 group flex flex-col h-full cursor-pointer"
+                className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden hover:shadow-xl hover:-translate-y-1 transition-all duration-300 group flex flex-col h-full cursor-pointer relative"
               >
+                {post.isExternal && (
+                  <div className="absolute top-4 right-4 z-10 bg-black/60 text-white p-1.5 rounded-full backdrop-blur-sm">
+                    <ExternalLink size={14} />
+                  </div>
+                )}
                 <div className="relative h-56 overflow-hidden">
                   <img 
                     src={getOptimizedImageUrl(post.image, 600)} 
@@ -285,9 +301,7 @@ export const BlogModule: React.FC<Props> = ({ isBangla, user, onLogin }) => {
                     {post.title}
                   </h3>
                   
-                  <p className="text-gray-600 text-sm line-clamp-3 mb-6 flex-1 leading-relaxed">
-                    {post.excerpt}
-                  </p>
+                  <div className="text-gray-600 text-sm line-clamp-3 mb-6 flex-1 leading-relaxed" dangerouslySetInnerHTML={{ __html: post.excerpt }} />
                   
                   <div className="pt-4 border-t border-gray-50 flex items-center justify-between">
                     <button className="flex items-center text-emerald-600 font-bold text-sm hover:gap-2 transition-all group/btn">
@@ -309,11 +323,12 @@ export const BlogModule: React.FC<Props> = ({ isBangla, user, onLogin }) => {
           )}
         </div>
       </div>
-       {/* Write Blog Modal */}
+       {/* Write Blog Modal (unchanged from previous) */}
       {showPostModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fade-in" onClick={() => setShowPostModal(false)}>
           <div className="bg-white w-full max-w-2xl rounded-2xl shadow-2xl overflow-hidden transform transition-all" onClick={e => e.stopPropagation()}>
-            <div className="p-6 border-b border-gray-100 flex justify-between items-center bg-gradient-to-r from-emerald-50 to-white">
+            {/* ... Modal content similar to previous version ... */}
+             <div className="p-6 border-b border-gray-100 flex justify-between items-center bg-gradient-to-r from-emerald-50 to-white">
               <div>
                 <h2 className="text-xl font-bold text-gray-900 flex items-center gap-2">
                   <div className="p-2 bg-emerald-100 rounded-lg text-emerald-600">

@@ -32,7 +32,7 @@ const CRAFT_PRODUCTS: Product[] = [
     nameBn: 'নকশী কাঁথা', 
     price: 2500, 
     category: 'Textile', 
-    image: 'https://images.unsplash.com/photo-1597113366853-fea190b6cd82',
+    image: 'https://images.unsplash.com/photo-1597113366853-fea190b6cd82', // Authentic Kantha
     rating: 4.8,
     reviews: 120,
     artisan: 'Rahima Begum, Jessore',
@@ -47,7 +47,7 @@ const CRAFT_PRODUCTS: Product[] = [
     nameBn: 'বাঁশের ঝুড়ি সেট', 
     price: 450, 
     category: 'Bamboo', 
-    image: 'https://images.unsplash.com/photo-1519800637379-3732f74164b7',
+    image: 'https://images.unsplash.com/photo-1595265677860-9a3143b87c32', // Bamboo basket
     rating: 4.5,
     reviews: 45,
     artisan: 'Sunil Das, Sylhet',
@@ -62,7 +62,7 @@ const CRAFT_PRODUCTS: Product[] = [
     nameBn: 'জামদানি শাড়ি', 
     price: 12000, 
     category: 'Textile', 
-    image: 'https://images.unsplash.com/photo-1610725664285-a3a962e51a46',
+    image: 'https://images.unsplash.com/photo-1610725664285-a3a962e51a46', // Saree
     rating: 4.9,
     reviews: 210,
     artisan: 'Rupganj Weavers',
@@ -77,7 +77,7 @@ const CRAFT_PRODUCTS: Product[] = [
     nameBn: 'পোড়ামাটির ফুলদানি', 
     price: 350, 
     category: 'Pottery', 
-    image: 'https://images.unsplash.com/photo-1507646227500-4d389b0012be',
+    image: 'https://images.unsplash.com/photo-1507646227500-4d389b0012be', // Clay Pot
     rating: 4.6,
     reviews: 85,
     artisan: 'Pal Para, Bogra',
@@ -92,7 +92,7 @@ const CRAFT_PRODUCTS: Product[] = [
     nameBn: 'পাটের শপিং ব্যাগ', 
     price: 200, 
     category: 'Jute', 
-    image: 'https://images.unsplash.com/photo-1598532163257-ae3c6b2524b6',
+    image: 'https://images.unsplash.com/photo-1598532163257-ae3c6b2524b6', // Bag
     rating: 4.7,
     reviews: 300,
     artisan: 'Golden Fiber Co.',
@@ -107,7 +107,7 @@ const CRAFT_PRODUCTS: Product[] = [
     nameBn: 'পিতলের প্রদীপ', 
     price: 1500, 
     category: 'Metal', 
-    image: 'https://images.unsplash.com/photo-1629196914168-3a964433845c',
+    image: 'https://images.unsplash.com/photo-1629196914168-3a964433845c', // Brass
     rating: 4.8,
     reviews: 50,
     artisan: 'Dhamrai Metal Crafts',
@@ -122,7 +122,7 @@ const CRAFT_PRODUCTS: Product[] = [
     nameBn: 'রিকশা পেইন্টিং শোপিস', 
     price: 850, 
     category: 'Wood', 
-    image: 'https://images.unsplash.com/photo-1584351608663-7140f7f32924',
+    image: 'https://images.unsplash.com/photo-1584351608663-7140f7f32924', // Close to wood art
     rating: 4.9,
     reviews: 150,
     artisan: 'Old Dhaka Artists',
@@ -137,7 +137,7 @@ const CRAFT_PRODUCTS: Product[] = [
     nameBn: 'হাতের তৈরি চাদর', 
     price: 1200, 
     category: 'Textile', 
-    image: 'https://images.unsplash.com/photo-1522771753035-6a5a02a7fc99',
+    image: 'https://images.unsplash.com/photo-1522771753035-6a5a02a7fc99', // Textiles
     rating: 4.4,
     reviews: 90,
     artisan: 'Sirajganj Weavers',

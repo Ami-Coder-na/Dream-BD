@@ -59,7 +59,7 @@ const CROPS_DB = [
     fertilizerEn: 'Urea: 12-15 kg, TSP: 3-4 kg (Per Bigha)',
     careBn: 'নিয়মিত আগাছা পরিষ্কার করুন এবং पाण्याची স্তর ২-৩ ইঞ্চি রাখুন।',
     careEn: 'Weed regularly and maintain 2-3 inch water level.',
-    image: 'https://images.unsplash.com/photo-1536630596259-26e1a2c3a52c'
+    image: 'https://images.unsplash.com/photo-1586771107445-d3ca888129ff' // Rice Field
   },
   {
     id: 2,
@@ -80,7 +80,7 @@ const CROPS_DB = [
     fertilizerEn: 'Urea: 8-10 kg, Potash: 2-3 kg',
     careBn: 'চারা গজানোর পর নিড়ানি দিয়ে মাটি আলগা করে দিন।',
     careEn: 'Loosen soil after germination using a weeder.',
-    image: 'https://images.unsplash.com/photo-1599940784857-4b726df23146'
+    image: 'https://images.unsplash.com/photo-1623227866882-c005c207758f' // Jute fiber/plant
   },
   {
     id: 3,
@@ -101,7 +101,7 @@ const CROPS_DB = [
     fertilizerEn: 'Cow dung: 1 ton, Urea: 35 kg (Per Acre)',
     careBn: 'মাটি শুকিয়ে গেলে সেচ দিন, তবে পানি জমতে দেবেন না।',
     careEn: 'Irrigate when soil is dry, but avoid waterlogging.',
-    image: 'https://images.unsplash.com/photo-1518977676601-b53f82aba655'
+    image: 'https://images.unsplash.com/photo-1518977676601-b53f82aba655' // Potato
   },
   {
     id: 4,
@@ -122,7 +122,7 @@ const CROPS_DB = [
     fertilizerEn: 'Gypsum: 15 kg, Boron: 1 kg (Per Acre)',
     careBn: 'শীষ বের হওয়ার সময় সেচ দেওয়া জরুরি।',
     careEn: 'Irrigation is crucial during heading stage.',
-    image: 'https://images.unsplash.com/photo-1574323347407-f5e1ad6d020b'
+    image: 'https://images.unsplash.com/photo-1574323347407-f5e1ad6d020b' // Wheat
   },
   {
     id: 5,
@@ -143,7 +143,7 @@ const CROPS_DB = [
     fertilizerEn: 'Urea and TSP in moderate amounts',
     careBn: 'ফুল আসার আগে একবার সেচ দিন।',
     careEn: 'Irrigate once before flowering.',
-    image: 'https://images.unsplash.com/photo-1505235682978-95f52956a8d1'
+    image: 'https://images.unsplash.com/photo-1505235682978-95f52956a8d1' // Mustard field
   },
   {
     id: 6,
@@ -164,7 +164,7 @@ const CROPS_DB = [
     fertilizerEn: 'Zinc and Boron increase yield',
     careBn: 'অতিরিক্ত পানি নিষ্কাশনের ব্যবস্থা রাখুন।',
     careEn: 'Ensure proper drainage system.',
-    image: 'https://images.unsplash.com/photo-1551754655-cd27e38d2076'
+    image: 'https://images.unsplash.com/photo-1551754655-cd27e38d2076' // Maize
   },
   {
     id: 7,
@@ -185,7 +185,7 @@ const CROPS_DB = [
     fertilizerEn: 'Use more compost fertilizer',
     careBn: 'গাছে খুঁটি দিন এবং পোকা দমন করুন।',
     careEn: 'Stake the plants and control pests.',
-    image: 'https://images.unsplash.com/photo-1592924357228-91a4daadcfea'
+    image: 'https://images.unsplash.com/photo-1592924357228-91a4daadcfea' // Tomato
   },
   {
     id: 8,
@@ -206,7 +206,7 @@ const CROPS_DB = [
     fertilizerEn: 'Potash is good for onions',
     careBn: 'আগাছা মুক্ত রাখুন।',
     careEn: 'Keep weed-free.',
-    image: 'https://images.unsplash.com/photo-1618512496248-a07fe83aa8cb'
+    image: 'https://images.unsplash.com/photo-1618512496248-a07fe83aa8cb' // Onion
   }
 ];
 
@@ -603,7 +603,8 @@ export const AgriModule: React.FC<Props> = ({ isBangla, user, onLogin }) => {
                     <img 
                       src={getOptimizedImageUrl(crop.image, 400)} 
                       alt={crop.nameEn} 
-                      className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" 
+                      className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
+                      onError={(e) => { e.currentTarget.src = "https://placehold.co/400x300/e2e8f0/64748b?text=Crop+Image"; }}
                     />
                     <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-60"></div>
                     <div className="absolute top-3 left-3 flex flex-wrap gap-2">

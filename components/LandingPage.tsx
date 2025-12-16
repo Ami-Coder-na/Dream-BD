@@ -590,13 +590,13 @@ export const LandingPage: React.FC<Props> = ({
                {/* Image 3: Heritage */}
                <div className="group relative h-72 rounded-2xl overflow-hidden cursor-pointer shadow-lg lg:col-span-2">
                  <img 
-                   src="https://images.unsplash.com/photo-1594196163273-5a02796fb322" 
-                   alt="Ahsan Manzil" 
+                   src="https://images.unsplash.com/photo-1619671603704-8b6567958611" 
+                   alt="Jatiyo Sangsad Bhaban" 
                    className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" 
                  />
                  <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end p-6">
                    <div className="text-white transform translate-y-4 group-hover:translate-y-0 transition-transform duration-300">
-                     <h4 className="font-bold text-lg">{isBangla ? 'আহসান মঞ্জিল' : 'Ahsan Manzil'}</h4>
+                     <h4 className="font-bold text-lg">{isBangla ? 'জাতীয় সংসদ ভবন' : 'National Parliament'}</h4>
                      <p className="text-sm text-gray-200 flex items-center gap-1"><MapPin size={14}/> Dhaka</p>
                    </div>
                  </div>

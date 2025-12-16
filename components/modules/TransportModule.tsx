@@ -3,7 +3,7 @@ import React, { useState, useMemo } from 'react';
 import { 
   Bus, Train, Ship, MapPin, Search, ArrowRight, Navigation, Clock, 
   AlertTriangle, Shield, Phone, Truck, Ticket, Info, ExternalLink,
-  Siren, Users, Map, RefreshCw, ChevronDown, Filter
+  Siren, Map, RefreshCw, Filter, Calculator
 } from 'lucide-react';
 import { Button } from '../ui/Button';
 
@@ -14,15 +14,21 @@ interface Props {
 type TransportMode = 'bus' | 'train' | 'launch';
 type TransportTab = 'routes' | 'traffic' | 'safety' | 'logistics';
 
-// --- STATIC DATA (Optimized outside component) ---
+// --- STATIC DATA ---
 
 const ROUTES_DB = [
   { id: 1, mode: 'bus', operator: 'Hanif Enterprise', route: 'Dhaka - Chattogram', dep: '10:00 AM', arr: '04:00 PM', price: '850-1200', type: 'AC/Non-AC', duration: '6h' },
   { id: 2, mode: 'bus', operator: 'Ena Transport', route: 'Dhaka - Sylhet', dep: '11:30 AM', arr: '04:30 PM', price: '600-900', type: 'AC/Non-AC', duration: '5h' },
-  { id: 3, mode: 'train', operator: 'Subarna Express', route: 'Dhaka - Chattogram', dep: '03:00 PM', arr: '08:00 PM', price: '450-1100', type: 'Intercity', duration: '5h' },
-  { id: 4, mode: 'train', operator: 'Parabat Express', route: 'Dhaka - Sylhet', dep: '06:20 AM', arr: '01:00 PM', price: '380-900', type: 'Intercity', duration: '6.5h' },
-  { id: 5, mode: 'launch', operator: 'MV Sundarban 10', route: 'Dhaka - Barisal', dep: '09:00 PM', arr: '05:00 AM', price: '300-4500', type: 'Launch', duration: '8h' },
-  { id: 6, mode: 'launch', operator: 'Green Line Water', route: 'Dhaka - Barisal', dep: '08:00 AM', arr: '01:00 PM', price: '700-1000', type: 'Catamaran', duration: '5h' },
+  { id: 3, mode: 'bus', operator: 'Shyamoli Paribahan', route: 'Dhaka - Rajshahi', dep: '08:00 AM', arr: '02:00 PM', price: '700-1100', type: 'AC', duration: '6h' },
+  { id: 4, mode: 'bus', operator: 'Nabil Paribahan', route: 'Dhaka - Rangpur', dep: '09:00 PM', arr: '06:00 AM', price: '1000-1500', type: 'AC Scania', duration: '9h' },
+  
+  { id: 5, mode: 'train', operator: 'Subarna Express', route: 'Dhaka - Chattogram', dep: '03:00 PM', arr: '08:00 PM', price: '450-1100', type: 'Intercity', duration: '5h' },
+  { id: 6, mode: 'train', operator: 'Parabat Express', route: 'Dhaka - Sylhet', dep: '06:20 AM', arr: '01:00 PM', price: '380-900', type: 'Intercity', duration: '6.5h' },
+  { id: 7, mode: 'train', operator: 'Silk City Express', route: 'Dhaka - Rajshahi', dep: '02:40 PM', arr: '08:30 PM', price: '340-800', type: 'Intercity', duration: '6h' },
+
+  { id: 8, mode: 'launch', operator: 'MV Sundarban 10', route: 'Dhaka - Barisal', dep: '09:00 PM', arr: '05:00 AM', price: '300-4500', type: 'Launch', duration: '8h' },
+  { id: 9, mode: 'launch', operator: 'Green Line Water', route: 'Dhaka - Barisal', dep: '08:00 AM', arr: '01:00 PM', price: '700-1000', type: 'Catamaran', duration: '5h' },
+  { id: 10, mode: 'launch', operator: 'MV Parabat 12', route: 'Dhaka - Barisal', dep: '08:30 PM', arr: '04:30 AM', price: '300-4000', type: 'Launch', duration: '8h' },
 ];
 
 const TRAFFIC_ALERTS = [
@@ -50,21 +56,46 @@ export const TransportModule: React.FC<Props> = ({ isBangla }) => {
   const [fromLocation, setFromLocation] = useState('Dhaka');
   const [toLocation, setToLocation] = useState('');
   const [isSearching, setIsSearching] = useState(false);
+  const [distanceInfo, setDistanceInfo] = useState<{km: number, time: string} | null>(null);
 
   // Search Logic
   const filteredRoutes = useMemo(() => {
-    if (!toLocation) return ROUTES_DB.filter(r => r.mode === selectedMode).slice(0, 3);
+    // If no destination is typed, show general routes for the selected mode
+    if (!toLocation) return ROUTES_DB.filter(r => r.mode === selectedMode);
     
+    // Filter based on input
     return ROUTES_DB.filter(r => 
       r.mode === selectedMode && 
-      (r.route.toLowerCase().includes(fromLocation.toLowerCase()) || 
-       r.route.toLowerCase().includes(toLocation.toLowerCase()))
+      (
+        (r.route.toLowerCase().includes(fromLocation.toLowerCase()) && 
+         r.route.toLowerCase().includes(toLocation.toLowerCase())) 
+         ||
+         // Fallback partial matching
+         r.route.toLowerCase().includes(toLocation.toLowerCase())
+      )
     );
   }, [selectedMode, fromLocation, toLocation]);
 
   const handleSearch = () => {
+    if (!fromLocation || !toLocation) return;
     setIsSearching(true);
-    setTimeout(() => setIsSearching(false), 800); // Simulate API call
+    setDistanceInfo(null);
+
+    // Simulate Calculation delay
+    setTimeout(() => {
+      // Mock distance calculation logic (simple randomization based on string length for demo)
+      const baseDist = Math.abs(fromLocation.length + toLocation.length) * 15 + 100;
+      const speed = selectedMode === 'train' ? 50 : selectedMode === 'launch' ? 25 : 40;
+      const hours = Math.floor(baseDist / speed);
+      const mins = Math.round((baseDist % speed) * 1.5);
+      
+      setDistanceInfo({
+        km: baseDist,
+        time: `${hours}h ${mins}m`
+      });
+      
+      setIsSearching(false);
+    }, 800);
   };
 
   // --- RENDER FUNCTIONS ---
@@ -75,8 +106,9 @@ export const TransportModule: React.FC<Props> = ({ isBangla }) => {
       <div className="bg-indigo-900 rounded-3xl p-6 md:p-8 text-white shadow-xl relative overflow-hidden">
         <div className="absolute top-0 right-0 w-64 h-64 bg-white/5 rounded-full -mr-16 -mt-16 blur-3xl pointer-events-none"></div>
         
-        <h2 className="text-2xl font-bold mb-6 relative z-10">
-          {isBangla ? 'রুট এবং ভাড়া খুঁজুন' : 'Find Routes & Fares'}
+        <h2 className="text-2xl font-bold mb-6 relative z-10 flex items-center gap-2">
+          <Navigation size={28} className="text-indigo-300" />
+          {isBangla ? 'রুট এবং দূরত্ব খুঁজুন' : 'Find Routes & Distance'}
         </h2>
 
         {/* Mode Selector */}
@@ -88,7 +120,7 @@ export const TransportModule: React.FC<Props> = ({ isBangla }) => {
           ].map(m => (
             <button
               key={m.id}
-              onClick={() => setSelectedMode(m.id as TransportMode)}
+              onClick={() => { setSelectedMode(m.id as TransportMode); setDistanceInfo(null); }}
               className={`flex items-center gap-2 px-5 py-3 rounded-xl font-bold transition-all whitespace-nowrap ${
                 selectedMode === m.id 
                   ? 'bg-white text-indigo-900 shadow-lg scale-105' 
@@ -127,7 +159,7 @@ export const TransportModule: React.FC<Props> = ({ isBangla }) => {
               <label className="block text-xs text-gray-400 font-bold uppercase">{isBangla ? 'কোথায় যাবেন' : 'To'}</label>
               <input 
                 type="text" 
-                placeholder={isBangla ? 'গন্তব্য লিখুন' : 'Enter Destination'}
+                placeholder={isBangla ? 'গন্তব্য লিখুন (যেমন: চট্টগ্রাম)' : 'Enter Destination (e.g. Chattogram)'}
                 value={toLocation}
                 onChange={(e) => setToLocation(e.target.value)}
                 className="w-full text-gray-900 font-bold outline-none bg-transparent placeholder-gray-300"
@@ -138,7 +170,8 @@ export const TransportModule: React.FC<Props> = ({ isBangla }) => {
           <div className="md:col-span-1">
              <button 
                onClick={handleSearch}
-               className="w-full h-full bg-indigo-500 hover:bg-indigo-400 text-white rounded-xl flex items-center justify-center shadow-lg transition-colors"
+               disabled={!toLocation}
+               className={`w-full h-full text-white rounded-xl flex items-center justify-center shadow-lg transition-colors ${!toLocation ? 'bg-indigo-400 cursor-not-allowed' : 'bg-indigo-500 hover:bg-indigo-400'}`}
              >
                {isSearching ? <RefreshCw className="animate-spin" /> : <Search />}
              </button>
@@ -146,50 +179,87 @@ export const TransportModule: React.FC<Props> = ({ isBangla }) => {
         </div>
       </div>
 
+      {/* Distance Result Card */}
+      {distanceInfo && (
+        <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-100 rounded-2xl p-6 animate-fade-in-up">
+           <div className="flex flex-col md:flex-row justify-between items-center gap-6">
+              <div className="flex items-center gap-4">
+                 <div className="p-4 bg-white rounded-full text-indigo-600 shadow-sm">
+                    <Calculator size={32} />
+                 </div>
+                 <div>
+                    <h3 className="text-gray-900 font-bold text-lg">{isBangla ? 'ভ্রমণের দূরত্ব ও সময়' : 'Distance & Est. Time'}</h3>
+                    <p className="text-gray-500 text-sm">
+                      {fromLocation} <ArrowRight size={12} className="inline mx-1"/> {toLocation} ({isBangla ? (selectedMode === 'bus' ? 'বাস' : selectedMode === 'train' ? 'ট্রেন' : 'লঞ্চ') : selectedMode})
+                    </p>
+                 </div>
+              </div>
+              
+              <div className="flex gap-8 text-center">
+                 <div>
+                    <p className="text-xs text-gray-500 font-bold uppercase">{isBangla ? 'দূরত্ব' : 'Distance'}</p>
+                    <p className="text-3xl font-black text-indigo-700">{distanceInfo.km} <span className="text-sm font-medium">km</span></p>
+                 </div>
+                 <div className="w-px bg-gray-300 h-10 self-center"></div>
+                 <div>
+                    <p className="text-xs text-gray-500 font-bold uppercase">{isBangla ? 'সময়' : 'Time'}</p>
+                    <p className="text-3xl font-black text-indigo-700">{distanceInfo.time}</p>
+                 </div>
+              </div>
+           </div>
+        </div>
+      )}
+
       {/* Results */}
       <div>
         <h3 className="text-lg font-bold text-gray-800 mb-4 flex items-center gap-2">
           <Ticket size={20} className="text-indigo-600" />
-          {isBangla ? 'উপলব্ধ টিকেট ও সময়সূচী' : 'Available Schedules & Tickets'}
+          {isBangla ? 'উপলব্ধ রুট ও ভাড়া তালিকা' : 'Available Routes & Fare List'}
         </h3>
         
         <div className="grid grid-cols-1 gap-4">
           {filteredRoutes.length > 0 ? (
             filteredRoutes.map((route) => (
-              <div key={route.id} className="bg-white p-5 rounded-2xl shadow-sm border border-gray-100 hover:shadow-md transition-all flex flex-col md:flex-row justify-between items-center gap-4 group">
-                <div className="flex items-center gap-4 w-full md:w-auto">
-                  <div className="w-14 h-14 bg-indigo-50 rounded-2xl flex items-center justify-center text-indigo-600 text-xl font-bold group-hover:bg-indigo-600 group-hover:text-white transition-colors">
-                    {route.mode === 'bus' && <Bus />}
-                    {route.mode === 'train' && <Train />}
-                    {route.mode === 'launch' && <Ship />}
+              <div key={route.id} className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 hover:shadow-md transition-all flex flex-col md:flex-row justify-between items-center gap-6 group">
+                <div className="flex items-center gap-5 w-full md:w-auto">
+                  <div className="w-16 h-16 bg-indigo-50 rounded-2xl flex items-center justify-center text-indigo-600 text-2xl font-bold group-hover:bg-indigo-600 group-hover:text-white transition-colors">
+                    {route.mode === 'bus' && <Bus size={28} />}
+                    {route.mode === 'train' && <Train size={28} />}
+                    {route.mode === 'launch' && <Ship size={28} />}
                   </div>
                   <div>
-                    <h4 className="font-bold text-lg text-gray-900">{route.operator}</h4>
-                    <div className="flex items-center gap-3 text-sm text-gray-500 mt-1">
-                      <span className="bg-gray-100 px-2 py-0.5 rounded text-xs font-semibold">{route.type}</span>
-                      <span className="flex items-center gap-1"><Clock size={12}/> {route.duration}</span>
+                    <h4 className="font-bold text-xl text-gray-900">{route.operator}</h4>
+                    <p className="text-gray-500 text-sm mt-1">{route.route}</p>
+                    <div className="flex items-center gap-3 text-sm text-gray-500 mt-2">
+                      <span className="bg-gray-100 px-3 py-1 rounded-full text-xs font-bold uppercase text-gray-600">{route.type}</span>
+                      <span className="flex items-center gap-1"><Clock size={14}/> {route.duration}</span>
                     </div>
                   </div>
                 </div>
 
-                <div className="flex items-center gap-8 w-full md:w-auto justify-between md:justify-end border-t md:border-t-0 pt-4 md:pt-0 border-gray-100">
-                  <div className="text-center md:text-right">
-                    <p className="text-xs text-gray-400 font-bold uppercase">{isBangla ? 'সময়' : 'Time'}</p>
-                    <p className="font-bold text-gray-800">{route.dep} - {route.arr}</p>
+                <div className="flex items-center gap-10 w-full md:w-auto justify-between md:justify-end border-t md:border-t-0 pt-4 md:pt-0 border-gray-100">
+                  <div className="text-left md:text-right">
+                    <p className="text-xs text-gray-400 font-bold uppercase">{isBangla ? 'সময়সূচী' : 'Schedule'}</p>
+                    <div className="flex items-center gap-2 font-medium text-gray-800 mt-1">
+                       <span>{route.dep}</span> 
+                       <ArrowRight size={14} className="text-gray-400" />
+                       <span>{route.arr}</span>
+                    </div>
                   </div>
-                  <div className="text-center md:text-right">
-                    <p className="text-xs text-gray-400 font-bold uppercase">{isBangla ? 'ভাড়া' : 'Fare'}</p>
-                    <p className="font-bold text-indigo-600 text-lg">৳ {route.price}</p>
+                  <div className="text-right">
+                    <p className="text-xs text-gray-400 font-bold uppercase mb-1">{isBangla ? 'ভাড়া (জনপ্রতি)' : 'Fare (Per Person)'}</p>
+                    <p className="font-black text-indigo-600 text-2xl">৳ {route.price}</p>
                   </div>
-                  <Button size="sm" className="bg-indigo-600 hover:bg-indigo-700 shadow-lg shadow-indigo-200">
-                    {isBangla ? 'বুক করুন' : 'Book Now'} <ExternalLink size={14} className="ml-1" />
-                  </Button>
                 </div>
               </div>
             ))
           ) : (
-            <div className="text-center py-10 text-gray-500 bg-gray-50 rounded-2xl">
-              {isBangla ? 'কোন রুট পাওয়া যায়নি।' : 'No routes found.'}
+            <div className="text-center py-16 text-gray-500 bg-gray-50 rounded-2xl border-2 border-dashed border-gray-200">
+              <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-3">
+                 <Search size={24} className="text-gray-400" />
+              </div>
+              <p className="font-medium text-lg">{isBangla ? 'কোন রুট পাওয়া যায়নি।' : 'No routes found.'}</p>
+              <p className="text-sm text-gray-400">{isBangla ? 'অন্য গন্তব্য দিয়ে চেষ্টা করুন।' : 'Try searching for a different destination.'}</p>
             </div>
           )}
         </div>
@@ -349,8 +419,8 @@ export const TransportModule: React.FC<Props> = ({ isBangla }) => {
           </h1>
           <p className="text-gray-500 max-w-2xl mx-auto">
             {isBangla 
-              ? 'বাস, ট্রেন ও লঞ্চের সময়সূচী জানুন, টিকেট কাটুন এবং নিরাপদ ভ্রমণ নিশ্চিত করুন।' 
-              : 'Find schedules, book tickets, check traffic, and ensure safe travel across Bangladesh.'}
+              ? 'বাস, ট্রেন ও লঞ্চের সময়সূচী জানুন, ভাড়া যাচাই করুন এবং নিরাপদ ভ্রমণ নিশ্চিত করুন।' 
+              : 'Find schedules, check fares, plan routes, and ensure safe travel across Bangladesh.'}
           </p>
         </div>
 
@@ -364,7 +434,7 @@ export const TransportModule: React.FC<Props> = ({ isBangla }) => {
               }`}
             >
               <Search size={16} />
-              {isBangla ? 'রুট ও টিকেট' : 'Routes & Tickets'}
+              {isBangla ? 'রুট ও ভাড়া' : 'Routes & Fares'}
             </button>
             <button 
               onClick={() => setActiveTab('traffic')}
