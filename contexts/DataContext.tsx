@@ -1,6 +1,6 @@
 
 import React, { createContext, useState, useContext, useEffect, ReactNode } from 'react';
-import { supabase } from '../services/supabaseClient';
+import { supabase, isSupabaseConfigured } from '../services/supabaseClient';
 
 // --- INITIAL MOCK DATA (Fallback) ---
 const INITIAL_JOBS: any[] = [];
@@ -108,6 +108,8 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
   // --- SUPABASE DATA FETCHING ---
   const fetchData = async () => {
+    if (!isSupabaseConfigured) return;
+
     try {
       const { data: dbJobs } = await supabase.from('jobs').select('*').order('created_at', { ascending: false });
       if (dbJobs) setJobs(dbJobs);
@@ -174,7 +176,7 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         });
       }
     } catch (error) {
-      console.error("Failed to fetch live news:", error);
+      // console.error("Failed to fetch live news");
     }
   };
 
@@ -185,20 +187,24 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
     // 2. Real-time Subscription
     // This listens to any change in the public schema and re-fetches data
-    const subscription = supabase
-      .channel('public:db_changes')
-      .on(
-        'postgres_changes',
-        { event: '*', schema: 'public' },
-        (payload) => {
-          console.log('Realtime change detected:', payload);
-          fetchData(); // Re-fetch to sync all clients
-        }
-      )
-      .subscribe();
+    let subscription: any = null;
+    
+    if (isSupabaseConfigured) {
+      subscription = supabase
+        .channel('public:db_changes')
+        .on(
+          'postgres_changes',
+          { event: '*', schema: 'public' },
+          (payload) => {
+            console.log('Realtime change detected:', payload);
+            fetchData(); // Re-fetch to sync all clients
+          }
+        )
+        .subscribe();
+    }
 
     return () => {
-      supabase.removeChannel(subscription);
+      if (subscription) supabase.removeChannel(subscription);
     };
   }, []);
 
@@ -214,18 +220,30 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     const { id, ...jobData } = job;
     const newJob = { ...jobData, postedDate: new Date().toLocaleDateString(), views: 0, status: 'Active' };
     
-    const { error } = await supabase.from('jobs').insert([newJob]);
-    if (error) console.error("Error adding job:", error);
+    if (isSupabaseConfigured) {
+        const { error } = await supabase.from('jobs').insert([newJob]);
+        if (error) console.error("Error adding job:", error);
+    } else {
+        setJobs(prev => [newJob, ...prev]);
+    }
   };
 
   const updateJob = async (updatedJob: any) => {
-    const { error } = await supabase.from('jobs').update(updatedJob).eq('id', updatedJob.id);
-    if (error) console.error("Error updating job:", error);
+    if (isSupabaseConfigured) {
+        const { error } = await supabase.from('jobs').update(updatedJob).eq('id', updatedJob.id);
+        if (error) console.error("Error updating job:", error);
+    } else {
+        setJobs(prev => prev.map(j => j.id === updatedJob.id ? updatedJob : j));
+    }
   };
 
   const deleteJob = async (id: number) => {
-    const { error } = await supabase.from('jobs').delete().eq('id', id);
-    if (error) console.error("Error deleting job:", error);
+    if (isSupabaseConfigured) {
+        const { error } = await supabase.from('jobs').delete().eq('id', id);
+        if (error) console.error("Error deleting job:", error);
+    } else {
+        setJobs(prev => prev.filter(j => j.id !== id));
+    }
   };
 
   const addBlog = async (blog: any) => {
@@ -233,39 +251,56 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     const { id, ...blogData } = blog;
     const newBlog = { ...blogData, postedDate: new Date().toLocaleDateString(), views: 0, status: 'Active' };
     
-    const { error } = await supabase.from('blogs').insert([newBlog]);
-    if (error) console.error("Error adding blog:", error);
+    if (isSupabaseConfigured) {
+        const { error } = await supabase.from('blogs').insert([newBlog]);
+        if (error) console.error("Error adding blog:", error);
+    } else {
+        setBlogs(prev => [newBlog, ...prev]);
+    }
   };
 
   const updateBlog = async (updatedBlog: any) => {
-    const { error } = await supabase.from('blogs').update(updatedBlog).eq('id', updatedBlog.id);
-    if (error) console.error("Error updating blog:", error);
+    if (isSupabaseConfigured) {
+        const { error } = await supabase.from('blogs').update(updatedBlog).eq('id', updatedBlog.id);
+        if (error) console.error("Error updating blog:", error);
+    } else {
+        setBlogs(prev => prev.map(b => b.id === updatedBlog.id ? updatedBlog : b));
+    }
   };
 
   const deleteBlog = async (id: number) => {
-    const { error } = await supabase.from('blogs').delete().eq('id', id);
-    if (error) console.error("Error deleting blog:", error);
+    if (isSupabaseConfigured) {
+        const { error } = await supabase.from('blogs').delete().eq('id', id);
+        if (error) console.error("Error deleting blog:", error);
+    } else {
+        setBlogs(prev => prev.filter(b => b.id !== id));
+    }
   };
 
   const addRequest = async (request: any) => {
     const newReq = { ...request, status: 'Pending', postedDate: new Date().toLocaleDateString() };
-    const { error } = await supabase.from('requests').insert([newReq]);
-    if (error) console.error("Error adding request:", error);
+    if (isSupabaseConfigured) {
+        const { error } = await supabase.from('requests').insert([newReq]);
+        if (error) console.error("Error adding request:", error);
+    } else {
+        setRequests(prev => [newReq, ...prev]);
+    }
   };
 
   const handleRequestAction = async (item: any, action: 'approve' | 'reject') => {
     // 1. Delete from requests first
-    const { error: deleteError } = await supabase.from('requests').delete().eq('id', item.id);
-    
-    if (deleteError) {
-        console.error("Error deleting request:", deleteError);
-        return;
+    if (isSupabaseConfigured) {
+        const { error: deleteError } = await supabase.from('requests').delete().eq('id', item.id);
+        if (deleteError) {
+            console.error("Error deleting request:", deleteError);
+            return;
+        }
+    } else {
+        setRequests(prev => prev.filter(r => r.id !== item.id));
     }
 
     // 2. If approved, add to respective table
     if (action === 'approve') {
-      // Destructure to remove the 'id' (which is from requests table) and 'contentType'
-      // We want the target table to generate a NEW id.
       const { id, created_at, contentType, ...rest } = item;
       
       if (contentType === 'job') await addJob(rest);
@@ -275,52 +310,81 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
   const addGrievance = async (report: any) => {
     const newReport = { ...report, status: 'Pending', date: new Date().toLocaleDateString() };
-    const { error } = await supabase.from('grievances').insert([newReport]);
-    if (error) console.error("Error adding grievance:", error);
+    if (isSupabaseConfigured) {
+        const { error } = await supabase.from('grievances').insert([newReport]);
+        if (error) console.error("Error adding grievance:", error);
+    } else {
+        setGrievances(prev => [newReport, ...prev]);
+    }
   };
 
   const updateGrievanceStatus = async (id: number, status: string) => {
-    const { error } = await supabase.from('grievances').update({ status }).eq('id', id);
-    if (error) console.error("Error updating grievance:", error);
+    if (isSupabaseConfigured) {
+        const { error } = await supabase.from('grievances').update({ status }).eq('id', id);
+        if (error) console.error("Error updating grievance:", error);
+    } else {
+        setGrievances(prev => prev.map(g => g.id === id ? { ...g, status } : g));
+    }
   };
 
   const deleteGrievance = async (id: number) => {
-    const { error } = await supabase.from('grievances').delete().eq('id', id);
-    if (error) console.error("Error deleting grievance:", error);
+    if (isSupabaseConfigured) {
+        const { error } = await supabase.from('grievances').delete().eq('id', id);
+        if (error) console.error("Error deleting grievance:", error);
+    } else {
+        setGrievances(prev => prev.filter(g => g.id !== id));
+    }
   };
 
   const addUser = async (user: any) => {
-    // Check local state first to avoid DB call if possible (optional)
     if (users.some((u: any) => u.email === user.email)) { 
         alert('Email already registered!'); 
         return; 
     }
     
     const newUser = { ...user, status: 'Active', date: new Date().toLocaleDateString() };
-    const { error } = await supabase.from('users').insert([newUser]);
     
-    if (error) console.error("Add user error:", error);
+    if (isSupabaseConfigured) {
+        const { error } = await supabase.from('users').insert([newUser]);
+        if (error) console.error("Add user error:", error);
+    } else {
+        setUsers(prev => [newUser, ...prev]);
+    }
   };
 
   const updateUserStatus = async (id: string, status: 'Active' | 'Suspended') => {
-    const { error } = await supabase.from('users').update({ status }).eq('id', id);
-    if (error) console.error("Error updating user:", error);
+    if (isSupabaseConfigured) {
+        const { error } = await supabase.from('users').update({ status }).eq('id', id);
+        if (error) console.error("Error updating user:", error);
+    } else {
+        setUsers(prev => prev.map(u => u.id === id ? { ...u, status } : u));
+    }
   };
 
   const deleteUser = async (id: string) => {
-    const { error } = await supabase.from('users').delete().eq('id', id);
-    if (error) console.error("Error deleting user:", error);
+    if (isSupabaseConfigured) {
+        const { error } = await supabase.from('users').delete().eq('id', id);
+        if (error) console.error("Error deleting user:", error);
+    } else {
+        setUsers(prev => prev.filter(u => u.id !== id));
+    }
   };
 
   const resetPassword = async (email: string, newPass: string) => {
-    const { error } = await supabase.from('users').update({ password: newPass }).eq('email', email);
-    if (error) console.error("Error resetting password:", error);
+    if (isSupabaseConfigured) {
+        const { error } = await supabase.from('users').update({ password: newPass }).eq('email', email);
+        if (error) console.error("Error resetting password:", error);
+    } else {
+        setUsers(prev => prev.map(u => u.email === email ? { ...u, password: newPass } : u));
+    }
   };
 
   const updateMarketPrices = async (newPrices: any[]) => {
     setMarketPrices(newPrices);
-    const { error } = await supabase.from('market_prices').upsert(newPrices);
-    if(error) console.error("Market price update failed", error);
+    if (isSupabaseConfigured) {
+        const { error } = await supabase.from('market_prices').upsert(newPrices);
+        if(error) console.error("Market price update failed", error);
+    }
   };
   
   const addRetailProduct = (product: any) => setRetailProducts(prev => [...prev, { ...product, id: Date.now() }]);
@@ -329,38 +393,61 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
   const addWholesaleAd = async (ad: any) => {
     const newAd = { ...ad, status: 'Pending', date: new Date().toLocaleDateString() };
-    const { error } = await supabase.from('wholesale_ads').insert([newAd]);
-    if (error) console.error("Error adding ad:", error);
+    if (isSupabaseConfigured) {
+        const { error } = await supabase.from('wholesale_ads').insert([newAd]);
+        if (error) console.error("Error adding ad:", error);
+    } else {
+        setWholesaleAds(prev => [newAd, ...prev]);
+    }
   };
 
   const updateWholesaleAd = async (updatedAd: any) => {
-    const { error } = await supabase.from('wholesale_ads').update(updatedAd).eq('id', updatedAd.id);
-    if (error) console.error("Error updating ad:", error);
+    if (isSupabaseConfigured) {
+        const { error } = await supabase.from('wholesale_ads').update(updatedAd).eq('id', updatedAd.id);
+        if (error) console.error("Error updating ad:", error);
+    } else {
+        setWholesaleAds(prev => prev.map(a => a.id === updatedAd.id ? updatedAd : a));
+    }
   };
 
   const deleteWholesaleAd = async (id: number) => {
-    const { error } = await supabase.from('wholesale_ads').delete().eq('id', id);
-    if (error) console.error("Error deleting ad:", error);
+    if (isSupabaseConfigured) {
+        const { error } = await supabase.from('wholesale_ads').delete().eq('id', id);
+        if (error) console.error("Error deleting ad:", error);
+    } else {
+        setWholesaleAds(prev => prev.filter(a => a.id !== id));
+    }
   };
 
   const addLawyer = async (lawyer: any) => {
       const newLawyer = { ...lawyer, status: 'Active' };
-      const { error } = await supabase.from('lawyers').insert([newLawyer]);
-      if (error) console.error("Error adding lawyer:", error);
+      if (isSupabaseConfigured) {
+          const { error } = await supabase.from('lawyers').insert([newLawyer]);
+          if (error) console.error("Error adding lawyer:", error);
+      } else {
+          setLawyers(prev => [newLawyer, ...prev]);
+      }
   };
   const deleteLawyer = async (id: number) => {
-      const { error } = await supabase.from('lawyers').delete().eq('id', id);
-      if (error) console.error("Error deleting lawyer:", error);
+      if (isSupabaseConfigured) {
+          const { error } = await supabase.from('lawyers').delete().eq('id', id);
+          if (error) console.error("Error deleting lawyer:", error);
+      } else {
+          setLawyers(prev => prev.filter(l => l.id !== id));
+      }
   };
   
   const updateExchangeRates = (newRates: any[]) => setExchangeRates(newRates);
-  
   const addVocationalCourse = (course: any) => setVocationalCourses(prev => [...prev, { ...course, id: Date.now(), status: 'Active' }]);
   const deleteVocationalCourse = (id: number) => setVocationalCourses(prev => prev.filter((c: any) => c.id !== id));
 
   const addDonor = async (donor: any) => {
-      const { error } = await supabase.from('donors').insert([donor]);
-      if (error) console.error("Error adding donor:", error);
+      if (isSupabaseConfigured) {
+          const { error } = await supabase.from('donors').insert([donor]);
+          if (error) console.error("Error adding donor:", error);
+      } else {
+          setDonors(prev => [donor, ...prev]);
+      }
   };
   
   const enrollCourse = (enrollment: any) => setEnrolledCourses(prev => [enrollment, ...prev]);

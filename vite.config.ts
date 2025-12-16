@@ -13,6 +13,8 @@ export default defineConfig(({ mode }) => {
       // Define process.env to prevent "Uncaught ReferenceError: process is not defined"
       'process.env': {
         API_KEY: env.API_KEY || env.VITE_API_KEY || '',
+        VITE_SUPABASE_URL: env.VITE_SUPABASE_URL || '',
+        VITE_SUPABASE_ANON_KEY: env.VITE_SUPABASE_ANON_KEY || '',
         NODE_ENV: mode
       },
       // Define global to prevent "Uncaught ReferenceError: global is not defined" in some libs
