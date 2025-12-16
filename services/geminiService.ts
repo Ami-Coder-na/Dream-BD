@@ -1,8 +1,10 @@
 import { GoogleGenAI, GenerateContentResponse } from "@google/genai";
 
-// Initialize client securely using process.env.API_KEY directly as per guidelines.
-// The API key must be obtained exclusively from process.env.API_KEY.
-const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+// Initialize client securely using process.env.API_KEY directly.
+// We use a fallback to prevent "Uncaught Error" during module initialization if the key is missing.
+// This ensures the app loads even if the AI feature isn't configured yet.
+const apiKey = process.env.API_KEY || 'MISSING_API_KEY';
+const ai = new GoogleGenAI({ apiKey });
 
 export const generateAssistantResponse = async (
   prompt: string, 
@@ -10,6 +12,11 @@ export const generateAssistantResponse = async (
   history: {role: string, parts: {text: string}[]}[],
   attachment?: { mimeType: string; data: string }
 ): Promise<string> => {
+  if (apiKey === 'MISSING_API_KEY' || !apiKey) {
+    console.error("Gemini API Key is missing. Please check your .env file or Vercel environment variables.");
+    return "I am unable to connect to my brain right now because the API Key is missing. Please contact the administrator.";
+  }
+
   try {
     // Enhanced System Instruction
     const systemInstruction = `You are 'Dream Assistant', an advanced and empathetic AI companion for the 'Dream BD' digital platform in Bangladesh. 
