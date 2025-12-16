@@ -47,7 +47,9 @@ export const AdminContent = () => {
           await updateJob(jobForm);
           alert('Job Updated Successfully!');
       } else {
-          await addJob({ ...jobForm, category: 'Private', postedBy: 'Admin' }); // Defaults
+          // Use category from form or default to Private
+          const jobData = { ...jobForm, category: jobForm.category || 'Private', postedBy: 'Admin' };
+          await addJob(jobData);
           alert('Job Created Successfully!');
       }
       setIsProcessing(false);
@@ -121,11 +123,23 @@ export const AdminContent = () => {
                 </div>
                 <div className="space-y-2">
                   <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider">Job Type</label>
-                  <select value={jobForm.type || 'Full Time'} onChange={e => setJobForm({...jobForm, type: e.target.value})} className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-gray-900 transition-all text-sm font-medium appearance-none">
+                  <select value={jobForm.type || 'Full Time'} onChange={e => setJobForm({...jobForm, type: e.target.value})} className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-gray-900 transition-all text-sm font-medium appearance-none cursor-pointer">
                     <option>Full Time</option>
                     <option>Part Time</option>
                     <option>Contract</option>
                     <option>Remote</option>
+                  </select>
+                </div>
+                <div className="space-y-2">
+                  <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider">Category</label>
+                  <select value={jobForm.category || 'Private'} onChange={e => setJobForm({...jobForm, category: e.target.value})} className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-gray-900 transition-all text-sm font-medium appearance-none cursor-pointer">
+                    <option value="Government">Government</option>
+                    <option value="Private">Private</option>
+                    <option value="NGO">NGO</option>
+                    <option value="International">International</option>
+                    <option value="Autonomous">Autonomous</option>
+                    <option value="Local Government">Local Government</option>
+                    <option value="Public University">Public University</option>
                   </select>
                 </div>
                 <div className="space-y-2">
@@ -182,7 +196,7 @@ export const AdminContent = () => {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="space-y-2">
                   <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider">Category</label>
-                  <select value={blogForm.category || ''} onChange={e => setBlogForm({...blogForm, category: e.target.value})} className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-gray-900 transition-all text-sm font-medium appearance-none">
+                  <select value={blogForm.category || ''} onChange={e => setBlogForm({...blogForm, category: e.target.value})} className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-gray-900 transition-all text-sm font-medium appearance-none cursor-pointer">
                     <option value="">Select Category</option>
                     <option>Agriculture</option>
                     <option>Health</option>

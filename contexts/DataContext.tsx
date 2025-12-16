@@ -186,7 +186,6 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     fetchLiveNews();
 
     // 2. Real-time Subscription
-    // This listens to any change in the public schema and re-fetches data
     let subscription: any = null;
     
     if (isSupabaseConfigured) {
@@ -218,12 +217,14 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const addJob = async (job: any) => {
     // Remove ID if present to let DB handle auto-increment
     const { id, ...jobData } = job;
-    const newJob = { ...jobData, postedDate: new Date().toLocaleDateString(), views: 0, status: 'Active' };
     
     if (isSupabaseConfigured) {
+        const newJob = { ...jobData, postedDate: new Date().toLocaleDateString(), views: 0, status: 'Active' };
         const { error } = await supabase.from('jobs').insert([newJob]);
         if (error) console.error("Error adding job:", error);
     } else {
+        // Generate ID for local state
+        const newJob = { ...jobData, id: Date.now(), postedDate: new Date().toLocaleDateString(), views: 0, status: 'Active' };
         setJobs(prev => [newJob, ...prev]);
     }
   };
@@ -249,12 +250,13 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const addBlog = async (blog: any) => {
     // Remove ID if present
     const { id, ...blogData } = blog;
-    const newBlog = { ...blogData, postedDate: new Date().toLocaleDateString(), views: 0, status: 'Active' };
     
     if (isSupabaseConfigured) {
+        const newBlog = { ...blogData, postedDate: new Date().toLocaleDateString(), views: 0, status: 'Active' };
         const { error } = await supabase.from('blogs').insert([newBlog]);
         if (error) console.error("Error adding blog:", error);
     } else {
+        const newBlog = { ...blogData, id: Date.now(), postedDate: new Date().toLocaleDateString(), views: 0, status: 'Active' };
         setBlogs(prev => [newBlog, ...prev]);
     }
   };
@@ -278,11 +280,12 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   };
 
   const addRequest = async (request: any) => {
-    const newReq = { ...request, status: 'Pending', postedDate: new Date().toLocaleDateString() };
     if (isSupabaseConfigured) {
+        const newReq = { ...request, status: 'Pending', postedDate: new Date().toLocaleDateString() };
         const { error } = await supabase.from('requests').insert([newReq]);
         if (error) console.error("Error adding request:", error);
     } else {
+        const newReq = { ...request, id: Date.now(), status: 'Pending', postedDate: new Date().toLocaleDateString() };
         setRequests(prev => [newReq, ...prev]);
     }
   };
@@ -309,11 +312,12 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   };
 
   const addGrievance = async (report: any) => {
-    const newReport = { ...report, status: 'Pending', date: new Date().toLocaleDateString() };
     if (isSupabaseConfigured) {
+        const newReport = { ...report, status: 'Pending', date: new Date().toLocaleDateString() };
         const { error } = await supabase.from('grievances').insert([newReport]);
         if (error) console.error("Error adding grievance:", error);
     } else {
+        const newReport = { ...report, id: Date.now(), status: 'Pending', date: new Date().toLocaleDateString() };
         setGrievances(prev => [newReport, ...prev]);
     }
   };
@@ -342,12 +346,14 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         return; 
     }
     
-    const newUser = { ...user, status: 'Active', date: new Date().toLocaleDateString() };
-    
     if (isSupabaseConfigured) {
+        const newUser = { ...user, status: 'Active', date: new Date().toLocaleDateString() };
         const { error } = await supabase.from('users').insert([newUser]);
         if (error) console.error("Add user error:", error);
     } else {
+        // Ensure ID is set (SignUpPage usually provides one, but admin manual add might need check)
+        const newUser = { ...user, status: 'Active', date: new Date().toLocaleDateString() };
+        if(!newUser.id) newUser.id = `u${Date.now()}`;
         setUsers(prev => [newUser, ...prev]);
     }
   };
@@ -392,11 +398,12 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const deleteRetailProduct = (id: number) => setRetailProducts(prev => prev.filter((p: any) => p.id !== id));
 
   const addWholesaleAd = async (ad: any) => {
-    const newAd = { ...ad, status: 'Pending', date: new Date().toLocaleDateString() };
     if (isSupabaseConfigured) {
+        const newAd = { ...ad, status: 'Pending', date: new Date().toLocaleDateString() };
         const { error } = await supabase.from('wholesale_ads').insert([newAd]);
         if (error) console.error("Error adding ad:", error);
     } else {
+        const newAd = { ...ad, id: Date.now(), status: 'Pending', date: new Date().toLocaleDateString() };
         setWholesaleAds(prev => [newAd, ...prev]);
     }
   };
