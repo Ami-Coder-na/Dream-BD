@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useRef } from 'react';
 import { 
   CloudRain, Sun, Sprout, TrendingUp, AlertTriangle, 
@@ -37,8 +36,8 @@ interface ForumPost {
   timeAgo: string;
 }
 
-// --- Extended Mock Data ---
-
+// ... (Constants omitted for brevity, assuming they are unchanged) ...
+// Re-declaring constants for completeness in XML response
 const CROPS_DB = [
   {
     id: 1,
@@ -59,7 +58,7 @@ const CROPS_DB = [
     fertilizerEn: 'Urea: 12-15 kg, TSP: 3-4 kg (Per Bigha)',
     careBn: 'নিয়মিত আগাছা পরিষ্কার করুন এবং पाण्याची স্তর ২-৩ ইঞ্চি রাখুন।',
     careEn: 'Weed regularly and maintain 2-3 inch water level.',
-    image: 'https://images.unsplash.com/photo-1586771107445-d3ca888129ff' // Rice Field
+    image: 'https://images.unsplash.com/photo-1586771107445-d3ca888129ff' 
   },
   {
     id: 2,
@@ -80,7 +79,7 @@ const CROPS_DB = [
     fertilizerEn: 'Urea: 8-10 kg, Potash: 2-3 kg',
     careBn: 'চারা গজানোর পর নিড়ানি দিয়ে মাটি আলগা করে দিন।',
     careEn: 'Loosen soil after germination using a weeder.',
-    image: 'https://images.unsplash.com/photo-1623227866882-c005c207758f' // Jute fiber/plant
+    image: 'https://images.unsplash.com/photo-1623227866882-c005c207758f' 
   },
   {
     id: 3,
@@ -101,7 +100,7 @@ const CROPS_DB = [
     fertilizerEn: 'Cow dung: 1 ton, Urea: 35 kg (Per Acre)',
     careBn: 'মাটি শুকিয়ে গেলে সেচ দিন, তবে পানি জমতে দেবেন না।',
     careEn: 'Irrigate when soil is dry, but avoid waterlogging.',
-    image: 'https://images.unsplash.com/photo-1518977676601-b53f82aba655' // Potato
+    image: 'https://images.unsplash.com/photo-1518977676601-b53f82aba655' 
   },
   {
     id: 4,
@@ -122,7 +121,7 @@ const CROPS_DB = [
     fertilizerEn: 'Gypsum: 15 kg, Boron: 1 kg (Per Acre)',
     careBn: 'শীষ বের হওয়ার সময় সেচ দেওয়া জরুরি।',
     careEn: 'Irrigation is crucial during heading stage.',
-    image: 'https://images.unsplash.com/photo-1574323347407-f5e1ad6d020b' // Wheat
+    image: 'https://images.unsplash.com/photo-1574323347407-f5e1ad6d020b'
   },
   {
     id: 5,
@@ -143,7 +142,7 @@ const CROPS_DB = [
     fertilizerEn: 'Urea and TSP in moderate amounts',
     careBn: 'ফুল আসার আগে একবার সেচ দিন।',
     careEn: 'Irrigate once before flowering.',
-    image: 'https://images.unsplash.com/photo-1505235682978-95f52956a8d1' // Mustard field
+    image: 'https://images.unsplash.com/photo-1505235682978-95f52956a8d1'
   },
   {
     id: 6,
@@ -164,7 +163,7 @@ const CROPS_DB = [
     fertilizerEn: 'Zinc and Boron increase yield',
     careBn: 'অতিরিক্ত পানি নিষ্কাশনের ব্যবস্থা রাখুন।',
     careEn: 'Ensure proper drainage system.',
-    image: 'https://images.unsplash.com/photo-1551754655-cd27e38d2076' // Maize
+    image: 'https://images.unsplash.com/photo-1551754655-cd27e38d2076'
   },
   {
     id: 7,
@@ -185,7 +184,7 @@ const CROPS_DB = [
     fertilizerEn: 'Use more compost fertilizer',
     careBn: 'গাছে খুঁটি দিন এবং পোকা দমন করুন।',
     careEn: 'Stake the plants and control pests.',
-    image: 'https://images.unsplash.com/photo-1592924357228-91a4daadcfea' // Tomato
+    image: 'https://images.unsplash.com/photo-1592924357228-91a4daadcfea'
   },
   {
     id: 8,
@@ -206,7 +205,7 @@ const CROPS_DB = [
     fertilizerEn: 'Potash is good for onions',
     careBn: 'আগাছা মুক্ত রাখুন।',
     careEn: 'Keep weed-free.',
-    image: 'https://images.unsplash.com/photo-1618512496248-a07fe83aa8cb' // Onion
+    image: 'https://images.unsplash.com/photo-1618512496248-a07fe83aa8cb'
   }
 ];
 
@@ -228,41 +227,29 @@ interface CalculationResult {
 export const AgriModule: React.FC<Props> = ({ isBangla, user, onLogin }) => {
   const [activeTab, setActiveTab] = useState<Tab>('overview');
   const [selectedCrop, setSelectedCrop] = useState<typeof CROPS_DB[0] | null>(null);
-  
-  // State for AI Detection
   const [analyzing, setAnalyzing] = useState(false);
   const [scannedResult, setScannedResult] = useState<null | { disease: string; severity: string; solution: string }>(null);
-  
-  // State for Calculator
   const [landSize, setLandSize] = useState<string>('');
-  const [unit, setUnit] = useState('decimal'); // decimal, katha, bigha
+  const [unit, setUnit] = useState('decimal');
   const [cropType, setCropType] = useState('Rice');
   const [seedVariety, setSeedVariety] = useState('HYV');
   const [calculatedResult, setCalculatedResult] = useState<CalculationResult | null>(null);
   const [showFullSchedule, setShowFullSchedule] = useState(false);
-
-  // State for Crop List Filtering & Pagination
   const [visibleCrops, setVisibleCrops] = useState(4);
   const [loadingMore, setLoadingMore] = useState(false);
   const [cropFilter, setCropFilter] = useState('All');
   const [cropSearch, setCropSearch] = useState('');
-
-  // --- Expert & Forum States ---
   const [showExpertModal, setShowExpertModal] = useState(false);
   const [showPostModal, setShowPostModal] = useState(false);
-  
   const [expertForm, setExpertForm] = useState({
     name: '',
     contact: '',
     address: '',
     message: ''
   });
-
   const [newPostText, setNewPostText] = useState('');
   const [newPostImage, setNewPostImage] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
-
-  // Initial Posts State
   const [posts, setPosts] = useState<ForumPost[]>([
     { 
       id: 1, 
@@ -288,12 +275,9 @@ export const AgriModule: React.FC<Props> = ({ isBangla, user, onLogin }) => {
     },
   ]);
 
-  // --- Handlers ---
-
   const handleScan = () => {
     setAnalyzing(true);
     setScannedResult(null);
-    // Simulate AI Delay
     setTimeout(() => {
       setAnalyzing(false);
       setScannedResult({
@@ -309,59 +293,27 @@ export const AgriModule: React.FC<Props> = ({ isBangla, user, onLogin }) => {
   const handleCalculate = () => {
     const size = parseFloat(landSize);
     if (!size) return;
-
-    // Conversion to Decimal as base unit
     let sizeInDecimal = size;
     if (unit === 'katha') sizeInDecimal = size * 1.65;
     if (unit === 'bigha') sizeInDecimal = size * 33;
-
-    // Rates per Decimal (Mock Data)
     const ureaRate = 1.0;
     const tspRate = 0.5;
     const mopRate = 0.6;
     const gypsumRate = 0.4;
     const seedRate = seedVariety === 'Hybrid' ? 0.15 : 0.25; 
-
     const urea = parseFloat((sizeInDecimal * ureaRate).toFixed(2));
     const tsp = parseFloat((sizeInDecimal * tspRate).toFixed(2));
     const mop = parseFloat((sizeInDecimal * mopRate).toFixed(2));
     const gypsum = parseFloat((sizeInDecimal * gypsumRate).toFixed(2));
     const seed = parseFloat((sizeInDecimal * seedRate).toFixed(2));
-
     const totalCost = Math.round((urea * 25) + (tsp * 22) + (mop * 15) + (gypsum * 10) + (seed * 300));
-
     setCalculatedResult({
-      urea,
-      tsp,
-      mop,
-      gypsum,
-      seed,
-      cost: totalCost,
+      urea, tsp, mop, gypsum, seed, cost: totalCost,
       schedule: [
-        { 
-          stageBn: 'জমি তৈরি (শেষ চাষে)', 
-          stageEn: 'Land Preparation (Final Ploughing)', 
-          detailBn: 'টিএসপি, এমওপি এবং জিপসাম সারের সম্পূর্ণ অংশ প্রয়োগ করুন।',
-          detailEn: 'Apply full dose of TSP, MOP, and Gypsum.' 
-        },
-        { 
-          stageBn: 'চারা রোপণের ১৫-২০ দিন পর', 
-          stageEn: '15-20 Days After Planting', 
-          detailBn: 'ইউরিয়া সারের প্রথম কিস্তি প্রয়োগ করুন। আগাছা পরিষ্কার করে নিন।',
-          detailEn: 'Apply 1st installment of Urea. Clean weeds beforehand.' 
-        },
-        { 
-          stageBn: 'চারা রোপণের ৪০-৪৫ দিন পর', 
-          stageEn: '40-45 Days After Planting', 
-          detailBn: 'ইউরিয়া সারের দ্বিতীয় কিস্তি প্রয়োগ করুন (কাইচ থোড় আসার আগে)।',
-          detailEn: 'Apply 2nd installment of Urea (Before panicle initiation).' 
-        },
-        { 
-          stageBn: 'ফুল আসার সময়', 
-          stageEn: 'Flowering Stage', 
-          detailBn: 'প্রয়োজনে সামান্য পটাশ সার ও ছত্রাকনাশক স্প্রে করুন।',
-          detailEn: 'Spray Potash and fungicide if needed.' 
-        }
+        { stageBn: 'জমি তৈরি (শেষ চাষে)', stageEn: 'Land Preparation (Final Ploughing)', detailBn: 'টিএসপি, এমওপি এবং জিপসাম সারের সম্পূর্ণ অংশ প্রয়োগ করুন।', detailEn: 'Apply full dose of TSP, MOP, and Gypsum.' },
+        { stageBn: 'চারা রোপণের ১৫-২০ দিন পর', stageEn: '15-20 Days After Planting', detailBn: 'ইউরিয়া সারের প্রথম কিস্তি প্রয়োগ করুন। আগাছা পরিষ্কার করে নিন।', detailEn: 'Apply 1st installment of Urea. Clean weeds beforehand.' },
+        { stageBn: 'চারা রোপণের ৪০-৪৫ দিন পর', stageEn: '40-45 Days After Planting', detailBn: 'ইউরিয়া সারের দ্বিতীয় কিস্তি প্রয়োগ করুন (কাইচ থোড় আসার আগে)।', detailEn: 'Apply 2nd installment of Urea (Before panicle initiation).' },
+        { stageBn: 'ফুল আসার সময়', stageEn: 'Flowering Stage', detailBn: 'প্রয়োজনে সামান্য পটাশ সার ও ছত্রাকনাশক স্প্রে করুন।', detailEn: 'Spray Potash and fungicide if needed.' }
       ]
     });
     setShowFullSchedule(false);
@@ -375,20 +327,16 @@ export const AgriModule: React.FC<Props> = ({ isBangla, user, onLogin }) => {
     }, 800);
   };
 
-  // Expert Form Handlers
   const handleExpertSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    // Simulate API submission
     alert(isBangla ? 'আপনার অনুরোধ সফলভাবে জমা দেওয়া হয়েছে!' : 'Your request has been submitted successfully!');
     setExpertForm({ name: '', contact: '', address: '', message: '' });
     setShowExpertModal(false);
   };
 
-  // Forum Handlers
   const handleCreatePost = (e: React.FormEvent) => {
     e.preventDefault();
     if (!newPostText.trim() && !newPostImage) return;
-
     const newPost: ForumPost = {
       id: Date.now(),
       user: user ? user.name : 'User',
@@ -400,7 +348,6 @@ export const AgriModule: React.FC<Props> = ({ isBangla, user, onLogin }) => {
       showComments: false,
       timeAgo: isBangla ? 'এইমাত্র' : 'Just now'
     };
-
     setPosts([newPost, ...posts]);
     setNewPostText('');
     setNewPostImage(null);
@@ -462,7 +409,6 @@ export const AgriModule: React.FC<Props> = ({ isBangla, user, onLogin }) => {
     }));
   };
 
-  // Reset pagination when filter or search changes
   useEffect(() => {
     setVisibleCrops(4);
   }, [cropFilter, cropSearch]);
@@ -470,7 +416,6 @@ export const AgriModule: React.FC<Props> = ({ isBangla, user, onLogin }) => {
   const filteredCrops = CROPS_DB.filter(crop => {
     const matchesSearch = (isBangla ? crop.nameBn : crop.nameEn).toLowerCase().includes(cropSearch.toLowerCase());
     if (!matchesSearch) return false;
-
     if (cropFilter === 'All') return true;
     if (cropFilter === 'Winter') return crop.seasonEn === 'Winter';
     if (cropFilter === 'Summer') return crop.seasonEn === 'Summer';
@@ -490,15 +435,12 @@ export const AgriModule: React.FC<Props> = ({ isBangla, user, onLogin }) => {
     return 'bg-red-100 text-red-800 border-red-200';
   };
 
-  // --- Render Sections ---
-
   const renderOverview = () => (
     <div className="space-y-8 animate-fade-in">
-      {/* Weather Widget (Hyper-Local) */}
+      {/* Weather Widget */}
       <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-blue-500 via-blue-600 to-blue-700 p-6 text-white shadow-xl">
         <div className="absolute top-0 right-0 -mr-16 -mt-16 h-64 w-64 rounded-full bg-white/10 blur-3xl"></div>
         <div className="absolute bottom-0 left-0 -ml-16 -mb-16 h-64 w-64 rounded-full bg-white/10 blur-3xl"></div>
-        
         <div className="relative z-10">
           <div className="flex justify-between items-start mb-6">
             <div>
@@ -514,16 +456,12 @@ export const AgriModule: React.FC<Props> = ({ isBangla, user, onLogin }) => {
                <span className="text-xs text-blue-100 opacity-80">H: 31° L: 24°</span>
             </div>
           </div>
-          
           <div className="mb-6 bg-yellow-500/20 backdrop-blur-md border border-yellow-300/30 rounded-xl p-3 flex items-center gap-3">
             <AlertTriangle className="text-yellow-300 shrink-0 animate-pulse" />
             <p className="text-sm font-medium text-yellow-50">
-              {isBangla 
-                ? 'সতর্কতা: আগামী ২৪ ঘণ্টায় ভারী বৃষ্টিপাতের সম্ভাবনা আছে।' 
-                : 'Alert: Heavy rain expected in the next 24 hours.'}
+              {isBangla ? 'সতর্কতা: আগামী ২৪ ঘণ্টায় ভারী বৃষ্টিপাতের সম্ভাবনা আছে।' : 'Alert: Heavy rain expected in the next 24 hours.'}
             </p>
           </div>
-
           <div className="grid grid-cols-3 gap-2 border-t border-white/20 pt-4">
             <div className="flex flex-col items-center justify-center p-2 rounded-lg bg-white/5 hover:bg-white/10 transition-colors">
               <Droplets size={20} className="mb-1 text-blue-200"/>
@@ -595,10 +533,7 @@ export const AgriModule: React.FC<Props> = ({ isBangla, user, onLogin }) => {
           <>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
               {filteredCrops.slice(0, visibleCrops).map(crop => (
-                <div 
-                  key={crop.id} 
-                  className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden hover:shadow-xl hover:border-brand-200 transition-all duration-300 group flex flex-col h-full"
-                >
+                <div key={crop.id} className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden hover:shadow-xl hover:border-brand-200 transition-all duration-300 group flex flex-col h-full">
                   <div className="relative h-48 overflow-hidden">
                     <img 
                       src={getOptimizedImageUrl(crop.image, 400)} 
@@ -624,8 +559,6 @@ export const AgriModule: React.FC<Props> = ({ isBangla, user, onLogin }) => {
                       <h4 className="font-bold text-gray-900 text-lg line-clamp-1">{isBangla ? crop.nameBn : crop.nameEn}</h4>
                       <p className="text-xs text-gray-500 italic">{crop.scientificName}</p>
                     </div>
-                    
-                    {/* Informative Grid */}
                     <div className="space-y-3 mb-5 bg-gray-50/50 p-3 rounded-xl border border-gray-100">
                        <div className="flex items-start gap-3">
                           <div className="w-8 h-8 rounded-lg bg-green-100 text-green-700 flex items-center justify-center shrink-0">
@@ -646,8 +579,6 @@ export const AgriModule: React.FC<Props> = ({ isBangla, user, onLogin }) => {
                           </div>
                        </div>
                     </div>
-
-                    {/* Footer Badges */}
                     <div className="flex gap-2 mb-4">
                        <div className={`flex-1 px-2 py-1.5 rounded text-[10px] font-bold border flex items-center justify-center gap-1 ${getWaterReqColor(crop.waterReq)}`}>
                           <Droplets size={12} /> {isBangla ? 'সেচ:' : 'Water:'} {crop.waterReq}
@@ -656,38 +587,20 @@ export const AgriModule: React.FC<Props> = ({ isBangla, user, onLogin }) => {
                           <Clock size={12} /> {isBangla ? crop.durationBn : crop.durationEn.split(' ')[0] + 'd'}
                        </div>
                     </div>
-
-                    <Button 
-                      onClick={() => setSelectedCrop(crop)}
-                      variant="outline"
-                      className="mt-auto w-full rounded-xl text-xs font-bold border-gray-200 hover:border-brand-600 hover:text-brand-600 group/btn h-10 hover:bg-brand-50"
-                    >
+                    <Button onClick={() => setSelectedCrop(crop)} variant="outline" className="mt-auto w-full rounded-xl text-xs font-bold border-gray-200 hover:border-brand-600 hover:text-brand-600 group/btn h-10 hover:bg-brand-50">
                       {isBangla ? 'বিস্তারিত গাইড দেখুন' : 'View Detailed Guide'} 
                     </Button>
                   </div>
                 </div>
               ))}
             </div>
-
-            {/* Load More Button */}
             {visibleCrops < filteredCrops.length && (
               <div className="flex justify-center mt-8">
-                <Button 
-                  onClick={handleLoadMoreCrops} 
-                  variant="secondary" 
-                  className="rounded-full px-8 shadow-sm border border-gray-200 bg-white hover:bg-gray-50"
-                  disabled={loadingMore}
-                >
+                <Button onClick={handleLoadMoreCrops} variant="secondary" className="rounded-full px-8 shadow-sm border border-gray-200 bg-white hover:bg-gray-50" disabled={loadingMore}>
                   {loadingMore ? (
-                    <div className="flex items-center gap-2">
-                      <Loader2 size={16} className="animate-spin" />
-                      {isBangla ? 'লোড হচ্ছে...' : 'Loading...'}
-                    </div>
+                    <div className="flex items-center gap-2"><Loader2 size={16} className="animate-spin" />{isBangla ? 'লোড হচ্ছে...' : 'Loading...'}</div>
                   ) : (
-                    <div className="flex items-center gap-2">
-                      <ChevronDown size={16} />
-                      {isBangla ? 'আরও দেখুন' : 'Load More Crops'}
-                    </div>
+                    <div className="flex items-center gap-2"><ChevronDown size={16} />{isBangla ? 'আরও দেখুন' : 'Load More Crops'}</div>
                   )}
                 </Button>
               </div>
@@ -702,29 +615,20 @@ export const AgriModule: React.FC<Props> = ({ isBangla, user, onLogin }) => {
         )}
       </div>
 
-      {/* AI Disease Detection (Secondary) */}
+      {/* AI Disease Detection */}
       <div className="bg-white rounded-3xl p-6 shadow-sm border border-brand-100 relative overflow-hidden group mt-12">
         <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-brand-400 to-brand-600"></div>
-        
         <div className="text-center mb-6">
           <div className="inline-flex items-center justify-center p-3 bg-brand-50 text-brand-600 rounded-full mb-3 shadow-inner">
             <ScanLine size={28} />
           </div>
-          <h3 className="text-xl font-bold text-gray-900 mb-2">
-            {isBangla ? 'রোগ বালাই ও সমাধান (AI)' : 'AI Disease Detection'}
-          </h3>
+          <h3 className="text-xl font-bold text-gray-900 mb-2">{isBangla ? 'রোগ বালাই ও সমাধান (AI)' : 'AI Disease Detection'}</h3>
           <p className="text-gray-500 text-sm max-w-md mx-auto">
-            {isBangla 
-              ? 'আক্রান্ত পাতার ছবি তুলুন, আমাদের কৃত্রিম বুদ্ধিমত্তা রোগ শনাক্ত করে সমাধানের উপায় বলে দিবে।' 
-              : 'Take a photo of the affected leaf. Our AI will identify the disease and prescribe medicine.'}
+            {isBangla ? 'আক্রান্ত পাতার ছবি তুলুন, আমাদের কৃত্রিম বুদ্ধিমত্তা রোগ শনাক্ত করে সমাধানের উপায় বলে দিবে।' : 'Take a photo of the affected leaf. Our AI will identify the disease and prescribe medicine.'}
           </p>
         </div>
-
         {!scannedResult && !analyzing && (
-          <div 
-            onClick={handleScan}
-            className="border-2 border-dashed border-brand-200 bg-brand-50/50 rounded-2xl h-48 flex flex-col items-center justify-center cursor-pointer hover:bg-brand-50 hover:border-brand-400 transition-all duration-300 relative group/scan"
-          >
+          <div onClick={handleScan} className="border-2 border-dashed border-brand-200 bg-brand-50/50 rounded-2xl h-48 flex flex-col items-center justify-center cursor-pointer hover:bg-brand-50 hover:border-brand-400 transition-all duration-300 relative group/scan">
             <div className="p-4 bg-white rounded-full shadow-lg mb-3 group-hover/scan:scale-110 transition-transform">
               <Upload className="text-brand-600" size={24} />
             </div>
@@ -732,7 +636,6 @@ export const AgriModule: React.FC<Props> = ({ isBangla, user, onLogin }) => {
             <span className="text-xs text-gray-500">{isBangla ? 'অথবা গ্যালারি থেকে আপলোড করুন' : 'Or upload from gallery'}</span>
           </div>
         )}
-
         {analyzing && (
           <div className="h-48 flex flex-col items-center justify-center bg-gray-50 rounded-2xl">
             <div className="relative">
@@ -743,37 +646,24 @@ export const AgriModule: React.FC<Props> = ({ isBangla, user, onLogin }) => {
             <p className="text-brand-700 font-bold mt-4 animate-pulse text-sm">{isBangla ? 'রোগ নির্ণয় করা হচ্ছে...' : 'Analyzing Disease...'}</p>
           </div>
         )}
-
         {scannedResult && (
           <div className="bg-red-50 border border-red-100 rounded-2xl p-6 text-left animate-fade-in-up shadow-sm">
             <div className="flex items-start justify-between mb-4 border-b border-red-100 pb-4">
               <div>
                 <span className="text-xs font-bold text-red-500 uppercase tracking-wider">{isBangla ? 'শনাক্তকৃত রোগ' : 'Detected Disease'}</span>
-                <h4 className="text-xl font-bold text-red-800 mt-1 flex items-center gap-2">
-                  <AlertTriangle size={20} className="text-red-600" />
-                  {scannedResult.disease}
-                </h4>
+                <h4 className="text-xl font-bold text-red-800 mt-1 flex items-center gap-2"><AlertTriangle size={20} className="text-red-600" />{scannedResult.disease}</h4>
               </div>
               <button onClick={() => setScannedResult(null)} className="text-gray-400 hover:text-gray-600 p-1 hover:bg-red-100 rounded-full transition-colors"><X size={20}/></button>
             </div>
-            
             <div className="space-y-4">
               <div className="bg-white p-4 rounded-xl border border-red-100 shadow-sm">
-                <p className="text-xs font-bold text-gray-500 uppercase mb-2 flex items-center gap-1">
-                  <CheckCircle size={12} className="text-green-500" />
-                  {isBangla ? 'সমাধান / ঔষধ' : 'Recommended Solution'}
-                </p>
+                <p className="text-xs font-bold text-gray-500 uppercase mb-2 flex items-center gap-1"><CheckCircle size={12} className="text-green-500" />{isBangla ? 'সমাধান / ঔষধ' : 'Recommended Solution'}</p>
                 <p className="text-gray-800 leading-relaxed font-medium text-sm">{scannedResult.solution}</p>
               </div>
             </div>
-
             <div className="mt-4 flex gap-3">
-              <Button size="sm" variant="danger" className="flex-1 shadow-lg shadow-red-200">
-                {isBangla ? 'ঔষধ কিনুন' : 'Buy Medicine'}
-              </Button>
-              <Button size="sm" variant="outline" onClick={() => handleAuthAction(() => setShowExpertModal(true))} className="flex-1 bg-white hover:bg-gray-50 border-red-200 text-red-700">
-                {isBangla ? 'বিশেষজ্ঞের পরামর্শ' : 'Ask Expert'}
-              </Button>
+              <Button size="sm" variant="danger" className="flex-1 shadow-lg shadow-red-200">{isBangla ? 'ঔষধ কিনুন' : 'Buy Medicine'}</Button>
+              <Button size="sm" variant="outline" onClick={() => handleAuthAction(() => setShowExpertModal(true))} className="flex-1 bg-white hover:bg-gray-50 border-red-200 text-red-700">{isBangla ? 'বিশেষজ্ঞের পরামর্শ' : 'Ask Expert'}</Button>
             </div>
           </div>
         )}
@@ -785,33 +675,20 @@ export const AgriModule: React.FC<Props> = ({ isBangla, user, onLogin }) => {
     <div className="space-y-8 animate-fade-in">
       <div className="bg-white p-8 rounded-3xl shadow-sm border border-gray-100">
         <h2 className="text-2xl font-bold text-gray-900 mb-6 flex items-center gap-3">
-          <div className="p-2 bg-brand-100 rounded-lg text-brand-600">
-            <Calculator size={24} />
-          </div>
+          <div className="p-2 bg-brand-100 rounded-lg text-brand-600"><Calculator size={24} /></div>
           {isBangla ? 'সার ও বীজ ক্যালকুলেটর' : 'Fertilizer & Seed Calculator'}
         </h2>
-        
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div>
             <label className="block text-sm font-bold text-gray-700 mb-2">{isBangla ? 'জমির পরিমাণ' : 'Land Size'}</label>
             <div className="relative">
-              <input 
-                type="number" 
-                value={landSize}
-                onChange={(e) => setLandSize(e.target.value)}
-                className="w-full p-4 rounded-xl outline-none transition-all bg-gray-50 border border-gray-200 text-gray-900 text-lg font-medium placeholder-gray-400 focus:ring-2 focus:ring-green-500 focus:bg-white focus:border-transparent"
-                placeholder="Ex: 10"
-              />
+              <input type="number" value={landSize} onChange={(e) => setLandSize(e.target.value)} className="w-full p-4 rounded-xl outline-none transition-all bg-gray-50 border border-gray-200 text-gray-900 text-lg font-medium placeholder-gray-400 focus:ring-2 focus:ring-green-500 focus:bg-white focus:border-transparent" placeholder="Ex: 10" />
             </div>
           </div>
           <div>
             <label className="block text-sm font-bold text-gray-700 mb-2">{isBangla ? 'একক' : 'Unit'}</label>
             <div className="relative">
-              <select 
-                value={unit} 
-                onChange={(e) => setUnit(e.target.value)}
-                className="w-full p-4 rounded-xl outline-none transition-all bg-gray-50 border border-gray-200 text-gray-900 text-lg font-medium cursor-pointer focus:ring-2 focus:ring-green-500 focus:bg-white focus:border-transparent appearance-none"
-              >
+              <select value={unit} onChange={(e) => setUnit(e.target.value)} className="w-full p-4 rounded-xl outline-none transition-all bg-gray-50 border border-gray-200 text-gray-900 text-lg font-medium cursor-pointer focus:ring-2 focus:ring-green-500 focus:bg-white focus:border-transparent appearance-none">
                 <option value="decimal">{isBangla ? 'শতাংশ (Decimal)' : 'Decimal'}</option>
                 <option value="katha">{isBangla ? 'কাঠা (Katha)' : 'Katha'}</option>
                 <option value="bigha">{isBangla ? 'বিঘা (Bigha)' : 'Bigha'}</option>
@@ -820,16 +697,11 @@ export const AgriModule: React.FC<Props> = ({ isBangla, user, onLogin }) => {
             </div>
           </div>
         </div>
-
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
           <div>
             <label className="block text-sm font-bold text-gray-700 mb-2">{isBangla ? 'ফসলের ধরন' : 'Crop Type'}</label>
             <div className="relative">
-              <select 
-                value={cropType}
-                onChange={(e) => setCropType(e.target.value)}
-                className="w-full p-4 rounded-xl outline-none transition-all bg-gray-50 border border-gray-200 text-gray-900 text-lg font-medium cursor-pointer focus:ring-2 focus:ring-green-500 focus:bg-white focus:border-transparent appearance-none"
-              >
+              <select value={cropType} onChange={(e) => setCropType(e.target.value)} className="w-full p-4 rounded-xl outline-none transition-all bg-gray-50 border border-gray-200 text-gray-900 text-lg font-medium cursor-pointer focus:ring-2 focus:ring-green-500 focus:bg-white focus:border-transparent appearance-none">
                 <option value="Rice">{isBangla ? 'ধান' : 'Rice'}</option>
                 <option value="Wheat">{isBangla ? 'গম' : 'Wheat'}</option>
                 <option value="Maize">{isBangla ? 'ভুট্টা' : 'Maize'}</option>
@@ -841,11 +713,7 @@ export const AgriModule: React.FC<Props> = ({ isBangla, user, onLogin }) => {
           <div>
             <label className="block text-sm font-bold text-gray-700 mb-2">{isBangla ? 'বীজের জাত' : 'Seed Variety'}</label>
             <div className="relative">
-              <select 
-                value={seedVariety}
-                onChange={(e) => setSeedVariety(e.target.value)}
-                className="w-full p-4 rounded-xl outline-none transition-all bg-gray-50 border border-gray-200 text-gray-900 text-lg font-medium cursor-pointer focus:ring-2 focus:ring-green-500 focus:bg-white focus:border-transparent appearance-none"
-              >
+              <select value={seedVariety} onChange={(e) => setSeedVariety(e.target.value)} className="w-full p-4 rounded-xl outline-none transition-all bg-gray-50 border border-gray-200 text-gray-900 text-lg font-medium cursor-pointer focus:ring-2 focus:ring-green-500 focus:bg-white focus:border-transparent appearance-none">
                 <option value="HYV">{isBangla ? 'উফশী (HYV)' : 'High Yielding (HYV)'}</option>
                 <option value="Hybrid">{isBangla ? 'হাইব্রিড' : 'Hybrid'}</option>
                 <option value="Local">{isBangla ? 'দেশি' : 'Local'}</option>
@@ -854,15 +722,12 @@ export const AgriModule: React.FC<Props> = ({ isBangla, user, onLogin }) => {
             </div>
           </div>
         </div>
-
         <Button onClick={handleCalculate} className="w-full mt-8 h-14 text-lg font-bold shadow-lg shadow-green-200 bg-green-600 hover:bg-green-700 text-white">
           {isBangla ? 'হিসাব করুন' : 'Calculate'}
         </Button>
       </div>
-
       {calculatedResult && (
         <div className="animate-fade-in-up space-y-6">
-          {/* Summary Cards */}
           <div className="grid grid-cols-2 gap-4">
              <div className="bg-gradient-to-br from-green-600 to-green-700 text-white p-6 rounded-2xl shadow-lg relative overflow-hidden">
                 <div className="absolute top-0 right-0 w-24 h-24 bg-white/10 rounded-full -mr-8 -mt-8"></div>
@@ -888,8 +753,6 @@ export const AgriModule: React.FC<Props> = ({ isBangla, user, onLogin }) => {
                 </div>
              </div>
           </div>
-
-          {/* Detailed Fertilizer Breakdown */}
           <div className="bg-white border border-brand-100 rounded-3xl p-6 shadow-sm">
             <h3 className="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
               <Leaf className="text-brand-600" size={20} />
@@ -910,8 +773,6 @@ export const AgriModule: React.FC<Props> = ({ isBangla, user, onLogin }) => {
               ))}
             </div>
           </div>
-
-          {/* Application Schedule (Pagination Logic Applied Here) */}
           <div className="bg-white border border-gray-200 rounded-3xl overflow-hidden shadow-sm">
              <div className="p-6 border-b border-gray-100 bg-gray-50 flex items-center justify-between">
                 <h3 className="text-lg font-bold text-gray-900 flex items-center gap-2">
@@ -922,17 +783,12 @@ export const AgriModule: React.FC<Props> = ({ isBangla, user, onLogin }) => {
                   {calculatedResult.schedule.length} Steps
                 </span>
              </div>
-             
              <div className="divide-y divide-gray-100">
                 {calculatedResult.schedule.slice(0, showFullSchedule ? undefined : 2).map((step, idx) => (
                   <div key={idx} className="p-5 flex gap-4 hover:bg-gray-50 transition-colors">
                      <div className="flex flex-col items-center gap-1">
-                        <div className="w-8 h-8 rounded-full bg-brand-100 text-brand-700 flex items-center justify-center font-bold text-sm">
-                          {idx + 1}
-                        </div>
-                        {idx !== calculatedResult.schedule.length - 1 && (
-                          <div className="w-0.5 h-full bg-gray-200 my-1"></div>
-                        )}
+                        <div className="w-8 h-8 rounded-full bg-brand-100 text-brand-700 flex items-center justify-center font-bold text-sm">{idx + 1}</div>
+                        {idx !== calculatedResult.schedule.length - 1 && <div className="w-0.5 h-full bg-gray-200 my-1"></div>}
                      </div>
                      <div>
                         <h4 className="font-bold text-gray-800 text-base mb-1">{isBangla ? step.stageBn : step.stageEn}</h4>
@@ -941,16 +797,9 @@ export const AgriModule: React.FC<Props> = ({ isBangla, user, onLogin }) => {
                   </div>
                 ))}
              </div>
-
-             {/* Pagination / Load More Button */}
              <div className="p-4 bg-gray-50 text-center border-t border-gray-100">
-                <button 
-                  onClick={() => setShowFullSchedule(!showFullSchedule)}
-                  className="inline-flex items-center gap-2 text-sm font-bold text-brand-600 hover:text-brand-700 transition-colors"
-                >
-                  {showFullSchedule 
-                    ? (isBangla ? 'কম দেখান' : 'Show Less') 
-                    : (isBangla ? 'আরও ধাপ দেখুন' : 'Show Full Schedule')}
+                <button onClick={() => setShowFullSchedule(!showFullSchedule)} className="inline-flex items-center gap-2 text-sm font-bold text-brand-600 hover:text-brand-700 transition-colors">
+                  {showFullSchedule ? (isBangla ? 'কম দেখান' : 'Show Less') : (isBangla ? 'আরও ধাপ দেখুন' : 'Show Full Schedule')}
                   {showFullSchedule ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
                 </button>
              </div>
@@ -964,63 +813,35 @@ export const AgriModule: React.FC<Props> = ({ isBangla, user, onLogin }) => {
     <div className="space-y-6 animate-fade-in">
       <div className="flex flex-col md:flex-row justify-between items-center gap-4 bg-brand-50 p-6 rounded-2xl border border-brand-100">
         <div>
-           <h3 className="text-xl font-bold text-brand-900 flex items-center gap-2">
-             <Users className="text-brand-600" />
-             {isBangla ? 'কৃষক ফোরাম' : 'Farmers Community'}
-           </h3>
-           <p className="text-brand-700 text-sm mt-1">
-             {isBangla ? 'আপনার সমস্যা ও অভিজ্ঞতা শেয়ার করুন' : 'Share your problems and experiences'}
-           </p>
+           <h3 className="text-xl font-bold text-brand-900 flex items-center gap-2"><Users className="text-brand-600" />{isBangla ? 'কৃষক ফোরাম' : 'Farmers Community'}</h3>
+           <p className="text-brand-700 text-sm mt-1">{isBangla ? 'আপনার সমস্যা ও অভিজ্ঞতা শেয়ার করুন' : 'Share your problems and experiences'}</p>
         </div>
         <Button onClick={() => handleAuthAction(() => setShowPostModal(true))} className="bg-brand-600 hover:bg-brand-700 shadow-lg shadow-brand-200">
-           <MessageSquare size={18} className="mr-2" />
-           {isBangla ? 'নতুন পোস্ট' : 'Create Post'}
+           <MessageSquare size={18} className="mr-2" />{isBangla ? 'নতুন পোস্ট' : 'Create Post'}
         </Button>
       </div>
-
       <div className="space-y-4">
         {posts.map(post => (
           <div key={post.id} className="bg-white p-5 rounded-2xl shadow-sm border border-gray-100">
              <div className="flex justify-between items-start mb-3">
                <div className="flex items-center gap-3">
-                 <div className="w-10 h-10 bg-gray-100 rounded-full flex items-center justify-center font-bold text-gray-600">
-                   {post.user.charAt(0)}
-                 </div>
-                 <div>
-                   <h4 className="font-bold text-gray-900">{post.user}</h4>
-                   <p className="text-xs text-gray-500">{post.timeAgo}</p>
-                 </div>
+                 <div className="w-10 h-10 bg-gray-100 rounded-full flex items-center justify-center font-bold text-gray-600">{post.user.charAt(0)}</div>
+                 <div><h4 className="font-bold text-gray-900">{post.user}</h4><p className="text-xs text-gray-500">{post.timeAgo}</p></div>
                </div>
              </div>
-             
              <p className="text-gray-800 mb-4 whitespace-pre-wrap">{post.text}</p>
-             
              {post.image && (
-               <div className="mb-4 rounded-xl overflow-hidden">
-                 <img src={post.image} alt="Post" className="w-full max-h-96 object-cover" />
-               </div>
+               <div className="mb-4 rounded-xl overflow-hidden"><img src={post.image} alt="Post" className="w-full max-h-96 object-cover" /></div>
              )}
-
              <div className="flex items-center gap-6 pt-3 border-t border-gray-50">
-               <button 
-                 onClick={() => toggleLike(post.id)}
-                 className={`flex items-center gap-2 text-sm font-medium transition-colors ${post.liked ? 'text-red-500' : 'text-gray-500 hover:text-red-500'}`}
-               >
-                 <Heart size={18} fill={post.liked ? 'currentColor' : 'none'} />
-                 {post.likes}
+               <button onClick={() => toggleLike(post.id)} className={`flex items-center gap-2 text-sm font-medium transition-colors ${post.liked ? 'text-red-500' : 'text-gray-500 hover:text-red-500'}`}>
+                 <Heart size={18} fill={post.liked ? 'currentColor' : 'none'} />{post.likes}
                </button>
-               <button 
-                 onClick={() => toggleComments(post.id)}
-                 className="flex items-center gap-2 text-sm font-medium text-gray-500 hover:text-brand-600 transition-colors"
-               >
-                 <MessageSquare size={18} />
-                 {post.comments.length}
+               <button onClick={() => toggleComments(post.id)} className="flex items-center gap-2 text-sm font-medium text-gray-500 hover:text-brand-600 transition-colors">
+                 <MessageSquare size={18} />{post.comments.length}
                </button>
-               <button className="flex items-center gap-2 text-sm font-medium text-gray-500 hover:text-blue-600 transition-colors ml-auto">
-                 <Share2 size={18} />
-               </button>
+               <button className="flex items-center gap-2 text-sm font-medium text-gray-500 hover:text-blue-600 transition-colors ml-auto"><Share2 size={18} /></button>
              </div>
-
              {post.showComments && (
                <div className="mt-4 pt-4 border-t border-gray-50 space-y-3 animate-fade-in">
                  {post.comments.map(comment => (
@@ -1053,48 +874,25 @@ export const AgriModule: React.FC<Props> = ({ isBangla, user, onLogin }) => {
   return (
     <div className="min-h-screen bg-green-50/30 py-8 lg:py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-7xl mx-auto">
-        {/* Header and Tab Navigation */}
         <div className="flex flex-col md:flex-row justify-between items-center mb-8 gap-4">
-            {/* Title */}
             <div>
-               <h1 className="text-3xl font-bold text-gray-900 flex items-center gap-2">
-                 <Leaf className="text-green-600" />
-                 {isBangla ? 'স্মার্ট কৃষি' : 'Smart Agriculture'}
-               </h1>
+               <h1 className="text-3xl font-bold text-gray-900 flex items-center gap-2"><Leaf className="text-green-600" />{isBangla ? 'স্মার্ট কৃষি' : 'Smart Agriculture'}</h1>
                <p className="text-gray-500 text-sm mt-1">{isBangla ? 'প্রযুক্তির ছোঁয়ায় ফলন বাড়ান' : 'Maximize yield with technology'}</p>
             </div>
-            
-            {/* Tabs */}
             <div className="flex bg-white p-1 rounded-xl shadow-sm border border-gray-200 overflow-x-auto max-w-full">
-              {[
-                { id: 'overview', icon: <TrendingUp size={16}/>, label: isBangla ? 'ড্যাশবোর্ড' : 'Dashboard' },
-                { id: 'calculator', icon: <Calculator size={16}/>, label: isBangla ? 'ক্যালকুলেটর' : 'Calculator' },
-                { id: 'community', icon: <Users size={16}/>, label: isBangla ? 'ফোরাম' : 'Forum' },
-              ].map(tab => (
-                 <button
-                   key={tab.id}
-                   onClick={() => setActiveTab(tab.id as Tab)}
-                   className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-bold transition-all whitespace-nowrap ${
-                     activeTab === tab.id 
-                       ? 'bg-green-600 text-white shadow-md' 
-                       : 'text-gray-600 hover:bg-gray-50'
-                   }`}
-                 >
+              {[{ id: 'overview', icon: <TrendingUp size={16}/>, label: isBangla ? 'ড্যাশবোর্ড' : 'Dashboard' }, { id: 'calculator', icon: <Calculator size={16}/>, label: isBangla ? 'ক্যালকুলেটর' : 'Calculator' }, { id: 'community', icon: <Users size={16}/>, label: isBangla ? 'ফোরাম' : 'Forum' }].map(tab => (
+                 <button key={tab.id} onClick={() => setActiveTab(tab.id as Tab)} className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-bold transition-all whitespace-nowrap ${activeTab === tab.id ? 'bg-green-600 text-white shadow-md' : 'text-gray-600 hover:bg-gray-50'}`}>
                    {tab.icon} {tab.label}
                  </button>
               ))}
             </div>
         </div>
-
-        {/* Content */}
         {activeTab === 'overview' && renderOverview()}
         {activeTab === 'calculator' && renderCalculator()}
         {activeTab === 'community' && renderCommunity()}
-        {/* Fallback for encyclopedia if set via other means, default to overview */}
         {activeTab === 'encyclopedia' && renderOverview()} 
       </div>
 
-      {/* Modals */}
       {showExpertModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fade-in" onClick={() => setShowExpertModal(false)}>
           <div className="bg-white w-full max-w-lg rounded-2xl shadow-2xl overflow-hidden animate-fade-in-up" onClick={e => e.stopPropagation()}>
@@ -1110,7 +908,7 @@ export const AgriModule: React.FC<Props> = ({ isBangla, user, onLogin }) => {
                   required
                   value={expertForm.name}
                   onChange={e => setExpertForm({...expertForm, name: e.target.value})}
-                  className="w-full bg-[#374151] text-white border-none rounded-lg px-4 py-3 focus:ring-2 focus:ring-green-500 outline-none placeholder-gray-400"
+                  className="w-full bg-gray-50 border border-gray-300 text-gray-900 rounded-lg px-4 py-3 focus:ring-2 focus:ring-green-500 outline-none placeholder-gray-500"
                 />
               </div>
               <div>
@@ -1120,7 +918,7 @@ export const AgriModule: React.FC<Props> = ({ isBangla, user, onLogin }) => {
                   required
                   value={expertForm.contact}
                   onChange={e => setExpertForm({...expertForm, contact: e.target.value})}
-                  className="w-full bg-[#374151] text-white border-none rounded-lg px-4 py-3 focus:ring-2 focus:ring-green-500 outline-none placeholder-gray-400"
+                  className="w-full bg-gray-50 border border-gray-300 text-gray-900 rounded-lg px-4 py-3 focus:ring-2 focus:ring-green-500 outline-none placeholder-gray-500"
                 />
               </div>
               <div>
@@ -1130,7 +928,7 @@ export const AgriModule: React.FC<Props> = ({ isBangla, user, onLogin }) => {
                   required
                   value={expertForm.address}
                   onChange={e => setExpertForm({...expertForm, address: e.target.value})}
-                  className="w-full bg-[#374151] text-white border-none rounded-lg px-4 py-3 focus:ring-2 focus:ring-green-500 outline-none placeholder-gray-400"
+                  className="w-full bg-gray-50 border border-gray-300 text-gray-900 rounded-lg px-4 py-3 focus:ring-2 focus:ring-green-500 outline-none placeholder-gray-500"
                 />
               </div>
               <div>
@@ -1140,7 +938,7 @@ export const AgriModule: React.FC<Props> = ({ isBangla, user, onLogin }) => {
                   rows={4}
                   value={expertForm.message}
                   onChange={e => setExpertForm({...expertForm, message: e.target.value})}
-                  className="w-full bg-[#374151] text-white border-none rounded-lg px-4 py-3 focus:ring-2 focus:ring-green-500 outline-none resize-none placeholder-gray-400"
+                  className="w-full bg-gray-50 border border-gray-300 text-gray-900 rounded-lg px-4 py-3 focus:ring-2 focus:ring-green-500 outline-none resize-none placeholder-gray-500"
                 ></textarea>
               </div>
               <Button type="submit" className="w-full mt-2 bg-[#22c55e] hover:bg-green-700 text-white font-bold py-3 rounded-lg text-lg">
@@ -1154,76 +952,30 @@ export const AgriModule: React.FC<Props> = ({ isBangla, user, onLogin }) => {
       {showPostModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-md animate-fade-in" onClick={() => setShowPostModal(false)}>
           <div className="bg-white w-full max-w-lg rounded-3xl shadow-2xl overflow-hidden animate-fade-in-up transform transition-all" onClick={e => e.stopPropagation()}>
-            {/* Header */}
             <div className="px-6 py-4 border-b border-gray-100 flex justify-between items-center bg-white sticky top-0 z-10">
               <h3 className="font-bold text-xl text-gray-900">{isBangla ? 'নতুন পোস্ট লিখুন' : 'Create New Post'}</h3>
-              <button 
-                onClick={() => setShowPostModal(false)} 
-                className="text-gray-400 hover:text-gray-600 hover:bg-gray-100 p-2 rounded-full transition-all"
-              >
-                <X size={24}/>
-              </button>
+              <button onClick={() => setShowPostModal(false)} className="text-gray-400 hover:text-gray-600 hover:bg-gray-100 p-2 rounded-full transition-all"><X size={24}/></button>
             </div>
-            
             <form onSubmit={handleCreatePost} className="p-6">
-              {/* User Info (Optional enhancement for 'social' feel) */}
               <div className="flex items-center gap-3 mb-4">
-                 <div className="w-10 h-10 bg-brand-100 rounded-full flex items-center justify-center text-brand-700 font-bold">
-                   {user ? user.name.charAt(0) : (isBangla ? 'আ' : 'U')}
-                 </div>
-                 <div>
-                   <p className="text-sm font-bold text-gray-900">{user ? user.name : (isBangla ? 'আমি' : 'Me')}</p>
-                   <p className="text-xs text-gray-500 bg-gray-100 px-2 py-0.5 rounded-full w-fit">{user ? user.role : 'Farmer'}</p>
-                 </div>
+                 <div className="w-10 h-10 bg-brand-100 rounded-full flex items-center justify-center text-brand-700 font-bold">{user ? user.name.charAt(0) : (isBangla ? 'আ' : 'U')}</div>
+                 <div><p className="text-sm font-bold text-gray-900">{user ? user.name : (isBangla ? 'আমি' : 'Me')}</p><p className="text-xs text-gray-500 bg-gray-100 px-2 py-0.5 rounded-full w-fit">{user ? user.role : 'Farmer'}</p></div>
               </div>
-
-              <textarea 
-                placeholder={isBangla ? 'আপনার প্রশ্ন বা অভিজ্ঞতা বিস্তারিত লিখুন...' : 'Write your question or experience in detail...'}
-                className="w-full h-40 p-4 border border-gray-200 rounded-2xl focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 outline-none resize-none text-base mb-4 bg-gray-50 focus:bg-white text-gray-900 placeholder-gray-400 transition-all"
-                value={newPostText}
-                onChange={(e) => setNewPostText(e.target.value)}
-                autoFocus
-              ></textarea>
-              
+              <textarea placeholder={isBangla ? 'আপনার প্রশ্ন বা অভিজ্ঞতা বিস্তারিত লিখুন...' : 'Write your question or experience in detail...'} className="w-full h-40 p-4 border border-gray-200 rounded-2xl focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 outline-none resize-none text-base mb-4 bg-gray-50 focus:bg-white text-gray-900 placeholder-gray-400 transition-all" value={newPostText} onChange={(e) => setNewPostText(e.target.value)} autoFocus></textarea>
               {newPostImage && (
                 <div className="relative mb-4 rounded-xl overflow-hidden border border-gray-200 group">
                   <img src={newPostImage} alt="Preview" className="w-full h-48 object-cover" />
-                  <button 
-                    type="button"
-                    onClick={() => setNewPostImage(null)}
-                    className="absolute top-2 right-2 bg-black/60 text-white p-1.5 rounded-full hover:bg-red-500 transition-colors opacity-0 group-hover:opacity-100"
-                  >
-                    <X size={16} />
-                  </button>
+                  <button type="button" onClick={() => setNewPostImage(null)} className="absolute top-2 right-2 bg-black/60 text-white p-1.5 rounded-full hover:bg-red-500 transition-colors opacity-0 group-hover:opacity-100"><X size={16} /></button>
                 </div>
               )}
-
               <div className="flex justify-between items-center pt-2 border-t border-gray-50">
-                <input 
-                  type="file" 
-                  accept="image/*" 
-                  ref={fileInputRef} 
-                  className="hidden" 
-                  onChange={handleImageUpload}
-                />
-                <button 
-                  type="button"
-                  onClick={() => fileInputRef.current?.click()}
-                  className="flex items-center gap-2 text-gray-600 hover:text-brand-700 hover:bg-brand-50 px-4 py-2.5 rounded-xl transition-colors font-medium text-sm group"
-                >
-                  <div className="p-1.5 bg-green-50 text-green-600 rounded-lg group-hover:bg-green-100 transition-colors">
-                    <ImageIcon size={20} />
-                  </div>
+                <input type="file" accept="image/*" ref={fileInputRef} className="hidden" onChange={handleImageUpload} />
+                <button type="button" onClick={() => fileInputRef.current?.click()} className="flex items-center gap-2 text-gray-600 hover:text-brand-700 hover:bg-brand-50 px-4 py-2.5 rounded-xl transition-colors font-medium text-sm group">
+                  <div className="p-1.5 bg-green-50 text-green-600 rounded-lg group-hover:bg-green-100 transition-colors"><ImageIcon size={20} /></div>
                   {isBangla ? 'ছবি / ভিডিও' : 'Photo / Video'}
                 </button>
-                
-                <Button 
-                  type="submit" 
-                  disabled={!newPostText.trim() && !newPostImage}
-                  className="rounded-xl px-8 shadow-lg shadow-brand-200 disabled:opacity-50 disabled:shadow-none"
-                >
-                  <Send size={18} className="mr-2" />
-                  {isBangla ? 'পোস্ট করুন' : 'Post'}
+                <Button type="submit" disabled={!newPostText.trim() && !newPostImage} className="rounded-xl px-8 shadow-lg shadow-brand-200 disabled:opacity-50 disabled:shadow-none">
+                  <Send size={18} className="mr-2" />{isBangla ? 'পোস্ট করুন' : 'Post'}
                 </Button>
               </div>
             </form>

@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Globe, Plane, DollarSign, FileText, TrendingUp, RefreshCw, Briefcase, Landmark } from 'lucide-react';
 import { Button } from '../ui/Button';
@@ -110,12 +109,22 @@ export const ExpatModule: React.FC<Props> = ({ isBangla }) => {
                 <div className="space-y-4">
                   <div>
                     <label className="block text-sm font-bold text-gray-700 mb-2">{isBangla ? 'পরিমাণ' : 'Amount'}</label>
-                    <input type="number" value={amount} onChange={(e) => setAmount(e.target.value)} className="w-full p-3 rounded-xl border border-gray-300 focus:ring-2 focus:ring-cyan-500 outline-none" placeholder="1000" />
+                    <input 
+                      type="number" 
+                      value={amount} 
+                      onChange={(e) => setAmount(e.target.value)} 
+                      className="w-full p-3 rounded-xl border border-gray-300 bg-white text-gray-900 focus:ring-2 focus:ring-cyan-500 outline-none placeholder-gray-400" 
+                      placeholder="1000" 
+                    />
                   </div>
                   
                   <div>
                     <label className="block text-sm font-bold text-gray-700 mb-2">{isBangla ? 'মুদ্রা' : 'Currency'}</label>
-                    <select value={currency} onChange={(e) => setCurrency(e.target.value)} className="w-full p-3 rounded-xl border border-gray-300 focus:ring-2 focus:ring-cyan-500 outline-none">
+                    <select 
+                      value={currency} 
+                      onChange={(e) => setCurrency(e.target.value)} 
+                      className="w-full p-3 rounded-xl border border-gray-300 bg-white text-gray-900 focus:ring-2 focus:ring-cyan-500 outline-none cursor-pointer"
+                    >
                       {exchangeRates.map((r: any) => <option key={r.currency} value={r.currency}>{r.currency}</option>)}
                     </select>
                   </div>
@@ -125,7 +134,7 @@ export const ExpatModule: React.FC<Props> = ({ isBangla }) => {
                   </Button>
 
                   {converted && (
-                    <div className="mt-6 text-center p-4 bg-white rounded-xl shadow-sm">
+                    <div className="mt-6 text-center p-4 bg-white rounded-xl shadow-sm border border-cyan-100">
                       <p className="text-gray-500 text-xs font-bold uppercase mb-1">{isBangla ? 'সমপরিমাণ টাকা' : 'Equivalent BDT'}</p>
                       <p className="text-3xl font-black text-cyan-700">৳ {converted}</p>
                       <p className="text-xs text-green-600 mt-2 font-bold">+2.5% {isBangla ? 'সরকারি প্রণোদনা সহ' : 'Govt Incentive included'}</p>

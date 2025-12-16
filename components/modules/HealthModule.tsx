@@ -9,6 +9,7 @@ import {
 } from 'lucide-react';
 import { Button } from '../ui/Button';
 import { getOptimizedImageUrl } from '../utils/imageUtils';
+import { useData } from '../../contexts/DataContext'; // Import useData
 
 interface Props {
   isBangla: boolean;
@@ -201,16 +202,8 @@ const SCHEMES = [
 const BLOOD_GROUPS = ['A+', 'A-', 'B+', 'B-', 'O+', 'O-', 'AB+', 'AB-'];
 const DISTRICT_LIST = ['Dhaka', 'Chittagong', 'Sylhet', 'Rajshahi', 'Khulna', 'Barisal', 'Rangpur', 'Mymensingh', 'Comilla', 'Feni', 'Bogra', 'Jessore'];
 
-const INITIAL_DONORS = [
-  { id: 1, name: 'Rahim Ahmed', group: 'A+', district: 'Dhaka', phone: '01712-345678', lastDonation: '2 months ago' },
-  { id: 2, name: 'Karim Ullah', group: 'B+', district: 'Chittagong', phone: '01812-345678', lastDonation: '4 months ago' },
-  { id: 3, name: 'Sumaia Akter', group: 'O+', district: 'Dhaka', phone: '01912-345678', lastDonation: '1 month ago' },
-  { id: 4, name: 'Biplob Das', group: 'AB-', district: 'Sylhet', phone: '01711-223344', lastDonation: 'New Donor' },
-  { id: 5, name: 'Nusrat Jahan', group: 'A-', district: 'Rajshahi', phone: '01611-223344', lastDonation: '3 months ago' },
-  { id: 6, name: 'Abdul Malek', group: 'B-', district: 'Comilla', phone: '01511-223344', lastDonation: '5 months ago' },
-];
-
 export const HealthModule: React.FC<Props> = ({ isBangla }) => {
+  const { donors, addDonor } = useData(); // Use Global Data
   const [activeTab, setActiveTab] = useState<Tab>('diseases');
   const [selectedWeek, setSelectedWeek] = useState(8);
   const [selectedDisease, setSelectedDisease] = useState<number | null>(null);
@@ -234,7 +227,6 @@ export const HealthModule: React.FC<Props> = ({ isBangla }) => {
   });
 
   // --- BLOOD BANK STATE ---
-  const [donors, setDonors] = useState(INITIAL_DONORS);
   const [filterDistrict, setFilterDistrict] = useState('All');
   const [filterGroup, setFilterGroup] = useState('All');
   const [newDonor, setNewDonor] = useState({ name: '', phone: '', district: 'Dhaka', group: 'A+' });
@@ -354,14 +346,14 @@ export const HealthModule: React.FC<Props> = ({ isBangla }) => {
   const handleDonorSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (newDonor.name && newDonor.phone) {
-      setDonors(prev => [{
+      addDonor({
         id: Date.now(),
         name: newDonor.name,
         phone: newDonor.phone,
         district: newDonor.district,
         group: newDonor.group,
         lastDonation: isBangla ? 'নতুন দাতা' : 'New Donor'
-      }, ...prev]);
+      });
       setActiveModal(null);
       setNewDonor({ name: '', phone: '', district: 'Dhaka', group: 'A+' });
       alert(isBangla ? 'অভিনন্দন! আপনি রক্তদাতা তালিকায় যুক্ত হয়েছেন।' : 'Congratulations! You have been added to the donor list.');

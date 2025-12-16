@@ -253,7 +253,7 @@ const App: React.FC = () => {
               case AppModule.DISASTER: return <DisasterModule isBangla={isBangla} />;
               case AppModule.LEGAL: return <LegalModule isBangla={isBangla} />;
               case AppModule.EXPAT: return <ExpatModule isBangla={isBangla} />;
-              case AppModule.VOCATIONAL: return <VocationalModule isBangla={isBangla} />;
+              case AppModule.VOCATIONAL: return <VocationalModule isBangla={isBangla} user={user} onLogin={navigateToLogin} />;
               case 'LANDING':
               default:
                 return (

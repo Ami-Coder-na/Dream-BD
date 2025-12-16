@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Scale, Ruler, Book, Calculator, CheckCircle } from 'lucide-react';
 import { Button } from '../ui/Button';
@@ -77,11 +76,23 @@ export const LegalModule: React.FC<Props> = ({ isBangla }) => {
                 <div className="space-y-4">
                   <div>
                     <label className="block text-sm font-bold text-gray-700 mb-2">{isBangla ? 'দৈর্ঘ্য (ফুট)' : 'Length (Feet)'}</label>
-                    <input type="number" value={length} onChange={(e) => setLength(e.target.value)} className="w-full p-4 border border-gray-300 rounded-xl focus:ring-2 focus:ring-slate-500 outline-none text-lg" placeholder="Example: 100" />
+                    <input 
+                      type="number" 
+                      value={length} 
+                      onChange={(e) => setLength(e.target.value)} 
+                      className="w-full p-4 border border-gray-300 bg-white text-gray-900 rounded-xl focus:ring-2 focus:ring-slate-500 outline-none text-lg placeholder-gray-400" 
+                      placeholder="Example: 100" 
+                    />
                   </div>
                   <div>
                     <label className="block text-sm font-bold text-gray-700 mb-2">{isBangla ? 'প্রস্থ (ফুট)' : 'Width (Feet)'}</label>
-                    <input type="number" value={width} onChange={(e) => setWidth(e.target.value)} className="w-full p-4 border border-gray-300 rounded-xl focus:ring-2 focus:ring-slate-500 outline-none text-lg" placeholder="Example: 50" />
+                    <input 
+                      type="number" 
+                      value={width} 
+                      onChange={(e) => setWidth(e.target.value)} 
+                      className="w-full p-4 border border-gray-300 bg-white text-gray-900 rounded-xl focus:ring-2 focus:ring-slate-500 outline-none text-lg placeholder-gray-400" 
+                      placeholder="Example: 50" 
+                    />
                   </div>
                   <Button onClick={calculateLand} className="w-full py-4 text-lg bg-slate-700 hover:bg-slate-800 text-white font-bold rounded-xl mt-2">
                     {isBangla ? 'হিসাব করুন' : 'Calculate'}

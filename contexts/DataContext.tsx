@@ -68,6 +68,13 @@ const INITIAL_VOCATIONAL_COURSES = [
   { id: 3, title: 'Electric House Wiring', titleBn: 'ইলেকট্রিক হাউজ ওয়্যারিং', category: 'Electrical', duration: '4 Months', fee: 6000, status: 'Active', image: 'https://images.unsplash.com/photo-1621905251189-08b45d6a269e' }
 ];
 
+const INITIAL_DONORS = [
+  { id: 1, name: 'Rahim Ahmed', group: 'A+', district: 'Dhaka', phone: '01712-345678', lastDonation: '2 months ago' },
+  { id: 2, name: 'Karim Ullah', group: 'B+', district: 'Chittagong', phone: '01812-345678', lastDonation: '4 months ago' },
+];
+
+const INITIAL_ENROLLED_COURSES: any[] = [];
+
 // --- CONTEXT SETUP ---
 
 interface DataContextType {
@@ -83,6 +90,8 @@ interface DataContextType {
   lawyers: any[];
   exchangeRates: any[];
   vocationalCourses: any[];
+  donors: any[];
+  enrolledCourses: any[];
 
   addJob: (job: any) => void;
   deleteJob: (id: number) => void;
@@ -112,6 +121,8 @@ interface DataContextType {
   updateExchangeRates: (rates: any[]) => void;
   addVocationalCourse: (course: any) => void;
   deleteVocationalCourse: (id: number) => void;
+  addDonor: (donor: any) => void;
+  enrollCourse: (enrollment: any) => void;
   
   refreshData: () => void;
 }
@@ -170,6 +181,16 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const [vocationalCourses, setVocationalCourses] = useState(() => {
     const saved = localStorage.getItem('db_vocational');
     return saved ? JSON.parse(saved) : INITIAL_VOCATIONAL_COURSES;
+  });
+
+  const [donors, setDonors] = useState(() => {
+    const saved = localStorage.getItem('db_donors');
+    return saved ? JSON.parse(saved) : INITIAL_DONORS;
+  });
+
+  const [enrolledCourses, setEnrolledCourses] = useState(() => {
+    const saved = localStorage.getItem('db_enrolled');
+    return saved ? JSON.parse(saved) : INITIAL_ENROLLED_COURSES;
   });
 
   // --- AUTOMATED DATA FETCHING ---
@@ -239,6 +260,8 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   useEffect(() => localStorage.setItem('db_lawyers', JSON.stringify(lawyers)), [lawyers]);
   useEffect(() => localStorage.setItem('db_rates', JSON.stringify(exchangeRates)), [exchangeRates]);
   useEffect(() => localStorage.setItem('db_vocational', JSON.stringify(vocationalCourses)), [vocationalCourses]);
+  useEffect(() => localStorage.setItem('db_donors', JSON.stringify(donors)), [donors]);
+  useEffect(() => localStorage.setItem('db_enrolled', JSON.stringify(enrolledCourses)), [enrolledCourses]);
 
   // --- ACTIONS ---
 
@@ -295,10 +318,13 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const addVocationalCourse = (course: any) => setVocationalCourses([...vocationalCourses, { ...course, id: Date.now(), status: 'Active' }]);
   const deleteVocationalCourse = (id: number) => setVocationalCourses(vocationalCourses.filter((c: any) => c.id !== id));
 
+  const addDonor = (donor: any) => setDonors([donor, ...donors]);
+  const enrollCourse = (enrollment: any) => setEnrolledCourses([enrollment, ...enrolledCourses]);
+
   return (
     <DataContext.Provider value={{ 
       jobs, blogs, requests, grievances, users, marketPrices, retailProducts, wholesaleAds,
-      lawyers, exchangeRates, vocationalCourses,
+      lawyers, exchangeRates, vocationalCourses, donors, enrolledCourses,
       addJob, deleteJob, updateJob,
       addBlog, deleteBlog, updateBlog,
       addRequest, handleRequestAction,
@@ -308,6 +334,7 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       addRetailProduct, updateRetailProduct, deleteRetailProduct,
       addWholesaleAd, updateWholesaleAd, deleteWholesaleAd,
       addLawyer, deleteLawyer, updateExchangeRates, addVocationalCourse, deleteVocationalCourse,
+      addDonor, enrollCourse,
       refreshData
     }}>
       {children}
