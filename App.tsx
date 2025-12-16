@@ -93,6 +93,14 @@ const App: React.FC = () => {
     }
   ]);
 
+  // Handle URL routing for Admin module
+  useEffect(() => {
+    const path = window.location.pathname;
+    if (path === '/adminrm') {
+      setActiveModule(AppModule.ADMIN);
+    }
+  }, []);
+
   // Simulate incoming notification
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -143,10 +151,18 @@ const App: React.FC = () => {
   // Module Selection Handler
   const handleModuleSelect = (module: AppModule) => {
     setActiveModule(module);
+    
+    // Update URL if switching to admin, or reset to root otherwise
+    if (module === AppModule.ADMIN) {
+      window.history.pushState({}, '', '/adminrm');
+    } else {
+      window.history.pushState({}, '', '/');
+    }
   };
 
   const handleNavigateHome = () => {
     setActiveModule('LANDING');
+    window.history.pushState({}, '', '/');
   };
 
   const handleOpenAiChat = () => {
