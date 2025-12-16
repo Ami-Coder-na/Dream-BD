@@ -7,7 +7,7 @@ import {
   Star, User, Calendar, X, Filter, ChevronDown, Book, Eye,
   CheckCircle, Lock, Play, ArrowLeft, RefreshCw, List, 
   HelpCircle, Puzzle, Gamepad2, Timer, Globe, TrendingUp, DollarSign, ArrowRight,
-  Flag, Map, Feather, History
+  Flag, Map, Feather, History, Clock
 } from 'lucide-react';
 import { Button } from '../ui/Button';
 import { getOptimizedImageUrl } from '../utils/imageUtils';
@@ -317,4 +317,323 @@ export const EduModule: React.FC<Props> = ({ isBangla, user }) => {
             <div className="w-24 h-24 bg-yellow-100 rounded-full flex items-center justify-center mx-auto mb-6">
               <Trophy size={48} className="text-yellow-600" />
             </div>
-            <h2 className="text-3xl font-bold text-gray-900 mb-2">{isBangla ?
+            <h2 className="text-3xl font-bold text-gray-900 mb-2">{isBangla ? 'অভিনন্দন!' : 'Congratulations!'}</h2>
+            <p className="text-xl text-gray-600 mb-6">
+              {isBangla ? `আপনার স্কোর: ${quizScore} / ${quiz.questions.length}` : `Your Score: ${quizScore} / ${quiz.questions.length}`}
+            </p>
+            <div className="flex gap-4 justify-center">
+              <Button onClick={() => setInteractiveMode('menu')} variant="outline">{isBangla ? 'মেনুতে ফিরে যান' : 'Back to Menu'}</Button>
+              <Button onClick={() => startQuiz(quiz.id)}>{isBangla ? 'আবার খেলুন' : 'Play Again'}</Button>
+            </div>
+          </div>
+        );
+
+        const currentQ = quiz.questions[currentQuestionIdx];
+
+        return (
+          <div className="max-w-2xl mx-auto animate-fade-in">
+             <div className="mb-6 flex justify-between items-center">
+               <button onClick={() => setInteractiveMode('menu')} className="text-gray-500 hover:text-gray-900 flex items-center gap-1">
+                 <ArrowLeft size={18} /> {isBangla ? 'ফিরে যান' : 'Back'}
+               </button>
+               <span className="text-sm font-bold bg-gray-100 px-3 py-1 rounded-full text-gray-600">
+                 {currentQuestionIdx + 1} / {quiz.questions.length}
+               </span>
+             </div>
+
+             <div className="bg-white rounded-3xl shadow-xl p-8 border border-gray-100 relative overflow-hidden">
+                <div className="h-2 bg-gray-100 absolute top-0 left-0 right-0">
+                   <div className="h-full bg-blue-600 transition-all duration-300" style={{ width: `${((currentQuestionIdx + 1) / quiz.questions.length) * 100}%` }}></div>
+                </div>
+                
+                <h3 className="text-xl font-bold text-gray-900 mb-8 mt-2 leading-relaxed">
+                  {isBangla ? currentQ.qBn : currentQ.qEn}
+                </h3>
+
+                <div className="space-y-3">
+                  {(isBangla ? currentQ.optionsBn : currentQ.optionsEn).map((opt, idx) => {
+                    let btnClass = "w-full p-4 rounded-xl border-2 text-left font-medium transition-all flex justify-between items-center ";
+                    if (isAnswerChecked) {
+                       if (idx === currentQ.correct) btnClass += "bg-green-50 border-green-500 text-green-700";
+                       else if (idx === selectedOption) btnClass += "bg-red-50 border-red-500 text-red-700";
+                       else btnClass += "bg-gray-50 border-gray-200 text-gray-400";
+                    } else {
+                       btnClass += "bg-white border-gray-200 hover:border-blue-500 hover:bg-blue-50 text-gray-700";
+                    }
+
+                    return (
+                      <button 
+                        key={idx} 
+                        onClick={() => handleAnswerClick(idx, currentQ.correct)}
+                        disabled={isAnswerChecked}
+                        className={btnClass}
+                      >
+                        <span>{opt}</span>
+                        {isAnswerChecked && idx === currentQ.correct && <CheckCircle size={20} className="text-green-600" />}
+                        {isAnswerChecked && idx === selectedOption && idx !== currentQ.correct && <X size={20} className="text-red-600" />}
+                      </button>
+                    );
+                  })}
+                </div>
+
+                {isAnswerChecked && (
+                  <div className="mt-8 flex justify-end animate-fade-in-up">
+                    <Button onClick={handleNextQuestion} size="lg" className="px-8">
+                      {currentQuestionIdx < quiz.questions.length - 1 ? (isBangla ? 'পরবর্তী' : 'Next') : (isBangla ? 'ফলাফল' : 'Finish')} <ArrowRight size={18} className="ml-2" />
+                    </Button>
+                  </div>
+                )}
+             </div>
+          </div>
+        );
+    }
+    return null;
+  };
+
+  const renderCareer = () => {
+    return (
+      <div className="animate-fade-in">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+           {/* Sidebar List */}
+           <div className="lg:col-span-1 space-y-4">
+              <h3 className="text-lg font-bold text-gray-900 mb-4">{isBangla ? 'জনপ্রিয় ক্যারিয়ার পথ' : 'Popular Career Paths'}</h3>
+              {CAREER_PATHS.map(career => (
+                <div 
+                  key={career.id}
+                  onClick={() => setSelectedCareer(career)}
+                  className={`p-4 rounded-xl cursor-pointer border transition-all flex items-center gap-4 ${
+                    selectedCareer?.id === career.id 
+                      ? 'bg-blue-50 border-blue-500 shadow-sm' 
+                      : 'bg-white border-gray-100 hover:border-blue-200 hover:bg-gray-50'
+                  }`}
+                >
+                   <div className={`p-2 rounded-lg ${selectedCareer?.id === career.id ? 'bg-white text-blue-600' : 'bg-gray-100 text-gray-600'}`}>
+                     {career.icon}
+                   </div>
+                   <div>
+                     <h4 className={`font-bold text-sm ${selectedCareer?.id === career.id ? 'text-blue-800' : 'text-gray-800'}`}>
+                       {isBangla ? career.titleBn : career.titleEn}
+                     </h4>
+                   </div>
+                   <ChevronRight size={16} className={`ml-auto ${selectedCareer?.id === career.id ? 'text-blue-500' : 'text-gray-300'}`} />
+                </div>
+              ))}
+           </div>
+
+           {/* Details Panel */}
+           <div className="lg:col-span-2">
+              {selectedCareer ? (
+                <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 md:p-8 animate-fade-in">
+                   <div className="flex items-start gap-4 mb-6 pb-6 border-b border-gray-100">
+                      <div className="p-3 bg-blue-100 rounded-xl text-blue-600">
+                        {selectedCareer.icon}
+                      </div>
+                      <div>
+                        <h2 className="text-2xl font-bold text-gray-900">{isBangla ? selectedCareer.titleBn : selectedCareer.titleEn}</h2>
+                        <p className="text-gray-600 mt-1">{isBangla ? selectedCareer.descBn : selectedCareer.descEn}</p>
+                      </div>
+                   </div>
+
+                   {/* Roadmap */}
+                   <div className="mb-8">
+                      <h4 className="text-sm font-bold text-gray-400 uppercase tracking-wider mb-4 flex items-center gap-2">
+                        <Map size={16} /> {isBangla ? 'রোডম্যাপ' : 'Roadmap'}
+                      </h4>
+                      <div className="space-y-0">
+                        {selectedCareer.roadmap.map((step, i) => (
+                          <div key={i} className="flex gap-4 relative">
+                             {/* Connector Line */}
+                             {i !== selectedCareer.roadmap.length - 1 && (
+                               <div className="absolute left-[15px] top-8 bottom-0 w-0.5 bg-gray-200"></div>
+                             )}
+                             <div className="w-8 h-8 rounded-full bg-blue-600 text-white flex items-center justify-center font-bold text-sm shrink-0 z-10 ring-4 ring-white">
+                               {i + 1}
+                             </div>
+                             <div className="pb-6">
+                               <p className="font-bold text-gray-800">{isBangla ? step.stepBn : step.stepEn}</p>
+                             </div>
+                          </div>
+                        ))}
+                      </div>
+                   </div>
+
+                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      <div className="bg-green-50 p-5 rounded-xl border border-green-100">
+                         <h4 className="text-green-800 font-bold mb-3 flex items-center gap-2"><DollarSign size={16}/> {isBangla ? 'বেতন পরিসীমা' : 'Salary Range'}</h4>
+                         <div className="space-y-2 text-sm">
+                            <div className="flex justify-between"><span>Entry</span> <span className="font-bold">{selectedCareer.salary.entry}</span></div>
+                            <div className="flex justify-between"><span>Mid</span> <span className="font-bold">{selectedCareer.salary.mid}</span></div>
+                            <div className="flex justify-between"><span>Senior</span> <span className="font-bold">{selectedCareer.salary.senior}</span></div>
+                         </div>
+                      </div>
+                      <div className="bg-purple-50 p-5 rounded-xl border border-purple-100">
+                         <h4 className="text-purple-800 font-bold mb-3 flex items-center gap-2"><BrainCircuit size={16}/> {isBangla ? 'প্রয়োজনীয় দক্ষতা' : 'Key Skills'}</h4>
+                         <div className="flex flex-wrap gap-2">
+                            {(isBangla ? selectedCareer.skillsBn : selectedCareer.skillsEn).map((skill, i) => (
+                              <span key={i} className="bg-white px-2 py-1 rounded text-xs font-medium text-purple-700 border border-purple-100 shadow-sm">{skill}</span>
+                            ))}
+                         </div>
+                      </div>
+                   </div>
+                </div>
+              ) : (
+                <div className="h-full flex flex-col items-center justify-center text-center text-gray-400 min-h-[300px] border-2 border-dashed border-gray-200 rounded-2xl">
+                   <Target size={48} className="mb-4 opacity-50" />
+                   <p>{isBangla ? 'বাম পাশ থেকে একটি পেশা নির্বাচন করুন' : 'Select a career path from the left'}</p>
+                </div>
+              )}
+           </div>
+        </div>
+      </div>
+    );
+  };
+
+  const renderLibrary = () => {
+    return (
+      <div className="animate-fade-in space-y-8">
+         <div className="flex flex-col md:flex-row justify-between items-center gap-4">
+            <h2 className="text-2xl font-bold text-gray-900">{isBangla ? 'ই-লাইব্রেরি' : 'E-Library'}</h2>
+            <div className="flex gap-2">
+               <select 
+                 className="bg-white border border-gray-200 text-sm rounded-lg p-2.5 focus:ring-blue-500 focus:border-blue-500"
+                 onChange={(e) => setLibraryCategory(e.target.value)}
+                 value={libraryCategory}
+               >
+                 <option value="All">{isBangla ? 'সব ক্যাটাগরি' : 'All Categories'}</option>
+                 <option value="Primary">{isBangla ? 'প্রাথমিক' : 'Primary'}</option>
+                 <option value="Secondary">{isBangla ? 'মাধ্যমিক' : 'Secondary'}</option>
+                 <option value="Skill Dev">{isBangla ? 'দক্ষতা উন্নয়ন' : 'Skill Dev'}</option>
+               </select>
+            </div>
+         </div>
+
+         <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-6">
+            {filteredBooks.slice(0, visibleCount).map(book => (
+              <div key={book.id} className="group cursor-pointer">
+                 <div className="aspect-[2/3] bg-gray-100 rounded-xl overflow-hidden mb-3 relative shadow-md group-hover:shadow-xl transition-all">
+                    <img src={book.image} alt={book.titleEn} className="w-full h-full object-cover" />
+                    <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                       <Button size="sm" className="bg-white text-black hover:bg-gray-100 rounded-full">{isBangla ? 'পড়ুন' : 'Read'}</Button>
+                    </div>
+                 </div>
+                 <h4 className="font-bold text-gray-900 text-sm leading-tight mb-1 group-hover:text-blue-600 transition-colors line-clamp-2">
+                   {isBangla ? book.titleBn : book.titleEn}
+                 </h4>
+                 <p className="text-xs text-gray-500">{book.author}</p>
+              </div>
+            ))}
+         </div>
+      </div>
+    );
+  };
+
+  const renderSkills = () => {
+    return (
+      <div className="animate-fade-in space-y-8">
+         <div className="text-center mb-8">
+            <h2 className="text-2xl font-bold text-gray-900 mb-2">{isBangla ? 'দক্ষতা উন্নয়ন কোর্স' : 'Skill Development Courses'}</h2>
+            <p className="text-gray-500">{isBangla ? 'নিজেকে দক্ষ করে তুলুন এবং স্বাবলম্বী হোন' : 'Upskill yourself and become self-reliant'}</p>
+         </div>
+
+         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            {SKILL_COURSES.map(course => (
+              <div key={course.id} className="bg-white rounded-2xl overflow-hidden shadow-sm border border-gray-100 hover:shadow-lg transition-all group flex flex-col">
+                 <div className="relative h-48 overflow-hidden">
+                    <img src={course.image} alt={course.titleEn} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" />
+                    <div className="absolute top-3 right-3 bg-white/90 backdrop-blur px-2 py-1 rounded text-xs font-bold shadow-sm">
+                       {course.type}
+                    </div>
+                 </div>
+                 <div className="p-5 flex-1 flex flex-col">
+                    <span className="text-xs font-bold text-blue-600 bg-blue-50 px-2 py-0.5 rounded w-fit mb-2">{course.category}</span>
+                    <h3 className="text-lg font-bold text-gray-900 mb-2">{isBangla ? course.titleBn : course.titleEn}</h3>
+                    <p className="text-sm text-gray-500 mb-4 flex-1">{isBangla ? course.descBn : course.descEn}</p>
+                    
+                    <div className="flex items-center justify-between pt-4 border-t border-gray-50 mt-auto">
+                       <div className="text-xs font-medium text-gray-500 flex items-center gap-1">
+                          <Clock size={14}/> {course.duration}
+                       </div>
+                       <Button size="sm" variant="outline" className="text-xs">{isBangla ? 'বিস্তারিত' : 'Details'}</Button>
+                    </div>
+                 </div>
+              </div>
+            ))}
+         </div>
+      </div>
+    );
+  };
+
+  return (
+    <div className="bg-white min-h-screen py-12 px-4 sm:px-6 lg:px-8">
+      <div className="max-w-7xl mx-auto">
+        
+        {/* Header */}
+        <div className="text-center mb-12">
+          <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-blue-100 text-blue-700 text-sm font-bold mb-4">
+            <GraduationCap size={16} />
+            {isBangla ? 'শিক্ষা ও দক্ষতা' : 'Education & Skills'}
+          </div>
+          <h1 className="text-4xl font-bold text-gray-900 mb-4">
+            {isBangla ? 'শিখুন, জানুন, এবং এগিয়ে যান' : 'Learn, Grow, and Advance'}
+          </h1>
+          <p className="text-gray-500 max-w-2xl mx-auto">
+            {isBangla 
+              ? 'একাডেমিক পড়াশোনা থেকে শুরু করে দক্ষতা উন্নয়ন এবং ক্যারিয়ার গাইডলাইন - সব এক ছাদের নিচে।' 
+              : 'From academic studies to skill development and career guidelines - all under one roof.'}
+          </p>
+        </div>
+
+        {/* Navigation Tabs */}
+        <div className="flex justify-center mb-12">
+          <div className="bg-gray-100 p-1.5 rounded-2xl flex flex-wrap justify-center gap-1">
+            <button 
+              onClick={() => { setActiveTab('library'); setInteractiveMode('menu'); }}
+              className={`px-5 py-2.5 rounded-xl text-sm font-bold transition-all flex items-center gap-2 ${
+                activeTab === 'library' ? 'bg-white text-blue-600 shadow-md' : 'text-gray-600 hover:bg-gray-200'
+              }`}
+            >
+              <Library size={16} />
+              {isBangla ? 'লাইব্রেরি' : 'Library'}
+            </button>
+            <button 
+              onClick={() => { setActiveTab('skills'); setInteractiveMode('menu'); }}
+              className={`px-5 py-2.5 rounded-xl text-sm font-bold transition-all flex items-center gap-2 ${
+                activeTab === 'skills' ? 'bg-white text-purple-600 shadow-md' : 'text-gray-600 hover:bg-gray-200'
+              }`}
+            >
+              <Laptop size={16} />
+              {isBangla ? 'স্কিলস' : 'Skills'}
+            </button>
+            <button 
+              onClick={() => { setActiveTab('interactive'); setInteractiveMode('menu'); }}
+              className={`px-5 py-2.5 rounded-xl text-sm font-bold transition-all flex items-center gap-2 ${
+                activeTab === 'interactive' ? 'bg-white text-green-600 shadow-md' : 'text-gray-600 hover:bg-gray-200'
+              }`}
+            >
+              <Gamepad2 size={16} />
+              {isBangla ? 'কুইজ' : 'Quiz'}
+            </button>
+            <button 
+              onClick={() => { setActiveTab('career'); setInteractiveMode('menu'); }}
+              className={`px-5 py-2.5 rounded-xl text-sm font-bold transition-all flex items-center gap-2 ${
+                activeTab === 'career' ? 'bg-white text-orange-600 shadow-md' : 'text-gray-600 hover:bg-gray-200'
+              }`}
+            >
+              <Briefcase size={16} />
+              {isBangla ? 'ক্যারিয়ার' : 'Career'}
+            </button>
+          </div>
+        </div>
+
+        {/* Content Area */}
+        <div className="min-h-[400px]">
+          {activeTab === 'library' && renderLibrary()}
+          {activeTab === 'skills' && renderSkills()}
+          {activeTab === 'interactive' && renderInteractive()}
+          {activeTab === 'career' && renderCareer()}
+        </div>
+
+      </div>
+    </div>
+  );
+};
