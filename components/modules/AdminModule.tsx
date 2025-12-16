@@ -61,6 +61,17 @@ export const AdminModule: React.FC<Props> = ({ isBangla, onExit }) => {
 
   const renderOverview = () => (
     <div className="space-y-6 animate-fade-in">
+      {/* Disclaimer Banner */}
+      <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 flex items-start gap-3 text-amber-800">
+         <AlertTriangle className="shrink-0 mt-0.5" size={20} />
+         <div>
+           <p className="font-bold text-sm">Demo Mode Active</p>
+           <p className="text-xs mt-1">
+             Changes made here are saved to your browser's local storage. They will persist on this device but will NOT sync to other users or devices in this demo environment.
+           </p>
+         </div>
+      </div>
+
       {/* Top Stats Row */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         {/* Users */}

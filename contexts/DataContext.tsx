@@ -129,72 +129,32 @@ interface DataContextType {
 
 const DataContext = createContext<DataContextType | undefined>(undefined);
 
+// Helper to safely parse JSON
+const safeParse = (key: string, fallback: any) => {
+  try {
+    const saved = localStorage.getItem(key);
+    return saved ? JSON.parse(saved) : fallback;
+  } catch (error) {
+    console.error(`Error parsing ${key} from localStorage`, error);
+    return fallback;
+  }
+};
+
 export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
-  const [jobs, setJobs] = useState(() => {
-    const saved = localStorage.getItem('db_jobs');
-    return saved ? JSON.parse(saved) : INITIAL_JOBS;
-  });
-
-  const [blogs, setBlogs] = useState(() => {
-    const saved = localStorage.getItem('db_blogs');
-    return saved ? JSON.parse(saved) : INITIAL_BLOGS;
-  });
-
-  const [requests, setRequests] = useState(() => {
-    const saved = localStorage.getItem('db_requests');
-    return saved ? JSON.parse(saved) : INITIAL_REQUESTS;
-  });
-
-  const [grievances, setGrievances] = useState(() => {
-    const saved = localStorage.getItem('db_grievances');
-    return saved ? JSON.parse(saved) : INITIAL_GRIEVANCES;
-  });
-
-  const [users, setUsers] = useState(() => {
-    const saved = localStorage.getItem('db_users');
-    return saved ? JSON.parse(saved) : INITIAL_USERS;
-  });
-
-  const [marketPrices, setMarketPrices] = useState<any[]>(() => {
-    const saved = localStorage.getItem('db_market');
-    return saved ? JSON.parse(saved) : BASE_MARKET_PRICES;
-  });
-
-  const [retailProducts, setRetailProducts] = useState(() => {
-    const saved = localStorage.getItem('db_retail');
-    return saved ? JSON.parse(saved) : INITIAL_RETAIL_PRODUCTS;
-  });
-
-  const [wholesaleAds, setWholesaleAds] = useState(() => {
-    const saved = localStorage.getItem('db_wholesale');
-    return saved ? JSON.parse(saved) : INITIAL_WHOLESALE_ADS;
-  });
-
-  // New State
-  const [lawyers, setLawyers] = useState(() => {
-    const saved = localStorage.getItem('db_lawyers');
-    return saved ? JSON.parse(saved) : INITIAL_LAWYERS;
-  });
-
-  const [exchangeRates, setExchangeRates] = useState(() => {
-    const saved = localStorage.getItem('db_rates');
-    return saved ? JSON.parse(saved) : INITIAL_EXCHANGE_RATES;
-  });
-
-  const [vocationalCourses, setVocationalCourses] = useState(() => {
-    const saved = localStorage.getItem('db_vocational');
-    return saved ? JSON.parse(saved) : INITIAL_VOCATIONAL_COURSES;
-  });
-
-  const [donors, setDonors] = useState(() => {
-    const saved = localStorage.getItem('db_donors');
-    return saved ? JSON.parse(saved) : INITIAL_DONORS;
-  });
-
-  const [enrolledCourses, setEnrolledCourses] = useState(() => {
-    const saved = localStorage.getItem('db_enrolled');
-    return saved ? JSON.parse(saved) : INITIAL_ENROLLED_COURSES;
-  });
+  const [jobs, setJobs] = useState(() => safeParse('db_jobs', INITIAL_JOBS));
+  const [blogs, setBlogs] = useState(() => safeParse('db_blogs', INITIAL_BLOGS));
+  const [requests, setRequests] = useState(() => safeParse('db_requests', INITIAL_REQUESTS));
+  const [grievances, setGrievances] = useState(() => safeParse('db_grievances', INITIAL_GRIEVANCES));
+  const [users, setUsers] = useState(() => safeParse('db_users', INITIAL_USERS));
+  const [marketPrices, setMarketPrices] = useState<any[]>(() => safeParse('db_market', BASE_MARKET_PRICES));
+  const [retailProducts, setRetailProducts] = useState(() => safeParse('db_retail', INITIAL_RETAIL_PRODUCTS));
+  const [wholesaleAds, setWholesaleAds] = useState(() => safeParse('db_wholesale', INITIAL_WHOLESALE_ADS));
+  
+  const [lawyers, setLawyers] = useState(() => safeParse('db_lawyers', INITIAL_LAWYERS));
+  const [exchangeRates, setExchangeRates] = useState(() => safeParse('db_rates', INITIAL_EXCHANGE_RATES));
+  const [vocationalCourses, setVocationalCourses] = useState(() => safeParse('db_vocational', INITIAL_VOCATIONAL_COURSES));
+  const [donors, setDonors] = useState(() => safeParse('db_donors', INITIAL_DONORS));
+  const [enrolledCourses, setEnrolledCourses] = useState(() => safeParse('db_enrolled', INITIAL_ENROLLED_COURSES));
 
   // --- AUTOMATED DATA FETCHING ---
   const fetchLiveNews = async () => {
@@ -222,8 +182,8 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
           link: item.link
         }));
         
-        // Merge with manual blogs, keeping manual blogs first
         setBlogs(prev => {
+           // Filter out existing RSS items to avoid duplicates/stale data, keep manual
            const manualBlogs = prev.filter((b: any) => !b.id.toString().startsWith('news_'));
            return [...manualBlogs, ...fetchedBlogs];
         });
@@ -238,7 +198,6 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   }, []);
 
   // --- PERSISTENCE & REALTIME SYNC ---
-  // Save to LocalStorage whenever state changes
   useEffect(() => localStorage.setItem('db_jobs', JSON.stringify(jobs)), [jobs]);
   useEffect(() => localStorage.setItem('db_blogs', JSON.stringify(blogs)), [blogs]);
   useEffect(() => localStorage.setItem('db_requests', JSON.stringify(requests)), [requests]);
@@ -256,19 +215,24 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   // Real-time synchronization across tabs
   useEffect(() => {
     const handleStorageChange = (e: StorageEvent) => {
-      if (e.key === 'db_jobs') setJobs(JSON.parse(e.newValue || '[]'));
-      if (e.key === 'db_blogs') setBlogs(JSON.parse(e.newValue || '[]'));
-      if (e.key === 'db_requests') setRequests(JSON.parse(e.newValue || '[]'));
-      if (e.key === 'db_grievances') setGrievances(JSON.parse(e.newValue || '[]'));
-      if (e.key === 'db_users') setUsers(JSON.parse(e.newValue || '[]'));
-      if (e.key === 'db_retail') setRetailProducts(JSON.parse(e.newValue || '[]'));
-      if (e.key === 'db_wholesale') setWholesaleAds(JSON.parse(e.newValue || '[]'));
-      if (e.key === 'db_lawyers') setLawyers(JSON.parse(e.newValue || '[]'));
-      if (e.key === 'db_rates') setExchangeRates(JSON.parse(e.newValue || '[]'));
-      if (e.key === 'db_vocational') setVocationalCourses(JSON.parse(e.newValue || '[]'));
-      if (e.key === 'db_donors') setDonors(JSON.parse(e.newValue || '[]'));
-      if (e.key === 'db_enrolled') setEnrolledCourses(JSON.parse(e.newValue || '[]'));
-      if (e.key === 'db_market') setMarketPrices(JSON.parse(e.newValue || '[]'));
+      if (!e.newValue) return; // Ignore clear events or nulls
+      try {
+        if (e.key === 'db_jobs') setJobs(JSON.parse(e.newValue));
+        if (e.key === 'db_blogs') setBlogs(JSON.parse(e.newValue));
+        if (e.key === 'db_requests') setRequests(JSON.parse(e.newValue));
+        if (e.key === 'db_grievances') setGrievances(JSON.parse(e.newValue));
+        if (e.key === 'db_users') setUsers(JSON.parse(e.newValue));
+        if (e.key === 'db_retail') setRetailProducts(JSON.parse(e.newValue));
+        if (e.key === 'db_wholesale') setWholesaleAds(JSON.parse(e.newValue));
+        if (e.key === 'db_lawyers') setLawyers(JSON.parse(e.newValue));
+        if (e.key === 'db_rates') setExchangeRates(JSON.parse(e.newValue));
+        if (e.key === 'db_vocational') setVocationalCourses(JSON.parse(e.newValue));
+        if (e.key === 'db_donors') setDonors(JSON.parse(e.newValue));
+        if (e.key === 'db_enrolled') setEnrolledCourses(JSON.parse(e.newValue));
+        if (e.key === 'db_market') setMarketPrices(JSON.parse(e.newValue));
+      } catch (err) {
+        console.error("Error syncing storage:", err);
+      }
     };
 
     window.addEventListener('storage', handleStorageChange);

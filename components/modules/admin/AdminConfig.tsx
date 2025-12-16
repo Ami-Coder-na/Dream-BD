@@ -15,6 +15,16 @@ interface Props {
 
 type ConfigTab = 'agri' | 'health' | 'edu' | 'transport' | 'disaster' | 'fishery' | 'craft' | 'waste' | 'jela' | 'legal' | 'expat' | 'vocational';
 
+// Helper to convert Bangla numbers to English for proper parsing
+const bnToEn = (str: any) => {
+    if(!str) return 0;
+    const s = str.toString();
+    const numbers = { '০': 0, '১': 1, '২': 2, '৩': 3, '৪': 4, '৫': 5, '৬': 6, '৭': 7, '৮': 8, '৯': 9 };
+    // @ts-ignore
+    const enStr = s.replace(/[০-৯]/g, (match: string) => numbers[match]);
+    return parseFloat(enStr) || parseFloat(s) || 0;
+};
+
 export const AdminConfig: React.FC<Props> = ({ isBangla }) => {
   const { 
     marketPrices, updateMarketPrices,
@@ -37,9 +47,9 @@ export const AdminConfig: React.FC<Props> = ({ isBangla }) => {
     
     try {
         if (activeConfigTab === 'agri') {
-            // Validate numbers
-            const todayPrice = parseFloat(configForm.today);
-            if (isNaN(todayPrice)) throw new Error("Price must be a number");
+            // Validate numbers with Bangla support
+            const todayPrice = bnToEn(configForm.today);
+            if (isNaN(todayPrice) || todayPrice === 0) throw new Error("Price must be a valid number (e.g. 50 or ৫০)");
 
             const newItem = { 
                 ...configForm, 
@@ -56,15 +66,15 @@ export const AdminConfig: React.FC<Props> = ({ isBangla }) => {
             alert("Lawyer Added Successfully!");
 
         } else if (activeConfigTab === 'expat') {
-            const rate = parseFloat(configForm.rate);
-            if (isNaN(rate)) throw new Error("Rate must be a number");
+            const rate = bnToEn(configForm.rate);
+            if (isNaN(rate) || rate === 0) throw new Error("Rate must be a valid number");
             
             updateExchangeRates([...exchangeRates, { ...configForm, rate: rate, trend: 'stable' }]);
             alert("Exchange Rate Added Successfully!");
 
         } else if (activeConfigTab === 'vocational') {
-            const fee = parseFloat(configForm.fee);
-            if (isNaN(fee)) throw new Error("Fee must be a number");
+            const fee = bnToEn(configForm.fee);
+            if (isNaN(fee)) throw new Error("Fee must be a valid number");
 
             addVocationalCourse({ ...configForm, fee: fee, image: 'https://placehold.co/600x400' });
             alert("Course Added Successfully!");
@@ -86,14 +96,9 @@ export const AdminConfig: React.FC<Props> = ({ isBangla }) => {
       else if (activeConfigTab === 'legal') deleteLawyer(id);
       else if (activeConfigTab === 'vocational') deleteVocationalCourse(id);
       else if (activeConfigTab === 'expat') {
-          // For exchange rates which might not have ID in this specific mock structure, we filter by currency if ID missing
-          // But our DataContext structure assumes objects have IDs usually. 
-          // If using the mock INITIAL_EXCHANGE_RATES, they don't have IDs.
-          // Let's handle it gracefully:
-          const updated = exchangeRates.filter((r:any) => r.id !== id && r.currency !== configForm.currency); // Fallback logic
-          // Actually, we need to pass the whole object or ID. In renderTable we pass item.id.
-          // If item doesn't have ID, we can't delete easily.
-          alert("Default exchange rates cannot be deleted in this demo.");
+          // Fallback logic for items potentially missing IDs in initial state
+          // For safety, we just check if ID exists
+          alert("To prevent errors in this demo, deletion of default exchange rates is restricted.");
       }
   };
 
@@ -258,7 +263,7 @@ export const AdminConfig: React.FC<Props> = ({ isBangla }) => {
                         <>
                             <input required className="w-full p-3 border rounded-lg focus:ring-2 focus:ring-brand-500 outline-none" placeholder="Name (English)" onChange={e => setConfigForm({...configForm, nameEn: e.target.value})} />
                             <input required className="w-full p-3 border rounded-lg focus:ring-2 focus:ring-brand-500 outline-none" placeholder="Name (Bangla)" onChange={e => setConfigForm({...configForm, nameBn: e.target.value})} />
-                            <input required type="number" className="w-full p-3 border rounded-lg focus:ring-2 focus:ring-brand-500 outline-none" placeholder="Price (Today)" onChange={e => setConfigForm({...configForm, today: e.target.value})} />
+                            <input required type="text" className="w-full p-3 border rounded-lg focus:ring-2 focus:ring-brand-500 outline-none" placeholder="Price (e.g. 50 or ৫০)" onChange={e => setConfigForm({...configForm, today: e.target.value})} />
                             <input required className="w-full p-3 border rounded-lg focus:ring-2 focus:ring-brand-500 outline-none" placeholder="Unit (e.g. kg)" onChange={e => setConfigForm({...configForm, unit: e.target.value})} />
                         </>
                     )}
@@ -273,14 +278,14 @@ export const AdminConfig: React.FC<Props> = ({ isBangla }) => {
                     {activeConfigTab === 'expat' && (
                         <>
                             <input required className="w-full p-3 border rounded-lg focus:ring-2 focus:ring-brand-500 outline-none" placeholder="Currency (e.g. USD)" onChange={e => setConfigForm({...configForm, currency: e.target.value})} />
-                            <input required type="number" className="w-full p-3 border rounded-lg focus:ring-2 focus:ring-brand-500 outline-none" placeholder="Rate (BDT)" onChange={e => setConfigForm({...configForm, rate: e.target.value})} />
+                            <input required type="text" className="w-full p-3 border rounded-lg focus:ring-2 focus:ring-brand-500 outline-none" placeholder="Rate (e.g. 110 or ১১০)" onChange={e => setConfigForm({...configForm, rate: e.target.value})} />
                         </>
                     )}
                     {activeConfigTab === 'vocational' && (
                         <>
                             <input required className="w-full p-3 border rounded-lg focus:ring-2 focus:ring-brand-500 outline-none" placeholder="Course Title" onChange={e => setConfigForm({...configForm, title: e.target.value})} />
                             <input required className="w-full p-3 border rounded-lg focus:ring-2 focus:ring-brand-500 outline-none" placeholder="Category" onChange={e => setConfigForm({...configForm, category: e.target.value})} />
-                            <input required type="number" className="w-full p-3 border rounded-lg focus:ring-2 focus:ring-brand-500 outline-none" placeholder="Fee" onChange={e => setConfigForm({...configForm, fee: e.target.value})} />
+                            <input required type="text" className="w-full p-3 border rounded-lg focus:ring-2 focus:ring-brand-500 outline-none" placeholder="Fee (e.g. 5000 or ৫০০০)" onChange={e => setConfigForm({...configForm, fee: e.target.value})} />
                             <input required className="w-full p-3 border rounded-lg focus:ring-2 focus:ring-brand-500 outline-none" placeholder="Duration" onChange={e => setConfigForm({...configForm, duration: e.target.value})} />
                         </>
                     )}

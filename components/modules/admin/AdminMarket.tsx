@@ -8,6 +8,16 @@ import {
 import { Button } from '../../ui/Button';
 import { useData } from '../../../contexts/DataContext';
 
+// Helper to convert Bangla numbers
+const bnToEn = (str: any) => {
+    if(!str) return 0;
+    const s = str.toString();
+    const numbers = { '০': 0, '১': 1, '২': 2, '৩': 3, '৪': 4, '৫': 5, '৬': 6, '৭': 7, '৮': 8, '৯': 9 };
+    // @ts-ignore
+    const enStr = s.replace(/[০-৯]/g, (match: string) => numbers[match]);
+    return parseFloat(enStr) || parseFloat(s) || 0;
+};
+
 export const AdminMarket = () => {
   const { 
     marketPrices, updateMarketPrices,
@@ -26,12 +36,23 @@ export const AdminMarket = () => {
   // --- ACTIONS: PRICES ---
   const handlePriceUpdate = (e: React.FormEvent) => {
     e.preventDefault();
+    
+    // Convert inputs safely
+    const todayP = bnToEn(editingItem.today);
+    const yesterdayP = bnToEn(editingItem.yesterday);
+
+    const cleanItem = {
+      ...editingItem,
+      today: todayP,
+      yesterday: yesterdayP
+    };
+
     if (editingItem.id) {
       // Update existing
-      updateMarketPrices(marketPrices.map((p: any) => p.id === editingItem.id ? editingItem : p));
+      updateMarketPrices(marketPrices.map((p: any) => p.id === editingItem.id ? cleanItem : p));
     } else {
       // Add new
-      updateMarketPrices([...marketPrices, { ...editingItem, id: Date.now() }]);
+      updateMarketPrices([...marketPrices, { ...cleanItem, id: Date.now() }]);
     }
     setShowPriceModal(false);
     setEditingItem(null);
@@ -44,10 +65,14 @@ export const AdminMarket = () => {
   // --- ACTIONS: RETAIL ---
   const handleProductSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    
+    const priceVal = bnToEn(editingItem.price);
+    const cleanProduct = { ...editingItem, price: priceVal };
+
     if (editingItem.id) {
-      updateRetailProduct(editingItem);
+      updateRetailProduct(cleanProduct);
     } else {
-      addRetailProduct({ ...editingItem, stock: 'Available' });
+      addRetailProduct({ ...cleanProduct, stock: 'Available' });
     }
     setShowProductModal(false);
     setEditingItem(null);
@@ -275,8 +300,8 @@ export const AdminMarket = () => {
               </div>
               <div className="grid grid-cols-3 gap-4">
                 <div><label className="block text-xs font-bold text-gray-700 mb-1">Unit</label><input required className="w-full p-2 bg-white border border-gray-300 rounded-lg text-gray-900 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none" placeholder="kg/pc" value={editingItem?.unit || ''} onChange={e => setEditingItem({...editingItem, unit: e.target.value})} /></div>
-                <div><label className="block text-xs font-bold text-gray-700 mb-1">Yesterday Price</label><input required type="number" className="w-full p-2 bg-white border border-gray-300 rounded-lg text-gray-900 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none" value={editingItem?.yesterday || ''} onChange={e => setEditingItem({...editingItem, yesterday: Number(e.target.value)})} /></div>
-                <div><label className="block text-xs font-bold text-gray-700 mb-1">Today Price</label><input required type="number" className="w-full p-2 bg-white border border-gray-300 rounded-lg text-gray-900 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none" value={editingItem?.today || ''} onChange={e => setEditingItem({...editingItem, today: Number(e.target.value)})} /></div>
+                <div><label className="block text-xs font-bold text-gray-700 mb-1">Yesterday</label><input required type="text" className="w-full p-2 bg-white border border-gray-300 rounded-lg text-gray-900 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none" placeholder="e.g. 50" value={editingItem?.yesterday || ''} onChange={e => setEditingItem({...editingItem, yesterday: e.target.value})} /></div>
+                <div><label className="block text-xs font-bold text-gray-700 mb-1">Today</label><input required type="text" className="w-full p-2 bg-white border border-gray-300 rounded-lg text-gray-900 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none" placeholder="e.g. 52" value={editingItem?.today || ''} onChange={e => setEditingItem({...editingItem, today: e.target.value})} /></div>
               </div>
               <Button type="submit" className="w-full bg-blue-600 hover:bg-blue-700 text-white mt-2">Save Record</Button>
             </form>
@@ -298,7 +323,7 @@ export const AdminMarket = () => {
                 <div><label className="block text-xs font-bold text-gray-700 mb-1">Name (Bangla)</label><input required className="w-full p-2 bg-white border border-gray-300 rounded-lg text-gray-900 focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none" value={editingItem?.nameBn || ''} onChange={e => setEditingItem({...editingItem, nameBn: e.target.value})} /></div>
               </div>
               <div className="grid grid-cols-2 gap-4">
-                <div><label className="block text-xs font-bold text-gray-700 mb-1">Price (৳)</label><input required type="number" className="w-full p-2 bg-white border border-gray-300 rounded-lg text-gray-900 focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none" value={editingItem?.price || ''} onChange={e => setEditingItem({...editingItem, price: Number(e.target.value)})} /></div>
+                <div><label className="block text-xs font-bold text-gray-700 mb-1">Price (৳)</label><input required type="text" className="w-full p-2 bg-white border border-gray-300 rounded-lg text-gray-900 focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none" placeholder="e.g. 200" value={editingItem?.price || ''} onChange={e => setEditingItem({...editingItem, price: e.target.value})} /></div>
                 <div><label className="block text-xs font-bold text-gray-700 mb-1">Unit</label><input required className="w-full p-2 bg-white border border-gray-300 rounded-lg text-gray-900 focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none" placeholder="kg" value={editingItem?.unit || ''} onChange={e => setEditingItem({...editingItem, unit: e.target.value})} /></div>
               </div>
               <div><label className="block text-xs font-bold text-gray-700 mb-1">Category</label>
