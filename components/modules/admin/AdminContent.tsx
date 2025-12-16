@@ -3,7 +3,7 @@ import React, { useState } from 'react';
 import { 
   Briefcase, FileText, Plus, Search, Eye, Edit3, Trash2, 
   Check, X, ArrowLeft, Save, 
-  MapPin, DollarSign, Calendar, Tag, User, Building2, Image as ImageIcon 
+  MapPin, DollarSign, Calendar, Tag, User, Building2, Image as ImageIcon, Loader2 
 } from 'lucide-react';
 import { Button } from '../../ui/Button';
 import { useData } from '../../../contexts/DataContext';
@@ -15,16 +15,17 @@ export const AdminContent = () => {
   const [activeTab, setActiveTab] = useState<'jobs' | 'blogs' | 'requests'>('jobs');
   const [contentSearch, setContentSearch] = useState('');
   const [selectedItem, setSelectedItem] = useState<any>(null);
+  const [isProcessing, setIsProcessing] = useState(false);
 
   // Form States
   const [jobForm, setJobForm] = useState<any>({});
   const [blogForm, setBlogForm] = useState<any>({});
 
   // --- ACTIONS ---
-  const handleDelete = (id: number, type: 'job' | 'blog') => {
+  const handleDelete = async (id: number, type: 'job' | 'blog') => {
     if(!confirm('Are you sure you want to delete this content?')) return;
-    if (type === 'job') deleteJob(id);
-    else deleteBlog(id);
+    if (type === 'job') await deleteJob(id);
+    else await deleteBlog(id);
     if (view === 'details') setView('list');
   };
 
@@ -39,29 +40,40 @@ export const AdminContent = () => {
     }
   };
 
-  const handleJobSubmit = (e: React.FormEvent) => {
+  const handleJobSubmit = async (e: React.FormEvent) => {
       e.preventDefault();
+      setIsProcessing(true);
       if (view === 'edit_job') {
-          updateJob(jobForm);
+          await updateJob(jobForm);
           alert('Job Updated Successfully!');
       } else {
-          addJob({ ...jobForm, category: 'Private', postedBy: 'Admin' }); // Defaults
+          await addJob({ ...jobForm, category: 'Private', postedBy: 'Admin' }); // Defaults
           alert('Job Created Successfully!');
       }
+      setIsProcessing(false);
       setJobForm({});
       setView('list');
   };
 
-  const handleBlogSubmit = (e: React.FormEvent) => {
+  const handleBlogSubmit = async (e: React.FormEvent) => {
       e.preventDefault();
+      setIsProcessing(true);
       if (view === 'edit_blog') {
-          updateBlog(blogForm);
+          await updateBlog(blogForm);
           alert('Blog Updated Successfully!');
       } else {
-          addBlog({ ...blogForm, author: 'Admin' });
+          await addBlog({ ...blogForm, author: 'Admin' });
           alert('Blog Published Successfully!');
       }
+      setIsProcessing(false);
       setBlogForm({});
+      setView('list');
+  };
+
+  const handleActionClick = async (item: any, action: 'approve' | 'reject') => {
+      setIsProcessing(true);
+      await handleRequestAction(item, action);
+      setIsProcessing(false);
       setView('list');
   };
 
@@ -136,7 +148,8 @@ export const AdminContent = () => {
 
               <div className="flex justify-end gap-3 pt-4 border-t border-gray-50">
                 <Button type="button" variant="outline" onClick={() => setView('list')} className="px-6 bg-white hover:bg-gray-50 border-gray-200 text-gray-700">Cancel</Button>
-                <Button type="submit" className="bg-green-600 hover:bg-green-700 text-white px-6 font-bold">
+                <Button type="submit" disabled={isProcessing} className="bg-green-600 hover:bg-green-700 text-white px-6 font-bold flex items-center gap-2">
+                  {isProcessing && <Loader2 size={16} className="animate-spin" />}
                   {view === 'edit_job' ? 'Update Job' : 'Publish Job'}
                 </Button>
               </div>
@@ -185,13 +198,9 @@ export const AdminContent = () => {
                 </div>
               </div>
               
-              {/* Added Image Input to match User Form capability */}
               <div className="space-y-2">
-                 <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider">Blog Image</label>
-                 <div className="relative">
-                    <input type="file" className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-gray-900 transition-all text-sm text-gray-500" />
-                    <ImageIcon className="absolute right-4 top-3 text-gray-400" size={20} />
-                 </div>
+                 <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider">Blog Image URL</label>
+                 <input type="text" value={blogForm.image || ''} onChange={e => setBlogForm({...blogForm, image: e.target.value})} placeholder="https://..." className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-gray-900 transition-all text-sm font-medium" />
               </div>
 
               <div className="space-y-2">
@@ -201,7 +210,8 @@ export const AdminContent = () => {
 
               <div className="flex justify-end gap-3 pt-4 border-t border-gray-50">
                 <Button type="button" variant="outline" onClick={() => setView('list')} className="px-6 bg-white hover:bg-gray-50 border-gray-200 text-gray-700">Cancel</Button>
-                <Button type="submit" className="bg-green-600 hover:bg-green-700 text-white px-6 font-bold">
+                <Button type="submit" disabled={isProcessing} className="bg-green-600 hover:bg-green-700 text-white px-6 font-bold flex items-center gap-2">
+                  {isProcessing && <Loader2 size={16} className="animate-spin" />}
                   {view === 'edit_blog' ? 'Update Blog' : 'Publish Blog'}
                 </Button>
               </div>
@@ -225,11 +235,11 @@ export const AdminContent = () => {
                     <div className="flex gap-2">
                         {isPending ? (
                             <>
-                                <Button onClick={() => { handleRequestAction(selectedItem, 'approve'); setView('list'); }} className="bg-green-600 hover:bg-green-700 text-white flex items-center gap-2">
-                                    <Check size={16} /> Approve
+                                <Button disabled={isProcessing} onClick={() => handleActionClick(selectedItem, 'approve')} className="bg-green-600 hover:bg-green-700 text-white flex items-center gap-2">
+                                    {isProcessing ? <Loader2 size={16} className="animate-spin" /> : <Check size={16} />} Approve
                                 </Button>
-                                <Button onClick={() => { handleRequestAction(selectedItem, 'reject'); setView('list'); }} className="bg-red-600 hover:bg-red-700 text-white flex items-center gap-2">
-                                    <X size={16} /> Reject
+                                <Button disabled={isProcessing} onClick={() => handleActionClick(selectedItem, 'reject')} className="bg-red-600 hover:bg-red-700 text-white flex items-center gap-2">
+                                    {isProcessing ? <Loader2 size={16} className="animate-spin" /> : <X size={16} />} Reject
                                 </Button>
                             </>
                         ) : (
@@ -384,8 +394,8 @@ export const AdminContent = () => {
                                 <span className="text-xs font-medium text-gray-500 bg-gray-100 px-2 py-1 rounded">Posted by: {req.postedBy}</span>
                                 <div className="flex gap-3">
                                    <button onClick={() => handleViewDetails(req, 'job')} className="text-gray-400 hover:text-blue-600 transition-colors"><Eye size={18}/></button>
-                                   <button onClick={() => handleRequestAction(req, 'approve')} className="text-green-500 hover:text-green-600 transition-colors"><Check size={18}/></button>
-                                   <button onClick={() => handleRequestAction(req, 'reject')} className="text-red-500 hover:text-red-600 transition-colors"><X size={18}/></button>
+                                   <button onClick={() => handleActionClick(req, 'approve')} className="text-green-500 hover:text-green-600 transition-colors"><Check size={18}/></button>
+                                   <button onClick={() => handleActionClick(req, 'reject')} className="text-red-500 hover:text-red-600 transition-colors"><X size={18}/></button>
                                 </div>
                              </div>
                           </div>
@@ -413,8 +423,8 @@ export const AdminContent = () => {
                                 <span className="text-xs font-medium text-gray-500 bg-gray-100 px-2 py-1 rounded">Author: {req.author || 'Unknown'}</span>
                                 <div className="flex gap-3">
                                    <button onClick={() => handleViewDetails(req, 'blog')} className="text-gray-400 hover:text-blue-600 transition-colors"><Eye size={18}/></button>
-                                   <button onClick={() => handleRequestAction(req, 'approve')} className="text-green-500 hover:text-green-600 transition-colors"><Check size={18}/></button>
-                                   <button onClick={() => handleRequestAction(req, 'reject')} className="text-red-500 hover:text-red-600 transition-colors"><X size={18}/></button>
+                                   <button onClick={() => handleActionClick(req, 'approve')} className="text-green-500 hover:text-green-600 transition-colors"><Check size={18}/></button>
+                                   <button onClick={() => handleActionClick(req, 'reject')} className="text-red-500 hover:text-red-600 transition-colors"><X size={18}/></button>
                                 </div>
                              </div>
                           </div>

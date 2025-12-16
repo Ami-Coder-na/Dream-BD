@@ -56,34 +56,34 @@ interface DataContextType {
   donors: any[];
   enrolledCourses: any[];
 
-  addJob: (job: any) => void;
-  deleteJob: (id: number) => void;
-  updateJob: (job: any) => void;
-  addBlog: (blog: any) => void;
-  deleteBlog: (id: number) => void;
-  updateBlog: (blog: any) => void;
-  addRequest: (request: any) => void;
-  handleRequestAction: (item: any, action: 'approve' | 'reject') => void;
-  addGrievance: (report: any) => void;
-  updateGrievanceStatus: (id: number, status: string) => void;
-  deleteGrievance: (id: number) => void;
-  addUser: (user: any) => void;
-  updateUserStatus: (id: string, status: 'Active' | 'Suspended') => void;
-  deleteUser: (id: string) => void;
-  resetPassword: (email: string, newPass: string) => void;
-  updateMarketPrices: (prices: any[]) => void;
+  addJob: (job: any) => Promise<void>;
+  deleteJob: (id: number) => Promise<void>;
+  updateJob: (job: any) => Promise<void>;
+  addBlog: (blog: any) => Promise<void>;
+  deleteBlog: (id: number) => Promise<void>;
+  updateBlog: (blog: any) => Promise<void>;
+  addRequest: (request: any) => Promise<void>;
+  handleRequestAction: (item: any, action: 'approve' | 'reject') => Promise<void>;
+  addGrievance: (report: any) => Promise<void>;
+  updateGrievanceStatus: (id: number, status: string) => Promise<void>;
+  deleteGrievance: (id: number) => Promise<void>;
+  addUser: (user: any) => Promise<void>;
+  updateUserStatus: (id: string, status: 'Active' | 'Suspended') => Promise<void>;
+  deleteUser: (id: string) => Promise<void>;
+  resetPassword: (email: string, newPass: string) => Promise<void>;
+  updateMarketPrices: (prices: any[]) => Promise<void>;
   addRetailProduct: (product: any) => void;
   deleteRetailProduct: (id: number) => void;
   updateRetailProduct: (product: any) => void;
-  addWholesaleAd: (ad: any) => void;
-  updateWholesaleAd: (ad: any) => void;
-  deleteWholesaleAd: (id: number) => void;
-  addLawyer: (lawyer: any) => void;
-  deleteLawyer: (id: number) => void;
+  addWholesaleAd: (ad: any) => Promise<void>;
+  updateWholesaleAd: (ad: any) => Promise<void>;
+  deleteWholesaleAd: (id: number) => Promise<void>;
+  addLawyer: (lawyer: any) => Promise<void>;
+  deleteLawyer: (id: number) => Promise<void>;
   updateExchangeRates: (rates: any[]) => void;
   addVocationalCourse: (course: any) => void;
   deleteVocationalCourse: (id: number) => void;
-  addDonor: (donor: any) => void;
+  addDonor: (donor: any) => Promise<void>;
   enrollCourse: (enrollment: any) => void;
   
   refreshData: () => void;
@@ -210,10 +210,12 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   // --- ACTIONS (PERSIST TO SUPABASE) ---
 
   const addJob = async (job: any) => {
-    const newJob = { ...job, postedDate: new Date().toLocaleDateString(), views: 0, status: 'Active' };
+    // Remove ID if present to let DB handle auto-increment
+    const { id, ...jobData } = job;
+    const newJob = { ...jobData, postedDate: new Date().toLocaleDateString(), views: 0, status: 'Active' };
+    
     const { error } = await supabase.from('jobs').insert([newJob]);
     if (error) console.error("Error adding job:", error);
-    // State updates automatically via Realtime subscription
   };
 
   const updateJob = async (updatedJob: any) => {
@@ -227,7 +229,10 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   };
 
   const addBlog = async (blog: any) => {
-    const newBlog = { ...blog, postedDate: new Date().toLocaleDateString(), views: 0, status: 'Active' };
+    // Remove ID if present
+    const { id, ...blogData } = blog;
+    const newBlog = { ...blogData, postedDate: new Date().toLocaleDateString(), views: 0, status: 'Active' };
+    
     const { error } = await supabase.from('blogs').insert([newBlog]);
     if (error) console.error("Error adding blog:", error);
   };
@@ -249,12 +254,20 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   };
 
   const handleRequestAction = async (item: any, action: 'approve' | 'reject') => {
-    // 1. Delete from requests
-    await supabase.from('requests').delete().eq('id', item.id);
+    // 1. Delete from requests first
+    const { error: deleteError } = await supabase.from('requests').delete().eq('id', item.id);
+    
+    if (deleteError) {
+        console.error("Error deleting request:", deleteError);
+        return;
+    }
 
     // 2. If approved, add to respective table
     if (action === 'approve') {
-      const { contentType, id, created_at, ...rest } = item; // Remove request-specific fields
+      // Destructure to remove the 'id' (which is from requests table) and 'contentType'
+      // We want the target table to generate a NEW id.
+      const { id, created_at, contentType, ...rest } = item;
+      
       if (contentType === 'job') await addJob(rest);
       else await addBlog(rest);
     }
@@ -305,7 +318,6 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   };
 
   const updateMarketPrices = async (newPrices: any[]) => {
-    // Optimistic update for UI smoothness
     setMarketPrices(newPrices);
     const { error } = await supabase.from('market_prices').upsert(newPrices);
     if(error) console.error("Market price update failed", error);
