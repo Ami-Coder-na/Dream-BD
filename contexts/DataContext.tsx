@@ -21,14 +21,14 @@ const INITIAL_BLOGS: any[] = [
 ];
 
 const BASE_MARKET_PRICES = [
-  { id: 1, nameBn: 'তাজা আলু', nameEn: 'Fresh Potato', unit: 'kg', basePrice: 45 },
-  { id: 2, nameBn: 'দেশি পেঁয়াজ', nameEn: 'Local Onion', unit: 'kg', basePrice: 90 },
-  { id: 3, nameBn: 'রুই মাছ', nameEn: 'Rui Fish', unit: 'kg', basePrice: 350 },
-  { id: 4, nameBn: 'মসুর ডাল', nameEn: 'Lentils', unit: 'kg', basePrice: 130 },
-  { id: 5, nameBn: 'সবুজ আপেল', nameEn: 'Green Apple', unit: 'kg', basePrice: 220 },
-  { id: 6, nameBn: 'সয়াবিন তেল', nameEn: 'Soybean Oil', unit: 'L', basePrice: 170 },
-  { id: 7, nameBn: 'বেগুন', nameEn: 'Eggplant', unit: 'kg', basePrice: 60 },
-  { id: 8, nameBn: 'ব্রয়লার মুরগি', nameEn: 'Broiler Chicken', unit: 'kg', basePrice: 190 },
+  { id: 1, nameBn: 'তাজা আলু', nameEn: 'Fresh Potato', unit: 'kg', today: 45, yesterday: 40, trend: 'up' },
+  { id: 2, nameBn: 'দেশি পেঁয়াজ', nameEn: 'Local Onion', unit: 'kg', today: 90, yesterday: 85, trend: 'up' },
+  { id: 3, nameBn: 'রুই মাছ', nameEn: 'Rui Fish', unit: 'kg', today: 350, yesterday: 360, trend: 'down' },
+  { id: 4, nameBn: 'মসুর ডাল', nameEn: 'Lentils', unit: 'kg', today: 130, yesterday: 130, trend: 'stable' },
+  { id: 5, nameBn: 'সবুজ আপেল', nameEn: 'Green Apple', unit: 'kg', today: 220, yesterday: 210, trend: 'up' },
+  { id: 6, nameBn: 'সয়াবিন তেল', nameEn: 'Soybean Oil', unit: 'L', today: 170, yesterday: 175, trend: 'down' },
+  { id: 7, nameBn: 'বেগুন', nameEn: 'Eggplant', unit: 'kg', today: 60, yesterday: 55, trend: 'up' },
+  { id: 8, nameBn: 'ব্রয়লার মুরগি', nameEn: 'Broiler Chicken', unit: 'kg', today: 190, yesterday: 190, trend: 'stable' },
 ];
 
 const INITIAL_RETAIL_PRODUCTS: any[] = [];
@@ -155,7 +155,10 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     return saved ? JSON.parse(saved) : INITIAL_USERS;
   });
 
-  const [marketPrices, setMarketPrices] = useState<any[]>([]);
+  const [marketPrices, setMarketPrices] = useState<any[]>(() => {
+    const saved = localStorage.getItem('db_market');
+    return saved ? JSON.parse(saved) : BASE_MARKET_PRICES;
+  });
 
   const [retailProducts, setRetailProducts] = useState(() => {
     const saved = localStorage.getItem('db_retail');
@@ -194,21 +197,6 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   });
 
   // --- AUTOMATED DATA FETCHING ---
-  const generateLiveMarketPrices = () => {
-    const updatedPrices = BASE_MARKET_PRICES.map(item => {
-      const variance = (Math.random() * 0.1) - 0.05; 
-      const currentPrice = Math.round(item.basePrice * (1 + variance));
-      const yesterdayPrice = item.basePrice;
-      
-      let trend = 'stable';
-      if (currentPrice > yesterdayPrice) trend = 'up';
-      if (currentPrice < yesterdayPrice) trend = 'down';
-
-      return { ...item, today: currentPrice, yesterday: yesterdayPrice, trend };
-    });
-    setMarketPrices(updatedPrices);
-  };
-
   const fetchLiveNews = async () => {
     try {
       const RSS_URL = 'https://www.tbsnews.net/rss/economy.xml';
@@ -233,6 +221,8 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
           isExternal: true,
           link: item.link
         }));
+        
+        // Merge with manual blogs, keeping manual blogs first
         setBlogs(prev => {
            const manualBlogs = prev.filter((b: any) => !b.id.toString().startsWith('news_'));
            return [...manualBlogs, ...fetchedBlogs];
@@ -244,11 +234,11 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   };
 
   useEffect(() => {
-    generateLiveMarketPrices();
     fetchLiveNews();
   }, []);
 
-  // Persist Local Changes
+  // --- PERSISTENCE & REALTIME SYNC ---
+  // Save to LocalStorage whenever state changes
   useEffect(() => localStorage.setItem('db_jobs', JSON.stringify(jobs)), [jobs]);
   useEffect(() => localStorage.setItem('db_blogs', JSON.stringify(blogs)), [blogs]);
   useEffect(() => localStorage.setItem('db_requests', JSON.stringify(requests)), [requests]);
@@ -256,70 +246,91 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   useEffect(() => localStorage.setItem('db_users', JSON.stringify(users)), [users]);
   useEffect(() => localStorage.setItem('db_retail', JSON.stringify(retailProducts)), [retailProducts]);
   useEffect(() => localStorage.setItem('db_wholesale', JSON.stringify(wholesaleAds)), [wholesaleAds]);
-  // New Persist
   useEffect(() => localStorage.setItem('db_lawyers', JSON.stringify(lawyers)), [lawyers]);
   useEffect(() => localStorage.setItem('db_rates', JSON.stringify(exchangeRates)), [exchangeRates]);
   useEffect(() => localStorage.setItem('db_vocational', JSON.stringify(vocationalCourses)), [vocationalCourses]);
   useEffect(() => localStorage.setItem('db_donors', JSON.stringify(donors)), [donors]);
   useEffect(() => localStorage.setItem('db_enrolled', JSON.stringify(enrolledCourses)), [enrolledCourses]);
+  useEffect(() => localStorage.setItem('db_market', JSON.stringify(marketPrices)), [marketPrices]);
+
+  // Real-time synchronization across tabs
+  useEffect(() => {
+    const handleStorageChange = (e: StorageEvent) => {
+      if (e.key === 'db_jobs') setJobs(JSON.parse(e.newValue || '[]'));
+      if (e.key === 'db_blogs') setBlogs(JSON.parse(e.newValue || '[]'));
+      if (e.key === 'db_requests') setRequests(JSON.parse(e.newValue || '[]'));
+      if (e.key === 'db_grievances') setGrievances(JSON.parse(e.newValue || '[]'));
+      if (e.key === 'db_users') setUsers(JSON.parse(e.newValue || '[]'));
+      if (e.key === 'db_retail') setRetailProducts(JSON.parse(e.newValue || '[]'));
+      if (e.key === 'db_wholesale') setWholesaleAds(JSON.parse(e.newValue || '[]'));
+      if (e.key === 'db_lawyers') setLawyers(JSON.parse(e.newValue || '[]'));
+      if (e.key === 'db_rates') setExchangeRates(JSON.parse(e.newValue || '[]'));
+      if (e.key === 'db_vocational') setVocationalCourses(JSON.parse(e.newValue || '[]'));
+      if (e.key === 'db_donors') setDonors(JSON.parse(e.newValue || '[]'));
+      if (e.key === 'db_enrolled') setEnrolledCourses(JSON.parse(e.newValue || '[]'));
+      if (e.key === 'db_market') setMarketPrices(JSON.parse(e.newValue || '[]'));
+    };
+
+    window.addEventListener('storage', handleStorageChange);
+    return () => window.removeEventListener('storage', handleStorageChange);
+  }, []);
 
   // --- ACTIONS ---
 
   const refreshData = () => {
-    generateLiveMarketPrices();
     fetchLiveNews();
   };
 
-  const addJob = (job: any) => setJobs([{ ...job, id: Date.now(), status: 'Active', postedDate: new Date().toLocaleDateString(), views: 0 }, ...jobs]);
-  const updateJob = (updatedJob: any) => setJobs(jobs.map((j: any) => j.id === updatedJob.id ? updatedJob : j));
-  const deleteJob = (id: number) => setJobs(jobs.filter((j: any) => j.id !== id));
+  const addJob = (job: any) => setJobs(prev => [{ ...job, id: Date.now(), status: 'Active', postedDate: new Date().toLocaleDateString(), views: 0 }, ...prev]);
+  const updateJob = (updatedJob: any) => setJobs(prev => prev.map((j: any) => j.id === updatedJob.id ? updatedJob : j));
+  const deleteJob = (id: number) => setJobs(prev => prev.filter((j: any) => j.id !== id));
 
-  const addBlog = (blog: any) => setBlogs([{ ...blog, id: Date.now(), status: 'Active', postedDate: new Date().toLocaleDateString(), views: 0 }, ...blogs]);
-  const updateBlog = (updatedBlog: any) => setBlogs(blogs.map((b: any) => b.id === updatedBlog.id ? updatedBlog : b));
-  const deleteBlog = (id: number) => setBlogs(blogs.filter((b: any) => b.id !== id));
+  const addBlog = (blog: any) => setBlogs(prev => [{ ...blog, id: Date.now(), status: 'Active', postedDate: new Date().toLocaleDateString(), views: 0 }, ...prev]);
+  const updateBlog = (updatedBlog: any) => setBlogs(prev => prev.map((b: any) => b.id === updatedBlog.id ? updatedBlog : b));
+  const deleteBlog = (id: number) => setBlogs(prev => prev.filter((b: any) => b.id !== id));
 
-  const addRequest = (request: any) => setRequests([{ ...request, id: Date.now(), status: 'Pending', postedDate: new Date().toLocaleDateString() }, ...requests]);
+  const addRequest = (request: any) => setRequests(prev => [{ ...request, id: Date.now(), status: 'Pending', postedDate: new Date().toLocaleDateString() }, ...prev]);
   const handleRequestAction = (item: any, action: 'approve' | 'reject') => {
-    setRequests(requests.filter((r: any) => r.id !== item.id));
+    setRequests(prev => prev.filter((r: any) => r.id !== item.id));
     if (action === 'approve') {
       if (item.contentType === 'job') addJob(item);
       else addBlog(item);
     }
   };
 
-  const addGrievance = (report: any) => setGrievances([{ ...report, id: Date.now(), status: 'Pending', date: new Date().toLocaleDateString() }, ...grievances]);
-  const updateGrievanceStatus = (id: number, status: string) => setGrievances(grievances.map((g: any) => g.id === id ? { ...g, status } : g));
-  const deleteGrievance = (id: number) => setGrievances(grievances.filter((g: any) => g.id !== id));
+  const addGrievance = (report: any) => setGrievances(prev => [{ ...report, id: Date.now(), status: 'Pending', date: new Date().toLocaleDateString() }, ...prev]);
+  const updateGrievanceStatus = (id: number, status: string) => setGrievances(prev => prev.map((g: any) => g.id === id ? { ...g, status } : g));
+  const deleteGrievance = (id: number) => setGrievances(prev => prev.filter((g: any) => g.id !== id));
 
   const addUser = (user: any) => {
     if (users.some((u: any) => u.email === user.email)) { alert('Email already registered!'); return; }
-    setUsers([...users, { ...user, id: user.id || Date.now().toString(), status: 'Active', date: new Date().toLocaleDateString() }]);
+    setUsers(prev => [...prev, { ...user, id: user.id || Date.now().toString(), status: 'Active', date: new Date().toLocaleDateString() }]);
   };
-  const updateUserStatus = (id: string, status: 'Active' | 'Suspended') => setUsers(users.map((u: any) => u.id === id ? { ...u, status } : u));
-  const deleteUser = (id: string) => setUsers(users.filter((u: any) => u.id !== id));
-  const resetPassword = (email: string, newPass: string) => setUsers(users.map((u: any) => u.email.toLowerCase() === email.toLowerCase() ? { ...u, password: newPass } : u));
+  const updateUserStatus = (id: string, status: 'Active' | 'Suspended') => setUsers(prev => prev.map((u: any) => u.id === id ? { ...u, status } : u));
+  const deleteUser = (id: string) => setUsers(prev => prev.filter((u: any) => u.id !== id));
+  const resetPassword = (email: string, newPass: string) => setUsers(prev => prev.map((u: any) => u.email.toLowerCase() === email.toLowerCase() ? { ...u, password: newPass } : u));
 
   const updateMarketPrices = (newPrices: any[]) => setMarketPrices(newPrices);
   
-  const addRetailProduct = (product: any) => setRetailProducts([...retailProducts, { ...product, id: Date.now() }]);
-  const updateRetailProduct = (product: any) => setRetailProducts(retailProducts.map((p: any) => p.id === product.id ? product : p));
-  const deleteRetailProduct = (id: number) => setRetailProducts(retailProducts.filter((p: any) => p.id !== id));
+  const addRetailProduct = (product: any) => setRetailProducts(prev => [...prev, { ...product, id: Date.now() }]);
+  const updateRetailProduct = (product: any) => setRetailProducts(prev => prev.map((p: any) => p.id === product.id ? product : p));
+  const deleteRetailProduct = (id: number) => setRetailProducts(prev => prev.filter((p: any) => p.id !== id));
 
-  const addWholesaleAd = (ad: any) => setWholesaleAds([{ ...ad, id: Date.now(), status: 'Pending', date: new Date().toLocaleDateString() }, ...wholesaleAds]);
-  const updateWholesaleAd = (updatedAd: any) => setWholesaleAds(wholesaleAds.map((ad: any) => ad.id === updatedAd.id ? updatedAd : ad));
-  const deleteWholesaleAd = (id: number) => setWholesaleAds(wholesaleAds.filter((ad: any) => ad.id !== id));
+  const addWholesaleAd = (ad: any) => setWholesaleAds(prev => [{ ...ad, id: Date.now(), status: 'Pending', date: new Date().toLocaleDateString() }, ...prev]);
+  const updateWholesaleAd = (updatedAd: any) => setWholesaleAds(prev => prev.map((ad: any) => ad.id === updatedAd.id ? updatedAd : ad));
+  const deleteWholesaleAd = (id: number) => setWholesaleAds(prev => prev.filter((ad: any) => ad.id !== id));
 
   // --- NEW ACTIONS ---
-  const addLawyer = (lawyer: any) => setLawyers([...lawyers, { ...lawyer, id: Date.now(), status: 'Active' }]);
-  const deleteLawyer = (id: number) => setLawyers(lawyers.filter((l: any) => l.id !== id));
+  const addLawyer = (lawyer: any) => setLawyers(prev => [...prev, { ...lawyer, id: Date.now(), status: 'Active' }]);
+  const deleteLawyer = (id: number) => setLawyers(prev => prev.filter((l: any) => l.id !== id));
   
   const updateExchangeRates = (newRates: any[]) => setExchangeRates(newRates);
   
-  const addVocationalCourse = (course: any) => setVocationalCourses([...vocationalCourses, { ...course, id: Date.now(), status: 'Active' }]);
-  const deleteVocationalCourse = (id: number) => setVocationalCourses(vocationalCourses.filter((c: any) => c.id !== id));
+  const addVocationalCourse = (course: any) => setVocationalCourses(prev => [...prev, { ...course, id: Date.now(), status: 'Active' }]);
+  const deleteVocationalCourse = (id: number) => setVocationalCourses(prev => prev.filter((c: any) => c.id !== id));
 
-  const addDonor = (donor: any) => setDonors([donor, ...donors]);
-  const enrollCourse = (enrollment: any) => setEnrolledCourses([enrollment, ...enrolledCourses]);
+  const addDonor = (donor: any) => setDonors(prev => [donor, ...prev]);
+  const enrollCourse = (enrollment: any) => setEnrolledCourses(prev => [enrollment, ...prev]);
 
   return (
     <DataContext.Provider value={{ 

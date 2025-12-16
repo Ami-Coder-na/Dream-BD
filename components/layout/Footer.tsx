@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { Globe, MapPin, Phone, Mail, Shield } from 'lucide-react';
+import { Globe, MapPin, Phone, Mail } from 'lucide-react';
 import { AppModule } from '../../types';
 
 interface FooterProps {
@@ -78,16 +78,6 @@ export const Footer: React.FC<FooterProps> = ({ isBangla, toggleLanguage, onNavi
                     {isBangla ? 'English' : 'বাংলা'}
                   </button>
               </div>
-              {/* Admin Button */}
-              {onModuleSelect && (
-                <button 
-                  onClick={() => onModuleSelect(AppModule.ADMIN)}
-                  className="flex items-center gap-1 text-xs text-gray-600 hover:text-brand-500 transition-colors"
-                  title="Admin Access"
-                >
-                  <Shield size={12} /> Admin
-                </button>
-              )}
           </div>
         </div>
       </div>

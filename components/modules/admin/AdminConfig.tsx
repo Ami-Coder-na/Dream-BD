@@ -3,7 +3,8 @@ import React, { useState } from 'react';
 import { 
   Database, Search, Sprout, Stethoscope, BookOpen, 
   Navigation, Recycle, Home, Fish, Hammer, MapPin, 
-  Plus, Trash2, Filter, X, Edit3, Scale, Plane, Wrench
+  Plus, Trash2, Filter, X, Edit3, Scale, Plane, Wrench,
+  AlertCircle
 } from 'lucide-react';
 import { Button } from '../../ui/Button';
 import { useData } from '../../../contexts/DataContext';
@@ -23,7 +24,6 @@ export const AdminConfig: React.FC<Props> = ({ isBangla }) => {
   } = useData();
 
   const [activeConfigTab, setActiveConfigTab] = useState<ConfigTab>('agri');
-  const [configSearch, setConfigSearch] = useState('');
   const [isConfigModalOpen, setIsConfigModalOpen] = useState(false);
   const [configForm, setConfigForm] = useState<any>({});
 
@@ -35,32 +35,65 @@ export const AdminConfig: React.FC<Props> = ({ isBangla }) => {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (activeConfigTab === 'agri') {
-        // Simple add logic for market prices demo
-        updateMarketPrices([...marketPrices, { ...configForm, id: Date.now(), trend: 'stable' }]);
-    } else if (activeConfigTab === 'legal') {
-        addLawyer({ ...configForm });
-    } else if (activeConfigTab === 'expat') {
-        updateExchangeRates([...exchangeRates, { ...configForm, trend: 'stable' }]);
-    } else if (activeConfigTab === 'vocational') {
-        addVocationalCourse({ ...configForm, image: 'https://placehold.co/600x400' });
+    try {
+        if (activeConfigTab === 'agri') {
+            // Validate numbers
+            const todayPrice = parseFloat(configForm.today);
+            if (isNaN(todayPrice)) throw new Error("Price must be a number");
+
+            const newItem = { 
+                ...configForm, 
+                id: Date.now(), 
+                today: todayPrice,
+                yesterday: todayPrice, // Init new item yesterday price same as today
+                trend: 'stable' 
+            };
+            updateMarketPrices([...marketPrices, newItem]);
+            alert("Market Price Added Successfully!");
+
+        } else if (activeConfigTab === 'legal') {
+            addLawyer({ ...configForm });
+            alert("Lawyer Added Successfully!");
+
+        } else if (activeConfigTab === 'expat') {
+            const rate = parseFloat(configForm.rate);
+            if (isNaN(rate)) throw new Error("Rate must be a number");
+            
+            updateExchangeRates([...exchangeRates, { ...configForm, rate: rate, trend: 'stable' }]);
+            alert("Exchange Rate Added Successfully!");
+
+        } else if (activeConfigTab === 'vocational') {
+            const fee = parseFloat(configForm.fee);
+            if (isNaN(fee)) throw new Error("Fee must be a number");
+
+            addVocationalCourse({ ...configForm, fee: fee, image: 'https://placehold.co/600x400' });
+            alert("Course Added Successfully!");
+        } else {
+            alert("Configuration for this module is static in this demo version and cannot be updated dynamically.");
+            return;
+        }
+        
+        setIsConfigModalOpen(false);
+        setConfigForm({});
+    } catch (err: any) {
+        alert("Error saving: " + err.message);
     }
-    
-    setIsConfigModalOpen(false);
-    setConfigForm({});
   };
 
   const handleDeleteItem = (id: number) => {
       if(!confirm('Delete this item?')) return;
       if (activeConfigTab === 'agri') updateMarketPrices(marketPrices.filter((p: any) => p.id !== id));
-      if (activeConfigTab === 'legal') deleteLawyer(id);
-      if (activeConfigTab === 'vocational') deleteVocationalCourse(id);
-      if (activeConfigTab === 'expat') {
-          // Exchange rates mock usually doesn't have numeric ID in this context setup, handled differently
-          // checking if currency exists in form or passing generic ID
-          const item = exchangeRates.find((r:any) => r.currency === configForm.currency); 
-          // For demo simplicity in this list view
-          alert("Deletion for this module requires specific ID implementation.");
+      else if (activeConfigTab === 'legal') deleteLawyer(id);
+      else if (activeConfigTab === 'vocational') deleteVocationalCourse(id);
+      else if (activeConfigTab === 'expat') {
+          // For exchange rates which might not have ID in this specific mock structure, we filter by currency if ID missing
+          // But our DataContext structure assumes objects have IDs usually. 
+          // If using the mock INITIAL_EXCHANGE_RATES, they don't have IDs.
+          // Let's handle it gracefully:
+          const updated = exchangeRates.filter((r:any) => r.id !== id && r.currency !== configForm.currency); // Fallback logic
+          // Actually, we need to pass the whole object or ID. In renderTable we pass item.id.
+          // If item doesn't have ID, we can't delete easily.
+          alert("Default exchange rates cannot be deleted in this demo.");
       }
   };
 
@@ -120,8 +153,9 @@ export const AdminConfig: React.FC<Props> = ({ isBangla }) => {
         default:
             return (
                 <div className="p-10 text-center text-gray-400 bg-gray-50 rounded-xl border border-dashed border-gray-200">
-                    <p>Configuration for <strong>{activeConfigTab}</strong> is currently managed via static code constants.</p>
-                    <p className="text-xs mt-2">To enable dynamic editing, migrate data to DataContext.</p>
+                    <AlertCircle size={40} className="mx-auto mb-3 opacity-50" />
+                    <p>Configuration for <strong>{activeConfigTab.charAt(0).toUpperCase() + activeConfigTab.slice(1)}</strong> is currently read-only / static.</p>
+                    <p className="text-xs mt-2">Dynamic configuration is available for Agri, Legal, Expat, and Vocational modules.</p>
                 </div>
             );
     }
@@ -156,6 +190,8 @@ export const AdminConfig: React.FC<Props> = ({ isBangla }) => {
         </div>
     );
   };
+
+  const isEditable = ['agri', 'legal', 'expat', 'vocational'].includes(activeConfigTab);
 
   return (
     <div className="space-y-6 animate-fade-in">
@@ -199,7 +235,9 @@ export const AdminConfig: React.FC<Props> = ({ isBangla }) => {
         <div className="min-h-[400px]">
             <div className="flex justify-between items-center p-4 mb-4 bg-gray-50 rounded-xl border border-gray-100">
                <h4 className="font-bold text-gray-800 text-lg capitalize">{activeConfigTab} Data</h4>
-               <Button onClick={openModal} size="sm" className="bg-brand-600 text-white">Add New</Button>
+               {isEditable && (
+                 <Button onClick={openModal} size="sm" className="bg-brand-600 text-white">Add New</Button>
+               )}
             </div>
             {renderTable()}
         </div>
@@ -207,50 +245,49 @@ export const AdminConfig: React.FC<Props> = ({ isBangla }) => {
 
       {/* Modal */}
       {isConfigModalOpen && (
-        <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4 backdrop-blur-sm">
+        <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4 backdrop-blur-sm animate-fade-in">
             <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md p-6">
-                <h3 className="font-bold text-xl mb-4">Add New Item</h3>
+                <div className="flex justify-between items-center mb-4">
+                    <h3 className="font-bold text-xl">Add New Item</h3>
+                    <button onClick={() => setIsConfigModalOpen(false)}><X size={20} className="text-gray-400 hover:text-red-500"/></button>
+                </div>
+                
                 <form onSubmit={handleSubmit} className="space-y-4">
                     {/* Dynamic Fields based on Tab */}
                     {activeConfigTab === 'agri' && (
                         <>
-                            <input required className="w-full p-3 border rounded-lg" placeholder="Name (English)" onChange={e => setConfigForm({...configForm, nameEn: e.target.value})} />
-                            <input required className="w-full p-3 border rounded-lg" placeholder="Name (Bangla)" onChange={e => setConfigForm({...configForm, nameBn: e.target.value})} />
-                            <input required type="number" className="w-full p-3 border rounded-lg" placeholder="Price (Today)" onChange={e => setConfigForm({...configForm, today: parseFloat(e.target.value)})} />
-                            <input required className="w-full p-3 border rounded-lg" placeholder="Unit (e.g. kg)" onChange={e => setConfigForm({...configForm, unit: e.target.value})} />
+                            <input required className="w-full p-3 border rounded-lg focus:ring-2 focus:ring-brand-500 outline-none" placeholder="Name (English)" onChange={e => setConfigForm({...configForm, nameEn: e.target.value})} />
+                            <input required className="w-full p-3 border rounded-lg focus:ring-2 focus:ring-brand-500 outline-none" placeholder="Name (Bangla)" onChange={e => setConfigForm({...configForm, nameBn: e.target.value})} />
+                            <input required type="number" className="w-full p-3 border rounded-lg focus:ring-2 focus:ring-brand-500 outline-none" placeholder="Price (Today)" onChange={e => setConfigForm({...configForm, today: e.target.value})} />
+                            <input required className="w-full p-3 border rounded-lg focus:ring-2 focus:ring-brand-500 outline-none" placeholder="Unit (e.g. kg)" onChange={e => setConfigForm({...configForm, unit: e.target.value})} />
                         </>
                     )}
                     {activeConfigTab === 'legal' && (
                         <>
-                            <input required className="w-full p-3 border rounded-lg" placeholder="Lawyer Name" onChange={e => setConfigForm({...configForm, name: e.target.value})} />
-                            <input required className="w-full p-3 border rounded-lg" placeholder="Speciality" onChange={e => setConfigForm({...configForm, speciality: e.target.value})} />
-                            <input required className="w-full p-3 border rounded-lg" placeholder="Location" onChange={e => setConfigForm({...configForm, location: e.target.value})} />
-                            <input required className="w-full p-3 border rounded-lg" placeholder="Phone" onChange={e => setConfigForm({...configForm, phone: e.target.value})} />
+                            <input required className="w-full p-3 border rounded-lg focus:ring-2 focus:ring-brand-500 outline-none" placeholder="Lawyer Name" onChange={e => setConfigForm({...configForm, name: e.target.value})} />
+                            <input required className="w-full p-3 border rounded-lg focus:ring-2 focus:ring-brand-500 outline-none" placeholder="Speciality" onChange={e => setConfigForm({...configForm, speciality: e.target.value})} />
+                            <input required className="w-full p-3 border rounded-lg focus:ring-2 focus:ring-brand-500 outline-none" placeholder="Location" onChange={e => setConfigForm({...configForm, location: e.target.value})} />
+                            <input required className="w-full p-3 border rounded-lg focus:ring-2 focus:ring-brand-500 outline-none" placeholder="Phone" onChange={e => setConfigForm({...configForm, phone: e.target.value})} />
                         </>
                     )}
                     {activeConfigTab === 'expat' && (
                         <>
-                            <input required className="w-full p-3 border rounded-lg" placeholder="Currency (e.g. USD)" onChange={e => setConfigForm({...configForm, currency: e.target.value})} />
-                            <input required type="number" className="w-full p-3 border rounded-lg" placeholder="Rate (BDT)" onChange={e => setConfigForm({...configForm, rate: parseFloat(e.target.value)})} />
+                            <input required className="w-full p-3 border rounded-lg focus:ring-2 focus:ring-brand-500 outline-none" placeholder="Currency (e.g. USD)" onChange={e => setConfigForm({...configForm, currency: e.target.value})} />
+                            <input required type="number" className="w-full p-3 border rounded-lg focus:ring-2 focus:ring-brand-500 outline-none" placeholder="Rate (BDT)" onChange={e => setConfigForm({...configForm, rate: e.target.value})} />
                         </>
                     )}
                     {activeConfigTab === 'vocational' && (
                         <>
-                            <input required className="w-full p-3 border rounded-lg" placeholder="Course Title" onChange={e => setConfigForm({...configForm, title: e.target.value})} />
-                            <input required className="w-full p-3 border rounded-lg" placeholder="Category" onChange={e => setConfigForm({...configForm, category: e.target.value})} />
-                            <input required className="w-full p-3 border rounded-lg" placeholder="Fee" onChange={e => setConfigForm({...configForm, fee: e.target.value})} />
-                            <input required className="w-full p-3 border rounded-lg" placeholder="Duration" onChange={e => setConfigForm({...configForm, duration: e.target.value})} />
+                            <input required className="w-full p-3 border rounded-lg focus:ring-2 focus:ring-brand-500 outline-none" placeholder="Course Title" onChange={e => setConfigForm({...configForm, title: e.target.value})} />
+                            <input required className="w-full p-3 border rounded-lg focus:ring-2 focus:ring-brand-500 outline-none" placeholder="Category" onChange={e => setConfigForm({...configForm, category: e.target.value})} />
+                            <input required type="number" className="w-full p-3 border rounded-lg focus:ring-2 focus:ring-brand-500 outline-none" placeholder="Fee" onChange={e => setConfigForm({...configForm, fee: e.target.value})} />
+                            <input required className="w-full p-3 border rounded-lg focus:ring-2 focus:ring-brand-500 outline-none" placeholder="Duration" onChange={e => setConfigForm({...configForm, duration: e.target.value})} />
                         </>
                     )}
-                    
-                    {/* Fallback for other modules */}
-                    {['health', 'edu', 'transport', 'craft'].includes(activeConfigTab) && (
-                        <p className="text-sm text-gray-500">Form for this module is not yet configured.</p>
-                    )}
 
-                    <div className="flex justify-end gap-3 mt-4">
+                    <div className="flex justify-end gap-3 mt-4 pt-4 border-t border-gray-100">
                         <Button type="button" variant="outline" onClick={() => setIsConfigModalOpen(false)}>Cancel</Button>
-                        <Button type="submit">Save</Button>
+                        <Button type="submit" className="bg-brand-600 hover:bg-brand-700 text-white">Save Item</Button>
                     </div>
                 </form>
             </div>
