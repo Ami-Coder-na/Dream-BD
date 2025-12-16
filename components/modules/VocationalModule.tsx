@@ -1,6 +1,6 @@
 
-import React, { useState } from 'react';
-import { Wrench, PlayCircle, Star, Award, BookOpen, MonitorPlay, Users, X, CheckCircle, FileText, Clock, Play, List } from 'lucide-react';
+import React, { useState, useEffect, useRef } from 'react';
+import { Wrench, PlayCircle, Star, Award, BookOpen, MonitorPlay, Users, X, CheckCircle, FileText, Clock, Play, List, Download, Share2, ShieldCheck } from 'lucide-react';
 import { Button } from '../ui/Button';
 import { useData } from '../../contexts/DataContext';
 import { getOptimizedImageUrl } from '../utils/imageUtils';
@@ -12,34 +12,58 @@ interface Props {
   onLogin?: () => void;
 }
 
-// Mock Syllabus Data generator
-const getSyllabus = (courseId: number, isBangla: boolean) => {
-  const common = [
-    { titleEn: 'Introduction & Tools', titleBn: 'ভূমিকা ও যন্ত্রপাতি পরিচিতি', duration: '15 min' },
-    { titleEn: 'Safety Precautions', titleBn: 'নিরাপত্তা সতর্কতা', duration: '10 min' },
-    { titleEn: 'Basic Components', titleBn: 'মৌলিক উপাদান', duration: '25 min' },
-    { titleEn: 'Practical Demonstration 1', titleBn: 'ব্যাবহারিক ক্লাস ১', duration: '40 min' },
-    { titleEn: 'Practical Demonstration 2', titleBn: 'ব্যাবহারিক ক্লাস ২', duration: '45 min' },
-    { titleEn: 'Troubleshooting & Repairs', titleBn: 'সমস্যা নির্ণয় ও মেরামত', duration: '50 min' },
-    { titleEn: 'Final Project & Assessment', titleBn: 'চূড়ান্ত প্রজেক্ট ও মূল্যায়ন', duration: '60 min' },
+interface SyllabusItem {
+  id: number;
+  titleEn: string;
+  titleBn: string;
+  duration: string;
+  videoId: string; // Add videoId for functionality
+  completed: boolean;
+}
+
+// Mock Syllabus Data
+const getSyllabusData = (isBangla: boolean): SyllabusItem[] => {
+  return [
+    { id: 1, titleEn: 'Introduction & Tools', titleBn: 'ভূমিকা ও যন্ত্রপাতি পরিচিতি', duration: '15 min', videoId: 'intro', completed: false },
+    { id: 2, titleEn: 'Safety Precautions', titleBn: 'নিরাপত্তা সতর্কতা', duration: '10 min', videoId: 'safety', completed: false },
+    { id: 3, titleEn: 'Basic Components', titleBn: 'মৌলিক উপাদান', duration: '25 min', videoId: 'components', completed: false },
+    { id: 4, titleEn: 'Practical Demonstration 1', titleBn: 'ব্যাবহারিক ক্লাস ১', duration: '40 min', videoId: 'practical1', completed: false },
+    { id: 5, titleEn: 'Practical Demonstration 2', titleBn: 'ব্যাবহারিক ক্লাস ২', duration: '45 min', videoId: 'practical2', completed: false },
+    { id: 6, titleEn: 'Troubleshooting & Repairs', titleBn: 'সমস্যা নির্ণয় ও মেরামত', duration: '50 min', videoId: 'repair', completed: false },
+    { id: 7, titleEn: 'Final Project & Assessment', titleBn: 'চূড়ান্ত প্রজেক্ট ও মূল্যায়ন', duration: '60 min', videoId: 'final', completed: false },
   ];
-  return common.map((item, idx) => ({ ...item, id: idx + 1, completed: idx === 0 }));
 };
 
 export const VocationalModule: React.FC<Props> = ({ isBangla, user, onLogin }) => {
-  const { vocationalCourses, enrollCourse } = useData(); // Get enrollCourse function
+  const { vocationalCourses, enrollCourse } = useData();
   const [selectedCourse, setSelectedCourse] = useState<any | null>(null);
+  
+  // Course Player State
+  const [syllabus, setSyllabus] = useState<SyllabusItem[]>([]);
+  const [currentLessonIdx, setCurrentLessonIdx] = useState(0);
+  const [showCertificateModal, setShowCertificateModal] = useState(false);
+  const [certificateDataUrl, setCertificateDataUrl] = useState<string | null>(null);
+
+  // Initialize syllabus when course is selected
+  useEffect(() => {
+    if (selectedCourse) {
+      const initialSyllabus = getSyllabusData(isBangla);
+      // Mark first as completed for demo logic start
+      initialSyllabus[0].completed = true;
+      setSyllabus(initialSyllabus);
+      setCurrentLessonIdx(0);
+    }
+  }, [selectedCourse, isBangla]);
 
   const handleStartCourse = (course: any) => {
     if (!user) {
         if (onLogin) onLogin();
         return;
     }
-    // Enroll the user in the course
     enrollCourse({
       ...course,
       enrolledDate: new Date().toLocaleDateString(),
-      progress: 10, // Mock progress for demo
+      progress: 0,
       status: 'Ongoing'
     });
     
@@ -48,6 +72,113 @@ export const VocationalModule: React.FC<Props> = ({ isBangla, user, onLogin }) =
 
   const handleCloseModal = () => {
     setSelectedCourse(null);
+    setShowCertificateModal(false);
+  };
+
+  const handleLessonSelect = (index: number) => {
+    setCurrentLessonIdx(index);
+  };
+
+  const handleNextLesson = () => {
+    // Mark current as completed
+    const updatedSyllabus = [...syllabus];
+    updatedSyllabus[currentLessonIdx].completed = true;
+    setSyllabus(updatedSyllabus);
+
+    if (currentLessonIdx < syllabus.length - 1) {
+      setCurrentLessonIdx(prev => prev + 1);
+      // Mark next as completed (simulating viewed)
+      updatedSyllabus[currentLessonIdx + 1].completed = true; 
+    } else {
+      // Course Completed
+      generateCertificate();
+      setShowCertificateModal(true);
+    }
+  };
+
+  const generateCertificate = () => {
+    if (!user || !selectedCourse) return;
+
+    const canvas = document.createElement('canvas');
+    canvas.width = 1000;
+    canvas.height = 700;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+
+    // Background
+    const gradient = ctx.createLinearGradient(0, 0, 1000, 700);
+    gradient.addColorStop(0, "#fffbeb"); // amber-50
+    gradient.addColorStop(1, "#ffffff");
+    ctx.fillStyle = gradient;
+    ctx.fillRect(0, 0, 1000, 700);
+
+    // Decorative Border
+    ctx.strokeStyle = "#d97706"; // amber-600
+    ctx.lineWidth = 20;
+    ctx.strokeRect(30, 30, 940, 640);
+    
+    ctx.strokeStyle = "#111827"; // gray-900
+    ctx.lineWidth = 4;
+    ctx.strokeRect(55, 55, 890, 590);
+
+    // Corner Ornaments
+    ctx.fillStyle = "#d97706";
+    ctx.beginPath(); ctx.arc(55, 55, 15, 0, Math.PI * 2); ctx.fill();
+    ctx.beginPath(); ctx.arc(945, 55, 15, 0, Math.PI * 2); ctx.fill();
+    ctx.beginPath(); ctx.arc(55, 645, 15, 0, Math.PI * 2); ctx.fill();
+    ctx.beginPath(); ctx.arc(945, 645, 15, 0, Math.PI * 2); ctx.fill();
+
+    // Content
+    ctx.textAlign = "center";
+    
+    // Header
+    ctx.font = "bold 50px serif";
+    ctx.fillStyle = "#111827";
+    ctx.fillText("CERTIFICATE", 500, 160);
+    
+    ctx.font = "30px sans-serif";
+    ctx.fillStyle = "#d97706";
+    ctx.fillText("OF COMPLETION", 500, 200);
+
+    // Body
+    ctx.font = "24px sans-serif";
+    ctx.fillStyle = "#4b5563";
+    ctx.fillText("This certificate is proudly presented to", 500, 280);
+
+    // User Name
+    ctx.font = "italic bold 60px serif";
+    ctx.fillStyle = "#111827";
+    ctx.fillText(user.name, 500, 360);
+    
+    // Underline
+    ctx.beginPath();
+    ctx.moveTo(300, 375);
+    ctx.lineTo(700, 375);
+    ctx.strokeStyle = "#d97706";
+    ctx.lineWidth = 2;
+    ctx.stroke();
+
+    ctx.font = "24px sans-serif";
+    ctx.fillStyle = "#4b5563";
+    ctx.fillText("For successfully completing the vocational course on", 500, 430);
+
+    // Course Name
+    ctx.font = "bold 40px sans-serif";
+    ctx.fillStyle = "#d97706";
+    ctx.fillText(isBangla ? selectedCourse.titleBn : selectedCourse.title, 500, 490);
+
+    // Footer
+    const date = new Date().toLocaleDateString();
+    ctx.font = "20px sans-serif";
+    ctx.fillStyle = "#111827";
+    ctx.fillText(`Date: ${date}`, 250, 600);
+    ctx.fillText("Dream BD Authority", 750, 600);
+
+    // Signatures lines
+    ctx.beginPath(); ctx.moveTo(150, 570); ctx.lineTo(350, 570); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(650, 570); ctx.lineTo(850, 570); ctx.stroke();
+
+    setCertificateDataUrl(canvas.toDataURL('image/jpeg'));
   };
 
   return (
@@ -147,32 +278,45 @@ export const VocationalModule: React.FC<Props> = ({ isBangla, user, onLogin }) =
         </div>
       </div>
 
-      {/* Course Player Modal */}
+      {/* Course Player Popup */}
       {selectedCourse && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-fade-in" onClick={handleCloseModal}>
-          <div className="bg-white w-full max-w-5xl rounded-2xl shadow-2xl overflow-hidden flex flex-col md:flex-row max-h-[90vh]" onClick={e => e.stopPropagation()}>
+          <div className="bg-white w-full max-w-5xl rounded-2xl shadow-2xl overflow-hidden flex flex-col md:flex-row h-[85vh]" onClick={e => e.stopPropagation()}>
             
-            {/* Left: Video Player */}
-            <div className="w-full md:w-2/3 bg-black flex flex-col">
-               <div className="relative aspect-video bg-black flex items-center justify-center">
-                  {/* Placeholder Video */}
-                  <iframe 
-                    width="100%" 
-                    height="100%" 
-                    src="https://www.youtube.com/embed/dQw4w9WgXcQ?autoplay=1" 
-                    title="YouTube video player" 
-                    frameBorder="0" 
-                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
-                    allowFullScreen
-                    className="w-full h-full"
-                  ></iframe>
+            {/* Left: Video Player Area */}
+            <div className="w-full md:w-2/3 bg-black flex flex-col relative">
+               <div className="relative flex-1 bg-black flex items-center justify-center">
+                  {/* Simulated Video Player */}
+                  <div className="absolute inset-0 flex flex-col items-center justify-center">
+                     <div className="w-full h-full relative group">
+                        {/* Placeholder image that looks like video */}
+                        <img 
+                          src={getOptimizedImageUrl(selectedCourse.image, 800)} 
+                          className="w-full h-full object-cover opacity-60" 
+                          alt="Video Placeholder"
+                        />
+                        <div className="absolute inset-0 flex items-center justify-center">
+                           <PlayCircle size={80} className="text-white opacity-90 drop-shadow-lg cursor-pointer hover:scale-110 transition-transform" />
+                        </div>
+                        {/* Fake Controls */}
+                        <div className="absolute bottom-0 left-0 right-0 h-1 bg-gray-700">
+                           <div className="h-full bg-red-600" style={{ width: '35%' }}></div>
+                        </div>
+                     </div>
+                  </div>
                </div>
-               <div className="p-6 bg-white flex-1 overflow-y-auto">
-                  <span className="text-xs font-bold text-amber-600 bg-amber-50 px-2 py-1 rounded mb-2 inline-block">
-                    {selectedCourse.category}
-                  </span>
+               
+               <div className="p-6 bg-white border-t border-gray-100 flex-shrink-0">
+                  <div className="flex items-center gap-2 mb-2">
+                     <span className="text-xs font-bold text-amber-600 bg-amber-50 px-2 py-1 rounded inline-block">
+                       {selectedCourse.category}
+                     </span>
+                     <span className="text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded inline-block">
+                        Lesson {currentLessonIdx + 1} of {syllabus.length}
+                     </span>
+                  </div>
                   <h2 className="text-2xl font-bold text-gray-900 mb-2">
-                    {isBangla ? selectedCourse.titleBn : selectedCourse.title}
+                    {isBangla ? syllabus[currentLessonIdx]?.titleBn : syllabus[currentLessonIdx]?.titleEn}
                   </h2>
                   <p className="text-gray-600 text-sm">
                     {isBangla 
@@ -182,42 +326,44 @@ export const VocationalModule: React.FC<Props> = ({ isBangla, user, onLogin }) =
                </div>
             </div>
 
-            {/* Right: Syllabus */}
-            <div className="w-full md:w-1/3 bg-gray-50 border-l border-gray-200 flex flex-col">
-               <div className="p-4 border-b border-gray-200 flex justify-between items-center bg-white">
+            {/* Right: Syllabus List */}
+            <div className="w-full md:w-1/3 bg-gray-50 border-l border-gray-200 flex flex-col h-full">
+               <div className="p-4 border-b border-gray-100 flex justify-between items-center bg-white shadow-sm z-10">
                   <h3 className="font-bold text-gray-800 flex items-center gap-2">
-                    <List size={18} /> {isBangla ? 'কোর্স সিলেবাস' : 'Course Content'}
+                    <List size={18} /> {isBangla ? 'কোর্স সিলেবাস' : 'Course Syllabus'}
                   </h3>
-                  <button onClick={handleCloseModal} className="p-1 hover:bg-gray-100 rounded-full text-gray-500">
+                  <button onClick={handleCloseModal} className="p-1 hover:bg-gray-100 rounded-full text-gray-500 transition-colors">
                     <X size={20} />
                   </button>
                </div>
                
-               <div className="flex-1 overflow-y-auto p-4 space-y-3">
-                  {getSyllabus(selectedCourse.id, isBangla).map((lesson, idx) => (
+               <div className="flex-1 overflow-y-auto p-4 space-y-3 custom-scrollbar">
+                  {syllabus.map((lesson, idx) => (
                     <div 
                       key={lesson.id} 
-                      className={`p-3 rounded-xl border transition-all cursor-pointer flex gap-3 ${
-                        lesson.completed 
-                          ? 'bg-green-50 border-green-200' 
-                          : idx === 1 ? 'bg-white border-amber-400 shadow-sm ring-1 ring-amber-100' // Current
-                          : 'bg-white border-gray-200 opacity-70'
+                      onClick={() => handleLessonSelect(idx)}
+                      className={`p-3 rounded-xl border transition-all cursor-pointer flex gap-3 group ${
+                        idx === currentLessonIdx 
+                          ? 'bg-white border-amber-400 shadow-md ring-1 ring-amber-100' // Current
+                          : lesson.completed 
+                            ? 'bg-green-50 border-green-200' // Completed
+                            : 'bg-white border-gray-200 opacity-70 hover:opacity-100 hover:border-amber-200' // Pending
                       }`}
                     >
-                       <div className="mt-1">
+                       <div className="mt-1 flex-shrink-0">
                          {lesson.completed ? (
                            <CheckCircle size={18} className="text-green-600" />
-                         ) : idx === 1 ? (
-                           <PlayCircle size={18} className="text-amber-600" />
+                         ) : idx === currentLessonIdx ? (
+                           <div className="w-4 h-4 rounded-full border-2 border-amber-500 border-t-transparent animate-spin"></div>
                          ) : (
-                           <span className="w-4 h-4 rounded-full border-2 border-gray-300 block"></span>
+                           <div className="w-4 h-4 rounded-full border-2 border-gray-300 group-hover:border-amber-400 transition-colors"></div>
                          )}
                        </div>
                        <div>
-                          <h4 className={`text-sm font-bold ${lesson.completed ? 'text-green-800' : 'text-gray-800'}`}>
+                          <h4 className={`text-sm font-bold leading-tight mb-1 ${idx === currentLessonIdx ? 'text-amber-800' : lesson.completed ? 'text-green-800' : 'text-gray-700'}`}>
                             {isBangla ? lesson.titleBn : lesson.titleEn}
                           </h4>
-                          <p className="text-xs text-gray-500 flex items-center gap-1 mt-1">
+                          <p className="text-xs text-gray-500 flex items-center gap-1">
                             <Clock size={10} /> {lesson.duration}
                           </p>
                        </div>
@@ -225,14 +371,55 @@ export const VocationalModule: React.FC<Props> = ({ isBangla, user, onLogin }) =
                   ))}
                </div>
 
-               <div className="p-4 border-t border-gray-200 bg-white">
-                  <Button className="w-full bg-amber-600 hover:bg-amber-700 text-white">
-                    {isBangla ? 'পরবর্তী লেসন' : 'Next Lesson'}
+               <div className="p-4 border-t border-gray-200 bg-white z-10">
+                  <Button 
+                    onClick={handleNextLesson} 
+                    className={`w-full text-white shadow-lg ${
+                      currentLessonIdx === syllabus.length - 1 
+                        ? 'bg-green-600 hover:bg-green-700 shadow-green-200' 
+                        : 'bg-amber-600 hover:bg-amber-700 shadow-amber-200'
+                    }`}
+                  >
+                    {currentLessonIdx === syllabus.length - 1 
+                      ? (isBangla ? 'সার্টিফিকেট নিন' : 'Claim Certificate') 
+                      : (isBangla ? 'পরবর্তী লেসন' : 'Next Lesson')}
                   </Button>
                </div>
             </div>
 
           </div>
+        </div>
+      )}
+
+      {/* Certificate Modal */}
+      {showCertificateModal && certificateDataUrl && (
+        <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-black/90 backdrop-blur-sm animate-fade-in" onClick={() => setShowCertificateModal(false)}>
+           <div className="bg-white rounded-2xl shadow-2xl p-6 max-w-4xl w-full flex flex-col items-center" onClick={e => e.stopPropagation()}>
+              <div className="w-full flex justify-between items-center mb-6 border-b border-gray-100 pb-4">
+                 <h2 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
+                   <ShieldCheck className="text-amber-600" />
+                   {isBangla ? 'অভিনন্দন! আপনার সার্টিফিকেট' : 'Congratulations! Your Certificate'}
+                 </h2>
+                 <button onClick={() => setShowCertificateModal(false)} className="p-2 hover:bg-gray-100 rounded-full"><X size={24}/></button>
+              </div>
+              
+              <div className="relative w-full aspect-[1.4/1] shadow-2xl mb-6 rounded-lg overflow-hidden border-8 border-amber-50">
+                 <img src={certificateDataUrl} alt="Certificate" className="w-full h-full object-contain" />
+              </div>
+
+              <div className="flex gap-4 w-full sm:w-auto">
+                 <a 
+                   href={certificateDataUrl} 
+                   download={`Certificate_${user?.name.replace(/\s+/g, '_')}.jpg`}
+                   className="flex-1 sm:flex-none inline-flex items-center justify-center gap-2 bg-amber-600 hover:bg-amber-700 text-white px-8 py-3 rounded-xl font-bold transition-all shadow-lg shadow-amber-200"
+                 >
+                   <Download size={20} /> {isBangla ? 'ডাউনলোড করুন' : 'Download'}
+                 </a>
+                 <button className="flex-1 sm:flex-none inline-flex items-center justify-center gap-2 bg-gray-100 hover:bg-gray-200 text-gray-800 px-8 py-3 rounded-xl font-bold transition-all">
+                   <Share2 size={20} /> {isBangla ? 'শেয়ার করুন' : 'Share'}
+                 </button>
+              </div>
+           </div>
         </div>
       )}
 
