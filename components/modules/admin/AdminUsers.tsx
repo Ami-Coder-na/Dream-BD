@@ -3,14 +3,16 @@ import React, { useState } from 'react';
 import { 
   Users, Search, UserPlus, Eye, Lock, Trash2, Filter, 
   ArrowLeft, Save, UserCheck, UserX, Calendar, Mail, 
-  Briefcase, Key, MoreVertical, Phone, MapPin, Shield, Activity, Unlock
+  Briefcase, Key, MoreVertical, Phone, MapPin, Shield, Activity, Unlock,
+  CheckCircle, ShieldCheck
 } from 'lucide-react';
 import { Button } from '../../ui/Button';
 import { useData } from '../../../contexts/DataContext';
 
 export const AdminUsers = () => {
-  const { users, addUser, updateUserStatus, deleteUser } = useData(); // Use Context
+  const { users, addUser, updateUserStatus, deleteUser } = useData(); 
   const [view, setView] = useState<'list' | 'add' | 'details'>('list');
+  const [activeTab, setActiveTab] = useState<'users' | 'roles'>('users');
   const [userSearch, setUserSearch] = useState('');
   const [userRoleFilter, setUserRoleFilter] = useState('All');
   const [selectedUser, setSelectedUser] = useState<any>(null);
@@ -26,6 +28,16 @@ export const AdminUsers = () => {
     const matchesRole = userRoleFilter === 'All' || u.role === userRoleFilter;
     return matchesSearch && matchesRole;
   });
+
+  const ROLES_DATA = [
+    { name: 'Admin', count: users.filter((u: any) => u.role === 'Admin').length, desc: 'Full system control and configuration access.', color: 'bg-purple-100 text-purple-700', perms: ['User Mgmt', 'Content Mod', 'System Config', 'Financials'] },
+    { name: 'Citizen', count: users.filter((u: any) => u.role === 'Citizen').length, desc: 'Standard access to public services and content.', color: 'bg-blue-100 text-blue-700', perms: ['View Content', 'Post Comments', 'Submit Grievance', 'Emergency Services'] },
+    { name: 'Farmer', count: users.filter((u: any) => u.role === 'Farmer').length, desc: 'Specialized access for agricultural tools and markets.', color: 'bg-green-100 text-green-700', perms: ['Agri Tools', 'Market Prices', 'Expert Consultation', 'Sell Produce'] },
+    { name: 'Vendor', count: users.filter((u: any) => u.role === 'Vendor').length, desc: 'Business access for marketplace and sales.', color: 'bg-orange-100 text-orange-700', perms: ['Manage Shop', 'Post Products', 'Order Mgmt', 'Sales Analytics'] },
+    { name: 'Doctor', count: users.filter((u: any) => u.role === 'Doctor').length, desc: 'Healthcare provider access for telemedicine.', color: 'bg-teal-100 text-teal-700', perms: ['Patient Mgmt', 'Prescriptions', 'Health Blog', 'Schedule'] },
+    { name: 'Teacher', count: users.filter((u: any) => u.role === 'Teacher').length, desc: 'Educational content creator and mentor.', color: 'bg-indigo-100 text-indigo-700', perms: ['Course Mgmt', 'Student Analytics', 'Live Class', 'Assessments'] },
+    { name: 'Transport Operator', count: users.filter((u: any) => u.role === 'Transport Operator').length, desc: 'Transport service management.', color: 'bg-red-100 text-red-700', perms: ['Route Mgmt', 'Ticket Booking', 'Fleet Status'] },
+  ];
 
   // --- ACTIONS ---
 
@@ -297,6 +309,7 @@ export const AdminUsers = () => {
                       <option>Doctor</option>
                       <option>Vendor</option>
                       <option>Teacher</option>
+                      <option>Transport Operator</option>
                     </select>
                   </div>
                 </div>
@@ -320,124 +333,171 @@ export const AdminUsers = () => {
       {renderStats()}
 
       <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
-        <div className="p-6 border-b border-gray-100 flex flex-col sm:flex-row justify-between items-center gap-4">
-          <div>
-            <h3 className="text-lg font-bold text-gray-900 flex items-center gap-2">
-              <Users className="text-green-600" size={20} /> User Management
-            </h3>
-            <p className="text-gray-500 text-xs mt-1">Manage system users, roles and permissions</p>
+        <div className="p-6 border-b border-gray-100 flex flex-col md:flex-row justify-between items-center gap-4">
+          <div className="w-full md:w-auto">
+             <div className="flex gap-4">
+                <button 
+                  onClick={() => setActiveTab('users')} 
+                  className={`pb-2 text-sm font-bold border-b-2 transition-colors ${activeTab === 'users' ? 'border-green-600 text-green-700' : 'border-transparent text-gray-500 hover:text-gray-700'}`}
+                >
+                  Users Directory
+                </button>
+                <button 
+                  onClick={() => setActiveTab('roles')} 
+                  className={`pb-2 text-sm font-bold border-b-2 transition-colors ${activeTab === 'roles' ? 'border-green-600 text-green-700' : 'border-transparent text-gray-500 hover:text-gray-700'}`}
+                >
+                  Roles & Permissions
+                </button>
+             </div>
           </div>
 
-          <div className="flex flex-col sm:flex-row gap-3 w-full sm:w-auto">
-            <div className="relative">
-               <select 
-                 value={userRoleFilter}
-                 onChange={(e) => setUserRoleFilter(e.target.value)}
-                 className="pl-4 pr-10 py-2 bg-white border border-gray-200 rounded-lg text-sm font-medium focus:outline-none focus:ring-2 focus:ring-gray-200 appearance-none cursor-pointer hover:bg-gray-50 transition-colors h-10"
-               >
-                 <option value="All">All Roles</option>
-                 <option value="Citizen">Citizen</option>
-                 <option value="Farmer">Farmer</option>
-                 <option value="Doctor">Doctor</option>
-                 <option value="Vendor">Vendor</option>
-               </select>
-               <Filter className="absolute right-3 top-2.5 text-gray-400 pointer-events-none" size={14} />
-            </div>
+          {activeTab === 'users' && (
+            <div className="flex flex-col sm:flex-row gap-3 w-full md:w-auto">
+              <div className="relative">
+                <select 
+                  value={userRoleFilter}
+                  onChange={(e) => setUserRoleFilter(e.target.value)}
+                  className="pl-4 pr-10 py-2 bg-white border border-gray-200 rounded-lg text-sm font-medium focus:outline-none focus:ring-2 focus:ring-gray-200 appearance-none cursor-pointer hover:bg-gray-50 transition-colors h-10"
+                >
+                  <option value="All">All Roles</option>
+                  <option value="Citizen">Citizen</option>
+                  <option value="Farmer">Farmer</option>
+                  <option value="Doctor">Doctor</option>
+                  <option value="Vendor">Vendor</option>
+                </select>
+                <Filter className="absolute right-3 top-2.5 text-gray-400 pointer-events-none" size={14} />
+              </div>
 
-            <div className="relative flex-1 sm:w-64">
-              <Search className="absolute left-3 top-3 text-gray-400" size={16} />
-              <input 
-                type="text" 
-                placeholder="Search name or email..." 
-                value={userSearch}
-                onChange={(e) => setUserSearch(e.target.value)}
-                className="w-full pl-9 pr-4 py-2 bg-white border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-gray-200 h-10" 
-              />
-            </div>
+              <div className="relative flex-1 sm:w-64">
+                <Search className="absolute left-3 top-3 text-gray-400" size={16} />
+                <input 
+                  type="text" 
+                  placeholder="Search name or email..." 
+                  value={userSearch}
+                  onChange={(e) => setUserSearch(e.target.value)}
+                  className="w-full pl-9 pr-4 py-2 bg-white border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-gray-200 h-10" 
+                />
+              </div>
 
-            <Button onClick={() => setView('add')} className="bg-gray-900 hover:bg-black text-white text-sm font-medium px-4 h-10 rounded-lg shadow-sm flex items-center gap-2">
-              <UserPlus size={16} /> Add New User
-            </Button>
+              <Button onClick={() => setView('add')} className="bg-gray-900 hover:bg-black text-white text-sm font-medium px-4 h-10 rounded-lg shadow-sm flex items-center gap-2">
+                <UserPlus size={16} /> Add User
+              </Button>
+            </div>
+          )}
+        </div>
+
+        {activeTab === 'users' ? (
+          <>
+            <div className="overflow-x-auto">
+              <table className="w-full text-left border-collapse">
+                <thead className="bg-gray-50/50 border-b border-gray-100">
+                  <tr>
+                    <th className="p-4 text-xs font-bold text-gray-500 uppercase tracking-wider">User Details</th>
+                    <th className="p-4 text-xs font-bold text-gray-500 uppercase tracking-wider">Role</th>
+                    <th className="p-4 text-xs font-bold text-gray-500 uppercase tracking-wider">Joined Date</th>
+                    <th className="p-4 text-xs font-bold text-gray-500 uppercase tracking-wider">Status</th>
+                    <th className="p-4 text-xs font-bold text-gray-500 uppercase tracking-wider text-right">Actions</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-50">
+                  {filteredUsers.map((user: any) => (
+                    <tr key={user.id} className="hover:bg-gray-50/50 transition-colors group">
+                      <td className="p-4">
+                        <div className="flex items-center gap-3">
+                          <div className="w-10 h-10 rounded-full bg-green-100 flex items-center justify-center text-green-700 font-bold text-sm overflow-hidden">
+                            {user.avatar ? (
+                                <img src={user.avatar} alt={user.name} className="w-full h-full object-cover" />
+                            ) : (
+                                user.name.charAt(0)
+                            )}
+                          </div>
+                          <div>
+                            <p className="font-bold text-gray-900 text-sm">{user.name}</p>
+                            <p className="text-xs text-gray-500">{user.email}</p>
+                          </div>
+                        </div>
+                      </td>
+                      <td className="p-4">
+                        <span className="bg-gray-100 text-gray-700 px-3 py-1 rounded text-xs font-bold border border-gray-200">
+                          {user.role}
+                        </span>
+                      </td>
+                      <td className="p-4 text-sm text-gray-600 font-medium">
+                        {user.date}
+                      </td>
+                      <td className="p-4">
+                        <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold ${
+                          user.status === 'Active' 
+                            ? 'bg-green-50 text-green-700 border border-green-100' 
+                            : 'bg-red-50 text-red-700 border border-red-100'
+                        }`}>
+                          <span className={`w-1.5 h-1.5 rounded-full ${user.status === 'Active' ? 'bg-green-600' : 'bg-red-600'}`}></span>
+                          {user.status}
+                        </span>
+                      </td>
+                      <td className="p-4 text-right">
+                        <div className="flex justify-end gap-2">
+                          <button onClick={() => handleViewUser(user)} className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-all" title="View Details">
+                            <Eye size={16} />
+                          </button>
+                          <button onClick={() => handleSuspendUser(user.id)} className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-all" title={user.status === 'Active' ? 'Suspend User' : 'Activate User'}>
+                            {user.status === 'Active' ? <Lock size={16} /> : <Unlock size={16} className="text-green-600" />}
+                          </button>
+                          <button onClick={() => handleDeleteUser(user.id)} className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-all" title="Delete User">
+                            <Trash2 size={16} />
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                  {filteredUsers.length === 0 && (
+                      <tr><td colSpan={5} className="p-10 text-center text-gray-400 font-medium">No users found. Add a user to start.</td></tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
+            
+            {/* Simple Pagination */}
+            <div className="p-4 border-t border-gray-100 flex justify-between items-center bg-gray-50/30">
+              <span className="text-xs text-gray-500 font-medium">Showing {filteredUsers.length} of {users.length} results</span>
+              <div className="flex gap-2">
+                <button className="px-3 py-1 border border-gray-200 bg-white rounded text-xs font-medium text-gray-600 hover:bg-gray-50 disabled:opacity-50" disabled>Previous</button>
+                <button className="px-3 py-1 border border-gray-200 bg-white rounded text-xs font-medium text-gray-600 hover:bg-gray-50 disabled:opacity-50" disabled>Next</button>
+              </div>
+            </div>
+          </>
+        ) : (
+          <div className="p-6 bg-gray-50/30">
+             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {ROLES_DATA.map((role, idx) => (
+                   <div key={idx} className="bg-white p-6 rounded-xl border border-gray-100 shadow-sm hover:shadow-md transition-shadow">
+                      <div className="flex justify-between items-start mb-4">
+                         <span className={`px-3 py-1.5 rounded-lg text-xs font-bold uppercase tracking-wider ${role.color}`}>
+                           {role.name}
+                         </span>
+                         <span className="text-xs font-bold text-gray-500 bg-gray-100 px-2 py-1 rounded-full flex items-center gap-1">
+                           <Users size={12} /> {role.count}
+                         </span>
+                      </div>
+                      <p className="text-sm text-gray-600 mb-6 h-10">{role.desc}</p>
+                      
+                      <div className="space-y-3">
+                         <p className="text-xs font-bold text-gray-400 uppercase tracking-wider flex items-center gap-1">
+                           <ShieldCheck size={12} /> Permissions
+                         </p>
+                         <div className="flex flex-wrap gap-2">
+                            {role.perms.map((perm, pIdx) => (
+                               <span key={pIdx} className="text-xs bg-gray-50 text-gray-600 px-2 py-1 rounded border border-gray-200 flex items-center gap-1">
+                                 <CheckCircle size={10} className="text-green-500" /> {perm}
+                               </span>
+                            ))}
+                         </div>
+                      </div>
+                   </div>
+                ))}
+             </div>
           </div>
-        </div>
-
-        <div className="overflow-x-auto">
-          <table className="w-full text-left border-collapse">
-            <thead className="bg-gray-50/50 border-b border-gray-100">
-              <tr>
-                <th className="p-4 text-xs font-bold text-gray-500 uppercase tracking-wider">User Details</th>
-                <th className="p-4 text-xs font-bold text-gray-500 uppercase tracking-wider">Role</th>
-                <th className="p-4 text-xs font-bold text-gray-500 uppercase tracking-wider">Joined Date</th>
-                <th className="p-4 text-xs font-bold text-gray-500 uppercase tracking-wider">Status</th>
-                <th className="p-4 text-xs font-bold text-gray-500 uppercase tracking-wider text-right">Actions</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-gray-50">
-              {filteredUsers.map((user: any) => (
-                <tr key={user.id} className="hover:bg-gray-50/50 transition-colors group">
-                  <td className="p-4">
-                    <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 rounded-full bg-green-100 flex items-center justify-center text-green-700 font-bold text-sm overflow-hidden">
-                        {user.avatar ? (
-                            <img src={user.avatar} alt={user.name} className="w-full h-full object-cover" />
-                        ) : (
-                            user.name.charAt(0)
-                        )}
-                      </div>
-                      <div>
-                        <p className="font-bold text-gray-900 text-sm">{user.name}</p>
-                        <p className="text-xs text-gray-500">{user.email}</p>
-                      </div>
-                    </div>
-                  </td>
-                  <td className="p-4">
-                    <span className="bg-gray-100 text-gray-700 px-3 py-1 rounded text-xs font-bold border border-gray-200">
-                      {user.role}
-                    </span>
-                  </td>
-                  <td className="p-4 text-sm text-gray-600 font-medium">
-                    {user.date}
-                  </td>
-                  <td className="p-4">
-                    <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold ${
-                      user.status === 'Active' 
-                        ? 'bg-green-50 text-green-700 border border-green-100' 
-                        : 'bg-red-50 text-red-700 border border-red-100'
-                    }`}>
-                      <span className={`w-1.5 h-1.5 rounded-full ${user.status === 'Active' ? 'bg-green-600' : 'bg-red-600'}`}></span>
-                      {user.status}
-                    </span>
-                  </td>
-                  <td className="p-4 text-right">
-                    <div className="flex justify-end gap-2">
-                      <button onClick={() => handleViewUser(user)} className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-all" title="View Details">
-                        <Eye size={16} />
-                      </button>
-                      <button onClick={() => handleSuspendUser(user.id)} className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-all" title={user.status === 'Active' ? 'Suspend User' : 'Activate User'}>
-                        {user.status === 'Active' ? <Lock size={16} /> : <Unlock size={16} className="text-green-600" />}
-                      </button>
-                      <button onClick={() => handleDeleteUser(user.id)} className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-all" title="Delete User">
-                        <Trash2 size={16} />
-                      </button>
-                    </div>
-                  </td>
-                </tr>
-              ))}
-              {filteredUsers.length === 0 && (
-                  <tr><td colSpan={5} className="p-10 text-center text-gray-400 font-medium">No users found. Add a user to start.</td></tr>
-              )}
-            </tbody>
-          </table>
-        </div>
-        
-        {/* Simple Pagination */}
-        <div className="p-4 border-t border-gray-100 flex justify-between items-center bg-gray-50/30">
-           <span className="text-xs text-gray-500 font-medium">Showing {filteredUsers.length} of {users.length} results</span>
-           <div className="flex gap-2">
-             <button className="px-3 py-1 border border-gray-200 bg-white rounded text-xs font-medium text-gray-600 hover:bg-gray-50 disabled:opacity-50" disabled>Previous</button>
-             <button className="px-3 py-1 border border-gray-200 bg-white rounded text-xs font-medium text-gray-600 hover:bg-gray-50 disabled:opacity-50" disabled>Next</button>
-           </div>
-        </div>
+        )}
       </div>
     </div>
   );
