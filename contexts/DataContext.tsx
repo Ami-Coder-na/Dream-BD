@@ -86,23 +86,45 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     }
   };
 
+  // Convert CamelCase (Frontend) to lowercase (DB) for insertion
   const normalizeData = (data: any) => {
     if (!data || typeof data !== 'object') return data;
     const normalized: any = {};
     for (const key in data) {
       if (key === 'id' || key === 'created_at') continue; 
-      // Handle undefined/null to prevent DB errors
       const val = data[key];
       normalized[key.toLowerCase()] = val === undefined ? null : val;
     }
     return normalized;
   };
 
+  // Convert lowercase (DB) to CamelCase (Frontend) for display
+  const mapFromDb = (item: any) => {
+    if (!item) return item;
+    const newItem = { ...item };
+    
+    // Map specific keys that are camelCase in Frontend but lowercase in DB
+    if ('contenttype' in newItem) { newItem.contentType = newItem.contenttype; delete newItem.contenttype; }
+    if ('postedby' in newItem) { newItem.postedBy = newItem.postedby; delete newItem.postedby; }
+    if ('posteddate' in newItem) { newItem.postedDate = newItem.posteddate; delete newItem.posteddate; }
+    if ('readtime' in newItem) { newItem.readTime = newItem.readtime; delete newItem.readtime; }
+    if ('sellertype' in newItem) { newItem.sellerType = newItem.sellertype; delete newItem.sellertype; }
+    if ('nameen' in newItem) { newItem.nameEn = newItem.nameen; delete newItem.nameen; }
+    if ('namebn' in newItem) { newItem.nameBn = newItem.namebn; delete newItem.namebn; }
+    if ('titlebn' in newItem) { newItem.titleBn = newItem.titlebn; delete newItem.titlebn; }
+    
+    return newItem;
+  };
+
   const fetchTable = async (table: string, setter: any, orderBy = 'created_at', ascending = false) => {
     if (!isSupabaseConfigured) return;
     try {
         const { data, error } = await supabase.from(table).select('*').order(orderBy, { ascending });
-        if (!error && data) setter(data);
+        if (!error && data) {
+            // Normalize DB data to Frontend structure
+            const mappedData = data.map(mapFromDb);
+            setter(mappedData);
+        }
     } catch(e) {
         // Silent fail for fetch, use local data
     }
@@ -139,7 +161,6 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       // DB Increment
       if (isSupabaseConfigured) {
           try {
-              // Fetch current first to be safe, or use RPC if available (skipping RPC for simplicity)
               const { data } = await supabase.from('site_stats').select('value').eq('key', 'total_visitors').single();
               const dbVal = (data?.value || current) + 1;
               await supabase.from('site_stats').upsert({ key: 'total_visitors', value: dbVal });
@@ -217,9 +238,8 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
             if (error) {
                 // FAIL SILENTLY AND LOG
                 console.warn(`Supabase Insert Failed for ${table}. Using local fallback.`, error);
-                // We already saved to local above, so user sees success.
             } else {
-                // Success: Fetch to sync ID from DB (swaps temp ID with real ID eventually)
+                // Success: Fetch to sync ID from DB
                 await fetchTable(table, setter);
             }
         } catch (err) {
@@ -312,8 +332,11 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     }
 
     if (action === 'approve') {
-      const { id, created_at, contentType, ...rest } = item;
-      if (contentType === 'job') await addJob(rest);
+      const { id, created_at, contentType, contenttype, ...rest } = item;
+      // Determine type from either prop
+      const type = contentType || contenttype;
+      
+      if (type === 'job') await addJob(rest);
       else await addBlog(rest);
     }
   };
