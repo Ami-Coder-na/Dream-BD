@@ -19,10 +19,7 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const [exchangeRates, setExchangeRates] = useState<any[]>([]);
   const [vocationalCourses, setVocationalCourses] = useState<any[]>([]);
   const [donors, setDonors] = useState<any[]>([]);
-  const [enrolledCourses, setEnrolledCourses] = useState<any[]>([]);
   const [messages, setMessages] = useState<any[]>([]);
-  
-  // New State for Amar BD & Jela
   const [districtBranding, setDistrictBranding] = useState<any[]>([]);
   const [districtDetails, setDistrictDetails] = useState<any[]>([]);
 
@@ -69,7 +66,7 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     fetchTable('grievances', setGrievances);
     fetchTable('users', setUsers);
     fetchTable('contact_messages', setMessages);
-    fetchTable('market_prices', setMarketPrices, 'id', true);
+    fetchTable('market_prices', setMarketPrices);
     fetchTable('retail_products', setRetailProducts);
     fetchTable('wholesale_ads', setWholesaleAds);
     fetchTable('lawyers', setLawyers);
@@ -77,13 +74,13 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     fetchTable('vocational_courses', setVocationalCourses);
     fetchTable('donors', setDonors);
     fetchTable('district_branding', setDistrictBranding);
-    fetchTable('district_details', setDistrictDetails, 'district_id', true);
+    fetchTable('district_details', setDistrictDetails, 'district_id');
   };
 
   useEffect(() => {
     fetchData();
     if (isSupabaseConfigured) {
-        const channel = supabase.channel('content_updates').on('postgres_changes', { event: '*', schema: 'public' }, () => fetchData()).subscribe();
+        const channel = supabase.channel('content_sync').on('postgres_changes', { event: '*', schema: 'public' }, () => fetchData()).subscribe();
         return () => { supabase.removeChannel(channel); };
     }
   }, []);
@@ -111,7 +108,7 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
   return (
     <DataContext.Provider value={{ 
-      jobs, blogs, requests, blogRequests, marketPrices, retailProducts, wholesaleAds, districtBranding, districtDetails, grievances, users, messages, donors,
+      jobs, blogs, requests, blogRequests, marketPrices, retailProducts, wholesaleAds, lawyers, exchangeRates, vocationalCourses, districtBranding, districtDetails, grievances, users, messages, donors,
       addJob: (item: any) => addGeneric('jobs', item),
       updateJob: (item: any) => updateGeneric('jobs', item),
       deleteJob: (id: number) => deleteGeneric('jobs', id),
@@ -124,6 +121,12 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       addRetailProduct: (item: any) => addGeneric('retail_products', item),
       updateRetailProduct: (item: any) => updateGeneric('retail_products', item),
       deleteRetailProduct: (id: number) => deleteGeneric('retail_products', id),
+      addLawyer: (item: any) => addGeneric('lawyers', item),
+      deleteLawyer: (id: number) => deleteGeneric('lawyers', id),
+      addExchangeRate: (item: any) => addGeneric('exchange_rates', item),
+      deleteExchangeRate: (id: number) => deleteGeneric('exchange_rates', id),
+      addVocationalCourse: (item: any) => addGeneric('vocational_courses', item),
+      deleteVocationalCourse: (id: number) => deleteGeneric('vocational_courses', id),
       addBranding: (item: any) => addGeneric('district_branding', item),
       updateBranding: (item: any) => updateGeneric('district_branding', item),
       deleteBranding: (id: number) => deleteGeneric('district_branding', id),

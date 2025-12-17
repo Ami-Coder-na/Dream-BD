@@ -1,4 +1,3 @@
-
 import React, { Component, ErrorInfo, ReactNode } from 'react';
 import { AlertTriangle, RefreshCw, Home } from 'lucide-react';
 import { Button } from './ui/Button';
@@ -15,9 +14,10 @@ interface ErrorBoundaryState {
 /**
  * ErrorBoundary component to catch rendering errors in the application.
  */
-export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
-  // Fix for line 22: Initializing state as a class property to ensure the compiler recognizes it as a member.
-  override state: ErrorBoundaryState = {
+// Explicitly extend React.Component to ensure the TypeScript compiler correctly identifies the base class and provides 'props' and 'state'.
+export class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoundaryState> {
+  // Removed 'override' modifier as it was causing compilation errors when the compiler failed to link to the base class correctly.
+  state: ErrorBoundaryState = {
     hasError: false,
     error: null
   };
@@ -31,8 +31,8 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
     return { hasError: true, error };
   }
 
-  // Log error information for debugging
-  override componentDidCatch(error: Error, errorInfo: ErrorInfo) {
+  // Removed 'override' for better compatibility with strict TypeScript configurations.
+  componentDidCatch(error: Error, errorInfo: ErrorInfo) {
     console.error('Uncaught error:', error, errorInfo);
   }
 
@@ -44,9 +44,9 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
     window.location.href = '/';
   };
 
-  override render(): ReactNode {
+  // Removed 'override' to fix the error where the compiler didn't recognize the base class inheritance.
+  render(): ReactNode {
     // Access state properties from the instance
-    // Fix for line 48: Ensures hasError is read from the correctly typed state.
     if (this.state.hasError) {
       return (
         <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4">
@@ -63,7 +63,6 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
               দুঃখিত, একটি অপ্রত্যাশিত সমস্যা দেখা দিয়েছে। অনুগ্রহ করে পেজটি রিলোড করুন।
               <br />
               <span className="text-xs mt-2 block opacity-70">
-                {/* Fix for line 64: Accessing error message from the state safely. */}
                 Error: {this.state.error?.message || 'Unknown Error'}
               </span>
             </p>
@@ -83,8 +82,7 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
       );
     }
 
-    // Access props from the instance which are now correctly recognized by TypeScript
-    // Fix for line 84: Ensures children is recognized as a valid prop from the Component inheritance.
+    // Accessing children from props which are now correctly inherited from React.Component.
     return this.props.children;
   }
 }
