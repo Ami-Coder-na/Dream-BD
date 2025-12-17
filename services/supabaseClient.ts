@@ -1,24 +1,16 @@
 import { createClient } from '@supabase/supabase-js';
 
 // Helper to safely access environment variables
-// We prefer process.env because we explicitly polyfilled it in vite.config.ts 
-// to capture Vercel system variables (SUPABASE_URL) and map them to VITE_ keys.
 const getEnv = (key: string) => {
   let val = '';
-  
-  // Try process.env first (injected by vite.config.ts define)
   try {
     // @ts-ignore
     if (typeof process !== 'undefined' && process.env) {
       // @ts-ignore
       val = process.env[key];
     }
-  } catch (e) {
-    // ignore
-  }
+  } catch (e) {}
 
-  // Try import.meta.env as fallback (native Vite)
-  // We use optional chaining or explicit checks to avoid crashing if env is undefined
   if (!val) {
     try {
       // @ts-ignore
@@ -26,21 +18,28 @@ const getEnv = (key: string) => {
         // @ts-ignore
         val = import.meta.env[key];
       }
-    } catch (e) {
-      // ignore
-    }
+    } catch (e) {}
   }
-  
   return val || '';
 };
 
-const SUPABASE_URL = getEnv('VITE_SUPABASE_URL');
-const SUPABASE_ANON_KEY = getEnv('VITE_SUPABASE_ANON_KEY');
+// Check Local Storage for manually entered keys (Admin Panel Feature)
+const getStoredConfig = (key: string) => {
+  if (typeof window !== 'undefined') {
+    return localStorage.getItem(key) || '';
+  }
+  return '';
+};
 
-// Debugging (Check console in browser)
-console.log("[Supabase] Initializing Client...");
-console.log("- URL Configured:", !!SUPABASE_URL && !SUPABASE_URL.includes('placeholder'));
-console.log("- Key Configured:", !!SUPABASE_ANON_KEY && !SUPABASE_ANON_KEY.includes('placeholder'));
+const ENV_URL = getEnv('VITE_SUPABASE_URL');
+const ENV_KEY = getEnv('VITE_SUPABASE_ANON_KEY');
+
+const STORED_URL = getStoredConfig('dream_sb_url');
+const STORED_KEY = getStoredConfig('dream_sb_key');
+
+// Prioritize Environment variables, fallback to Stored (Manual) Config
+const SUPABASE_URL = ENV_URL || STORED_URL;
+const SUPABASE_ANON_KEY = ENV_KEY || STORED_KEY;
 
 const isConfigured = 
   SUPABASE_URL && 

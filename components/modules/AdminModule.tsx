@@ -1,10 +1,9 @@
-
 import React, { useState, useEffect } from 'react';
 import { 
   LayoutDashboard, Users, Settings, Database, Activity, 
   LogOut, Shield, Bell, FileText, ShoppingBag, Trash2, AlertOctagon, 
   Clock, DollarSign, Mail, Key, EyeOff, Eye, ChevronDown, UserPlus, FilePlus, AlertTriangle,
-  Globe, Sparkles, Monitor, RefreshCw
+  Globe, Sparkles, Monitor, RefreshCw, CheckCircle
 } from 'lucide-react';
 import { AdminUsers } from './admin/AdminUsers';
 import { AdminContent } from './admin/AdminContent';
@@ -16,6 +15,7 @@ import { AdminMarket } from './admin/AdminMarket';
 import { AdminWebsiteManage } from './admin/AdminWebsiteManage';
 import { Button } from '../ui/Button';
 import { useData } from '../../contexts/DataContext';
+import { isSupabaseConfigured } from '../../services/supabaseClient';
 
 interface Props {
   isBangla: boolean;
@@ -99,16 +99,34 @@ export const AdminModule: React.FC<Props> = ({ isBangla, onExit }) => {
 
   const renderOverview = () => (
     <div className="space-y-6 animate-fade-in">
-      {/* Disclaimer Banner */}
-      <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 flex items-start gap-3 text-amber-800">
-         <AlertTriangle className="shrink-0 mt-0.5" size={20} />
-         <div>
-           <p className="font-bold text-sm">Demo Mode Active</p>
-           <p className="text-xs mt-1">
-             Changes made here are saved to your browser's local storage. They will persist on this device but will NOT sync to other users or devices in this demo environment.
-           </p>
+      
+      {/* Database Connection Status Banner */}
+      {!isSupabaseConfigured ? (
+        <div className="bg-red-50 border-2 border-red-200 rounded-2xl p-6 flex flex-col md:flex-row items-center justify-between gap-6 shadow-sm animate-pulse">
+           <div className="flex items-start gap-4">
+             <div className="p-3 bg-red-100 rounded-full text-red-600 shrink-0">
+               <Database size={32} />
+             </div>
+             <div>
+               <h3 className="font-bold text-xl text-red-800">Database Not Connected!</h3>
+               <p className="text-red-700 mt-1 max-w-xl">
+                 Your app is running in <strong>Offline Mode</strong>. Any data you add now (Jobs, Blogs, Prices) is saved only on your device. Other users will not see these updates.
+               </p>
+             </div>
+           </div>
+           <Button 
+             onClick={() => setActiveSection('website-manage')} 
+             className="bg-red-600 hover:bg-red-700 text-white border-none px-8 py-3 shadow-lg shadow-red-200 whitespace-nowrap"
+           >
+             Connect Database Now
+           </Button>
+        </div>
+      ) : (
+         <div className="bg-green-50 border border-green-200 rounded-xl p-4 flex items-center gap-3 text-green-800 shadow-sm">
+             <div className="bg-green-100 p-2 rounded-full"><CheckCircle size={20} /></div>
+             <span className="font-bold">System Online: Database Connected Successfully. All updates are syncing globally.</span>
          </div>
-      </div>
+      )}
 
       {/* Top Stats Row */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">

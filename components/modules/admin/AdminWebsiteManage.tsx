@@ -1,8 +1,7 @@
-
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   Monitor, Layout, Layers, ToggleLeft, ToggleRight, 
-  AlertTriangle, Megaphone, Power, CheckCircle, Smartphone, Database, Server, HardDrive
+  AlertTriangle, Megaphone, Power, CheckCircle, Smartphone, Database, Server, HardDrive, Copy, Check, Save, RefreshCw, Key
 } from 'lucide-react';
 import { useSiteConfig, ToggableModule, LandingSection } from '../../../contexts/SiteConfigContext';
 import { isSupabaseConfigured } from '../../../services/supabaseClient';
@@ -10,6 +9,47 @@ import { AppModule } from '../../../types';
 
 export const AdminWebsiteManage = () => {
   const { modules, sections, settings, toggleModule, toggleSection, updateSettings } = useSiteConfig();
+  const [sqlContent, setSqlContent] = useState('');
+  const [copied, setCopied] = useState(false);
+
+  // DB Config State
+  const [dbUrl, setDbUrl] = useState(localStorage.getItem('dream_sb_url') || '');
+  const [dbKey, setDbKey] = useState(localStorage.getItem('dream_sb_key') || '');
+  const [isSaving, setIsSaving] = useState(false);
+
+  useEffect(() => {
+    // Load SQL content from file
+    fetch('/supabase_schema.sql')
+      .then(res => res.text())
+      .then(text => setSqlContent(text))
+      .catch(() => setSqlContent('-- Could not load schema file. Please check project files.'));
+  }, []);
+
+  const handleCopySQL = () => {
+    navigator.clipboard.writeText(sqlContent);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
+
+  const handleSaveDbConfig = () => {
+    setIsSaving(true);
+    localStorage.setItem('dream_sb_url', dbUrl.trim());
+    localStorage.setItem('dream_sb_key', dbKey.trim());
+    
+    setTimeout(() => {
+        setIsSaving(false);
+        alert('Configuration Saved! The page will refresh to connect.');
+        window.location.reload();
+    }, 1000);
+  };
+
+  const handleDisconnect = () => {
+      if(confirm('Are you sure? This will disconnect the database and revert to local storage.')) {
+          localStorage.removeItem('dream_sb_url');
+          localStorage.removeItem('dream_sb_key');
+          window.location.reload();
+      }
+  }
 
   // Helper for Toggle Switch
   const ToggleSwitch = ({ label, checked, onChange, color = 'bg-green-500' }: { label: string, checked: boolean, onChange: () => void, color?: string }) => (
@@ -27,25 +67,96 @@ export const AdminWebsiteManage = () => {
   return (
     <div className="space-y-8 animate-fade-in">
       
-      {/* Database Connection Status */}
-      <div className={`rounded-2xl p-6 border-2 flex flex-col md:flex-row items-center justify-between gap-4 ${isSupabaseConfigured ? 'bg-green-50 border-green-200' : 'bg-amber-50 border-amber-200'}`}>
-         <div className="flex items-center gap-4">
-            <div className={`p-3 rounded-full ${isSupabaseConfigured ? 'bg-green-100 text-green-700' : 'bg-amber-100 text-amber-700'}`}>
-               {isSupabaseConfigured ? <Database size={24} /> : <HardDrive size={24} />}
+      {/* Database Connection Panel */}
+      <div className="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden">
+         <div className={`p-6 border-b flex items-center justify-between ${isSupabaseConfigured ? 'bg-green-50 border-green-200' : 'bg-amber-50 border-amber-200'}`}>
+            <div className="flex items-center gap-3">
+                <div className={`p-2 rounded-lg ${isSupabaseConfigured ? 'bg-green-100 text-green-700' : 'bg-amber-100 text-amber-700'}`}>
+                    <Database size={24} />
+                </div>
+                <div>
+                    <h3 className={`text-lg font-bold ${isSupabaseConfigured ? 'text-green-900' : 'text-amber-900'}`}>
+                        {isSupabaseConfigured ? 'Database Connected (Online)' : 'Database Not Connected (Offline Mode)'}
+                    </h3>
+                    <p className={`text-xs ${isSupabaseConfigured ? 'text-green-700' : 'text-amber-700'}`}>
+                        {isSupabaseConfigured 
+                        ? 'Data is syncing with Supabase cloud.' 
+                        : 'Currently using browser storage. Other users cannot see updates.'}
+                    </p>
+                </div>
             </div>
-            <div>
-               <h3 className={`text-lg font-bold ${isSupabaseConfigured ? 'text-green-900' : 'text-amber-900'}`}>
-                 {isSupabaseConfigured ? 'Database Connected' : 'Local Mode Active'}
-               </h3>
-               <p className={`text-sm ${isSupabaseConfigured ? 'text-green-700' : 'text-amber-700'}`}>
-                 {isSupabaseConfigured 
-                   ? 'Connected to Supabase. Data is syncing in real-time.' 
-                   : 'Running on browser storage. Data persists locally on this device only.'}
-               </p>
-            </div>
+            {isSupabaseConfigured && (
+                <button onClick={handleDisconnect} className="text-xs text-red-600 underline hover:text-red-800">Disconnect</button>
+            )}
          </div>
-         <div className={`px-4 py-1.5 rounded-full text-xs font-bold uppercase ${isSupabaseConfigured ? 'bg-green-200 text-green-800' : 'bg-amber-200 text-amber-800'}`}>
-            {isSupabaseConfigured ? 'Online' : 'Local Storage'}
+         
+         <div className="p-6">
+            {!isSupabaseConfigured ? (
+                <div className="space-y-4">
+                    <div className="bg-blue-50 p-4 rounded-xl border border-blue-100 text-sm text-blue-800 mb-4">
+                        <strong>Instructions:</strong>
+                        <ol className="list-decimal ml-5 mt-2 space-y-1">
+                            <li>Go to <a href="https://supabase.com" target="_blank" className="underline font-bold">Supabase.com</a> and create a project.</li>
+                            <li>Go to Project Settings - API.</li>
+                            <li>Copy the <strong>Project URL</strong> and <strong>anon public key</strong> below.</li>
+                        </ol>
+                    </div>
+                    <div>
+                        <label className="block text-sm font-bold text-gray-700 mb-1">Project URL</label>
+                        <input 
+                            type="text" 
+                            value={dbUrl}
+                            onChange={(e) => setDbUrl(e.target.value)}
+                            placeholder="https://your-project.supabase.co"
+                            className="w-full p-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none"
+                        />
+                    </div>
+                    <div>
+                        <label className="block text-sm font-bold text-gray-700 mb-1">API Key (anon / public)</label>
+                        <div className="relative">
+                            <input 
+                                type="password" 
+                                value={dbKey}
+                                onChange={(e) => setDbKey(e.target.value)}
+                                placeholder="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+                                className="w-full p-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none pr-10"
+                            />
+                            <Key size={16} className="absolute right-4 top-4 text-gray-400"/>
+                        </div>
+                    </div>
+                    <button 
+                        onClick={handleSaveDbConfig}
+                        disabled={isSaving || !dbUrl || !dbKey}
+                        className="w-full py-3 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl shadow-lg shadow-blue-200 flex items-center justify-center gap-2"
+                    >
+                        {isSaving ? <RefreshCw className="animate-spin" /> : <Save size={18} />}
+                        {isSaving ? 'Connecting...' : 'Connect to Database'}
+                    </button>
+                </div>
+            ) : (
+                <div className="text-center py-6">
+                    <div className="w-16 h-16 bg-green-100 text-green-600 rounded-full flex items-center justify-center mx-auto mb-3">
+                        <CheckCircle size={32} />
+                    </div>
+                    <h3 className="font-bold text-gray-900 text-lg">System is Online</h3>
+                    <p className="text-gray-500 mb-6">All data is now being saved to the cloud database.</p>
+                    
+                    <div className="bg-gray-50 p-4 rounded-xl border border-gray-200 text-left">
+                        <h4 className="font-bold text-gray-800 mb-2 flex items-center gap-2"><Server size={16}/> Schema Check</h4>
+                        <p className="text-sm text-gray-600 mb-3">If data is still not saving, ensure you have run the SQL schema.</p>
+                        
+                        <div className="flex gap-2">
+                            <button 
+                                onClick={handleCopySQL}
+                                className="flex-1 flex items-center justify-center gap-2 px-4 py-2 bg-gray-900 hover:bg-black text-white rounded-lg text-sm font-bold transition-colors"
+                            >
+                                {copied ? <Check size={16} /> : <Copy size={16} />}
+                                {copied ? 'Copied!' : 'Copy SQL Schema'}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
          </div>
       </div>
 
@@ -112,7 +223,6 @@ export const AdminWebsiteManage = () => {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-        
         {/* Header Modules Toggle */}
         <div className="bg-white rounded-2xl shadow-sm border border-gray-200">
           <div className="p-5 border-b border-gray-100 flex items-center gap-3">
