@@ -171,11 +171,13 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   };
 
   const addRequest = async (request: any) => {
-    const table = request.contentType === 'blog' ? 'blog_requests' : 'requests';
-    const setter = request.contentType === 'blog' ? setBlogRequests : setRequests;
-    const current = request.contentType === 'blog' ? blogRequests : requests;
+    // Extract contentType to determine routing, but remove it from the final DB payload
+    const { contentType, ...cleanData } = request;
+    const table = contentType === 'blog' ? 'blog_requests' : 'requests';
+    const setter = contentType === 'blog' ? setBlogRequests : setRequests;
+    const current = contentType === 'blog' ? blogRequests : requests;
     
-    const newReq = { ...request, status: 'Pending', postedDate: new Date().toLocaleDateString() };
+    const newReq = { ...cleanData, status: 'Pending', postedDate: new Date().toLocaleDateString() };
     await optimisticAdd(table, newReq, setter, current);
   };
 
