@@ -1,5 +1,6 @@
 import React, { createContext, useState, useContext, ReactNode, useEffect } from 'react';
 import { AppModule } from '../types';
+import { supabase, isSupabaseConfigured } from '../services/supabaseClient';
 
 // Define which modules can be toggled
 export type ToggableModule = AppModule;
@@ -77,7 +78,7 @@ const defaultSettings = {
 const SiteConfigContext = createContext<SiteConfig | undefined>(undefined);
 
 export const SiteConfigProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
-  // Initialize state from LocalStorage if available
+  // Initialize state from LocalStorage as fallback
   const [modules, setModules] = useState(() => {
     const saved = localStorage.getItem('site_modules');
     return saved ? JSON.parse(saved) : defaultModules;
@@ -93,7 +94,58 @@ export const SiteConfigProvider: React.FC<{ children: ReactNode }> = ({ children
     return saved ? { ...defaultSettings, ...JSON.parse(saved) } : defaultSettings;
   });
 
-  // Persist changes to LocalStorage
+  // --- SUPABASE SYNC LOGIC ---
+
+  const fetchRemoteConfig = async () => {
+    if (!isSupabaseConfigured) return;
+    
+    try {
+      const { data, error } = await supabase.from('app_config').select('*');
+      if (error) throw error;
+
+      if (data) {
+        data.forEach(item => {
+          if (item.key === 'modules') setModules(item.value);
+          if (item.key === 'sections') setSections(item.value);
+          if (item.key === 'settings') setSettings(item.value);
+        });
+      }
+    } catch (err) {
+      console.warn("Failed to fetch remote config, using local:", err);
+    }
+  };
+
+  const pushRemoteConfig = async (key: string, value: any) => {
+    if (!isSupabaseConfigured) return;
+    try {
+      await supabase.from('app_config').upsert({ key, value });
+    } catch (err) {
+      console.warn("Failed to push config:", err);
+    }
+  };
+
+  // Initial Fetch & Subscription
+  useEffect(() => {
+    fetchRemoteConfig();
+
+    if (isSupabaseConfigured) {
+      const subscription = supabase
+        .channel('app_config_changes')
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'app_config' }, (payload) => {
+           const { key, value } = payload.new as any;
+           if (key === 'modules') setModules(value);
+           if (key === 'sections') setSections(value);
+           if (key === 'settings') setSettings(value);
+        })
+        .subscribe();
+
+      return () => {
+        supabase.removeChannel(subscription);
+      };
+    }
+  }, []);
+
+  // Persist changes to LocalStorage AND Supabase
   useEffect(() => {
     localStorage.setItem('site_modules', JSON.stringify(modules));
   }, [modules]);
@@ -107,15 +159,21 @@ export const SiteConfigProvider: React.FC<{ children: ReactNode }> = ({ children
   }, [settings]);
 
   const toggleModule = (id: ToggableModule) => {
-    setModules((prev: any) => ({ ...prev, [id]: !prev[id] }));
+    const newState = { ...modules, [id]: !modules[id] };
+    setModules(newState);
+    pushRemoteConfig('modules', newState);
   };
 
   const toggleSection = (id: LandingSection) => {
-    setSections((prev: any) => ({ ...prev, [id]: !prev[id] }));
+    const newState = { ...sections, [id]: !sections[id] };
+    setSections(newState);
+    pushRemoteConfig('sections', newState);
   };
 
   const updateSettings = (key: keyof typeof settings, value: any) => {
-    setSettings((prev: any) => ({ ...prev, [key]: value }));
+    const newState = { ...settings, [key]: value };
+    setSettings(newState);
+    pushRemoteConfig('settings', newState);
   };
 
   return (

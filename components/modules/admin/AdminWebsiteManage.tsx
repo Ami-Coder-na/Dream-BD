@@ -46,6 +46,11 @@ create policy "Enable all access for all users" on public.site_stats for all usi
 -- Insert default visitor counter if not exists
 insert into public.site_stats (key, value) values ('total_visitors', 0) on conflict do nothing;
 
+-- 7. APP CONFIG (NEW: For Real-time Toggles)
+create table if not exists public.app_config (key text primary key, value jsonb);
+alter table public.app_config enable row level security;
+create policy "Enable all access for all users" on public.app_config for all using (true) with check (true);
+
 -- ADD COLUMNS IF MISSING
 alter table public.jobs add column if not exists title text;
 alter table public.jobs add column if not exists company text;
@@ -70,7 +75,7 @@ export const AdminWebsiteManage = () => {
   const [isSaving, setIsSaving] = useState(false);
   const [testResult, setTestResult] = useState<string | null>(null);
   const [statusColor, setStatusColor] = useState('gray');
-  const [showGlobalInstructions, setShowGlobalInstructions] = useState(false);
+  const [showGlobalInstructions, setShowGlobalInstructions] = useState(true); // Default to visible
 
   useEffect(() => {
       if (isSupabaseConfigured) {
@@ -208,26 +213,24 @@ export const AdminWebsiteManage = () => {
                 </h2>
                 <p className={`mt-2 font-medium text-lg max-w-lg ${isGlobalConfig ? 'text-emerald-700' : 'text-amber-800'}`}>
                   {isGlobalConfig 
-                    ? 'Success! Your app is connected to the cloud. All users can see the data.' 
+                    ? 'Success! Your app is connected to the cloud. Settings are now synced in real-time for all users.' 
                     : 'The database is connected only on this device. Other users CANNOT see your updates.'}
                 </p>
                 
                 {/* GLOBAL ACTIVATION BUTTON */}
-                {!isGlobalConfig && (
-                  <div className="mt-6 flex flex-col sm:flex-row gap-4 justify-center lg:justify-start">
-                    <Button 
-                      onClick={() => setShowGlobalInstructions(!showGlobalInstructions)} 
-                      className="bg-amber-600 hover:bg-amber-700 text-white border-none shadow-lg shadow-amber-200 font-bold px-6 py-3 rounded-xl flex items-center justify-center gap-2 transform hover:scale-105 transition-all"
-                    >
-                      <Globe2 size={18} /> {showGlobalInstructions ? 'Hide Instructions' : 'Enable Global Mode'}
-                    </Button>
-                    {isSupabaseConfigured && (
-                       <div className="flex items-center gap-2 px-4 py-2 bg-green-50 border border-green-200 rounded-xl text-green-700 text-sm font-bold">
-                          <CheckCircle size={16} /> Local Connection Active
-                       </div>
-                    )}
-                  </div>
-                )}
+                <div className="mt-6 flex flex-col sm:flex-row gap-4 justify-center lg:justify-start">
+                  <Button 
+                    onClick={() => setShowGlobalInstructions(!showGlobalInstructions)} 
+                    className="bg-amber-600 hover:bg-amber-700 text-white border-none shadow-lg shadow-amber-200 font-bold px-6 py-3 rounded-xl flex items-center justify-center gap-2 transform hover:scale-105 transition-all"
+                  >
+                    <Globe2 size={18} /> {showGlobalInstructions ? 'Hide Code' : 'View Global Config'}
+                  </Button>
+                  {isSupabaseConfigured && !isGlobalConfig && (
+                      <div className="flex items-center gap-2 px-4 py-2 bg-green-50 border border-green-200 rounded-xl text-green-700 text-sm font-bold">
+                        <CheckCircle size={16} /> Local Connection Active
+                      </div>
+                  )}
+                </div>
               </div>
             </div>
             
@@ -286,6 +289,7 @@ const HARDCODED_KEY = '${dbKey || 'YOUR_ANON_KEY_HERE'}';`}
 
       {/* --- DATABASE TOOLS CARD --- */}
       <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+         {/* ... Database tools content remains same ... */}
          <div className="px-8 py-6 border-b border-gray-100 flex flex-col md:flex-row justify-between items-center gap-4 bg-gradient-to-r from-gray-50 to-white">
             <div className="flex items-center gap-3">
                 <div className="p-2 bg-blue-50 text-blue-600 rounded-lg"><Database size={24} /></div>
@@ -344,7 +348,6 @@ const HARDCODED_KEY = '${dbKey || 'YOUR_ANON_KEY_HERE'}';`}
                 </div>
             ) : (
                 <div className="flex flex-col gap-8">
-                    {/* Test Controls */}
                     <div className="flex flex-wrap gap-4 items-center justify-center p-6 bg-gray-50 rounded-2xl border border-gray-100 border-dashed">
                         <Button onClick={handleTestInsert} className="bg-white text-gray-800 border border-gray-200 hover:border-blue-300 hover:text-blue-600 shadow-sm flex items-center gap-2 px-6 py-4 h-auto">
                             <div className="bg-blue-100 p-2 rounded-lg text-blue-600"><PlusCircle size={20} /></div>
@@ -362,7 +365,6 @@ const HARDCODED_KEY = '${dbKey || 'YOUR_ANON_KEY_HERE'}';`}
                         </Button>
                     </div>
                     
-                    {/* Console Output */}
                     {testResult && (
                         <div className={`rounded-xl border p-4 text-sm font-mono whitespace-pre-wrap overflow-x-auto shadow-inner ${
                             statusColor === 'green' ? 'bg-green-50 border-green-200 text-green-900' : 
@@ -376,7 +378,6 @@ const HARDCODED_KEY = '${dbKey || 'YOUR_ANON_KEY_HERE'}';`}
                         </div>
                     )}
 
-                    {/* SQL Section */}
                     <div className="bg-slate-900 text-slate-300 rounded-2xl overflow-hidden border border-slate-800 shadow-2xl">
                         <div className="bg-slate-950 px-6 py-4 flex justify-between items-center border-b border-slate-800">
                             <div className="flex items-center gap-3">
