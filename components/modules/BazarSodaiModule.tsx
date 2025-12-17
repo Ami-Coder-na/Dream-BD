@@ -2,8 +2,9 @@
 import React, { useState, useMemo } from 'react';
 import { 
   ShoppingBasket, TrendingUp, Truck, Search, Filter, 
-  PlusCircle, Sun, CloudRain, Snowflake, ShoppingCart, User,
-  CheckCircle, X, RefreshCw, MapPin, ChevronDown, Tag
+  PlusCircle, Sun, CloudRain, Snowflake, User,
+  CheckCircle, X, RefreshCw, MapPin, ChevronDown, Tag, 
+  Package, DollarSign, MapPinned, Info
 } from 'lucide-react';
 import { Button } from '../ui/Button';
 import { getOptimizedImageUrl } from '../utils/imageUtils';
@@ -16,39 +17,10 @@ interface Props {
   onLogin?: () => void;
 }
 
-interface FilterCheckboxProps {
-  label: string;
-  checked: boolean;
-  onChange: () => void;
-}
-
-const FilterCheckbox: React.FC<FilterCheckboxProps> = ({ label, checked, onChange }) => (
-  <label className="flex items-center gap-3 cursor-pointer group">
-    <div className={`w-5 h-5 rounded border flex items-center justify-center transition-colors ${checked ? 'bg-lime-600 border-lime-600' : 'border-gray-300 group-hover:border-lime-400'}`}>
-      {checked && <CheckCircle size={12} className="text-white" />}
-    </div>
-    <input type="checkbox" className="hidden" checked={checked} onChange={onChange} />
-    <span className={`text-sm ${checked ? 'text-lime-700 font-medium' : 'text-gray-600'}`}>{label}</span>
-  </label>
-);
-
-const RETAIL_PRODUCTS = [
-  { id: 1, nameBn: 'তাজা আলু', nameEn: 'Fresh Potato', price: 45, unit: 'kg', img: 'https://images.unsplash.com/photo-1518977676601-b53f82aba655', category: 'Vegetable' },
-  { id: 2, nameBn: 'দেশি পেঁয়াজ', nameEn: 'Local Onion', price: 90, unit: 'kg', img: 'https://images.unsplash.com/photo-1618512496248-a07fe83aa8cb', category: 'Vegetable' },
-  { id: 3, nameBn: 'রুই মাছ', nameEn: 'Rui Fish', price: 350, unit: 'kg', img: 'https://images.unsplash.com/photo-1599321955726-90471f64560d', category: 'Fish' },
-  { id: 4, nameBn: 'মসুর ডাল', nameEn: 'Lentils', price: 130, unit: 'kg', img: 'https://images.unsplash.com/photo-1515543904379-3d757afe9b68', category: 'Grocery' },
-  { id: 5, nameBn: 'সবুজ আপেল', nameEn: 'Green Apple', price: 220, unit: 'kg', img: 'https://images.unsplash.com/photo-1610832958506-aa56368176cf', category: 'Fruit' },
-  { id: 6, nameBn: 'সয়াবিন তেল', nameEn: 'Soybean Oil', price: 170, unit: 'L', img: 'https://images.unsplash.com/photo-1474979266404-7cadd259c308', category: 'Grocery' },
-  { id: 7, nameBn: 'বেগুন', nameEn: 'Eggplant', price: 60, unit: 'kg', img: 'https://images.unsplash.com/photo-1615485500704-8e99099928b3', category: 'Vegetable' },
-  { id: 8, nameBn: 'পাকা আম', nameEn: 'Ripe Mango', price: 120, unit: 'kg', img: 'https://images.unsplash.com/photo-1553279768-865429fa0078', category: 'Fruit' },
-];
-
 const WHOLESALE_LISTINGS = [
   { id: 1, productEn: 'Dinajpur Lychee', productBn: 'দিনাজপুরের লিচু', quantity: '5000 pcs', price: '৳ 3.5 / pc', location: 'Dinajpur', seller: 'Karim Fruit Store', sellerType: 'Store', date: '2 hrs ago' },
   { id: 2, productEn: 'Bogra Doi', productBn: 'বগুড়ার দই', quantity: '100 pots', price: '৳ 180 / pot', location: 'Bogra', seller: 'Misty Bari', sellerType: 'Manufacturer', date: '5 hrs ago' },
   { id: 3, productEn: 'Miniket Rice', productBn: 'মিনিকেট চাল', quantity: '50 Mon', price: '৳ 2800 / mon', location: 'Naogaon', seller: 'Bhai Bhai Traders', sellerType: 'Trader', date: '1 day ago' },
-  { id: 4, productEn: 'Pabna Onion', productBn: 'পাবনার পেঁয়াজ', quantity: '200 kg', price: '৳ 80 / kg', location: 'Pabna', seller: 'Krishi Khamar', sellerType: 'Farmer', date: '1 day ago' },
-  { id: 5, productEn: 'Tangail Saree', productBn: 'টাঙ্গাইলের শাড়ি', quantity: '50 pcs', price: '৳ 450 / pc', location: 'Tangail', seller: ' তাঁত ঘর', sellerType: 'Weaver', date: '3 hrs ago' },
 ];
 
 const SEASONAL_INFO_BASE = [
@@ -58,107 +30,71 @@ const SEASONAL_INFO_BASE = [
 ];
 
 export const BazarSodaiModule: React.FC<Props> = ({ isBangla, user, onLogin }) => {
-  const { marketPrices, addWholesaleAd } = useData(); 
-  const [activeTab, setActiveTab] = useState<'retail' | 'paikari' | 'trends'>('retail');
+  const { marketPrices, wholesaleAds, addRequest } = useData(); 
+  const [activeTab, setActiveTab] = useState<'paikari' | 'trends'>('paikari');
   const [searchQuery, setSearchQuery] = useState('');
-  const [showMobileFilters, setShowMobileFilters] = useState(false);
-
-  // --- RETAIL FILTERS STATE ---
-  const [selectedRetailCategories, setSelectedRetailCategories] = useState<string[]>([]);
-  const [selectedPriceRanges, setSelectedPriceRanges] = useState<string[]>([]);
-
-  // --- PAIKARI FILTERS STATE ---
-  const [selectedLocations, setSelectedLocations] = useState<string[]>([]);
-  const [selectedSellerTypes, setSelectedSellerTypes] = useState<string[]>([]);
-
-  // --- FILTER LOGIC ---
-  const filteredRetailProducts = useMemo(() => {
-    return RETAIL_PRODUCTS.filter(prod => {
-      const matchesSearch = 
-        prod.nameEn.toLowerCase().includes(searchQuery.toLowerCase()) || 
-        prod.nameBn.includes(searchQuery);
-      
-      const matchesCategory = selectedRetailCategories.length === 0 || selectedRetailCategories.includes(prod.category);
-      
-      let matchesPrice = true;
-      if (selectedPriceRanges.length > 0) {
-        matchesPrice = selectedPriceRanges.some(range => {
-          if (range === 'low') return prod.price <= 100;
-          if (range === 'mid') return prod.price > 100 && prod.price <= 200;
-          if (range === 'high') return prod.price > 200;
-          return false;
-        });
-      }
-
-      return matchesSearch && matchesCategory && matchesPrice;
-    });
-  }, [searchQuery, selectedRetailCategories, selectedPriceRanges]);
+  
+  // Post Ad Modal State
+  const [showPostModal, setShowPostModal] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitted, setSubmitted] = useState(false);
+  const [adForm, setAdForm] = useState({
+    product: '',
+    quantity: '',
+    price: '',
+    location: '',
+    sellerType: 'Farmer'
+  });
 
   const filteredWholesaleListings = useMemo(() => {
-    return WHOLESALE_LISTINGS.filter(item => {
-      const matchesSearch = 
-        item.productEn.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        item.productBn.includes(searchQuery) ||
-        item.location.toLowerCase().includes(searchQuery.toLowerCase());
-
-      const matchesLocation = selectedLocations.length === 0 || selectedLocations.includes(item.location);
-      const matchesSeller = selectedSellerTypes.length === 0 || selectedSellerTypes.includes(item.sellerType);
-
-      return matchesSearch && matchesLocation && matchesSeller;
+    const combined = [...WHOLESALE_LISTINGS, ...wholesaleAds.filter((a:any) => a.status === 'Active')];
+    return combined.filter(item => {
+      const pName = isBangla ? (item.productBn || item.product) : (item.productEn || item.product);
+      const matchesSearch = pName?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                            item.location?.toLowerCase().includes(searchQuery.toLowerCase());
+      return matchesSearch;
     });
-  }, [searchQuery, selectedLocations, selectedSellerTypes]);
+  }, [searchQuery, wholesaleAds, isBangla]);
 
-  const toggleFilter = (item: string, current: string[], setter: (val: string[]) => void) => {
-    if (current.includes(item)) {
-      setter(current.filter(i => i !== item));
-    } else {
-      setter([...current, item]);
+  const handleOpenModal = () => {
+    if (!user) {
+      if (onLogin) onLogin();
+      return;
     }
+    setSubmitted(false);
+    setShowPostModal(true);
   };
 
-  const clearRetailFilters = () => {
-    setSelectedRetailCategories([]);
-    setSelectedPriceRanges([]);
-    setSearchQuery('');
-  };
+  const handleAdSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsSubmitting(true);
 
-  const clearPaikariFilters = () => {
-    setSelectedLocations([]);
-    setSelectedSellerTypes([]);
-    setSearchQuery('');
-  };
+    const request = {
+      contentType: 'wholesale',
+      product: adForm.product,
+      quantity: adForm.quantity,
+      price: adForm.price,
+      location: adForm.location,
+      sellerType: adForm.sellerType,
+      seller: user?.name || 'Anonymous',
+      postedDate: new Date().toLocaleDateString()
+    };
 
-  // --- AUTH CHECK HANDLERS ---
-  const handleAction = (action: 'buy' | 'post_ad') => {
-      if (!user) {
-          if (onLogin) onLogin();
-          return;
-      }
-      
-      if (action === 'buy') {
-          alert(isBangla ? 'পণ্যটি কার্টে যোগ করা হয়েছে।' : 'Product added to cart.');
-      } else if (action === 'post_ad') {
-          // In a real app, this would open a modal
-          // For now, let's simulate adding a request
-          const demoAd = {
-              product: 'New Wholesale Product',
-              quantity: '100 kg',
-              price: '5000',
-              seller: user.name,
-              sellerType: 'Farmer',
-              location: 'Dhaka',
-              date: 'Just now'
-          };
-          addWholesaleAd(demoAd);
-          alert(isBangla ? 'আপনার বিজ্ঞাপনটি সফলভাবে জমা দেওয়া হয়েছে।' : 'Your ad request has been submitted.');
-      }
+    try {
+      await addRequest(request);
+      setSubmitted(true);
+      setAdForm({ product: '', quantity: '', price: '', location: '', sellerType: 'Farmer' });
+    } catch (err) {
+      alert('Error submitting ad');
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
     <div className="bg-lime-50/30 min-h-screen py-12 px-4 sm:px-6 lg:px-8 animate-fade-in">
       <div className="max-w-7xl mx-auto">
         
-        {/* Header Section */}
         <div className="text-center mb-10">
           <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-lime-100 text-lime-700 text-sm font-bold mb-4 border border-lime-200">
             <ShoppingBasket size={16} />
@@ -167,28 +103,14 @@ export const BazarSodaiModule: React.FC<Props> = ({ isBangla, user, onLogin }) =
           <h1 className="text-4xl font-bold text-gray-900 mb-4">
             {isBangla ? 'বাজার সদাই' : 'Bazar Sodai'}
           </h1>
-          <p className="text-gray-500 max-w-2xl mx-auto">
-            {isBangla 
-              ? 'খুচরা কিনুন, পাইকারি বেচুন এবং জানুন আজকের বাজার দর। সব এক ঠিকানায়।' 
-              : 'Shop retail, sell wholesale, and check today\'s market prices. All in one place.'}
-          </p>
         </div>
 
-        {/* Navigation Tabs */}
+        {/* Navigation Tabs - Retail Removed */}
         <div className="flex justify-center mb-10">
-          <div className="bg-white p-1.5 rounded-full shadow-md border border-gray-100 flex gap-1 overflow-x-auto max-w-full">
-            <button 
-              onClick={() => setActiveTab('retail')}
-              className={`px-6 py-2.5 rounded-full text-sm font-bold transition-all flex items-center gap-2 whitespace-nowrap ${
-                activeTab === 'retail' ? 'bg-lime-600 text-white shadow-sm' : 'text-gray-600 hover:bg-gray-50'
-              }`}
-            >
-              <ShoppingCart size={16} />
-              {isBangla ? 'কেনাকাটা' : 'Shop Retail'}
-            </button>
+          <div className="bg-white p-1.5 rounded-full shadow-md border border-gray-100 flex gap-1 overflow-x-auto">
             <button 
               onClick={() => setActiveTab('paikari')}
-              className={`px-6 py-2.5 rounded-full text-sm font-bold transition-all flex items-center gap-2 whitespace-nowrap ${
+              className={`px-8 py-2.5 rounded-full text-sm font-bold transition-all flex items-center gap-2 whitespace-nowrap ${
                 activeTab === 'paikari' ? 'bg-orange-500 text-white shadow-sm' : 'text-gray-600 hover:bg-gray-50'
               }`}
             >
@@ -197,7 +119,7 @@ export const BazarSodaiModule: React.FC<Props> = ({ isBangla, user, onLogin }) =
             </button>
             <button 
               onClick={() => setActiveTab('trends')}
-              className={`px-6 py-2.5 rounded-full text-sm font-bold transition-all flex items-center gap-2 whitespace-nowrap ${
+              className={`px-8 py-2.5 rounded-full text-sm font-bold transition-all flex items-center gap-2 whitespace-nowrap ${
                 activeTab === 'trends' ? 'bg-blue-600 text-white shadow-sm' : 'text-gray-600 hover:bg-gray-50'
               }`}
             >
@@ -207,260 +129,104 @@ export const BazarSodaiModule: React.FC<Props> = ({ isBangla, user, onLogin }) =
           </div>
         </div>
 
-        {/* --- VIEW: RETAIL SHOP --- */}
-        {activeTab === 'retail' && (
-          <div className="grid grid-cols-1 lg:grid-cols-4 gap-8 animate-fade-in-up">
-            <div className="lg:hidden col-span-1">
-              <Button variant="outline" className="w-full flex justify-between" onClick={() => setShowMobileFilters(!showMobileFilters)}>
-                <span className="flex items-center gap-2"><Filter size={16}/> {isBangla ? 'ফিল্টার' : 'Filters'}</span>
-                <ChevronDown size={16} className={`transform ${showMobileFilters ? 'rotate-180' : ''} transition-transform`}/>
-              </Button>
-            </div>
-
-            <aside className={`lg:block ${showMobileFilters ? 'block' : 'hidden'} bg-white p-6 rounded-2xl shadow-sm border border-gray-100 h-fit sticky top-24`}>
-              <div className="flex justify-between items-center mb-6">
-                <h3 className="font-bold text-gray-900 flex items-center gap-2"><Filter size={18} /> {isBangla ? 'ফিল্টার' : 'Filters'}</h3>
-                {(selectedRetailCategories.length > 0 || selectedPriceRanges.length > 0) && (
-                  <button onClick={clearRetailFilters} className="text-xs text-red-500 hover:underline flex items-center gap-1"><RefreshCw size={12} /> {isBangla ? 'রিসেট' : 'Reset'}</button>
-                )}
-              </div>
-              <div className="space-y-6">
-                <div>
-                  <h4 className="text-xs font-bold text-gray-500 uppercase mb-3">{isBangla ? 'ক্যাটাগরি' : 'Category'}</h4>
-                  <div className="space-y-2">
-                    {['Vegetable', 'Fruit', 'Fish', 'Grocery'].map(cat => (
-                      <FilterCheckbox 
-                        key={cat}
-                        label={isBangla && cat === 'Vegetable' ? 'শাক-সবজি' : isBangla && cat === 'Fruit' ? 'ফলমূল' : isBangla && cat === 'Fish' ? 'মাছ' : isBangla && cat === 'Grocery' ? 'মুদি' : cat} 
-                        checked={selectedRetailCategories.includes(cat)}
-                        onChange={() => toggleFilter(cat, selectedRetailCategories, setSelectedRetailCategories)}
-                      />
-                    ))}
-                  </div>
-                </div>
-                <div className="border-t border-gray-100"></div>
-                <div>
-                  <h4 className="text-xs font-bold text-gray-500 uppercase mb-3">{isBangla ? 'দাম (টাকা)' : 'Price Range'}</h4>
-                  <div className="space-y-2">
-                    {[
-                      { val: 'low', label: isBangla ? '১০০ টাকার নিচে' : 'Under 100' },
-                      { val: 'mid', label: isBangla ? '১০০ - ২০০ টাকা' : '100 - 200' },
-                      { val: 'high', label: isBangla ? '২০০ টাকার বেশি' : 'Above 200' }
-                    ].map(range => (
-                      <FilterCheckbox 
-                        key={range.val}
-                        label={range.label} 
-                        checked={selectedPriceRanges.includes(range.val)}
-                        onChange={() => toggleFilter(range.val, selectedPriceRanges, setSelectedPriceRanges)}
-                      />
-                    ))}
-                  </div>
-                </div>
-              </div>
-            </aside>
-
-            <div className="lg:col-span-3 space-y-6">
-              <div className="relative">
-                <Search className="absolute left-4 top-3.5 text-gray-400" size={20} />
-                <input 
-                  type="text" 
-                  className="w-full pl-12 pr-4 py-3 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-lime-500/50 bg-white shadow-sm transition-all"
-                  placeholder={isBangla ? 'পণ্য খুঁজুন...' : 'Search products...'}
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                />
-              </div>
-
-              {filteredRetailProducts.length > 0 ? (
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-                  {filteredRetailProducts.map((prod) => (
-                    <div key={prod.id} className="bg-white rounded-2xl p-4 shadow-sm border border-gray-100 hover:shadow-lg transition-all group relative flex flex-col">
-                      <div className="relative h-48 mb-4 overflow-hidden rounded-xl">
-                        <img 
-                          src={getOptimizedImageUrl(prod.img, 400)} 
-                          alt={prod.nameEn} 
-                          className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
-                          loading="lazy"
-                          onError={(e) => { e.currentTarget.src = "https://placehold.co/400x300/e2e8f0/475569?text=No+Image"; }}
-                        />
-                        <span className="absolute top-2 left-2 bg-white/90 backdrop-blur text-xs font-bold px-2 py-1 rounded-md text-lime-700 shadow-sm flex items-center gap-1">
-                          <Tag size={10} />
-                          {prod.category}
-                        </span>
-                      </div>
-                      <div className="flex-1 flex flex-col">
-                        <h3 className="font-bold text-gray-900 text-lg mb-1 group-hover:text-lime-700 transition-colors">
-                          {isBangla ? prod.nameBn : prod.nameEn}
-                        </h3>
-                        <div className="mt-auto pt-4 flex items-end justify-between border-t border-gray-50">
-                          <div>
-                            <p className="text-gray-400 text-xs font-medium uppercase tracking-wider">{isBangla ? 'প্রতি' : 'Per'} {prod.unit}</p>
-                            <p className="text-lime-700 font-bold text-xl">৳ {prod.price}</p>
-                          </div>
-                          <button onClick={() => handleAction('buy')} className="bg-lime-600 hover:bg-lime-700 text-white p-2.5 rounded-xl shadow-lg shadow-lime-600/20 transform active:scale-95 transition-all">
-                            <PlusCircle size={20} />
-                          </button>
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                <div className="text-center py-20 bg-white rounded-2xl border border-dashed border-gray-200">
-                  <ShoppingBasket size={48} className="mx-auto text-gray-300 mb-4" />
-                  <h3 className="text-lg font-bold text-gray-900">{isBangla ? 'কোন পণ্য পাওয়া যায়নি' : 'No products found'}</h3>
-                  <Button variant="outline" onClick={clearRetailFilters} className="mt-4">{isBangla ? 'ফিল্টার মুছুন' : 'Clear Filters'}</Button>
-                </div>
-              )}
-            </div>
-          </div>
-        )}
-
-        {/* --- VIEW: PAIKARI HAT (WHOLESALE) --- */}
         {activeTab === 'paikari' && (
-          <div className="grid grid-cols-1 lg:grid-cols-4 gap-8 animate-fade-in-up">
-            <div className="lg:hidden col-span-1">
-              <Button variant="outline" className="w-full flex justify-between" onClick={() => setShowMobileFilters(!showMobileFilters)}>
-                <span className="flex items-center gap-2"><Filter size={16}/> {isBangla ? 'ফিল্টার' : 'Filters'}</span>
-                <ChevronDown size={16} className={`transform ${showMobileFilters ? 'rotate-180' : ''} transition-transform`}/>
+          <div className="space-y-8 animate-fade-in-up">
+            <div className="bg-gradient-to-r from-orange-50 to-amber-50 border border-orange-100 rounded-3xl p-8 flex flex-col md:flex-row items-center justify-between gap-8 shadow-sm">
+              <div className="flex-1">
+                <h2 className="text-3xl font-bold text-orange-900 mb-3">{isBangla ? 'আপনার পণ্য বিক্রি করুন' : 'Sell Your Produce Bulk'}</h2>
+                <p className="text-orange-800 text-lg opacity-90">{isBangla ? 'কৃষক বা পাইকারি বিক্রেতারা এখানে সরাসরি বিজ্ঞাপন দিতে পারেন।' : 'Farmers and wholesalers can post ads here directly.'}</p>
+              </div>
+              <Button onClick={handleOpenModal} size="lg" className="bg-orange-600 hover:bg-orange-700 border-none shadow-xl shadow-orange-600/20 whitespace-nowrap px-10 py-4 text-lg font-bold">
+                <PlusCircle size={22} className="mr-2" />{isBangla ? 'বিজ্ঞাপন দিন (ফ্রি)' : 'Post Ad (Free)'}
               </Button>
             </div>
 
-            <aside className={`lg:block ${showMobileFilters ? 'block' : 'hidden'} bg-white p-6 rounded-2xl shadow-sm border border-gray-100 h-fit sticky top-24`}>
-              {/* Similar filters logic as retail but for location and seller type */}
-               <div className="flex justify-between items-center mb-6">
-                <h3 className="font-bold text-gray-900 flex items-center gap-2"><Filter size={18} /> {isBangla ? 'ফিল্টার' : 'Filters'}</h3>
-                {(selectedLocations.length > 0 || selectedSellerTypes.length > 0) && (
-                  <button onClick={clearPaikariFilters} className="text-xs text-red-500 hover:underline flex items-center gap-1"><RefreshCw size={12} /> {isBangla ? 'রিসেট' : 'Reset'}</button>
-                )}
-              </div>
-              <div className="space-y-6">
-                 <div>
-                  <h4 className="text-xs font-bold text-gray-500 uppercase mb-3">{isBangla ? 'জেলা / স্থান' : 'Location'}</h4>
-                  <div className="space-y-2">
-                    {['Dinajpur', 'Bogra', 'Naogaon', 'Pabna', 'Tangail'].map(loc => (
-                      <FilterCheckbox 
-                        key={loc}
-                        label={loc} 
-                        checked={selectedLocations.includes(loc)}
-                        onChange={() => toggleFilter(loc, selectedLocations, setSelectedLocations)}
-                      />
-                    ))}
+            <div className="relative max-w-2xl mx-auto">
+              <Search className="absolute left-4 top-4 text-gray-400" size={24} />
+              <input 
+                type="text" 
+                className="w-full pl-14 pr-4 py-4 rounded-2xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-orange-500/50 bg-white shadow-sm transition-all text-lg"
+                placeholder={isBangla ? 'পাইকারি পণ্য বা এলাকা খুঁজুন...' : 'Search wholesale items or location...'}
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+              />
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+              {filteredWholesaleListings.map((item:any) => (
+                <div key={item.id} className="bg-white p-6 rounded-3xl shadow-sm border border-gray-100 hover:shadow-xl transition-all flex flex-col justify-between group">
+                  <div>
+                    <div className="flex justify-between items-start mb-4">
+                      <div>
+                        <h4 className="text-2xl font-bold text-gray-900 group-hover:text-orange-700 transition-colors">
+                          {isBangla ? (item.productBn || item.product) : (item.productEn || item.product)}
+                        </h4>
+                        <div className="flex items-center gap-2 text-sm text-gray-500 mt-2 font-medium">
+                          <MapPin size={16} className="text-orange-500" /> {item.location}
+                          <span className="w-1 h-1 bg-gray-300 rounded-full"></span>
+                          <span>{item.date || item.postedDate}</span>
+                        </div>
+                      </div>
+                      <span className="text-xs px-3 py-1 rounded-full font-bold bg-orange-100 text-orange-700 border border-orange-200">{item.sellerType}</span>
+                    </div>
+                    <div className="bg-gray-50 rounded-2xl p-5 space-y-3 mb-6 border border-gray-100 group-hover:bg-orange-50/30 transition-colors">
+                      <div className="flex justify-between items-center"><span className="text-gray-500 font-medium">{isBangla ? 'পরিমাণ' : 'Quantity'}</span><span className="font-bold text-gray-900">{item.quantity}</span></div>
+                      <div className="flex justify-between items-center"><span className="text-gray-500 font-medium">{isBangla ? 'দাম' : 'Price'}</span><span className="font-bold text-orange-600 text-lg">{item.price}</span></div>
+                    </div>
+                  </div>
+                  <div className="flex items-center justify-between pt-4 border-t border-gray-50">
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 bg-orange-100 rounded-full flex items-center justify-center text-orange-600 font-bold">{item.seller?.charAt(0)}</div>
+                      <span className="text-sm font-bold text-gray-700">{item.seller}</span>
+                    </div>
+                    <Button size="sm" className="bg-orange-600 hover:bg-orange-700 border-none shadow-md shadow-orange-600/10 font-bold">
+                      {isBangla ? 'যোগাযোগ' : 'Contact'}
+                    </Button>
                   </div>
                 </div>
-                {/* Seller Type Filter Code... */}
-              </div>
-            </aside>
-
-            <div className="lg:col-span-3 space-y-6">
-               <div className="bg-orange-50 border border-orange-100 rounded-2xl p-6 flex flex-col md:flex-row items-center justify-between gap-6">
-                <div>
-                  <h2 className="text-xl font-bold text-orange-900 mb-2">{isBangla ? 'আপনার পণ্য বিক্রি করুন' : 'Sell Your Produce Bulk'}</h2>
-                  <p className="text-orange-800 text-sm max-w-lg">{isBangla ? 'কৃষক বা পাইকারি বিক্রেতারা এখানে সরাসরি বিজ্ঞাপন দিতে পারেন।' : 'Farmers and wholesalers can post ads here directly.'}</p>
-                </div>
-                <Button onClick={() => handleAction('post_ad')} className="bg-orange-600 hover:bg-orange-700 border-none shadow-lg shadow-orange-600/20 whitespace-nowrap">
-                  <PlusCircle size={18} className="mr-2" />{isBangla ? 'বিজ্ঞাপন দিন (ফ্রি)' : 'Post Ad (Free)'}
-                </Button>
-              </div>
-
-              <div className="relative">
-                <Search className="absolute left-4 top-3.5 text-gray-400" size={20} />
-                <input 
-                  type="text" 
-                  className="w-full pl-12 pr-4 py-3 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-orange-500/50 bg-white shadow-sm transition-all"
-                  placeholder={isBangla ? 'পাইকারি পণ্য খুঁজুন...' : 'Search wholesale items...'}
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                />
-              </div>
-
-              <h3 className="text-lg font-bold text-gray-800 flex items-center gap-2">
-                <Truck className="text-orange-600" size={20} />
-                {isBangla ? 'চলমান অফারসমূহ' : 'Live Wholesale Offers'}
-                <span className="text-xs font-normal text-gray-500 bg-gray-100 px-2 py-0.5 rounded-full">{filteredWholesaleListings.length}</span>
-              </h3>
-
-              {filteredWholesaleListings.length > 0 ? (
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  {filteredWholesaleListings.map((item) => (
-                    <div key={item.id} className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 hover:border-orange-200 transition-all flex flex-col justify-between group">
-                      <div>
-                        <div className="flex justify-between items-start mb-4">
-                          <div>
-                            <h4 className="text-xl font-bold text-gray-900 group-hover:text-orange-700 transition-colors">{isBangla ? item.productBn : item.productEn}</h4>
-                            <div className="flex items-center gap-2 text-xs text-gray-500 mt-1">
-                              <MapPin size={12} /> {item.location}
-                              <span>•</span>
-                              <span>{item.date}</span>
-                            </div>
-                          </div>
-                          <span className={`text-xs px-2 py-1 rounded font-bold ${item.sellerType === 'Farmer' ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-700'}`}>{item.sellerType}</span>
-                        </div>
-                        <div className="bg-orange-50/50 rounded-xl p-4 space-y-2 mb-6 border border-orange-50">
-                          <div className="flex justify-between text-sm"><span className="text-gray-600">{isBangla ? 'পরিমাণ' : 'Quantity'}</span><span className="font-bold text-gray-900">{item.quantity}</span></div>
-                          <div className="flex justify-between text-sm"><span className="text-gray-600">{isBangla ? 'দাম' : 'Price'}</span><span className="font-bold text-orange-600">{item.price}</span></div>
-                        </div>
-                      </div>
-                      <div className="flex items-center justify-between pt-4 border-t border-gray-50">
-                        <div className="flex items-center gap-2">
-                          <div className="w-8 h-8 bg-gray-100 rounded-full flex items-center justify-center text-gray-500"><User size={14} /></div>
-                          <span className="text-sm font-medium text-gray-700">{item.seller}</span>
-                        </div>
-                        <Button size="sm" onClick={() => handleAction('buy')} className="bg-orange-600 hover:bg-orange-700 border-none shadow-md shadow-orange-600/10">{isBangla ? 'যোগাযোগ' : 'Contact'}</Button>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                <div className="text-center py-20 bg-white rounded-2xl border border-dashed border-gray-200">
-                  <Truck size={32} className="mx-auto text-gray-300 mb-4" />
-                  <h3 className="text-lg font-bold text-gray-900">{isBangla ? 'কোন বিজ্ঞাপন পাওয়া যায়নি' : 'No listings found'}</h3>
-                </div>
-              )}
+              ))}
             </div>
           </div>
         )}
 
-        {/* --- VIEW: MARKET TRENDS --- */}
         {activeTab === 'trends' && (
           <div className="animate-fade-in-up space-y-8">
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               {SEASONAL_INFO_BASE.map((season, idx) => (
                 <div key={idx} className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
                   <div className="flex items-center gap-3 mb-4">
-                    <div className="p-3 bg-gray-50 rounded-full">
+                    <div className="p-3 bg-blue-50 rounded-full">
                       {season.type === 'winter' ? <Snowflake className="text-blue-400" /> : season.type === 'summer' ? <Sun className="text-yellow-500" /> : <CloudRain className="text-gray-500" />}
                     </div>
                     <h3 className="text-lg font-bold text-gray-900">{isBangla ? season.seasonBn : season.seasonEn}</h3>
                   </div>
                   <p className="text-sm text-gray-600 leading-relaxed">
-                    <span className="font-bold block mb-1">{isBangla ? 'উপলব্ধ ফসল:' : 'Available Crops:'}</span>
+                    <span className="font-bold block mb-1 text-gray-800">{isBangla ? 'উপলব্ধ ফসল:' : 'Available Crops:'}</span>
                     {isBangla ? season.cropsBn : season.cropsEn}
                   </p>
                 </div>
               ))}
             </div>
-            {/* Price Table... */}
-             <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
-              <div className="p-6 border-b border-gray-100 flex justify-between items-center">
-                <h3 className="text-xl font-bold text-gray-900 flex items-center gap-2"><TrendingUp className="text-blue-600" />{isBangla ? 'আজকের বাজার দর (গড়)' : 'Today\'s Average Price'}</h3>
-                <span className="text-xs text-gray-400">{new Date().toLocaleDateString()}</span>
+             <div className="bg-white rounded-3xl shadow-sm border border-gray-100 overflow-hidden">
+              <div className="p-8 border-b border-gray-100 flex justify-between items-center bg-gray-50/30">
+                <h3 className="text-2xl font-bold text-gray-900 flex items-center gap-3"><TrendingUp className="text-blue-600" />{isBangla ? 'আজকের বাজার দর (গড়)' : 'Today\'s Average Price'}</h3>
+                <span className="text-sm font-bold text-gray-400">{new Date().toLocaleDateString()}</span>
               </div>
               <div className="overflow-x-auto">
                 <table className="w-full text-left">
-                  <thead className="bg-gray-50 text-gray-500 text-xs uppercase font-bold">
-                    <tr><th className="px-6 py-4">{isBangla ? 'পণ্য' : 'Product'}</th><th className="px-6 py-4">{isBangla ? 'বর্তমান দাম' : 'Current Price'}</th><th className="px-6 py-4">{isBangla ? 'গতকালের দাম' : 'Yesterday'}</th><th className="px-6 py-4">{isBangla ? 'অবস্থা' : 'Trend'}</th></tr>
+                  <thead className="bg-gray-50 text-gray-500 text-xs uppercase font-bold tracking-widest">
+                    <tr><th className="px-8 py-5">{isBangla ? 'পণ্য' : 'Product'}</th><th className="px-8 py-5">{isBangla ? 'বর্তমান দাম' : 'Current Price'}</th><th className="px-8 py-5">{isBangla ? 'গতকালের দাম' : 'Yesterday'}</th><th className="px-8 py-5 text-right">{isBangla ? 'অবস্থা' : 'Trend'}</th></tr>
                   </thead>
                   <tbody className="divide-y divide-gray-100">
                     {marketPrices.map((item: any, idx: number) => (
-                      <tr key={idx} className="hover:bg-gray-50/50 transition-colors">
-                        <td className="px-6 py-4 font-medium text-gray-900">{isBangla ? item.nameBn : item.nameEn}</td>
-                        <td className="px-6 py-4 font-bold text-gray-800">৳ {item.today}</td>
-                        <td className="px-6 py-4 text-gray-500">৳ {item.yesterday}</td>
-                        <td className="px-6 py-4">
-                          {item.trend === 'up' && <span className="text-red-500 flex items-center gap-1 text-xs font-bold bg-red-50 px-2 py-1 rounded w-fit">▲</span>}
-                          {item.trend === 'down' && <span className="text-green-500 flex items-center gap-1 text-xs font-bold bg-green-50 px-2 py-1 rounded w-fit">▼</span>}
-                          {item.trend === 'stable' && <span className="text-gray-500 flex items-center gap-1 text-xs font-bold bg-gray-100 px-2 py-1 rounded w-fit">•</span>}
+                      <tr key={idx} className="hover:bg-blue-50/30 transition-colors">
+                        <td className="px-8 py-5 font-bold text-gray-900 text-lg">{isBangla ? item.nameBn : item.nameEn}</td>
+                        <td className="px-8 py-5 font-bold text-blue-700 text-xl">৳ {item.today}</td>
+                        <td className="px-8 py-5 text-gray-500 font-medium text-lg">৳ {item.yesterday}</td>
+                        <td className="px-8 py-5 text-right">
+                          {item.trend === 'up' && <span className="text-red-500 bg-red-50 px-3 py-1 rounded-full text-sm font-black">▲ Up</span>}
+                          {item.trend === 'down' && <span className="text-green-500 bg-green-50 px-3 py-1 rounded-full text-sm font-black">▼ Down</span>}
+                          {item.trend === 'stable' && <span className="text-gray-500 bg-gray-100 px-3 py-1 rounded-full text-sm font-black">• Stable</span>}
                         </td>
                       </tr>
                     ))}
@@ -470,8 +236,127 @@ export const BazarSodaiModule: React.FC<Props> = ({ isBangla, user, onLogin }) =
             </div>
           </div>
         )}
-
       </div>
+
+      {/* --- POST AD MODAL --- */}
+      {showPostModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fade-in" onClick={() => setShowPostModal(false)}>
+          <div className="bg-white w-full max-w-xl rounded-3xl shadow-2xl overflow-hidden transform transition-all" onClick={e => e.stopPropagation()}>
+            <div className="p-6 border-b border-gray-100 flex justify-between items-center bg-gradient-to-r from-orange-50 to-white">
+              <div>
+                <h2 className="text-2xl font-bold text-orange-900 flex items-center gap-3">
+                  <Truck size={28} />
+                  {isBangla ? 'পাইকারি বিজ্ঞাপন দিন' : 'Post Wholesale Ad'}
+                </h2>
+                <p className="text-sm text-orange-700 font-medium ml-10">
+                  {isBangla ? 'অ্যাডমিন রিভিউ করার পর বিজ্ঞাপনটি লাইভ হবে' : 'Ad will go live after admin review'}
+                </p>
+              </div>
+              <button onClick={() => setShowPostModal(false)} className="p-2 hover:bg-white rounded-full text-gray-400 hover:text-red-500 transition-colors shadow-sm"><X size={24} /></button>
+            </div>
+
+            <div className="p-8">
+              {submitted ? (
+                <div className="text-center py-10 animate-fade-in-up">
+                  <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6 text-green-600 shadow-lg shadow-green-50">
+                    <CheckCircle size={40} className="animate-bounce" />
+                  </div>
+                  <h3 className="text-2xl font-bold text-gray-900 mb-3">{isBangla ? 'আবেদন জমা হয়েছে!' : 'Request Submitted!'}</h3>
+                  <p className="text-gray-500 mb-8 max-w-sm mx-auto">
+                    {isBangla ? 'আপনার বিজ্ঞাপনটি অ্যাডমিন প্যানেলে পাঠানো হয়েছে। অ্যাপ্রুভ হলে আপনাকে জানানো হবে।' : 'Your ad has been sent to admin for review. You will be notified once approved.'}
+                  </p>
+                  <Button onClick={() => setShowPostModal(false)} className="bg-orange-600 hover:bg-orange-700 px-10">OK</Button>
+                </div>
+              ) : (
+                <form onSubmit={handleAdSubmit} className="space-y-6">
+                  <div>
+                    <label className="block text-sm font-bold text-gray-700 mb-2 flex items-center gap-2">
+                      <Package size={16} className="text-orange-500"/> {isBangla ? 'পণ্যের নাম' : 'Product Name'} *
+                    </label>
+                    <input 
+                      required 
+                      type="text" 
+                      className="w-full px-5 py-4 bg-gray-50 border border-gray-200 rounded-2xl focus:ring-2 focus:ring-orange-500 outline-none text-lg"
+                      placeholder={isBangla ? 'যেমন: মিনিকেট চাল, বগুড়ার দই...' : 'e.g. Miniket Rice, Bogra Curd...'}
+                      value={adForm.product}
+                      onChange={e => setAdForm({...adForm, product: e.target.value})}
+                    />
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                      <label className="block text-sm font-bold text-gray-700 mb-2">{isBangla ? 'পরিমাণ' : 'Quantity'} *</label>
+                      <input 
+                        required 
+                        type="text" 
+                        className="w-full px-5 py-4 bg-gray-50 border border-gray-200 rounded-2xl focus:ring-2 focus:ring-orange-500 outline-none"
+                        placeholder={isBangla ? 'যেমন: ১০০ কেজি, ৫০০ পিস...' : 'e.g. 100 kg, 500 pcs...'}
+                        value={adForm.quantity}
+                        onChange={e => setAdForm({...adForm, quantity: e.target.value})}
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-bold text-gray-700 mb-2 flex items-center gap-2">
+                        <DollarSign size={16} className="text-orange-500"/> {isBangla ? 'দাম (৳)' : 'Price (৳)'} *
+                      </label>
+                      <input 
+                        required 
+                        type="text" 
+                        className="w-full px-5 py-4 bg-gray-50 border border-gray-200 rounded-2xl focus:ring-2 focus:ring-orange-500 outline-none"
+                        placeholder={isBangla ? 'যেমন: ৫০ টাকা / কেজি' : 'e.g. 50 / kg'}
+                        value={adForm.price}
+                        onChange={e => setAdForm({...adForm, price: e.target.value})}
+                      />
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                      <label className="block text-sm font-bold text-gray-700 mb-2 flex items-center gap-2">
+                        <MapPinned size={16} className="text-orange-500"/> {isBangla ? 'স্থান/জেলা' : 'Location'} *
+                      </label>
+                      <input 
+                        required 
+                        type="text" 
+                        className="w-full px-5 py-4 bg-gray-50 border border-gray-200 rounded-2xl focus:ring-2 focus:ring-orange-500 outline-none"
+                        placeholder={isBangla ? 'যেমন: দিনাজপুর, বগুড়া...' : 'e.g. Dinajpur, Bogra...'}
+                        value={adForm.location}
+                        onChange={e => setAdForm({...adForm, location: e.target.value})}
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-bold text-gray-700 mb-2">{isBangla ? 'বিক্রেতার ধরন' : 'Seller Type'} *</label>
+                      <select 
+                        className="w-full px-5 py-4 bg-gray-50 border border-gray-200 rounded-2xl focus:ring-2 focus:ring-orange-500 outline-none cursor-pointer"
+                        value={adForm.sellerType}
+                        onChange={e => setAdForm({...adForm, sellerType: e.target.value})}
+                      >
+                        <option value="Farmer">{isBangla ? 'কৃষক' : 'Farmer'}</option>
+                        <option value="Trader">{isBangla ? 'ব্যবসায়ী' : 'Trader'}</option>
+                        <option value="Manufacturer">{isBangla ? 'প্রস্তুতকারক' : 'Manufacturer'}</option>
+                      </select>
+                    </div>
+                  </div>
+
+                  <div className="pt-4 flex flex-col gap-4">
+                    <Button 
+                      type="submit" 
+                      disabled={isSubmitting}
+                      className="w-full bg-orange-600 hover:bg-orange-700 text-white font-bold py-4 rounded-2xl shadow-xl shadow-orange-600/20 text-lg flex items-center justify-center gap-3"
+                    >
+                      {isSubmitting ? <RefreshCw className="animate-spin" size={20} /> : <PlusCircle size={20} />}
+                      {isBangla ? 'বিজ্ঞাপন জমা দিন' : 'Submit Ad'}
+                    </Button>
+                    <p className="text-center text-xs text-gray-400 flex items-center justify-center gap-1 uppercase tracking-widest">
+                       <Info size={12}/> Secure system • Manual review
+                    </p>
+                  </div>
+                </form>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

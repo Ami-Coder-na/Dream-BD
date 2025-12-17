@@ -1,5 +1,5 @@
 
-import React, { ErrorInfo, ReactNode } from 'react';
+import React, { Component, ErrorInfo, ReactNode } from 'react';
 import { AlertTriangle, RefreshCw, Home } from 'lucide-react';
 import { Button } from './ui/Button';
 
@@ -15,14 +15,21 @@ interface ErrorBoundaryState {
 /**
  * ErrorBoundary component to catch rendering errors in the application.
  */
-export class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoundaryState> {
+export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
+  // Fix: Explicitly declare state and props to resolve TypeScript property existence errors
+  public state: ErrorBoundaryState;
+  public props: ErrorBoundaryProps;
+
   // Use a constructor to ensure that 'props' and 'state' are correctly initialized and typed by inheritance
   constructor(props: ErrorBoundaryProps) {
     super(props);
+    // Fix line 22: Initializing state property
     this.state = {
       hasError: false,
       error: null
     };
+    // Fix inheritance visibility for props
+    this.props = props;
   }
 
   static getDerivedStateFromError(error: Error): ErrorBoundaryState {
@@ -44,8 +51,10 @@ export class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoun
   };
 
   render(): ReactNode {
-    // Access state properties from the instance
-    if (this.state.hasError) {
+    // Fix line 48: Access state properties from the instance via destructuring
+    const { hasError, error } = this.state;
+    
+    if (hasError) {
       return (
         <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4">
           <div className="bg-white p-8 rounded-2xl shadow-xl border border-gray-100 max-w-md w-full text-center">
@@ -61,7 +70,8 @@ export class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoun
               দুঃখিত, একটি অপ্রত্যাশিত সমস্যা দেখা দিয়েছে। অনুগ্রহ করে পেজটি রিলোড করুন।
               <br />
               <span className="text-xs mt-2 block opacity-70">
-                Error: {this.state.error?.message || 'Unknown Error'}
+                {/* Fix line 64: Accessing error message from destructured state */}
+                Error: {error?.message || 'Unknown Error'}
               </span>
             </p>
 
@@ -80,7 +90,7 @@ export class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoun
       );
     }
 
-    // Access props from the instance which are now correctly recognized by TypeScript
+    // Fix line 84: Access props from the instance which are now correctly recognized by TypeScript
     return this.props.children;
   }
 }
