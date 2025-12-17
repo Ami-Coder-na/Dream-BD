@@ -102,7 +102,6 @@ export const AdminContent = () => {
 
   const handleActionClick = async (item: any, action: 'approve' | 'reject') => {
       setIsProcessing(true);
-      // Ensure we pass the correct content type for approval
       const type = item.contentType?.toLowerCase() || (item.company ? 'job' : 'blog');
       await handleRequestAction({ ...item, contentType: type }, action);
       setIsProcessing(false);
@@ -126,7 +125,6 @@ export const AdminContent = () => {
       setView('details');
   };
 
-  // Resilient filters for the moderation queue
   const pendingJobs = requests.filter((r: any) => 
     r.contentType?.toLowerCase() === 'job' || (!!r.company && !r.author)
   );
@@ -274,6 +272,8 @@ export const AdminContent = () => {
 
   if (view === 'details' && selectedItem) {
       const isPending = selectedItem.status === 'Pending';
+      const isBlog = selectedItem.contentType === 'blog' || !!selectedItem.author;
+
       return (
         <div className="space-y-6 animate-fade-in max-w-5xl mx-auto">
             <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
@@ -309,8 +309,8 @@ export const AdminContent = () => {
                         {selectedItem.category && <div className="flex items-center gap-2"><Tag size={16} /><span>{selectedItem.category}</span></div>}
                     </div>
                     <div>
-                        <h4 className="text-lg font-bold text-gray-900 mb-4">{selectedItem.contentType === 'job' ? 'Job Description' : 'Content'}</h4>
-                        <div className="text-gray-700 leading-relaxed whitespace-pre-wrap">{selectedItem.description || selectedItem.content}</div>
+                        <h4 className="text-lg font-bold text-gray-900 mb-4">{isBlog ? 'Article Content' : 'Job Description'}</h4>
+                        <div className="text-gray-700 leading-relaxed whitespace-pre-wrap">{isBlog ? (selectedItem.content || selectedItem.description) : (selectedItem.description || selectedItem.content)}</div>
                         {selectedItem.image && <div className="mt-6"><img src={selectedItem.image} alt="Post" className="max-h-64 rounded-xl border border-gray-200" /></div>}
                     </div>
                 </div>
@@ -338,7 +338,6 @@ export const AdminContent = () => {
 
            {activeTab === 'requests' ? (
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                 {/* PENDING JOBS */}
                  <div className="bg-white border border-gray-100 rounded-2xl p-6 shadow-sm h-full">
                     <h4 className="font-bold text-lg text-gray-800 mb-6 flex items-center gap-2"><Briefcase size={20} className="text-purple-600"/> Pending Jobs ({pendingJobs.length})</h4>
                     <div className="space-y-4">
@@ -352,7 +351,6 @@ export const AdminContent = () => {
                     </div>
                  </div>
                  
-                 {/* PENDING BLOGS */}
                  <div className="bg-white border border-gray-100 rounded-2xl p-6 shadow-sm h-full">
                     <h4 className="font-bold text-lg text-gray-800 mb-6 flex items-center gap-2"><FileText size={20} className="text-blue-600"/> Pending Blogs ({pendingBlogs.length})</h4>
                     <div className="space-y-4">

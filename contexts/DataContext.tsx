@@ -53,7 +53,10 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     if (!data || typeof data !== 'object') return data;
     const normalized: any = {};
     for (const key in data) {
-      if (key === 'id' || key === 'created_at') continue; 
+      if (key === 'id' || key === 'created_at' || key === 'status') {
+         normalized[key] = data[key];
+         continue;
+      }
       normalized[key.toLowerCase()] = data[key] === undefined ? null : data[key];
     }
     return normalized;
@@ -63,7 +66,6 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     if (!item) return item;
     const newItem = { ...item };
     
-    // Comprehensive mapping for all potential lowercase DB keys to camelCase
     const fieldMap: Record<string, string> = {
       'contenttype': 'contentType',
       'postedby': 'postedBy',
@@ -81,7 +83,6 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     Object.keys(fieldMap).forEach(dbKey => {
       if (dbKey in newItem) {
         newItem[fieldMap[dbKey]] = newItem[dbKey];
-        // Only delete if it's actually a different casing to avoid deleting camelCase
         if (dbKey !== fieldMap[dbKey]) delete newItem[dbKey];
       }
     });
@@ -143,9 +144,16 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     
     if (isSupabaseConfigured) {
         try {
-            const { error } = await supabase.from(table).insert([normalizeData(newItem)]);
-            if (!error) await fetchTable(table, setter);
-        } catch (err) {}
+            const payload = normalizeData(newItem);
+            const { error } = await supabase.from(table).insert([payload]);
+            if (error) {
+                console.error(`Supabase Error inserting into ${table}:`, error.message, payload);
+                throw error;
+            }
+            await fetchTable(table, setter);
+        } catch (err) {
+            console.error("Optimistic Add Failed:", err);
+        }
     }
   };
 
