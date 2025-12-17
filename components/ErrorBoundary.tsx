@@ -1,4 +1,5 @@
-import React, { ErrorInfo, ReactNode } from 'react';
+
+import React, { ErrorInfo, ReactNode, Component } from 'react';
 import { AlertTriangle, RefreshCw, Home } from 'lucide-react';
 import { Button } from './ui/Button';
 
@@ -11,8 +12,8 @@ interface ErrorBoundaryState {
   error: Error | null;
 }
 
-// Fix: Explicitly extending React.Component with typed props and state to ensure this.props is recognized
-export class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoundaryState> {
+// Fixed: Explicitly extending React Component with generic types for props and state to ensure this.props is recognized by TypeScript
+export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
   public state: ErrorBoundaryState = {
     hasError: false,
     error: null
@@ -70,7 +71,7 @@ export class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoun
       );
     }
 
-    // Fix: Accessing children from props on standard React component
+    // Fixed: Standard access to children via this.props
     return this.props.children;
   }
 }

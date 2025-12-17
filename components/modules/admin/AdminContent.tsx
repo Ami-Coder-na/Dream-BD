@@ -32,7 +32,7 @@ export const AdminContent = () => {
 
   const handleEdit = (item: any) => {
     setSelectedItem(item);
-    if (item.category && item.author) { // Check if it's a blog based on properties
+    if (item.category && item.author) { 
         setBlogForm({ ...item });
         setView('edit_blog');
     } else {
@@ -59,7 +59,6 @@ export const AdminContent = () => {
           await updateJob(jobForm);
           alert('Job Updated Successfully!');
       } else {
-          // Use category from form or default to Private
           const jobData = { 
             ...jobForm, 
             category: jobForm.category || 'Private', 
@@ -78,7 +77,6 @@ export const AdminContent = () => {
       e.preventDefault();
       setIsProcessing(true);
       
-      // Auto-calc metadata if missing
       const wordCount = (blogForm.content || '').split(/\s+/).length;
       const readTime = Math.ceil(wordCount / 200) + ' min read';
       const excerpt = (blogForm.content || '').substring(0, 100) + '...';
@@ -126,7 +124,6 @@ export const AdminContent = () => {
       setView('details');
   };
 
-  // --- RENDER FORMS ---
   if (view === 'create_job' || view === 'edit_job') {
     return (
       <div className="space-y-6 animate-fade-in max-w-5xl mx-auto">
@@ -139,7 +136,6 @@ export const AdminContent = () => {
               <ArrowLeft size={16} /> Back to List
             </Button>
           </div>
-          
           <div className="p-8">
             <form className="space-y-6" onSubmit={handleJobSubmit}>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -189,7 +185,6 @@ export const AdminContent = () => {
                 <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider">Description</label>
                 <textarea required rows={5} value={jobForm.description || ''} onChange={e => setJobForm({...jobForm, description: e.target.value})} placeholder="Job details..." className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-gray-900 transition-all text-sm font-medium resize-none"></textarea>
               </div>
-
               <div className="flex justify-end gap-3 pt-4 border-t border-gray-50">
                 <Button type="button" variant="outline" onClick={() => setView('list')} className="px-6 bg-white hover:bg-gray-50 border-gray-200 text-gray-700">Cancel</Button>
                 <Button type="submit" disabled={isProcessing} className="bg-green-600 hover:bg-green-700 text-white px-6 font-bold flex items-center gap-2">
@@ -216,7 +211,6 @@ export const AdminContent = () => {
               <ArrowLeft size={16} /> Back to List
             </Button>
           </div>
-          
           <div className="p-8">
             <form className="space-y-6" onSubmit={handleBlogSubmit}>
               <div className="space-y-2">
@@ -241,26 +235,18 @@ export const AdminContent = () => {
                   <input type="text" value={blogForm.author || ''} onChange={e => setBlogForm({...blogForm, author: e.target.value})} placeholder="Admin" className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-gray-900 transition-all text-sm font-medium" />
                 </div>
               </div>
-              
               <div className="space-y-2">
                  <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider">Blog Image</label>
-                 <div 
-                   className="relative w-full border border-gray-200 rounded-xl bg-gray-50 cursor-pointer hover:bg-gray-100 transition-colors h-[46px] flex items-center px-4"
-                   onClick={() => fileInputRef.current?.click()}
-                 >
-                   <span className="text-sm text-gray-500 truncate">
-                     {blogForm.image ? 'Image Selected (Click to change)' : 'Upload Blog Image'}
-                   </span>
+                 <div className="relative w-full border border-gray-200 rounded-xl bg-gray-50 cursor-pointer hover:bg-gray-100 transition-colors h-[46px] flex items-center px-4" onClick={() => fileInputRef.current?.click()}>
+                   <span className="text-sm text-gray-500 truncate">{blogForm.image ? 'Image Selected (Click to change)' : 'Upload Blog Image'}</span>
                    <input type="file" accept="image/*" className="hidden" ref={fileInputRef} onChange={handleImageUpload} />
                    <Upload className="absolute right-4 text-gray-400" size={18} />
                  </div>
               </div>
-
               <div className="space-y-2">
                 <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider">Content (HTML Supported)</label>
                 <textarea required rows={8} value={blogForm.content || ''} onChange={e => setBlogForm({...blogForm, content: e.target.value})} placeholder="Write blog content here..." className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-gray-900 transition-all text-sm font-medium resize-none"></textarea>
               </div>
-
               <div className="flex justify-end gap-3 pt-4 border-t border-gray-50">
                 <Button type="button" variant="outline" onClick={() => setView('list')} className="px-6 bg-white hover:bg-gray-50 border-gray-200 text-gray-700">Cancel</Button>
                 <Button type="submit" disabled={isProcessing} className="bg-green-600 hover:bg-green-700 text-white px-6 font-bold flex items-center gap-2">
@@ -275,7 +261,6 @@ export const AdminContent = () => {
     );
   }
 
-  // --- RENDER DETAILS VIEW ---
   if (view === 'details' && selectedItem) {
       const isPending = selectedItem.status === 'Pending';
       return (
@@ -302,66 +287,20 @@ export const AdminContent = () => {
                         )}
                     </div>
                 </div>
-
                 <div className="p-8">
-                    <div className="mb-6">
-                        {renderStatusBadge(selectedItem.status)}
-                    </div>
+                    <div className="mb-6">{renderStatusBadge(selectedItem.status)}</div>
                     <h1 className="text-3xl font-bold text-gray-900 mb-6">{selectedItem.title}</h1>
-                    
-                    {/* Meta Row */}
                     <div className="flex flex-wrap items-center gap-6 text-sm text-gray-500 mb-8 border-b border-gray-100 pb-8">
-                        <div className="flex items-center gap-2">
-                            <User size={16} />
-                            <span>{selectedItem.postedBy || selectedItem.author}</span>
-                        </div>
-                        <div className="flex items-center gap-2">
-                            <Calendar size={16} />
-                            <span>{selectedItem.postedDate}</span>
-                        </div>
-                        <div className="flex items-center gap-2">
-                            <Eye size={16} />
-                            <span>{selectedItem.views || 0} views</span>
-                        </div>
-                        {selectedItem.contentType === 'job' && (
-                            <>
-                                <div className="flex items-center gap-2">
-                                    <Building2 size={16} />
-                                    <span>{selectedItem.company}</span>
-                                </div>
-                                <div className="flex items-center gap-2">
-                                    <MapPin size={16} />
-                                    <span>{selectedItem.location}</span>
-                                </div>
-                                {selectedItem.salary && (
-                                    <div className="flex items-center gap-2 font-medium text-green-600">
-                                        <DollarSign size={16} />
-                                        <span>{selectedItem.salary}</span>
-                                    </div>
-                                )}
-                            </>
-                        )}
-                        {selectedItem.contentType === 'blog' && selectedItem.category && (
-                            <div className="flex items-center gap-2">
-                                <Tag size={16} />
-                                <span>{selectedItem.category}</span>
-                            </div>
-                        )}
+                        <div className="flex items-center gap-2"><User size={16} /><span>{selectedItem.postedBy || selectedItem.author}</span></div>
+                        <div className="flex items-center gap-2"><Calendar size={16} /><span>{selectedItem.postedDate}</span></div>
+                        <div className="flex items-center gap-2"><Eye size={16} /><span>{selectedItem.views || 0} views</span></div>
+                        {selectedItem.company && <div className="flex items-center gap-2"><Building2 size={16} /><span>{selectedItem.company}</span></div>}
+                        {selectedItem.category && <div className="flex items-center gap-2"><Tag size={16} /><span>{selectedItem.category}</span></div>}
                     </div>
-
-                    {/* Content Section */}
                     <div>
-                        <h4 className="text-lg font-bold text-gray-900 mb-4">
-                            {selectedItem.contentType === 'job' ? 'Job Description' : 'Content'}
-                        </h4>
-                        <div className="text-gray-700 leading-relaxed whitespace-pre-wrap">
-                            {selectedItem.description || selectedItem.content}
-                        </div>
-                        {selectedItem.image && (
-                            <div className="mt-6">
-                                <img src={selectedItem.image} alt="Post" className="max-h-64 rounded-xl border border-gray-200" />
-                            </div>
-                        )}
+                        <h4 className="text-lg font-bold text-gray-900 mb-4">{selectedItem.contentType === 'job' ? 'Job Description' : 'Content'}</h4>
+                        <div className="text-gray-700 leading-relaxed whitespace-pre-wrap">{selectedItem.description || selectedItem.content}</div>
+                        {selectedItem.image && <div className="mt-6"><img src={selectedItem.image} alt="Post" className="max-h-64 rounded-xl border border-gray-200" /></div>}
                     </div>
                 </div>
             </div>
@@ -369,167 +308,67 @@ export const AdminContent = () => {
       );
   }
 
-  // --- RENDER MAIN LIST VIEW ---
   return (
     <div className="space-y-6 animate-fade-in">
         <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
            <div className="flex flex-col md:flex-row justify-between items-center gap-6 mb-6">
-              {/* Tabs */}
               <div className="flex bg-gray-50 p-1.5 rounded-xl border border-gray-200 w-full md:w-fit">
-                  <button 
-                    onClick={() => setActiveTab('jobs')}
-                    className={`flex-1 md:flex-none px-6 py-2 rounded-lg text-sm font-bold transition-all ${activeTab === 'jobs' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-600 hover:bg-gray-200'}`}
-                  >
-                    Jobs
-                  </button>
-                  <button 
-                    onClick={() => setActiveTab('blogs')}
-                    className={`flex-1 md:flex-none px-6 py-2 rounded-lg text-sm font-bold transition-all ${activeTab === 'blogs' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-600 hover:bg-gray-200'}`}
-                  >
-                    Blogs
-                  </button>
-                  <button 
-                    onClick={() => setActiveTab('requests')}
-                    className={`flex-1 md:flex-none px-6 py-2 rounded-lg text-sm font-bold transition-all flex items-center justify-center gap-2 ${activeTab === 'requests' ? 'bg-white text-orange-700 shadow-sm' : 'text-gray-600 hover:bg-gray-200'}`}
-                  >
-                    Requests 
-                    {requests.length > 0 && (
-                      <span className="bg-orange-500 text-white text-[10px] px-2 py-0.5 rounded-full shadow-sm">{requests.length}</span>
-                    )}
-                  </button>
+                  <button onClick={() => setActiveTab('jobs')} className={`flex-1 md:flex-none px-6 py-2 rounded-lg text-sm font-bold transition-all ${activeTab === 'jobs' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-600 hover:bg-gray-200'}`}>Jobs</button>
+                  <button onClick={() => setActiveTab('blogs')} className={`flex-1 md:flex-none px-6 py-2 rounded-lg text-sm font-bold transition-all ${activeTab === 'blogs' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-600 hover:bg-gray-200'}`}>Blogs</button>
+                  <button onClick={() => setActiveTab('requests')} className={`flex-1 md:flex-none px-6 py-2 rounded-lg text-sm font-bold transition-all flex items-center justify-center gap-2 ${activeTab === 'requests' ? 'bg-white text-orange-700 shadow-sm' : 'text-gray-600 hover:bg-gray-200'}`}>Requests {requests.length > 0 && <span className="bg-orange-500 text-white text-[10px] px-2 py-0.5 rounded-full shadow-sm">{requests.length}</span>}</button>
               </div>
-
-              {/* Controls */}
               {activeTab !== 'requests' && (
                 <div className="flex flex-col sm:flex-row gap-3 w-full md:w-auto">
-                   <div className="relative flex-1 sm:w-64">
-                     <Search className="absolute left-3 top-3 text-gray-400" size={16} />
-                     <input 
-                       type="text" 
-                       placeholder="Search..." 
-                       value={contentSearch} 
-                       onChange={(e) => setContentSearch(e.target.value)} 
-                       className="w-full pl-9 pr-4 py-2 bg-white border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-gray-200 h-10" 
-                     />
-                   </div>
-                   <Button 
-                     onClick={() => {
-                         if (activeTab === 'jobs') {
-                             setJobForm({});
-                             setView('create_job');
-                         } else {
-                             setBlogForm({});
-                             setView('create_blog');
-                         }
-                     }}
-                     className="bg-green-600 hover:bg-green-700 text-white font-bold px-4 h-10 rounded-lg shadow-sm flex items-center gap-2"
-                   >
-                      <Plus size={16} /> {activeTab === 'jobs' ? 'Post Job' : 'Write Blog'}
-                   </Button>
+                   <div className="relative flex-1 sm:w-64"><Search className="absolute left-3 top-3 text-gray-400" size={16} /><input type="text" placeholder="Search..." value={contentSearch} onChange={(e) => setContentSearch(e.target.value)} className="w-full pl-9 pr-4 py-2 bg-white border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-gray-200 h-10" /></div>
+                   <Button onClick={() => { if (activeTab === 'jobs') { setJobForm({}); setView('create_job'); } else { setBlogForm({}); setView('create_blog'); } }} className="bg-green-600 hover:bg-green-700 text-white font-bold px-4 h-10 rounded-lg shadow-sm flex items-center gap-2"><Plus size={16} /> {activeTab === 'jobs' ? 'Post Job' : 'Write Blog'}</Button>
                 </div>
               )}
            </div>
 
-           {/* Content Area */}
            {activeTab === 'requests' ? (
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                 {/* Pending Jobs */}
                  <div className="bg-white border border-gray-100 rounded-2xl p-6 shadow-sm h-full">
-                    <h4 className="font-bold text-lg text-gray-800 mb-6 flex items-center gap-2">
-                       <Briefcase size={20} className="text-purple-600"/> Pending Jobs ({requests.filter((r:any) => r.contentType === 'job').length})
-                    </h4>
+                    <h4 className="font-bold text-lg text-gray-800 mb-6 flex items-center gap-2"><Briefcase size={20} className="text-purple-600"/> Pending Jobs ({requests.filter((r:any) => r.contentType?.toLowerCase() === 'job').length})</h4>
                     <div className="space-y-4">
-                       {requests.filter((r:any) => r.contentType === 'job').map((req:any) => (
+                       {requests.filter((r:any) => r.contentType?.toLowerCase() === 'job').map((req:any) => (
                           <div key={req.id} className="p-4 bg-white border border-gray-100 rounded-xl hover:shadow-md transition-all">
-                             <div className="flex justify-between items-start mb-2">
-                                <div>
-                                   <h5 className="font-bold text-gray-900 text-base">{req.title}</h5>
-                                   <p className="text-xs text-gray-500 mt-1">{req.company} • {req.location}</p>
-                                </div>
-                                <span className="text-xs text-gray-400">{req.postedDate}</span>
-                             </div>
-                             <div className="flex justify-between items-center mt-4">
-                                <span className="text-xs font-medium text-gray-500 bg-gray-100 px-2 py-1 rounded">Posted by: {req.postedBy}</span>
-                                <div className="flex gap-3">
-                                   <button onClick={() => handleViewDetails(req, 'job')} className="text-gray-400 hover:text-blue-600 transition-colors"><Eye size={18}/></button>
-                                   <button onClick={() => handleActionClick(req, 'approve')} className="text-green-500 hover:text-green-600 transition-colors"><Check size={18}/></button>
-                                   <button onClick={() => handleActionClick(req, 'reject')} className="text-red-500 hover:text-red-600 transition-colors"><X size={18}/></button>
-                                </div>
-                             </div>
+                             <div className="flex justify-between items-start mb-2"><div><h5 className="font-bold text-gray-900 text-base">{req.title}</h5><p className="text-xs text-gray-500 mt-1">{req.company} • {req.location}</p></div><span className="text-xs text-gray-400">{req.postedDate}</span></div>
+                             <div className="flex justify-between items-center mt-4"><span className="text-xs font-medium text-gray-500 bg-gray-100 px-2 py-1 rounded">By: {req.postedBy}</span><div className="flex gap-3"><button onClick={() => handleViewDetails(req, 'job')} className="text-gray-400 hover:text-blue-600 transition-colors"><Eye size={18}/></button><button onClick={() => handleActionClick(req, 'approve')} className="text-green-500 hover:text-green-600 transition-colors"><Check size={18}/></button><button onClick={() => handleActionClick(req, 'reject')} className="text-red-500 hover:text-red-600 transition-colors"><X size={18}/></button></div></div>
                           </div>
                        ))}
-                       {requests.filter((r:any) => r.contentType === 'job').length === 0 && <p className="text-center text-gray-400 py-4">No pending jobs.</p>}
+                       {requests.filter((r:any) => r.contentType?.toLowerCase() === 'job').length === 0 && <p className="text-center text-gray-400 py-4">No pending jobs.</p>}
                     </div>
                  </div>
-
-                 {/* Pending Blogs */}
                  <div className="bg-white border border-gray-100 rounded-2xl p-6 shadow-sm h-full">
-                    <h4 className="font-bold text-lg text-gray-800 mb-6 flex items-center gap-2">
-                       <FileText size={20} className="text-blue-600"/> Pending Blogs ({requests.filter((r:any) => r.contentType === 'blog').length})
-                    </h4>
+                    <h4 className="font-bold text-lg text-gray-800 mb-6 flex items-center gap-2"><FileText size={20} className="text-blue-600"/> Pending Blogs ({requests.filter((r:any) => r.contentType?.toLowerCase() === 'blog').length})</h4>
                     <div className="space-y-4">
-                       {requests.filter((r:any) => r.contentType === 'blog').map((req:any) => (
+                       {requests.filter((r:any) => r.contentType?.toLowerCase() === 'blog').map((req:any) => (
                           <div key={req.id} className="p-4 bg-white border border-gray-100 rounded-xl hover:shadow-md transition-all">
-                             <div className="flex justify-between items-start mb-2">
-                                <div>
-                                   <h5 className="font-bold text-gray-900 text-base">{req.title}</h5>
-                                   <p className="text-xs text-gray-500 mt-1">Category: {req.category}</p>
-                                </div>
-                                <span className="text-xs text-gray-400">{req.postedDate}</span>
-                             </div>
-                             <div className="flex justify-between items-center mt-4">
-                                <span className="text-xs font-medium text-gray-500 bg-gray-100 px-2 py-1 rounded">Author: {req.author || 'Unknown'}</span>
-                                <div className="flex gap-3">
-                                   <button onClick={() => handleViewDetails(req, 'blog')} className="text-gray-400 hover:text-blue-600 transition-colors"><Eye size={18}/></button>
-                                   <button onClick={() => handleActionClick(req, 'approve')} className="text-green-500 hover:text-green-600 transition-colors"><Check size={18}/></button>
-                                   <button onClick={() => handleActionClick(req, 'reject')} className="text-red-500 hover:text-red-600 transition-colors"><X size={18}/></button>
-                                </div>
-                             </div>
+                             <div className="flex justify-between items-start mb-2"><div><h5 className="font-bold text-gray-900 text-base">{req.title}</h5><p className="text-xs text-gray-500 mt-1">Category: {req.category}</p></div><span className="text-xs text-gray-400">{req.postedDate}</span></div>
+                             <div className="flex justify-between items-center mt-4"><span className="text-xs font-medium text-gray-500 bg-gray-100 px-2 py-1 rounded">Author: {req.author}</span><div className="flex gap-3"><button onClick={() => handleViewDetails(req, 'blog')} className="text-gray-400 hover:text-blue-600 transition-colors"><Eye size={18}/></button><button onClick={() => handleActionClick(req, 'approve')} className="text-green-500 hover:text-green-600 transition-colors"><Check size={18}/></button><button onClick={() => handleActionClick(req, 'reject')} className="text-red-500 hover:text-red-600 transition-colors"><X size={18}/></button></div></div>
                           </div>
                        ))}
-                       {requests.filter((r:any) => r.contentType === 'blog').length === 0 && <p className="text-center text-gray-400 py-4">No pending blogs.</p>}
+                       {requests.filter((r:any) => r.contentType?.toLowerCase() === 'blog').length === 0 && <p className="text-center text-gray-400 py-4">No pending blogs.</p>}
                     </div>
                  </div>
               </div>
            ) : (
-              /* Active Content Table */
               <div className="overflow-x-auto">
                  <table className="w-full text-left border-collapse">
                     <thead className="bg-gray-50/50 border-b border-gray-100">
-                       <tr>
-                          <th className="p-4 text-xs font-bold text-gray-500 uppercase tracking-wider">{activeTab === 'jobs' ? 'JOB TITLE' : 'BLOG TITLE'}</th>
-                          <th className="p-4 text-xs font-bold text-gray-500 uppercase tracking-wider">{activeTab === 'jobs' ? 'COMPANY/DETAILS' : 'CATEGORY/AUTHOR'}</th>
-                          <th className="p-4 text-xs font-bold text-gray-500 uppercase tracking-wider">POSTED DATE</th>
-                          <th className="p-4 text-xs font-bold text-gray-500 uppercase tracking-wider">VIEWS</th>
-                          <th className="p-4 text-xs font-bold text-gray-500 uppercase tracking-wider">STATUS</th>
-                          <th className="p-4 text-xs font-bold text-gray-500 uppercase tracking-wider text-right">ACTIONS</th>
-                       </tr>
+                       <tr><th className="p-4 text-xs font-bold text-gray-500 uppercase tracking-wider">{activeTab === 'jobs' ? 'JOB TITLE' : 'BLOG TITLE'}</th><th className="p-4 text-xs font-bold text-gray-500 uppercase tracking-wider">{activeTab === 'jobs' ? 'COMPANY/DETAILS' : 'CATEGORY/AUTHOR'}</th><th className="p-4 text-xs font-bold text-gray-500 uppercase tracking-wider">POSTED DATE</th><th className="p-4 text-xs font-bold text-gray-500 uppercase tracking-wider">VIEWS</th><th className="p-4 text-xs font-bold text-gray-500 uppercase tracking-wider">STATUS</th><th className="p-4 text-xs font-bold text-gray-500 uppercase tracking-wider text-right">ACTIONS</th></tr>
                     </thead>
                     <tbody className="divide-y divide-gray-50">
                        {(activeTab === 'jobs' ? jobs : blogs).map((item: any) => (
                           <tr key={item.id} className="hover:bg-gray-50/50 transition-colors group">
                              <td className="p-4 font-bold text-gray-900 text-sm">{item.title}</td>
-                             <td className="p-4 text-sm text-gray-600">
-                                {activeTab === 'jobs' 
-                                  ? <><span className="block text-gray-900 font-medium">{item.company}</span><span className="text-xs text-gray-500">{item.type}</span></>
-                                  : <><span className="block text-gray-900 font-medium">{item.category}</span><span className="text-xs text-gray-500">by {item.author}</span></>
-                                }
-                             </td>
+                             <td className="p-4 text-sm text-gray-600">{activeTab === 'jobs' ? <><span className="block text-gray-900 font-medium">{item.company}</span><span className="text-xs text-gray-500">{item.type}</span></> : <><span className="block text-gray-900 font-medium">{item.category}</span><span className="text-xs text-gray-500">by {item.author}</span></>}</td>
                              <td className="p-4 text-sm text-gray-500">{item.postedDate}</td>
                              <td className="p-4 text-sm font-bold text-gray-700 bg-gray-50 rounded-lg w-fit h-fit px-2 py-1">{item.views}</td>
                              <td className="p-4">{renderStatusBadge(item.status)}</td>
-                             <td className="p-4 text-right">
-                                <div className="flex justify-end gap-3 text-gray-400">
-                                   <button onClick={() => handleViewDetails(item, activeTab === 'jobs' ? 'job' : 'blog')} className="hover:text-gray-600 transition-colors"><Eye size={18}/></button>
-                                   <button onClick={() => handleEdit(item)} className="hover:text-gray-600 transition-colors"><Edit3 size={18}/></button>
-                                   <button onClick={() => handleDelete(item.id, activeTab === 'jobs' ? 'job' : 'blog')} className="hover:text-red-500 transition-colors"><Trash2 size={18}/></button>
-                                </div>
-                             </td>
+                             <td className="p-4 text-right"><div className="flex justify-end gap-3 text-gray-400"><button onClick={() => handleViewDetails(item, activeTab === 'jobs' ? 'job' : 'blog')} className="hover:text-gray-600 transition-colors"><Eye size={18}/></button><button onClick={() => handleEdit(item)} className="hover:text-gray-600 transition-colors"><Edit3 size={18}/></button><button onClick={() => handleDelete(item.id, activeTab === 'jobs' ? 'job' : 'blog')} className="hover:text-red-500 transition-colors"><Trash2 size={18}/></button></div></td>
                           </tr>
                        ))}
-                       {(activeTab === 'jobs' ? jobs : blogs).length === 0 && (
-                          <tr><td colSpan={6} className="p-10 text-center font-bold text-gray-400">No content found.</td></tr>
-                       )}
                     </tbody>
                  </table>
               </div>
