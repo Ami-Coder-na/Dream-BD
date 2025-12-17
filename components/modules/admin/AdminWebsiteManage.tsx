@@ -60,6 +60,13 @@ export const AdminWebsiteManage = () => {
   const [dbKey, setDbKey] = useState(localStorage.getItem('dream_sb_key') || '');
   const [isSaving, setIsSaving] = useState(false);
   const [testResult, setTestResult] = useState<string | null>(null);
+  const [statusColor, setStatusColor] = useState('gray');
+
+  useEffect(() => {
+      if (isSupabaseConfigured) {
+          handleTestConnection(true);
+      }
+  }, []);
 
   const handleCopySQL = () => {
     navigator.clipboard.writeText(SCHEMA_SQL);
@@ -90,23 +97,27 @@ export const AdminWebsiteManage = () => {
     }, 1000);
   };
 
-  const handleTestConnection = async () => {
-      setTestResult('Testing Connection...');
+  const handleTestConnection = async (silent = false) => {
+      if(!silent) setTestResult('Testing Connection...');
       try {
           // Simple count query
           const { count, error } = await supabase.from('jobs').select('*', { count: 'exact', head: true });
           if (error) {
-              setTestResult(`Connection Failed:\n${JSON.stringify(error, null, 2)}`);
+              setTestResult(`Connection Failed: ${error.message}`);
+              setStatusColor('red');
           } else {
               setTestResult(`Connection Success! Current Job Count: ${count}`);
+              setStatusColor('green');
           }
       } catch (err: any) {
           setTestResult(`Network/Client Error: ${err.message}`);
+          setStatusColor('red');
       }
   };
 
   const handleTestInsert = async () => {
       setTestResult('Testing Insert...');
+      setStatusColor('orange');
       try {
           const testData = {
               title: 'Test Job ' + Date.now(),
@@ -117,13 +128,15 @@ export const AdminWebsiteManage = () => {
           const { data, error } = await supabase.from('jobs').insert([testData]).select();
           
           if (error) {
-              // JSON stringify the error to see exactly what is returned
               setTestResult(`Insert Failed:\n${JSON.stringify(error, null, 2)}`);
+              setStatusColor('red');
           } else {
               setTestResult(`Insert Success! Created ID: ${data?.[0]?.id}. Check 'jobs' table.`);
+              setStatusColor('green');
           }
       } catch (err: any) {
           setTestResult(`Crash Error: ${err.message}`);
+          setStatusColor('red');
       }
   };
 
@@ -237,7 +250,7 @@ export const AdminWebsiteManage = () => {
             ) : (
                 <div className="text-center py-6">
                     <div className="flex flex-wrap gap-4 justify-center mb-6">
-                        <Button onClick={handleTestConnection} variant="outline" className="flex items-center gap-2">
+                        <Button onClick={() => handleTestConnection(false)} variant="outline" className="flex items-center gap-2">
                             <Zap size={16} /> Check Connection
                         </Button>
                         <Button onClick={handleTestInsert} className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white shadow-md">
@@ -247,7 +260,9 @@ export const AdminWebsiteManage = () => {
                     
                     {testResult && (
                         <div className={`mb-6 p-4 rounded-xl border text-left text-xs font-mono whitespace-pre-wrap break-all overflow-x-auto ${
-                            testResult.includes('Success') ? 'bg-green-50 border-green-200 text-green-900' : 'bg-red-50 border-red-200 text-red-900'
+                            statusColor === 'green' ? 'bg-green-50 border-green-200 text-green-900' : 
+                            statusColor === 'red' ? 'bg-red-50 border-red-200 text-red-900' :
+                            'bg-orange-50 border-orange-200 text-orange-900'
                         }`}>
                             <strong>Diagnostic Result:</strong><br/>
                             {testResult}

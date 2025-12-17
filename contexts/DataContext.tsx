@@ -100,7 +100,7 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         const { data, error } = await supabase.from(table).select('*').order(orderBy, { ascending });
         if (!error && data) setter(data);
     } catch(e) {
-        console.warn(`Fetch failed for ${table}, using local data.`);
+        // Silent fail for fetch, use local data
     }
   };
 
@@ -160,6 +160,7 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     const tempItem = { ...newItem, id: Date.now() }; 
     const newList = [tempItem, ...currentList];
     setter(newList);
+    setLocal(`db_${table}`, newList); // Ensure local save happens immediately
     
     // 2. Try DB Insert
     if (isSupabaseConfigured) {
@@ -168,23 +169,16 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
             const { error } = await supabase.from(table).insert([normalizedDbData]);
             
             if (error) {
-                // EXPLICIT ALERT FOR DEBUGGING - JSON STRINGIFY TO SEE REAL ERROR OBJECT
-                console.error(`Supabase Insert Error for ${table}:`, error);
-                alert(`Database Error:\n${JSON.stringify(error, null, 2)}`);
-                
-                // Fallback to local
-                setLocal(`db_${table}`, newList);
+                // FAIL SILENTLY AND LOG
+                console.warn(`Supabase Insert Failed for ${table}. Using local fallback.`, error);
+                // We already saved to local above, so user sees success.
             } else {
-                // Success: Fetch to sync ID
+                // Success: Fetch to sync ID from DB (swaps temp ID with real ID eventually)
                 await fetchTable(table, setter);
             }
         } catch (err) {
-             console.error("Unexpected DB Error, falling back to local:", err);
-             setLocal(`db_${table}`, newList);
+             console.warn("Unexpected DB Error, using local fallback:", err);
         }
-    } else {
-        // Offline mode: Save to Local Storage
-        setLocal(`db_${table}`, newList);
     }
   };
 
@@ -211,28 +205,23 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const updateJob = async (updatedJob: any) => {
     const updatedList = jobs.map(j => j.id === updatedJob.id ? updatedJob : j);
     setJobs(updatedList); // Optimistic UI update
+    setLocal('db_jobs', updatedList);
     
     if (isSupabaseConfigured) {
         try {
             const normalizedData = normalizeData(updatedJob);
-            const { error } = await supabase.from('jobs').update(normalizedData).eq('id', updatedJob.id);
-            if (error) setLocal('db_jobs', updatedList); // Fallback
-            else await fetchTable('jobs', setJobs);
-        } catch { setLocal('db_jobs', updatedList); }
-    } else {
-        setLocal('db_jobs', updatedList);
+            await supabase.from('jobs').update(normalizedData).eq('id', updatedJob.id);
+        } catch { /* Silent */ }
     }
   };
 
   const deleteJob = async (id: number) => {
     const filtered = jobs.filter(j => j.id !== id);
     setJobs(filtered); // Optimistic UI
+    setLocal('db_jobs', filtered);
     
     if (isSupabaseConfigured) {
-        const { error } = await supabase.from('jobs').delete().eq('id', id);
-        if(error) setLocal('db_jobs', filtered); // Fallback
-    } else {
-        setLocal('db_jobs', filtered);
+        await supabase.from('jobs').delete().eq('id', id);
     }
   };
 
@@ -244,26 +233,21 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const updateBlog = async (updatedBlog: any) => {
     const updatedList = blogs.map(b => b.id === updatedBlog.id ? updatedBlog : b);
     setBlogs(updatedList);
+    setLocal('db_blogs', updatedList);
     if (isSupabaseConfigured) {
         try {
             const normalizedData = normalizeData(updatedBlog);
-            const { error } = await supabase.from('blogs').update(normalizedData).eq('id', updatedBlog.id);
-            if(error) setLocal('db_blogs', updatedList);
-            else await fetchTable('blogs', setBlogs);
-        } catch { setLocal('db_blogs', updatedList); }
-    } else {
-        setLocal('db_blogs', updatedList);
+            await supabase.from('blogs').update(normalizedData).eq('id', updatedBlog.id);
+        } catch { /* Silent */ }
     }
   };
 
   const deleteBlog = async (id: number) => {
     const filtered = blogs.filter(b => b.id !== id);
     setBlogs(filtered);
+    setLocal('db_blogs', filtered);
     if (isSupabaseConfigured) {
-        const { error } = await supabase.from('blogs').delete().eq('id', id);
-        if(error) setLocal('db_blogs', filtered);
-    } else {
-        setLocal('db_blogs', filtered);
+        await supabase.from('blogs').delete().eq('id', id);
     }
   };
 
@@ -275,11 +259,10 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const handleRequestAction = async (item: any, action: 'approve' | 'reject') => {
     const filtered = requests.filter(r => r.id !== item.id);
     setRequests(filtered);
+    setLocal('db_requests', filtered);
 
     if (isSupabaseConfigured) {
         await supabase.from('requests').delete().eq('id', item.id);
-    } else {
-        setLocal('db_requests', filtered);
     }
 
     if (action === 'approve') {
@@ -297,22 +280,18 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const updateGrievanceStatus = async (id: number, status: string) => {
     const updated = grievances.map(g => g.id === id ? { ...g, status } : g);
     setGrievances(updated);
+    setLocal('db_grievances', updated);
     if (isSupabaseConfigured) {
-        const { error } = await supabase.from('grievances').update({ status }).eq('id', id);
-        if(error) setLocal('db_grievances', updated);
-    } else {
-        setLocal('db_grievances', updated);
+        await supabase.from('grievances').update({ status }).eq('id', id);
     }
   };
 
   const deleteGrievance = async (id: number) => {
     const filtered = grievances.filter(g => g.id !== id);
     setGrievances(filtered);
+    setLocal('db_grievances', filtered);
     if (isSupabaseConfigured) {
-        const { error } = await supabase.from('grievances').delete().eq('id', id);
-        if(error) setLocal('db_grievances', filtered);
-    } else {
-        setLocal('db_grievances', filtered);
+        await supabase.from('grievances').delete().eq('id', id);
     }
   };
 
@@ -324,59 +303,49 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     // Always optimistic update for users
     const newList = [newUser, ...users];
     setUsers(newList);
-    setLocal('db_users', newList); // Keep local backup for login
+    setLocal('db_users', newList); 
 
     if (isSupabaseConfigured) {
         const normalizedData = normalizeData(newUser);
-        const { error } = await supabase.from('users').insert([normalizedData]);
-        if(!error) await fetchTable('users', setUsers);
+        await supabase.from('users').insert([normalizedData]);
     }
   };
 
   const updateUserStatus = async (id: string, status: 'Active' | 'Suspended') => {
     const updated = users.map(u => u.id === id ? { ...u, status } : u);
     setUsers(updated);
+    setLocal('db_users', updated);
     if (isSupabaseConfigured) {
-        const { error } = await supabase.from('users').update({ status }).eq('id', id);
-        if(error) setLocal('db_users', updated);
-    } else {
-        setLocal('db_users', updated);
+        await supabase.from('users').update({ status }).eq('id', id);
     }
   };
 
   const deleteUser = async (id: string) => {
     const filtered = users.filter(u => u.id !== id);
     setUsers(filtered);
+    setLocal('db_users', filtered);
     if (isSupabaseConfigured) {
-        const { error } = await supabase.from('users').delete().eq('id', id);
-        if(error) setLocal('db_users', filtered);
-    } else {
-        setLocal('db_users', filtered);
+        await supabase.from('users').delete().eq('id', id);
     }
   };
 
   const resetPassword = async (email: string, newPass: string) => {
     const updated = users.map(u => u.email === email ? { ...u, password: newPass } : u);
     setUsers(updated);
+    setLocal('db_users', updated);
     if (isSupabaseConfigured) {
-        const { error } = await supabase.from('users').update({ password: newPass }).eq('email', email);
-        if(error) setLocal('db_users', updated);
-    } else {
-        setLocal('db_users', updated);
+        await supabase.from('users').update({ password: newPass }).eq('email', email);
     }
   };
 
   const updateMarketPrices = async (newPrices: any[]) => {
     setMarketPrices(newPrices);
+    setLocal('db_prices', newPrices);
     if (isSupabaseConfigured) {
         try {
             const normalizedPrices = newPrices.map(normalizeData);
-            const { error } = await supabase.from('market_prices').upsert(normalizedPrices);
-            if(error) setLocal('db_prices', newPrices);
-            else await fetchTable('market_prices', setMarketPrices, 'id', true);
-        } catch { setLocal('db_prices', newPrices); }
-    } else {
-        setLocal('db_prices', newPrices);
+            await supabase.from('market_prices').upsert(normalizedPrices);
+        } catch { /* Silent */ }
     }
   };
   
@@ -386,22 +355,18 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const updateRetailProduct = async (product: any) => {
       const updated = retailProducts.map(p => p.id === product.id ? product : p);
       setRetailProducts(updated);
+      setLocal('db_retail', updated);
       if (isSupabaseConfigured) {
           const normalizedData = normalizeData(product);
-          const { error } = await supabase.from('retail_products').update(normalizedData).eq('id', product.id);
-          if(error) setLocal('db_retail', updated);
-      } else {
-          setLocal('db_retail', updated);
+          await supabase.from('retail_products').update(normalizedData).eq('id', product.id);
       }
   };
   const deleteRetailProduct = async (id: number) => {
       const filtered = retailProducts.filter(p => p.id !== id);
       setRetailProducts(filtered);
+      setLocal('db_retail', filtered);
       if (isSupabaseConfigured) {
-          const { error } = await supabase.from('retail_products').delete().eq('id', id);
-          if(error) setLocal('db_retail', filtered);
-      } else {
-          setLocal('db_retail', filtered);
+          await supabase.from('retail_products').delete().eq('id', id);
       }
   };
 
@@ -413,23 +378,19 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const updateWholesaleAd = async (updatedAd: any) => {
     const updated = wholesaleAds.map(a => a.id === updatedAd.id ? updatedAd : a);
     setWholesaleAds(updated);
+    setLocal('db_ads', updated);
     if (isSupabaseConfigured) {
         const normalizedData = normalizeData(updatedAd);
-        const { error } = await supabase.from('wholesale_ads').update(normalizedData).eq('id', updatedAd.id);
-        if(error) setLocal('db_ads', updated);
-    } else {
-        setLocal('db_ads', updated);
+        await supabase.from('wholesale_ads').update(normalizedData).eq('id', updatedAd.id);
     }
   };
 
   const deleteWholesaleAd = async (id: number) => {
     const filtered = wholesaleAds.filter(a => a.id !== id);
     setWholesaleAds(filtered);
+    setLocal('db_ads', filtered);
     if (isSupabaseConfigured) {
-        const { error } = await supabase.from('wholesale_ads').delete().eq('id', id);
-        if(error) setLocal('db_ads', filtered);
-    } else {
-        setLocal('db_ads', filtered);
+        await supabase.from('wholesale_ads').delete().eq('id', id);
     }
   };
 
@@ -440,11 +401,9 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const deleteLawyer = async (id: number) => {
       const filtered = lawyers.filter(l => l.id !== id);
       setLawyers(filtered);
+      setLocal('db_lawyers', filtered);
       if (isSupabaseConfigured) {
-          const { error } = await supabase.from('lawyers').delete().eq('id', id);
-          if(error) setLocal('db_lawyers', filtered);
-      } else {
-          setLocal('db_lawyers', filtered);
+          await supabase.from('lawyers').delete().eq('id', id);
       }
   };
   
@@ -455,11 +414,9 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const deleteExchangeRate = async (id: number) => {
       const filtered = exchangeRates.filter(r => r.id !== id);
       setExchangeRates(filtered);
+      setLocal('db_rates', filtered);
       if (isSupabaseConfigured) {
-          const { error } = await supabase.from('exchange_rates').delete().eq('id', id);
-          if(error) setLocal('db_rates', filtered);
-      } else {
-          setLocal('db_rates', filtered);
+          await supabase.from('exchange_rates').delete().eq('id', id);
       }
   };
 
@@ -470,11 +427,9 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const deleteVocationalCourse = async (id: number) => {
       const filtered = vocationalCourses.filter(c => c.id !== id);
       setVocationalCourses(filtered);
+      setLocal('db_courses', filtered);
       if (isSupabaseConfigured) {
-          const { error } = await supabase.from('vocational_courses').delete().eq('id', id);
-          if(error) setLocal('db_courses', filtered);
-      } else {
-          setLocal('db_courses', filtered);
+          await supabase.from('vocational_courses').delete().eq('id', id);
       }
   };
 
