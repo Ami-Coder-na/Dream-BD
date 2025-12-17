@@ -74,6 +74,15 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     localStorage.setItem(key, JSON.stringify(data));
   };
 
+  const normalizeData = (data: any) => {
+    if (!data || typeof data !== 'object') return data;
+    const normalized: any = {};
+    for (const key in data) {
+      normalized[key.toLowerCase()] = data[key];
+    }
+    return normalized;
+  };
+
   const fetchTable = async (table: string, setter: any, orderBy = 'created_at', ascending = false) => {
     if (!isSupabaseConfigured) return;
     const { data, error } = await supabase.from(table).select('*').order(orderBy, { ascending });
@@ -82,19 +91,21 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
   const fetchData = async () => {
     if (isSupabaseConfigured) {
-      await fetchTable('jobs', setJobs);
-      await fetchTable('blogs', setBlogs);
-      await fetchTable('requests', setRequests);
-      await fetchTable('grievances', setGrievances);
-      await fetchTable('users', setUsers);
-      await fetchTable('market_prices', setMarketPrices);
-      await fetchTable('retail_products', setRetailProducts);
-      await fetchTable('wholesale_ads', setWholesaleAds);
-      await fetchTable('lawyers', setLawyers);
-      await fetchTable('exchange_rates', setExchangeRates);
-      await fetchTable('vocational_courses', setVocationalCourses);
-      await fetchTable('donors', setDonors);
-      await fetchTable('enrolled_courses', setEnrolledCourses);
+      await Promise.all([
+        fetchTable('jobs', setJobs),
+        fetchTable('blogs', setBlogs),
+        fetchTable('requests', setRequests),
+        fetchTable('grievances', setGrievances),
+        fetchTable('users', setUsers),
+        fetchTable('market_prices', setMarketPrices),
+        fetchTable('retail_products', setRetailProducts),
+        fetchTable('wholesale_ads', setWholesaleAds),
+        fetchTable('lawyers', setLawyers),
+        fetchTable('exchange_rates', setExchangeRates),
+        fetchTable('vocational_courses', setVocationalCourses),
+        fetchTable('donors', setDonors),
+        fetchTable('enrolled_courses', setEnrolledCourses),
+      ]);
     } else {
       setJobs(getLocal('db_jobs', MOCK_JOBS));
       setBlogs(getLocal('db_blogs', MOCK_BLOGS));
@@ -142,17 +153,24 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
     if (isSupabaseConfigured) {
         // 2. DB Insert
-        const { id, ...dbData } = tempItem; // Remove temp ID, let DB generate
-        const { error } = await supabase.from(table).insert([dbData]);
+        const { id, ...dbData } = tempItem; // Remove temp ID
+        
+        // CRITICAL FIX: Normalize keys to lowercase
+        const normalizedDbData = normalizeData(dbData);
+
+        const { error } = await supabase.from(table).insert([normalizedDbData]);
         
         if (error) {
             console.error(`Error adding to ${table}:`, error);
-            if (error.message.includes('relation') && error.message.includes('does not exist')) {
+            const errorMsg = error.message || JSON.stringify(error);
+            const errorDetails = error.details || error.hint || '';
+            
+            if (errorMsg.includes('relation') && errorMsg.includes('does not exist')) {
                 alert(`System Error: The database table '${table}' does not exist. Please run the SQL Schema in Admin > Website Manage.`);
-            } else if (error.message.includes('row-level security')) {
+            } else if (errorMsg.includes('row-level security')) {
                 alert(`Permission Error: Access denied to table '${table}'. Please run the SQL Schema to fix permissions.`);
             } else {
-                alert(`Error saving data: ${error.message || JSON.stringify(error)}`);
+                alert(`Error saving data: ${errorMsg}. ${errorDetails}`);
             }
             // Revert on error
             setter(currentList); 
@@ -174,7 +192,8 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
   const updateJob = async (updatedJob: any) => {
     if (isSupabaseConfigured) {
-        await supabase.from('jobs').update(updatedJob).eq('id', updatedJob.id);
+        const normalizedData = normalizeData(updatedJob);
+        await supabase.from('jobs').update(normalizedData).eq('id', updatedJob.id);
         await fetchTable('jobs', setJobs);
     } else {
         const updated = jobs.map(j => j.id === updatedJob.id ? updatedJob : j);
@@ -201,7 +220,8 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
   const updateBlog = async (updatedBlog: any) => {
     if (isSupabaseConfigured) {
-        await supabase.from('blogs').update(updatedBlog).eq('id', updatedBlog.id);
+        const normalizedData = normalizeData(updatedBlog);
+        await supabase.from('blogs').update(normalizedData).eq('id', updatedBlog.id);
         await fetchTable('blogs', setBlogs);
     } else {
         const updated = blogs.map(b => b.id === updatedBlog.id ? updatedBlog : b);
@@ -277,7 +297,8 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     if(!newUser.id) newUser.id = `u${Date.now()}`;
     
     if (isSupabaseConfigured) {
-        const { error } = await supabase.from('users').insert([newUser]);
+        const normalizedData = normalizeData(newUser);
+        const { error } = await supabase.from('users').insert([normalizedData]);
         if(!error) await fetchTable('users', setUsers);
     } else {
         const updated = [newUser, ...users];
@@ -321,7 +342,9 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const updateMarketPrices = async (newPrices: any[]) => {
     setMarketPrices(newPrices);
     if (isSupabaseConfigured) {
-        await supabase.from('market_prices').upsert(newPrices);
+        // Since batch upsert might have issues with mixed casing, normalize individually
+        const normalizedPrices = newPrices.map(normalizeData);
+        await supabase.from('market_prices').upsert(normalizedPrices);
         await fetchTable('market_prices', setMarketPrices, 'id', true);
     } else {
         setLocal('db_prices', newPrices);
@@ -333,7 +356,8 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   };
   const updateRetailProduct = async (product: any) => {
       if (isSupabaseConfigured) {
-          await supabase.from('retail_products').update(product).eq('id', product.id);
+          const normalizedData = normalizeData(product);
+          await supabase.from('retail_products').update(normalizedData).eq('id', product.id);
           await fetchTable('retail_products', setRetailProducts);
       } else {
           const updated = retailProducts.map(p => p.id === product.id ? product : p);
@@ -359,7 +383,8 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
   const updateWholesaleAd = async (updatedAd: any) => {
     if (isSupabaseConfigured) {
-        await supabase.from('wholesale_ads').update(updatedAd).eq('id', updatedAd.id);
+        const normalizedData = normalizeData(updatedAd);
+        await supabase.from('wholesale_ads').update(normalizedData).eq('id', updatedAd.id);
         await fetchTable('wholesale_ads', setWholesaleAds);
     } else {
         const updated = wholesaleAds.map(a => a.id === updatedAd.id ? updatedAd : a);
