@@ -11,6 +11,7 @@ import { Footer } from './components/layout/Footer';
 import { ErrorBoundary } from './components/ErrorBoundary';
 import { Loader2, AlertTriangle, Lock } from 'lucide-react';
 import { useSiteConfig } from './contexts/SiteConfigContext';
+import { useData } from './contexts/DataContext';
 
 // Lazy Load Modules for Bundle Splitting
 const JobModule = lazy(() => import('./components/modules/JobModule').then(module => ({ default: module.JobModule })));
@@ -67,6 +68,8 @@ const SESSION_KEY = 'dream_bd_user_session';
 const SESSION_DURATION = 12 * 60 * 60 * 1000; // 12 Hours
 
 const App: React.FC = () => {
+  const { logVisit } = useData(); // Hook to track visits
+  
   // Initialize user from LocalStorage with Expiry Check
   const [user, setUser] = useState<User | null>(() => {
     const savedSession = localStorage.getItem(SESSION_KEY);
@@ -130,6 +133,9 @@ const App: React.FC = () => {
 
     // Initial check on mount
     handleNavigation();
+    
+    // Log Visit
+    logVisit();
 
     // Listen for back/forward button clicks
     window.addEventListener('popstate', handleNavigation);

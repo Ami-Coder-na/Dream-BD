@@ -39,6 +39,13 @@ create table if not exists public.users (id text primary key, created_at timesta
 alter table public.users enable row level security;
 create policy "Enable all access for all users" on public.users for all using (true) with check (true);
 
+-- 6. SITE STATS (VISITOR COUNT)
+create table if not exists public.site_stats (key text primary key, value bigint default 0);
+alter table public.site_stats enable row level security;
+create policy "Enable all access for all users" on public.site_stats for all using (true) with check (true);
+-- Insert default visitor counter if not exists
+insert into public.site_stats (key, value) values ('total_visitors', 0) on conflict do nothing;
+
 -- ADD COLUMNS IF MISSING
 alter table public.jobs add column if not exists title text;
 alter table public.jobs add column if not exists company text;

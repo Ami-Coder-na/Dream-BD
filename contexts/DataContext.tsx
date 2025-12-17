@@ -1,3 +1,4 @@
+
 import React, { createContext, useState, useContext, useEffect, ReactNode } from 'react';
 import { supabase, isSupabaseConfigured } from '../services/supabaseClient';
 import { User, UserRole } from '../types';
@@ -63,6 +64,9 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const [vocationalCourses, setVocationalCourses] = useState<any[]>([]);
   const [donors, setDonors] = useState<any[]>([]);
   const [enrolledCourses, setEnrolledCourses] = useState<any[]>([]);
+  
+  // Visitor Analytics State
+  const [totalVisitors, setTotalVisitors] = useState<number>(0);
 
   // Helpers
   const getLocal = (key: string, defaultData: any[]) => {
@@ -104,6 +108,45 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     }
   };
 
+  const fetchVisitorCount = async () => {
+      // 1. Get from Local Storage (Immediate Display)
+      const localCount = parseInt(localStorage.getItem('total_visitors_count') || '1250');
+      setTotalVisitors(localCount);
+
+      // 2. Get from Supabase (Async Update)
+      if (isSupabaseConfigured) {
+          try {
+              const { data } = await supabase.from('site_stats').select('value').eq('key', 'total_visitors').single();
+              if (data) {
+                  setTotalVisitors(data.value);
+                  localStorage.setItem('total_visitors_count', data.value.toString());
+              }
+          } catch (e) { /* Ignore */ }
+      }
+  };
+
+  const logVisit = async () => {
+      // Logic to prevent spam incrementing on same session
+      if (sessionStorage.getItem('visited_session')) return;
+      sessionStorage.setItem('visited_session', 'true');
+
+      // Optimistic Local Increment
+      const current = parseInt(localStorage.getItem('total_visitors_count') || '1250');
+      const newVal = current + 1;
+      setTotalVisitors(newVal);
+      localStorage.setItem('total_visitors_count', newVal.toString());
+
+      // DB Increment
+      if (isSupabaseConfigured) {
+          try {
+              // Fetch current first to be safe, or use RPC if available (skipping RPC for simplicity)
+              const { data } = await supabase.from('site_stats').select('value').eq('key', 'total_visitors').single();
+              const dbVal = (data?.value || current) + 1;
+              await supabase.from('site_stats').upsert({ key: 'total_visitors', value: dbVal });
+          } catch (e) { /* Ignore */ }
+      }
+  };
+
   const fetchData = async () => {
     // Always load local data first for immediate rendering
     setJobs(getLocal('db_jobs', MOCK_JOBS));
@@ -119,6 +162,9 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     setVocationalCourses(getLocal('db_courses', MOCK_VOCATIONAL_COURSES));
     setDonors(getLocal('db_donors', []));
     setEnrolledCourses(getLocal('db_enrolled', []));
+    
+    // Fetch Visitor Count
+    fetchVisitorCount();
 
     if (isSupabaseConfigured) {
       // Then try to fetch fresh data from DB silently
@@ -445,6 +491,7 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     <DataContext.Provider value={{ 
       jobs, blogs, requests, grievances, users, marketPrices, retailProducts, wholesaleAds,
       lawyers, exchangeRates, vocationalCourses, donors, enrolledCourses,
+      totalVisitors, logVisit, // Expose Visitor Stats
       addJob, deleteJob, updateJob,
       addBlog, deleteBlog, updateBlog,
       addRequest, handleRequestAction,

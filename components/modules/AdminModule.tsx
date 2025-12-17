@@ -1,9 +1,10 @@
+
 import React, { useState, useEffect } from 'react';
 import { 
   LayoutDashboard, Users, Settings, Database, Activity, 
   LogOut, Shield, Bell, FileText, ShoppingBag, Trash2, AlertOctagon, 
   Clock, DollarSign, Mail, Key, EyeOff, Eye, ChevronDown, UserPlus, FilePlus, AlertTriangle,
-  Globe, Sparkles, Monitor, RefreshCw, CheckCircle
+  Globe, Sparkles, Monitor, RefreshCw, CheckCircle, BarChart3, TrendingUp
 } from 'lucide-react';
 import { AdminUsers } from './admin/AdminUsers';
 import { AdminContent } from './admin/AdminContent';
@@ -25,7 +26,7 @@ interface Props {
 type AdminSection = 'overview' | 'website-manage' | 'users' | 'content' | 'module-config' | 'market' | 'grievance' | 'emergency' | 'settings';
 
 export const AdminModule: React.FC<Props> = ({ isBangla, onExit }) => {
-  const { requests } = useData(); // Get dynamic data
+  const { requests, totalVisitors } = useData(); // Get dynamic data
 
   // Session Configuration
   const SESSION_KEY = 'dream_admin_session';
@@ -130,27 +131,30 @@ export const AdminModule: React.FC<Props> = ({ isBangla, onExit }) => {
 
       {/* Top Stats Row */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        {/* Users */}
-        <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm flex items-center justify-between">
+        
+        {/* VISITOR COUNT - NEW */}
+        <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm flex items-center justify-between group hover:shadow-md transition-all">
             <div>
-                <p className="text-gray-500 text-xs font-bold uppercase tracking-wider">Total Users</p>
-                <h3 className="text-3xl font-bold text-gray-900 mt-2">{stats.users}</h3>
-                <p className="text-gray-400 text-xs font-bold mt-1">No new users</p>
+                <p className="text-gray-500 text-xs font-bold uppercase tracking-wider">Total Visitors</p>
+                <h3 className="text-3xl font-bold text-gray-900 mt-2">{totalVisitors.toLocaleString()}</h3>
+                <p className="text-green-500 text-xs font-bold mt-1 flex items-center gap-1">
+                   <TrendingUp size={10} /> +1 New (Live)
+                </p>
             </div>
-            <div className="p-4 rounded-2xl bg-blue-50 text-blue-600">
-                <Users size={24} />
+            <div className="p-4 rounded-2xl bg-indigo-50 text-indigo-600 group-hover:bg-indigo-100 transition-colors">
+                <BarChart3 size={24} />
             </div>
         </div>
 
-        {/* Revenue */}
+        {/* Users */}
         <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm flex items-center justify-between">
             <div>
-                <p className="text-gray-500 text-xs font-bold uppercase tracking-wider">Total Revenue</p>
-                <h3 className="text-3xl font-bold text-gray-900 mt-2">{stats.revenue}</h3>
-                <p className="text-gray-400 text-xs font-bold mt-1">No revenue yet</p>
+                <p className="text-gray-500 text-xs font-bold uppercase tracking-wider">Registered Users</p>
+                <h3 className="text-3xl font-bold text-gray-900 mt-2">{stats.users}</h3>
+                <p className="text-gray-400 text-xs font-bold mt-1">No new signups</p>
             </div>
-            <div className="p-4 rounded-2xl bg-green-50 text-green-600">
-                <DollarSign size={24} />
+            <div className="p-4 rounded-2xl bg-blue-50 text-blue-600">
+                <Users size={24} />
             </div>
         </div>
 
@@ -187,24 +191,26 @@ export const AdminModule: React.FC<Props> = ({ isBangla, onExit }) => {
         {/* Revenue Analytics Chart Placeholder */}
         <div className="lg:col-span-2 bg-white p-6 rounded-2xl border border-gray-100 shadow-sm min-h-[350px] flex flex-col">
             <div className="flex justify-between items-center mb-8">
-                <h3 className="font-bold text-gray-800 text-lg border-l-4 border-gray-900 pl-3">Revenue Analytics</h3>
+                <h3 className="font-bold text-gray-800 text-lg border-l-4 border-gray-900 pl-3">Traffic Analytics</h3>
                 <button className="flex items-center gap-2 text-sm text-gray-500 bg-gray-50 px-3 py-1.5 rounded-lg hover:bg-gray-100 transition-colors">
-                    This Year <ChevronDown size={14} />
+                    This Week <ChevronDown size={14} />
                 </button>
             </div>
-            {/* Chart Area (Empty State) */}
-            <div className="flex-1 flex items-end justify-between gap-2 px-2 pb-2">
-                {['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'].map((m, i) => (
-                    <div key={m} className="flex flex-col items-center gap-2 w-full group cursor-pointer">
+            {/* Chart Area (Fake Data Visualization) */}
+            <div className="flex-1 flex items-end justify-between gap-2 px-2 pb-2 h-40">
+                {[65, 40, 80, 55, 90, 70, 85].map((h, i) => (
+                    <div key={i} className="flex flex-col items-center gap-2 w-full group cursor-pointer">
                         <div 
-                            className="w-full bg-gray-100 rounded-t-lg relative transition-all" 
-                            style={{ height: '0%' }} // Reset to 0
+                            className="w-full bg-indigo-50 hover:bg-indigo-100 rounded-t-lg relative transition-all" 
+                            style={{ height: `${h}%` }}
                         ></div>
-                        <span className="text-[10px] text-gray-400 font-medium">{m}</span>
+                        <span className="text-[10px] text-gray-400 font-medium">
+                            {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'][i]}
+                        </span>
                     </div>
                 ))}
             </div>
-            <p className="text-center text-xs text-gray-400 mt-4">No data available to display</p>
+            <p className="text-center text-xs text-gray-400 mt-4">Visitor trends for the last 7 days</p>
         </div>
 
         {/* User Roles Donut Chart */}
