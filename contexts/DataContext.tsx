@@ -3,22 +3,6 @@ import React, { createContext, useState, useContext, useEffect, ReactNode } from
 import { supabase, isSupabaseConfigured } from '../services/supabaseClient';
 import { User, UserRole } from '../types';
 
-// Mock Data (Fallback)
-const MOCK_JOBS = [
-  { id: 1, title: 'Assistant Teacher', company: 'Dhaka Govt High School', type: 'Full Time', location: 'Dhaka', salary: '25k-35k', deadline: '2023-12-31', category: 'Government', description: 'Teaching position for Science subjects.', postedBy: 'Admin', postedDate: '10/24/2023', status: 'Active', views: 120, level: 'Entry' },
-  { id: 2, title: 'Sales Executive', company: 'Pran RFL', type: 'Full Time', location: 'Chittagong', salary: '15k-20k', deadline: '2023-11-20', category: 'Private', description: 'Field sales executive needed.', postedBy: 'Admin', postedDate: '10/25/2023', status: 'Active', views: 85, level: 'Entry' }
-];
-
-const MOCK_BLOGS = [
-  { id: 1, title: 'Modern Rice Farming', category: 'Agriculture', author: 'Dr. Rahim', date: 'Oct 20, 2023', postedDate: '10/20/2023', image: 'https://images.unsplash.com/photo-1586771107445-d3ca888129ff', content: 'Using technology in rice farming increases yield...', readTime: '5 min read', status: 'Active', views: 200, excerpt: 'Using technology in rice farming increases yield...' },
-  { id: 2, title: 'Winter Health Tips', category: 'Health', author: 'Dr. Samia', date: 'Oct 22, 2023', postedDate: '10/22/2023', image: 'https://images.unsplash.com/photo-1576091160399-112ba8d25d1d', content: 'Stay warm and drink plenty of water...', readTime: '3 min read', status: 'Active', views: 150, excerpt: 'Stay warm and drink plenty of water...' }
-];
-
-const MOCK_USERS = [
-  { id: 'u1', name: 'Rahim Uddin', email: 'demo@dreambd.com', password: 'demo', role: 'Citizen', phone: '01700000000', location: 'Dhaka', status: 'Active', date: '10/01/2023', avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&q=80&w=150' },
-  { id: 'u2', name: 'Admin User', email: 'admin@dreambd.com', password: 'admin123', role: 'Admin', phone: '01800000000', location: 'HQ', status: 'Active', date: '01/01/2023', avatar: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?auto=format&fit=crop&q=80&w=150' }
-];
-
 const DataContext = createContext<any>(null);
 
 export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
@@ -37,24 +21,15 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const [donors, setDonors] = useState<any[]>([]);
   const [enrolledCourses, setEnrolledCourses] = useState<any[]>([]);
   const [messages, setMessages] = useState<any[]>([]);
-  const [totalVisitors, setTotalVisitors] = useState<number>(0);
-
-  const getLocal = (key: string, defaultData: any[]) => {
-    try {
-        const saved = localStorage.getItem(key);
-        return saved ? JSON.parse(saved) : defaultData;
-    } catch (e) { return defaultData; }
-  };
-
-  const setLocal = (key: string, data: any[]) => {
-    try { localStorage.setItem(key, JSON.stringify(data)); } catch (e) {}
-  };
+  
+  // New State for Amar BD & Jela
+  const [districtBranding, setDistrictBranding] = useState<any[]>([]);
+  const [districtDetails, setDistrictDetails] = useState<any[]>([]);
 
   const normalizeData = (data: any) => {
     if (!data || typeof data !== 'object') return data;
     const normalized: any = {};
     for (const key in data) {
-      // Supabase columns are lowercase in our provided schema
       normalized[key.toLowerCase()] = data[key] === undefined ? null : data[key];
     }
     return normalized;
@@ -63,295 +38,110 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const mapFromDb = (item: any) => {
     if (!item) return item;
     const newItem = { ...item };
-    
     const fieldMap: Record<string, string> = {
-      'postedby': 'postedBy',
-      'posteddate': 'postedDate',
-      'readtime': 'readTime',
-      'sellertype': 'sellerType',
-      'nameen': 'nameEn',
-      'namebn': 'nameBn',
-      'titlebn': 'titleBn',
-      'lastdonation': 'lastDonation',
-      'enrolleddate': 'enrolledDate',
-      'user_name': 'user'
+      'postedby': 'postedBy', 'posteddate': 'postedDate', 'readtime': 'readTime',
+      'sellertype': 'sellerType', 'nameen': 'nameEn', 'namebn': 'nameBn',
+      'titlebn': 'titleBn', 'productbn': 'productBn', 'producten': 'productEn'
     };
-
     Object.keys(fieldMap).forEach(dbKey => {
       if (dbKey in newItem) {
         newItem[fieldMap[dbKey]] = newItem[dbKey];
         if (dbKey !== fieldMap[dbKey]) delete newItem[dbKey];
       }
     });
-    
     return newItem;
   };
 
-  const fetchTable = async (table: string, setter: any, orderBy = 'created_at', ascending = false) => {
+  const fetchTable = async (table: string, setter: any, orderBy = 'id', ascending = false) => {
     if (!isSupabaseConfigured) return;
     try {
         const { data, error } = await supabase.from(table).select('*').order(orderBy, { ascending });
-        if (!error && data) {
-            setter(data.map(mapFromDb));
-        }
+        if (!error && data) setter(data.map(mapFromDb));
     } catch(e) {}
   };
 
   const fetchData = async () => {
-    setJobs(getLocal('db_jobs', MOCK_JOBS));
-    setBlogs(getLocal('db_blogs', MOCK_BLOGS));
-    setRequests(getLocal('db_requests', []));
-    setBlogRequests(getLocal('db_blog_requests', []));
-    setGrievances(getLocal('db_grievances', []));
-    setUsers(getLocal('db_users', MOCK_USERS));
-    setMessages(getLocal('db_messages', []));
-    
-    if (isSupabaseConfigured) {
-      fetchTable('jobs', setJobs);
-      fetchTable('blogs', setBlogs);
-      fetchTable('requests', setRequests);
-      fetchTable('blog_requests', setBlogRequests);
-      fetchTable('grievances', setGrievances);
-      fetchTable('users', setUsers);
-      fetchTable('contact_messages', setMessages);
-      fetchTable('market_prices', setMarketPrices);
-      fetchTable('retail_products', setRetailProducts);
-      fetchTable('wholesale_ads', setWholesaleAds);
-      fetchTable('lawyers', setLawyers);
-      fetchTable('exchange_rates', setExchangeRates);
-      fetchTable('vocational_courses', setVocationalCourses);
-      fetchTable('donors', setDonors);
-      fetchTable('enrolled_courses', setEnrolledCourses);
-    }
+    if (!isSupabaseConfigured) return;
+    fetchTable('jobs', setJobs);
+    fetchTable('blogs', setBlogs);
+    fetchTable('requests', setRequests);
+    fetchTable('blog_requests', setBlogRequests);
+    fetchTable('grievances', setGrievances);
+    fetchTable('users', setUsers);
+    fetchTable('contact_messages', setMessages);
+    fetchTable('market_prices', setMarketPrices, 'id', true);
+    fetchTable('retail_products', setRetailProducts);
+    fetchTable('wholesale_ads', setWholesaleAds);
+    fetchTable('lawyers', setLawyers);
+    fetchTable('exchange_rates', setExchangeRates);
+    fetchTable('vocational_courses', setVocationalCourses);
+    fetchTable('donors', setDonors);
+    fetchTable('district_branding', setDistrictBranding);
+    fetchTable('district_details', setDistrictDetails, 'district_id', true);
   };
 
   useEffect(() => {
     fetchData();
     if (isSupabaseConfigured) {
-        const channel = supabase.channel('realtime_data')
-        .on('postgres_changes', { event: '*', schema: 'public' }, () => fetchData())
-        .subscribe();
+        const channel = supabase.channel('content_updates').on('postgres_changes', { event: '*', schema: 'public' }, () => fetchData()).subscribe();
         return () => { supabase.removeChannel(channel); };
     }
   }, []);
 
-  const optimisticAdd = async (table: string, newItem: any, setter: any, currentList: any[]) => {
-    const tempItem = { ...newItem, id: Date.now() };
-    const newList = [tempItem, ...currentList];
-    setter(newList);
-    setLocal(`db_${table}`, newList);
-    
-    if (isSupabaseConfigured) {
-        try {
-            const payload = normalizeData(newItem);
-            const { error } = await supabase.from(table).insert([payload]);
-            if (error) {
-                console.error(`Supabase Insert Error into table [${table}]:`, error.message, "Payload:", payload);
-                throw error;
-            }
-            await fetchTable(table, setter);
-        } catch (err) {
-            console.error("Critical: Supabase Request Failed.", err);
-        }
-    }
+  const addGeneric = async (table: string, item: any) => {
+    if (!isSupabaseConfigured) return;
+    const { error } = await supabase.from(table).insert([normalizeData(item)]);
+    if (!error) fetchData();
+    return error;
   };
 
-  const addJob = async (job: any) => {
-    const newJob = { ...job, postedDate: new Date().toLocaleDateString(), status: 'Active', views: 0 };
-    await optimisticAdd('jobs', newJob, setJobs, jobs);
+  const updateGeneric = async (table: string, item: any, idField = 'id') => {
+    if (!isSupabaseConfigured) return;
+    const { error } = await supabase.from(table).update(normalizeData(item)).eq(idField, item[idField]);
+    if (!error) fetchData();
+    return error;
   };
 
-  const addBlog = async (blog: any) => {
-    const newBlog = { ...blog, postedDate: new Date().toLocaleDateString(), status: 'Active', views: 0 };
-    await optimisticAdd('blogs', newBlog, setBlogs, blogs);
-  };
-
-  const addRequest = async (request: any) => {
-    const { contentType, ...dbData } = request;
-    const table = contentType === 'blog' ? 'blog_requests' : 'requests';
-    const setter = contentType === 'blog' ? setBlogRequests : setRequests;
-    const current = contentType === 'blog' ? blogRequests : requests;
-    
-    const newReq = { 
-      ...dbData, 
-      status: 'Pending', 
-      postedDate: dbData.postedDate || new Date().toLocaleDateString() 
-    };
-    
-    await optimisticAdd(table, newReq, setter, current);
-  };
-
-  const handleRequestAction = async (item: any, action: 'approve' | 'reject', type: 'job' | 'blog') => {
-    const table = type === 'blog' ? 'blog_requests' : 'requests';
-    
-    if (type === 'blog') {
-      setBlogRequests(blogRequests.filter(r => r.id !== item.id));
-    } else {
-      setRequests(requests.filter(r => r.id !== item.id));
-    }
-    
-    if (isSupabaseConfigured) await supabase.from(table).delete().eq('id', item.id);
-
-    if (action === 'approve') {
-      const { id, created_at, ...rest } = item;
-      if (type === 'job') await addJob(rest);
-      else await addBlog(rest);
-    }
-  };
-
-  const updateJob = async (item: any) => {
-    setJobs(jobs.map(j => j.id === item.id ? item : j));
-    if (isSupabaseConfigured) await supabase.from('jobs').update(normalizeData(item)).eq('id', item.id);
-  };
-
-  const deleteJob = async (id: number) => {
-    setJobs(jobs.filter(j => j.id !== id));
-    if (isSupabaseConfigured) await supabase.from('jobs').delete().eq('id', id);
-  };
-
-  const updateBlog = async (item: any) => {
-    setBlogs(blogs.map(b => b.id === item.id ? item : b));
-    if (isSupabaseConfigured) await supabase.from('blogs').update(normalizeData(item)).eq('id', item.id);
-  };
-
-  const deleteBlog = async (id: number) => {
-    setBlogs(blogs.filter(b => b.id !== id));
-    if (isSupabaseConfigured) await supabase.from('blogs').delete().eq('id', id);
-  };
-
-  const addGrievance = async (grievance: any) => {
-    const newGrievance = { ...grievance, status: 'Pending', date: new Date().toLocaleDateString() };
-    await optimisticAdd('grievances', newGrievance, setGrievances, grievances);
-  };
-
-  const updateGrievanceStatus = async (id: number, status: string) => {
-    setGrievances(grievances.map(g => g.id === id ? { ...g, status } : g));
-    if (isSupabaseConfigured) await supabase.from('grievances').update({ status }).eq('id', id);
-  };
-
-  const deleteGrievance = async (id: number) => {
-    setGrievances(grievances.filter(g => g.id !== id));
-    if (isSupabaseConfigured) await supabase.from('grievances').delete().eq('id', id);
-  };
-
-  const addUser = async (user: any) => {
-    await optimisticAdd('users', user, setUsers, users);
-  };
-
-  const updateUserStatus = async (id: string, status: string) => {
-    setUsers(users.map(u => u.id === id ? { ...u, status } : u));
-    if (isSupabaseConfigured) await supabase.from('users').update({ status }).eq('id', id);
-  };
-
-  const deleteUser = async (id: string) => {
-    setUsers(users.filter(u => u.id !== id));
-    if (isSupabaseConfigured) await supabase.from('users').delete().eq('id', id);
-  };
-
-  const addMessage = async (msg: any) => {
-    await optimisticAdd('contact_messages', msg, setMessages, messages);
-  };
-
-  const markMessageRead = async (id: number) => {
-    setMessages(messages.map(m => m.id === id ? { ...m, status: 'Read' } : m));
-    if (isSupabaseConfigured) await supabase.from('contact_messages').update({ status: 'Read' }).eq('id', id);
-  };
-
-  const deleteMessage = async (id: number) => {
-    setMessages(messages.filter(m => m.id !== id));
-    if (isSupabaseConfigured) await supabase.from('contact_messages').delete().eq('id', id);
-  };
-
-  const updateMarketPrices = async (newPrices: any[]) => {
-    setMarketPrices(newPrices);
-  };
-
-  const addRetailProduct = async (prod: any) => {
-    await optimisticAdd('retail_products', prod, setRetailProducts, retailProducts);
-  };
-
-  const updateRetailProduct = async (prod: any) => {
-    setRetailProducts(retailProducts.map(p => p.id === prod.id ? prod : p));
-    if (isSupabaseConfigured) await supabase.from('retail_products').update(normalizeData(prod)).eq('id', prod.id);
-  };
-
-  const deleteRetailProduct = async (id: number) => {
-    setRetailProducts(retailProducts.filter(p => p.id !== id));
-    if (isSupabaseConfigured) await supabase.from('retail_products').delete().eq('id', id);
-  };
-
-  const addWholesaleAd = async (ad: any) => {
-    await optimisticAdd('wholesale_ads', ad, setWholesaleAds, wholesaleAds);
-  };
-
-  const updateWholesaleAd = async (ad: any) => {
-    setWholesaleAds(wholesaleAds.map(a => a.id === ad.id ? ad : a));
-    if (isSupabaseConfigured) await supabase.from('wholesale_ads').update(normalizeData(ad)).eq('id', ad.id);
-  };
-
-  const deleteWholesaleAd = async (id: number) => {
-    setWholesaleAds(wholesaleAds.filter(a => a.id !== id));
-    if (isSupabaseConfigured) await supabase.from('wholesale_ads').delete().eq('id', id);
-  };
-
-  const addLawyer = async (lawyer: any) => {
-    await optimisticAdd('lawyers', lawyer, setLawyers, lawyers);
-  };
-
-  const deleteLawyer = async (id: number) => {
-    setLawyers(lawyers.filter(l => l.id !== id));
-    if (isSupabaseConfigured) await supabase.from('lawyers').delete().eq('id', id);
-  };
-
-  const addExchangeRate = async (rate: any) => {
-    await optimisticAdd('exchange_rates', rate, setExchangeRates, exchangeRates);
-  };
-
-  const deleteExchangeRate = async (id: number) => {
-    setExchangeRates(exchangeRates.filter(r => r.id !== id));
-    if (isSupabaseConfigured) await supabase.from('exchange_rates').delete().eq('id', id);
-  };
-
-  const addVocationalCourse = async (course: any) => {
-    await optimisticAdd('vocational_courses', course, setVocationalCourses, vocationalCourses);
-  };
-
-  const deleteVocationalCourse = async (id: number) => {
-    setVocationalCourses(vocationalCourses.filter(c => c.id !== id));
-    if (isSupabaseConfigured) await supabase.from('vocational_courses').delete().eq('id', id);
-  };
-
-  const enrollCourse = async (course: any) => {
-    await optimisticAdd('enrolled_courses', course, setEnrolledCourses, enrolledCourses);
-  };
-
-  const addDonor = async (donor: any) => {
-    await optimisticAdd('donors', donor, setDonors, donors);
-  };
-
-  const resetPassword = async (email: string, newPassword: string) => {
-    const user = users.find(u => u.email.toLowerCase() === email.toLowerCase());
-    if (user) {
-      const updatedUser = { ...user, password: newPassword };
-      setUsers(users.map(u => u.id === user.id ? updatedUser : u));
-      if (isSupabaseConfigured) await supabase.from('users').update({ password: newPassword }).eq('id', user.id);
-    }
+  const deleteGeneric = async (table: string, id: any, idField = 'id') => {
+    if (!isSupabaseConfigured) return;
+    const { error } = await supabase.from(table).delete().eq(idField, id);
+    if (!error) fetchData();
+    return error;
   };
 
   return (
     <DataContext.Provider value={{ 
-      jobs, blogs, requests, blogRequests, grievances, users, messages, donors, marketPrices, retailProducts, wholesaleAds, lawyers, exchangeRates, vocationalCourses, enrolledCourses,
-      addJob, updateJob, deleteJob,
-      addBlog, updateBlog, deleteBlog,
-      addRequest, handleRequestAction,
-      addGrievance, updateGrievanceStatus, deleteGrievance,
-      addUser, updateUserStatus, deleteUser, resetPassword,
-      addMessage, markMessageRead, deleteMessage,
-      updateMarketPrices, addRetailProduct, updateRetailProduct, deleteRetailProduct,
-      addWholesaleAd, updateWholesaleAd, deleteWholesaleAd,
-      addLawyer, deleteLawyer, addExchangeRate, deleteExchangeRate,
-      addVocationalCourse, deleteVocationalCourse, enrollCourse, addDonor,
-      totalVisitors, logVisit: () => {}, refreshData: fetchData
+      jobs, blogs, requests, blogRequests, marketPrices, retailProducts, wholesaleAds, districtBranding, districtDetails, grievances, users, messages, donors,
+      addJob: (item: any) => addGeneric('jobs', item),
+      updateJob: (item: any) => updateGeneric('jobs', item),
+      deleteJob: (id: number) => deleteGeneric('jobs', id),
+      addBlog: (item: any) => addGeneric('blogs', item),
+      updateBlog: (item: any) => updateGeneric('blogs', item),
+      deleteBlog: (id: number) => deleteGeneric('blogs', id),
+      addMarketPrice: (item: any) => addGeneric('market_prices', item),
+      updateMarketPrice: (item: any) => updateGeneric('market_prices', item),
+      deleteMarketPrice: (id: number) => deleteGeneric('market_prices', id),
+      addRetailProduct: (item: any) => addGeneric('retail_products', item),
+      updateRetailProduct: (item: any) => updateGeneric('retail_products', item),
+      deleteRetailProduct: (id: number) => deleteGeneric('retail_products', id),
+      addBranding: (item: any) => addGeneric('district_branding', item),
+      updateBranding: (item: any) => updateGeneric('district_branding', item),
+      deleteBranding: (id: number) => deleteGeneric('district_branding', id),
+      updateDistrictDetails: (item: any) => updateGeneric('district_details', item, 'district_id'),
+      handleRequestAction: async (item: any, action: 'approve' | 'reject', type: 'job' | 'blog') => {
+        const table = type === 'blog' ? 'blog_requests' : 'requests';
+        await deleteGeneric(table, item.id);
+        if (action === 'approve') {
+          const { id, created_at, ...rest } = item;
+          if (type === 'job') addGeneric('jobs', { ...rest, status: 'Active' });
+          else addGeneric('blogs', { ...rest, status: 'Active' });
+        }
+      },
+      addRequest: (item: any) => {
+        const { contentType, ...dbData } = item;
+        return addGeneric(contentType === 'blog' ? 'blog_requests' : 'requests', { ...dbData, status: 'Pending', postedDate: new Date().toLocaleDateString() });
+      },
+      refreshData: fetchData, totalVisitors: 1250, logVisit: () => {}
     }}>
       {children}
     </DataContext.Provider>
