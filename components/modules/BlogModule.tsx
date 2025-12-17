@@ -1,6 +1,6 @@
 
-import React, { useState } from 'react';
-import { Search, Calendar, User, ArrowRight, Tag, PenTool, X, CheckCircle, Image as ImageIcon, ArrowLeft, Share2, Clock, Printer, Facebook, Linkedin, Twitter, ExternalLink } from 'lucide-react';
+import React, { useState, useRef } from 'react';
+import { Search, Calendar, User, ArrowRight, Tag, PenTool, X, CheckCircle, Image as ImageIcon, ArrowLeft, Share2, Clock, Printer, Facebook, Linkedin, Twitter, ExternalLink, Upload, RefreshCw } from 'lucide-react';
 import { Button } from '../ui/Button';
 import { getOptimizedImageUrl } from '../utils/imageUtils';
 import { useData } from '../../contexts/DataContext';
@@ -17,12 +17,14 @@ export const BlogModule: React.FC<Props> = ({ isBangla, user, onLogin }) => {
   const [showPostModal, setShowPostModal] = useState(false);
   const [postSubmitted, setPostSubmitted] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
+  const fileInputRef = useRef<HTMLInputElement>(null);
   
   // New Blog State
   const [newBlogData, setNewBlogData] = useState({
       title: '',
       category: '',
-      content: ''
+      content: '',
+      image: null as string | null
   });
   
   // State for Detail View
@@ -37,24 +39,43 @@ export const BlogModule: React.FC<Props> = ({ isBangla, user, onLogin }) => {
       setPostSubmitted(false);
   };
 
+  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setNewBlogData(prev => ({ ...prev, image: reader.result as string }));
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
   const handlePostSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    
+    // Calculate Read Time (approx 200 words per min)
+    const wordCount = newBlogData.content.split(/\s+/).length;
+    const readTime = Math.ceil(wordCount / 200) + ' min read';
+
+    // Generate Excerpt (first 100 chars)
+    const excerpt = newBlogData.content.substring(0, 100) + '...';
+
     const request = {
         contentType: 'blog',
         title: newBlogData.title,
         category: newBlogData.category,
         content: newBlogData.content,
-        author: user ? user.name : 'User', // Use real user name
+        author: user ? user.name : 'User', 
         date: new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
         postedDate: new Date().toLocaleDateString(),
-        image: 'https://images.unsplash.com/photo-1542435503-956c469947f6', // Placeholder or upload logic
-        readTime: '3 min read',
-        excerpt: newBlogData.content.substring(0, 100) + '...'
+        image: newBlogData.image, 
+        readTime: readTime,
+        excerpt: excerpt
     };
     
     addRequest(request);
     setPostSubmitted(true);
-    setNewBlogData({ title: '', category: '', content: '' });
+    setNewBlogData({ title: '', category: '', content: '', image: null });
   };
 
   const handleReadMore = (post: any) => {
@@ -251,6 +272,7 @@ export const BlogModule: React.FC<Props> = ({ isBangla, user, onLogin }) => {
                 variant="outline"
                 className="flex items-center justify-center gap-2 px-4 py-3 rounded-xl whitespace-nowrap"
              >
+               <RefreshCw size={18} />
                {isBangla ? 'আপডেট' : 'Refresh'}
              </Button>
           </div>
@@ -323,11 +345,11 @@ export const BlogModule: React.FC<Props> = ({ isBangla, user, onLogin }) => {
           )}
         </div>
       </div>
-       {/* Write Blog Modal (unchanged from previous) */}
+       
+      {/* Write Blog Modal */}
       {showPostModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fade-in" onClick={() => setShowPostModal(false)}>
           <div className="bg-white w-full max-w-2xl rounded-2xl shadow-2xl overflow-hidden transform transition-all" onClick={e => e.stopPropagation()}>
-            {/* ... Modal content similar to previous version ... */}
              <div className="p-6 border-b border-gray-100 flex justify-between items-center bg-gradient-to-r from-emerald-50 to-white">
               <div>
                 <h2 className="text-xl font-bold text-gray-900 flex items-center gap-2">
@@ -386,9 +408,15 @@ export const BlogModule: React.FC<Props> = ({ isBangla, user, onLogin }) => {
                     </div>
                     <div>
                        <label className="block text-sm font-semibold text-gray-700 mb-2">{isBangla ? 'ছবি' : 'Image'} *</label>
-                       <div className="relative">
-                         <input type="file" className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500 transition-all text-sm" />
-                         <ImageIcon className="absolute right-4 top-3 text-gray-400" size={20} />
+                       <div 
+                         className="relative w-full border border-gray-200 rounded-xl bg-gray-50 cursor-pointer hover:bg-gray-100 transition-colors h-[46px] flex items-center px-4"
+                         onClick={() => fileInputRef.current?.click()}
+                       >
+                         <span className="text-sm text-gray-500 truncate">
+                           {newBlogData.image ? (isBangla ? 'ছবি নির্বাচিত হয়েছে' : 'Image Selected') : (isBangla ? 'ছবি আপলোড করুন' : 'Upload Image')}
+                         </span>
+                         <input type="file" accept="image/*" className="hidden" ref={fileInputRef} onChange={handleImageUpload} />
+                         <Upload className="absolute right-4 text-gray-400" size={18} />
                        </div>
                     </div>
                   </div>

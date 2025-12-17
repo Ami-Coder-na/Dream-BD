@@ -1,8 +1,9 @@
-import React, { useState } from 'react';
+
+import React, { useState, useRef } from 'react';
 import { 
   Briefcase, FileText, Plus, Search, Eye, Edit3, Trash2, 
   Check, X, ArrowLeft, Save, 
-  MapPin, DollarSign, Calendar, Tag, User, Building2, Image as ImageIcon, Loader2 
+  MapPin, DollarSign, Calendar, Tag, User, Building2, Image as ImageIcon, Loader2, Upload
 } from 'lucide-react';
 import { Button } from '../../ui/Button';
 import { useData } from '../../../contexts/DataContext';
@@ -15,6 +16,7 @@ export const AdminContent = () => {
   const [contentSearch, setContentSearch] = useState('');
   const [selectedItem, setSelectedItem] = useState<any>(null);
   const [isProcessing, setIsProcessing] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Form States
   const [jobForm, setJobForm] = useState<any>({});
@@ -39,6 +41,17 @@ export const AdminContent = () => {
     }
   };
 
+  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setBlogForm((prev: any) => ({ ...prev, image: reader.result as string }));
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
   const handleJobSubmit = async (e: React.FormEvent) => {
       e.preventDefault();
       setIsProcessing(true);
@@ -47,12 +60,11 @@ export const AdminContent = () => {
           alert('Job Updated Successfully!');
       } else {
           // Use category from form or default to Private
-          // IMPORTANT: Include 'level' field (defaulting to 'Entry') to match schema and prevent "Error saving data"
           const jobData = { 
             ...jobForm, 
             category: jobForm.category || 'Private', 
             postedBy: 'Admin',
-            level: 'Entry' // Default level for Admin posts
+            level: 'Entry' 
           };
           await addJob(jobData);
           alert('Job Created Successfully!');
@@ -65,11 +77,24 @@ export const AdminContent = () => {
   const handleBlogSubmit = async (e: React.FormEvent) => {
       e.preventDefault();
       setIsProcessing(true);
+      
+      // Auto-calc metadata if missing
+      const wordCount = (blogForm.content || '').split(/\s+/).length;
+      const readTime = Math.ceil(wordCount / 200) + ' min read';
+      const excerpt = (blogForm.content || '').substring(0, 100) + '...';
+
+      const finalBlogData = {
+          ...blogForm,
+          readTime: blogForm.readTime || readTime,
+          excerpt: blogForm.excerpt || excerpt,
+          author: blogForm.author || 'Admin'
+      };
+
       if (view === 'edit_blog') {
-          await updateBlog(blogForm);
+          await updateBlog(finalBlogData);
           alert('Blog Updated Successfully!');
       } else {
-          await addBlog({ ...blogForm, author: 'Admin' });
+          await addBlog(finalBlogData);
           alert('Blog Published Successfully!');
       }
       setIsProcessing(false);
@@ -213,13 +238,22 @@ export const AdminContent = () => {
                 </div>
                 <div className="space-y-2">
                   <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider">Author</label>
-                  <input type="text" value={blogForm.author || ''} onChange={e => setBlogForm({...blogForm, author: e.target.value})} className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-gray-900 transition-all text-sm font-medium" />
+                  <input type="text" value={blogForm.author || ''} onChange={e => setBlogForm({...blogForm, author: e.target.value})} placeholder="Admin" className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-gray-900 transition-all text-sm font-medium" />
                 </div>
               </div>
               
               <div className="space-y-2">
-                 <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider">Blog Image URL</label>
-                 <input type="text" value={blogForm.image || ''} onChange={e => setBlogForm({...blogForm, image: e.target.value})} placeholder="https://..." className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-gray-900 transition-all text-sm font-medium" />
+                 <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider">Blog Image</label>
+                 <div 
+                   className="relative w-full border border-gray-200 rounded-xl bg-gray-50 cursor-pointer hover:bg-gray-100 transition-colors h-[46px] flex items-center px-4"
+                   onClick={() => fileInputRef.current?.click()}
+                 >
+                   <span className="text-sm text-gray-500 truncate">
+                     {blogForm.image ? 'Image Selected (Click to change)' : 'Upload Blog Image'}
+                   </span>
+                   <input type="file" accept="image/*" className="hidden" ref={fileInputRef} onChange={handleImageUpload} />
+                   <Upload className="absolute right-4 text-gray-400" size={18} />
+                 </div>
               </div>
 
               <div className="space-y-2">
@@ -323,6 +357,11 @@ export const AdminContent = () => {
                         <div className="text-gray-700 leading-relaxed whitespace-pre-wrap">
                             {selectedItem.description || selectedItem.content}
                         </div>
+                        {selectedItem.image && (
+                            <div className="mt-6">
+                                <img src={selectedItem.image} alt="Post" className="max-h-64 rounded-xl border border-gray-200" />
+                            </div>
+                        )}
                     </div>
                 </div>
             </div>
