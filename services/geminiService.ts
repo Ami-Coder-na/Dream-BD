@@ -1,7 +1,7 @@
-import { GoogleGenAI, GenerateContentResponse } from "@google/genai";
+
+import { GoogleGenAI, GenerateContentResponse, Type } from "@google/genai";
 
 // Initialize client securely using process.env.API_KEY directly.
-// Always use const ai = new GoogleGenAI({apiKey: process.env.API_KEY});
 const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
 
 export const generateAssistantResponse = async (
@@ -11,37 +11,18 @@ export const generateAssistantResponse = async (
   attachment?: { mimeType: string; data: string }
 ): Promise<string> => {
   try {
-    // Enhanced System Instruction
-    const systemInstruction = `You are 'Dream Assistant', an advanced and empathetic AI companion for the 'Dream BD' digital platform in Bangladesh. 
-    
-    Mission: To empower citizens, farmers, students, and professionals with accurate, actionable, and culturally relevant information.
-
+    const systemInstruction = `You are 'Dream Assistant', an advanced AI for 'Dream BD'. 
+    Mission: To empower citizens of Bangladesh with accurate information.
     Current User Context: ${context}.
+    Language: Support both Bangla and English based on user preference.`;
 
-    Core Guidelines:
-    1. **Language & Tone**: Adapt strictly to the user's language (Bangla or English). Be polite, professional, yet warm.
-    2. **Expertise**: 
-       - If asked about Agriculture: Act as an expert agronomist (crops, weather, seasons in BD).
-       - If asked about Health: Provide general wellness info (no prescriptions), suggest seeing a doctor.
-       - If asked about Education/Crafts/Transport: Provide localized, specific data.
-    3. **Formatting**: Use bullet points, bold text for key terms, and short paragraphs for readability.
-    4. **Safety**: Do not generate harmful, political, or sensitive content.
-    5. **Multimodal**: If an image/audio is provided, analyze it deeply before answering.
-    
-    Structure your response to be direct and helpful. Avoid generic fluff.`;
-
-    // Use gemini-3-flash-preview for basic text tasks/chat. 
     const modelName = 'gemini-3-flash-preview';
     
-    // Construct the chat history for context
     const chat = ai.chats.create({
       model: modelName,
       config: {
         systemInstruction: systemInstruction,
-        temperature: 0.7, // Balanced creativity and accuracy
-        topK: 40,
-        topP: 0.95,
-        thinkingConfig: { thinkingBudget: 0 } // Optimization for latency: Disable thinking
+        temperature: 0.7,
       },
       history: history
     });
@@ -56,19 +37,94 @@ export const generateAssistantResponse = async (
       });
     }
 
-    // chat.sendMessage accepts a message parameter
     const response: GenerateContentResponse = await chat.sendMessage({
       message: parts.length === 1 ? prompt : { parts: parts }
     });
 
-    // Access the text property directly, not as a function
-    return response.text || "Sorry, I could not generate a response at this time.";
-
+    // Accessing text directly from GenerateContentResponse as per guidelines
+    return response.text || "Sorry, I could not generate a response.";
   } catch (error: any) {
     console.error("Gemini API Error:", error);
-    if (error?.message?.includes("Requested entity was not found")) {
-      return "The AI model is currently unavailable or misconfigured. Please try again later.";
+    return "I' am having trouble connecting. Please check your connection.";
+  }
+};
+
+/**
+ * Specialized function for Agricultural Image Analysis
+ * Updated to use responseSchema and Type for more reliable JSON output.
+ */
+export const analyzePlantDisease = async (
+  base64Data: string,
+  mimeType: string,
+  isBangla: boolean
+): Promise<{ disease: string; severity: string; solution: string; isPlant: boolean }> => {
+  try {
+    const modelName = 'gemini-3-flash-preview';
+    
+    const systemInstruction = `You are an expert Plant Pathologist for Bangladesh Agriculture.
+    STRICT RULES:
+    1. Check the image. If it is NOT a plant, leaf, crop, or agricultural related item, respond ONLY with "NOT_AGRICULTURAL".
+    2. If the image is inappropriate, harmful, or 18+, respond ONLY with "NOT_AGRICULTURAL".
+    3. If it IS a plant/crop:
+       - Identify the disease or state if it is healthy.
+       - Provide the result in the following JSON format:
+         {
+           "disease": "Name of disease",
+           "severity": "High/Medium/Low",
+           "solution": "Clear steps to fix it",
+           "isPlant": true
+         }
+    4. Language: If 'isBangla' is true, provide text in Bangla. Otherwise, English.`;
+
+    const prompt = isBangla 
+      ? "এই ছবিটি বিশ্লেষণ করুন এবং রোগ শনাক্ত করুন। যদি এটি গাছ বা ফসলের ছবি না হয় তবে 'NOT_AGRICULTURAL' বলুন।" 
+      : "Analyze this image. Identify the plant disease. If it's not a plant/crop, say 'NOT_AGRICULTURAL'.";
+
+    const response = await ai.models.generateContent({
+      model: modelName,
+      contents: {
+        parts: [
+          { text: prompt },
+          { inlineData: { data: base64Data, mimeType: mimeType } }
+        ]
+      },
+      config: {
+        systemInstruction: systemInstruction,
+        responseMimeType: "application/json",
+        // Recommended: Using responseSchema for reliable structured data generation
+        responseSchema: {
+          type: Type.OBJECT,
+          properties: {
+            disease: { type: Type.STRING, description: "Name of the plant disease or 'Healthy'" },
+            severity: { type: Type.STRING, description: "Risk level: High, Medium, or Low" },
+            solution: { type: Type.STRING, description: "Recommended treatment steps" },
+            isPlant: { type: Type.BOOLEAN, description: "Whether the image contains a plant" }
+          },
+          required: ["disease", "severity", "solution", "isPlant"]
+        }
+      }
+    });
+
+    // Accessing text directly from GenerateContentResponse
+    const text = response.text?.trim() || "";
+    
+    if (text.includes("NOT_AGRICULTURAL")) {
+      return { disease: "", severity: "", solution: "", isPlant: false };
     }
-    return "I am having trouble connecting to the network. Please check your connection and try again.";
+
+    try {
+      return JSON.parse(text);
+    } catch (e) {
+      // Fallback if AI doesn't return clean JSON
+      return { 
+        disease: isBangla ? "অজ্ঞাত সমস্যা" : "Unknown Condition", 
+        severity: "Unknown", 
+        solution: text, 
+        isPlant: true 
+      };
+    }
+  } catch (error) {
+    console.error("Image Analysis Error:", error);
+    throw error;
   }
 };
