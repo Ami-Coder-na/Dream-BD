@@ -63,7 +63,7 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     if (!item) return item;
     const newItem = { ...item };
     
-    // Explicit comprehensive mapping for all potential lowercase DB keys
+    // Comprehensive mapping for all potential lowercase DB keys to camelCase
     const fieldMap: Record<string, string> = {
       'contenttype': 'contentType',
       'postedby': 'postedBy',
@@ -74,13 +74,15 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       'namebn': 'nameBn',
       'titlebn': 'titleBn',
       'lastdonation': 'lastDonation',
-      'enrolleddate': 'enrolledDate'
+      'enrolleddate': 'enrolledDate',
+      'user_name': 'user'
     };
 
     Object.keys(fieldMap).forEach(dbKey => {
       if (dbKey in newItem) {
         newItem[fieldMap[dbKey]] = newItem[dbKey];
-        delete newItem[dbKey];
+        // Only delete if it's actually a different casing to avoid deleting camelCase
+        if (dbKey !== fieldMap[dbKey]) delete newItem[dbKey];
       }
     });
     
@@ -193,7 +195,6 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     if (isSupabaseConfigured) await supabase.from('blogs').delete().eq('id', id);
   };
 
-  // Fixed: Implemented missing addGrievance function
   const addGrievance = async (grievance: any) => {
     const newGrievance = { ...grievance, status: 'Pending', date: new Date().toLocaleDateString() };
     await optimisticAdd('grievances', newGrievance, setGrievances, grievances);
@@ -237,10 +238,8 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     if (isSupabaseConfigured) await supabase.from('contact_messages').delete().eq('id', id);
   };
 
-  // Fixed: Added missing state update and helper functions for modules
   const updateMarketPrices = async (newPrices: any[]) => {
     setMarketPrices(newPrices);
-    // Real persistence would handle individual updates or a bulk upsert
   };
 
   const addRetailProduct = async (prod: any) => {

@@ -102,7 +102,9 @@ export const AdminContent = () => {
 
   const handleActionClick = async (item: any, action: 'approve' | 'reject') => {
       setIsProcessing(true);
-      await handleRequestAction(item, action);
+      // Ensure we pass the correct content type for approval
+      const type = item.contentType?.toLowerCase() || (item.company ? 'job' : 'blog');
+      await handleRequestAction({ ...item, contentType: type }, action);
       setIsProcessing(false);
       setView('list');
   };
@@ -123,6 +125,15 @@ export const AdminContent = () => {
       setSelectedItem({ ...item, contentType: type });
       setView('details');
   };
+
+  // Resilient filters for the moderation queue
+  const pendingJobs = requests.filter((r: any) => 
+    r.contentType?.toLowerCase() === 'job' || (!!r.company && !r.author)
+  );
+
+  const pendingBlogs = requests.filter((r: any) => 
+    r.contentType?.toLowerCase() === 'blog' || (!!r.author && !r.company)
+  );
 
   if (view === 'create_job' || view === 'edit_job') {
     return (
@@ -313,9 +324,9 @@ export const AdminContent = () => {
         <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
            <div className="flex flex-col md:flex-row justify-between items-center gap-6 mb-6">
               <div className="flex bg-gray-50 p-1.5 rounded-xl border border-gray-200 w-full md:w-fit">
-                  <button onClick={() => setActiveTab('jobs')} className={`flex-1 md:flex-none px-6 py-2 rounded-lg text-sm font-bold transition-all ${activeTab === 'jobs' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-600 hover:bg-gray-200'}`}>Jobs</button>
-                  <button onClick={() => setActiveTab('blogs')} className={`flex-1 md:flex-none px-6 py-2 rounded-lg text-sm font-bold transition-all ${activeTab === 'blogs' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-600 hover:bg-gray-200'}`}>Blogs</button>
-                  <button onClick={() => setActiveTab('requests')} className={`flex-1 md:flex-none px-6 py-2 rounded-lg text-sm font-bold transition-all flex items-center justify-center gap-2 ${activeTab === 'requests' ? 'bg-white text-orange-700 shadow-sm' : 'text-gray-600 hover:bg-gray-200'}`}>Requests {requests.length > 0 && <span className="bg-orange-500 text-white text-[10px] px-2 py-0.5 rounded-full shadow-sm">{requests.length}</span>}</button>
+                  <button onClick={() => setActiveTab('jobs')} className={`flex-1 md:flex-none px-6 py-2 rounded-lg text-sm font-bold transition-all ${activeTab === 'jobs' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-600 hover:bg-gray-200'}`}>Approved Jobs</button>
+                  <button onClick={() => setActiveTab('blogs')} className={`flex-1 md:flex-none px-6 py-2 rounded-lg text-sm font-bold transition-all ${activeTab === 'blogs' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-600 hover:bg-gray-200'}`}>Approved Blogs</button>
+                  <button onClick={() => setActiveTab('requests')} className={`flex-1 md:flex-none px-6 py-2 rounded-lg text-sm font-bold transition-all flex items-center justify-center gap-2 ${activeTab === 'requests' ? 'bg-white text-orange-700 shadow-sm' : 'text-gray-600 hover:bg-gray-200'}`}>Moderation Queue {requests.length > 0 && <span className="bg-orange-500 text-white text-[10px] px-2 py-0.5 rounded-full shadow-sm">{requests.length}</span>}</button>
               </div>
               {activeTab !== 'requests' && (
                 <div className="flex flex-col sm:flex-row gap-3 w-full md:w-auto">
@@ -327,28 +338,31 @@ export const AdminContent = () => {
 
            {activeTab === 'requests' ? (
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                 {/* PENDING JOBS */}
                  <div className="bg-white border border-gray-100 rounded-2xl p-6 shadow-sm h-full">
-                    <h4 className="font-bold text-lg text-gray-800 mb-6 flex items-center gap-2"><Briefcase size={20} className="text-purple-600"/> Pending Jobs ({requests.filter((r:any) => r.contentType?.toLowerCase() === 'job').length})</h4>
+                    <h4 className="font-bold text-lg text-gray-800 mb-6 flex items-center gap-2"><Briefcase size={20} className="text-purple-600"/> Pending Jobs ({pendingJobs.length})</h4>
                     <div className="space-y-4">
-                       {requests.filter((r:any) => r.contentType?.toLowerCase() === 'job').map((req:any) => (
+                       {pendingJobs.map((req:any) => (
                           <div key={req.id} className="p-4 bg-white border border-gray-100 rounded-xl hover:shadow-md transition-all">
-                             <div className="flex justify-between items-start mb-2"><div><h5 className="font-bold text-gray-900 text-base">{req.title}</h5><p className="text-xs text-gray-500 mt-1">{req.company} • {req.location}</p></div><span className="text-xs text-gray-400">{req.postedDate}</span></div>
-                             <div className="flex justify-between items-center mt-4"><span className="text-xs font-medium text-gray-500 bg-gray-100 px-2 py-1 rounded">By: {req.postedBy}</span><div className="flex gap-3"><button onClick={() => handleViewDetails(req, 'job')} className="text-gray-400 hover:text-blue-600 transition-colors"><Eye size={18}/></button><button onClick={() => handleActionClick(req, 'approve')} className="text-green-500 hover:text-green-600 transition-colors"><Check size={18}/></button><button onClick={() => handleActionClick(req, 'reject')} className="text-red-500 hover:text-red-600 transition-colors"><X size={18}/></button></div></div>
+                             <div className="flex justify-between items-start mb-2"><div><h5 className="font-bold text-gray-900 text-base">{req.title}</h5><p className="text-xs text-gray-500 mt-1">{req.company || 'Private Co'} • {req.location || 'Bangladesh'}</p></div><span className="text-xs text-gray-400">{req.postedDate}</span></div>
+                             <div className="flex justify-between items-center mt-4"><span className="text-xs font-medium text-gray-500 bg-gray-100 px-2 py-1 rounded">By: {req.postedBy || 'User'}</span><div className="flex gap-3"><button onClick={() => handleViewDetails(req, 'job')} className="text-gray-400 hover:text-blue-600 transition-colors"><Eye size={18}/></button><button onClick={() => handleActionClick(req, 'approve')} className="text-green-500 hover:text-green-600 transition-colors"><Check size={18}/></button><button onClick={() => handleActionClick(req, 'reject')} className="text-red-500 hover:text-red-600 transition-colors"><X size={18}/></button></div></div>
                           </div>
                        ))}
-                       {requests.filter((r:any) => r.contentType?.toLowerCase() === 'job').length === 0 && <p className="text-center text-gray-400 py-4">No pending jobs.</p>}
+                       {pendingJobs.length === 0 && <p className="text-center text-gray-400 py-4 italic">No pending jobs.</p>}
                     </div>
                  </div>
+                 
+                 {/* PENDING BLOGS */}
                  <div className="bg-white border border-gray-100 rounded-2xl p-6 shadow-sm h-full">
-                    <h4 className="font-bold text-lg text-gray-800 mb-6 flex items-center gap-2"><FileText size={20} className="text-blue-600"/> Pending Blogs ({requests.filter((r:any) => r.contentType?.toLowerCase() === 'blog').length})</h4>
+                    <h4 className="font-bold text-lg text-gray-800 mb-6 flex items-center gap-2"><FileText size={20} className="text-blue-600"/> Pending Blogs ({pendingBlogs.length})</h4>
                     <div className="space-y-4">
-                       {requests.filter((r:any) => r.contentType?.toLowerCase() === 'blog').map((req:any) => (
+                       {pendingBlogs.map((req:any) => (
                           <div key={req.id} className="p-4 bg-white border border-gray-100 rounded-xl hover:shadow-md transition-all">
-                             <div className="flex justify-between items-start mb-2"><div><h5 className="font-bold text-gray-900 text-base">{req.title}</h5><p className="text-xs text-gray-500 mt-1">Category: {req.category}</p></div><span className="text-xs text-gray-400">{req.postedDate}</span></div>
-                             <div className="flex justify-between items-center mt-4"><span className="text-xs font-medium text-gray-500 bg-gray-100 px-2 py-1 rounded">Author: {req.author}</span><div className="flex gap-3"><button onClick={() => handleViewDetails(req, 'blog')} className="text-gray-400 hover:text-blue-600 transition-colors"><Eye size={18}/></button><button onClick={() => handleActionClick(req, 'approve')} className="text-green-500 hover:text-green-600 transition-colors"><Check size={18}/></button><button onClick={() => handleActionClick(req, 'reject')} className="text-red-500 hover:text-red-600 transition-colors"><X size={18}/></button></div></div>
+                             <div className="flex justify-between items-start mb-2"><div><h5 className="font-bold text-gray-900 text-base">{req.title}</h5><p className="text-xs text-gray-500 mt-1">Category: {req.category || 'General'}</p></div><span className="text-xs text-gray-400">{req.postedDate}</span></div>
+                             <div className="flex justify-between items-center mt-4"><span className="text-xs font-medium text-gray-500 bg-gray-100 px-2 py-1 rounded">Author: {req.author || 'User'}</span><div className="flex gap-3"><button onClick={() => handleViewDetails(req, 'blog')} className="text-gray-400 hover:text-blue-600 transition-colors"><Eye size={18}/></button><button onClick={() => handleActionClick(req, 'approve')} className="text-green-500 hover:text-green-600 transition-colors"><Check size={18}/></button><button onClick={() => handleActionClick(req, 'reject')} className="text-red-500 hover:text-red-600 transition-colors"><X size={18}/></button></div></div>
                           </div>
                        ))}
-                       {requests.filter((r:any) => r.contentType?.toLowerCase() === 'blog').length === 0 && <p className="text-center text-gray-400 py-4">No pending blogs.</p>}
+                       {pendingBlogs.length === 0 && <p className="text-center text-gray-400 py-4 italic">No pending blogs.</p>}
                     </div>
                  </div>
               </div>

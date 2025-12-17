@@ -1,7 +1,7 @@
-
 import { GoogleGenAI, GenerateContentResponse, Type } from "@google/genai";
 
-// Initialize client securely using process.env.API_KEY directly.
+// Initialize client securely using obtained key exclusively from process.env.API_KEY as per guidelines.
+// Assume process.env.API_KEY is pre-configured and valid.
 const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
 
 export const generateAssistantResponse = async (
@@ -18,6 +18,7 @@ export const generateAssistantResponse = async (
 
     const modelName = 'gemini-3-flash-preview';
     
+    // Create chat with system instruction in config as per guidelines
     const chat = ai.chats.create({
       model: modelName,
       config: {
@@ -27,31 +28,32 @@ export const generateAssistantResponse = async (
       history: history
     });
 
-    const parts: any[] = [{ text: prompt }];
+    // Prepare message which can be a string or Content object with parts
+    let message: any = prompt;
     if (attachment) {
-      parts.push({
-        inlineData: {
-          mimeType: attachment.mimeType,
-          data: attachment.data
-        }
-      });
+      message = {
+        parts: [
+          { text: prompt },
+          { inlineData: { mimeType: attachment.mimeType, data: attachment.data } }
+        ]
+      };
     }
 
+    // Call sendMessage with the message parameter
     const response: GenerateContentResponse = await chat.sendMessage({
-      message: parts.length === 1 ? prompt : { parts: parts }
+      message: message
     });
 
-    // Accessing text directly from GenerateContentResponse as per guidelines
+    // Access .text property directly (not a method) as per guidelines
     return response.text || "Sorry, I could not generate a response.";
   } catch (error: any) {
     console.error("Gemini API Error:", error);
-    return "I' am having trouble connecting. Please check your connection.";
+    return "I am having trouble connecting. Please check your connection.";
   }
 };
 
 /**
  * Specialized function for Agricultural Image Analysis
- * Updated to use responseSchema and Type for more reliable JSON output.
  */
 export const analyzePlantDisease = async (
   base64Data: string,
@@ -80,6 +82,7 @@ export const analyzePlantDisease = async (
       ? "এই ছবিটি বিশ্লেষণ করুন এবং রোগ শনাক্ত করুন। যদি এটি গাছ বা ফসলের ছবি না হয় তবে 'NOT_AGRICULTURAL' বলুন।" 
       : "Analyze this image. Identify the plant disease. If it's not a plant/crop, say 'NOT_AGRICULTURAL'.";
 
+    // Use models.generateContent with responseSchema for structured JSON output
     const response = await ai.models.generateContent({
       model: modelName,
       contents: {
@@ -91,7 +94,6 @@ export const analyzePlantDisease = async (
       config: {
         systemInstruction: systemInstruction,
         responseMimeType: "application/json",
-        // Recommended: Using responseSchema for reliable structured data generation
         responseSchema: {
           type: Type.OBJECT,
           properties: {
@@ -105,7 +107,7 @@ export const analyzePlantDisease = async (
       }
     });
 
-    // Accessing text directly from GenerateContentResponse
+    // Access .text property directly
     const text = response.text?.trim() || "";
     
     if (text.includes("NOT_AGRICULTURAL")) {
@@ -115,7 +117,6 @@ export const analyzePlantDisease = async (
     try {
       return JSON.parse(text);
     } catch (e) {
-      // Fallback if AI doesn't return clean JSON
       return { 
         disease: isBangla ? "অজ্ঞাত সমস্যা" : "Unknown Condition", 
         severity: "Unknown", 

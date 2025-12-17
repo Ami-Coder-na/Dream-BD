@@ -1,5 +1,4 @@
-
-import React, { ErrorInfo, ReactNode } from 'react';
+import React, { Component, ErrorInfo, ReactNode } from 'react';
 import { AlertTriangle, RefreshCw, Home } from 'lucide-react';
 import { Button } from './ui/Button';
 
@@ -14,22 +13,25 @@ interface ErrorBoundaryState {
 
 /**
  * ErrorBoundary component to catch rendering errors in the application.
- * Fixed: Explicitly using React.Component with generic types to ensure 'this.props' is correctly recognized by TypeScript.
  */
-export class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoundaryState> {
+export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
+  // Explicitly initialize state as a class property
+  public state: ErrorBoundaryState = {
+    hasError: false,
+    error: null
+  };
+
   constructor(props: ErrorBoundaryProps) {
     super(props);
-    this.state = {
-      hasError: false,
-      error: null
-    };
   }
 
   static getDerivedStateFromError(error: Error): ErrorBoundaryState {
+    // Update state so the next render will show the fallback UI.
     return { hasError: true, error };
   }
 
-  override componentDidCatch(error: Error, errorInfo: ErrorInfo) {
+  // Log error information for debugging
+  componentDidCatch(error: Error, errorInfo: ErrorInfo) {
     console.error('Uncaught error:', error, errorInfo);
   }
 
@@ -41,7 +43,8 @@ export class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoun
     window.location.href = '/';
   };
 
-  override render(): ReactNode {
+  render(): ReactNode {
+    // Check if an error has occurred and show fallback UI
     if (this.state.hasError) {
       return (
         <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4">
@@ -77,7 +80,7 @@ export class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoun
       );
     }
 
-    // Fixed: Standard access to children via this.props now recognized by TypeScript
+    // Standard return of children when no error exists
     return this.props.children;
   }
 }
