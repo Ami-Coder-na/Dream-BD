@@ -1,39 +1,28 @@
-
 import { createClient } from '@supabase/supabase-js';
 
-// Robustly check for environment variables in different formats (Vite vs standard Process)
-const getEnv = (key: string) => {
-  // @ts-ignore
-  if (typeof import.meta !== 'undefined' && import.meta.env && import.meta.env[key]) {
-    // @ts-ignore
-    return import.meta.env[key];
-  }
-  // @ts-ignore
-  if (typeof process !== 'undefined' && process.env && process.env[key]) {
-    // @ts-ignore
-    return process.env[key];
-  }
-  return '';
-};
+// In Vite + Vercel, we configured vite.config.ts to expose these specific keys on process.env
+// We check process.env first (injected by build), then import.meta.env (native Vite)
+// We cast import.meta to any to avoid TypeScript errors when types aren't fully configured
+const SUPABASE_URL = process.env.VITE_SUPABASE_URL || ((import.meta as any).env && (import.meta as any).env.VITE_SUPABASE_URL) || '';
+const SUPABASE_ANON_KEY = process.env.VITE_SUPABASE_ANON_KEY || ((import.meta as any).env && (import.meta as any).env.VITE_SUPABASE_ANON_KEY) || '';
 
-const SUPABASE_URL = getEnv('VITE_SUPABASE_URL') || getEnv('NEXT_PUBLIC_SUPABASE_URL');
-const SUPABASE_ANON_KEY = getEnv('VITE_SUPABASE_ANON_KEY') || getEnv('NEXT_PUBLIC_SUPABASE_ANON_KEY');
+// Debugging: Check console to see if keys are loaded (Masked for security)
+console.log("Supabase Connection Check:");
+console.log("- URL Provided:", SUPABASE_URL ? "Yes (" + SUPABASE_URL.substring(0, 15) + "...)" : "No");
+console.log("- Key Provided:", SUPABASE_ANON_KEY ? "Yes (Length: " + SUPABASE_ANON_KEY.length + ")" : "No");
 
-// Check if configured (not using placeholder values)
 const isConfigured = 
   SUPABASE_URL && 
   SUPABASE_URL.length > 10 &&
-  SUPABASE_URL !== 'https://placeholder.supabase.co' && 
+  !SUPABASE_URL.includes('placeholder') &&
   SUPABASE_ANON_KEY && 
   SUPABASE_ANON_KEY.length > 10 &&
-  SUPABASE_ANON_KEY !== 'placeholder-key';
+  !SUPABASE_ANON_KEY.includes('placeholder');
 
 export const isSupabaseConfigured = isConfigured;
 
 if (!isConfigured) {
-  console.warn("⚠️ Supabase credentials missing! App running in Offline/Local Mode.");
-} else {
-  console.log("✅ Supabase Connected:", SUPABASE_URL);
+  console.warn("⚠️ Supabase Config Missing. App running in Offline Mode.");
 }
 
 export const supabase = createClient(
@@ -42,6 +31,7 @@ export const supabase = createClient(
   auth: {
     persistSession: true,
     autoRefreshToken: true,
+    detectSessionInUrl: true
   },
   realtime: {
     params: {

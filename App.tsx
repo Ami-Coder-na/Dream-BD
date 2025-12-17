@@ -62,8 +62,32 @@ const LoadingFallback = () => (
   </div>
 );
 
+// Session Constants
+const SESSION_KEY = 'dream_bd_user_session';
+const SESSION_DURATION = 12 * 60 * 60 * 1000; // 12 Hours
+
 const App: React.FC = () => {
-  const [user, setUser] = useState<User | null>(null); 
+  // Initialize user from LocalStorage with Expiry Check
+  const [user, setUser] = useState<User | null>(() => {
+    const savedSession = localStorage.getItem(SESSION_KEY);
+    if (savedSession) {
+      try {
+        const { user, timestamp } = JSON.parse(savedSession);
+        // Check if session is expired (12 hours)
+        if (Date.now() - timestamp < SESSION_DURATION) {
+          return user;
+        } else {
+          localStorage.removeItem(SESSION_KEY); // Expired
+          return null;
+        }
+      } catch (e) {
+        localStorage.removeItem(SESSION_KEY); // Corrupt data
+        return null;
+      }
+    }
+    return null;
+  });
+
   const [activeModule, setActiveModule] = useState<AppModule | 'LANDING'>('LANDING');
   const [isBangla, setIsBangla] = useState(true);
   const [showAiChat, setShowAiChat] = useState(false);
@@ -140,6 +164,12 @@ const App: React.FC = () => {
 
   // Login handler
   const handleLoginSuccess = (loggedInUser: User) => {
+    // Save session to LocalStorage
+    localStorage.setItem(SESSION_KEY, JSON.stringify({
+      user: loggedInUser,
+      timestamp: Date.now()
+    }));
+    
     setUser(loggedInUser);
     setAuthView('none');
     setShowAiChat(false);
@@ -147,12 +177,18 @@ const App: React.FC = () => {
   };
   
   const handleLogout = () => {
+    localStorage.removeItem(SESSION_KEY);
     setUser(null);
     setAuthView('none');
     setActiveModule('LANDING');
   };
 
   const handleUpdateUser = (updatedUser: User) => {
+    // Update LocalStorage to keep profile in sync
+    localStorage.setItem(SESSION_KEY, JSON.stringify({
+      user: updatedUser,
+      timestamp: Date.now() // Reset timer on active update
+    }));
     setUser(updatedUser);
   };
 
