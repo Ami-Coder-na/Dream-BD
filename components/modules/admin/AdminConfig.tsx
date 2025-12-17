@@ -29,7 +29,7 @@ export const AdminConfig: React.FC<Props> = ({ isBangla }) => {
   const { 
     marketPrices, updateMarketPrices,
     lawyers, addLawyer, deleteLawyer, 
-    exchangeRates, updateExchangeRates,
+    exchangeRates, addExchangeRate, deleteExchangeRate, // Updated hooks
     vocationalCourses, addVocationalCourse, deleteVocationalCourse
   } = useData();
 
@@ -69,7 +69,8 @@ export const AdminConfig: React.FC<Props> = ({ isBangla }) => {
             const rate = bnToEn(configForm.rate);
             if (isNaN(rate) || rate === 0) throw new Error("Rate must be a valid number");
             
-            updateExchangeRates([...exchangeRates, { ...configForm, rate: rate, trend: 'stable' }]);
+            // Use dedicated add method
+            addExchangeRate({ ...configForm, rate: rate, trend: 'stable' });
             alert("Exchange Rate Added Successfully!");
 
         } else if (activeConfigTab === 'vocational') {
@@ -95,11 +96,7 @@ export const AdminConfig: React.FC<Props> = ({ isBangla }) => {
       if (activeConfigTab === 'agri') updateMarketPrices(marketPrices.filter((p: any) => p.id !== id));
       else if (activeConfigTab === 'legal') deleteLawyer(id);
       else if (activeConfigTab === 'vocational') deleteVocationalCourse(id);
-      else if (activeConfigTab === 'expat') {
-          // Fallback logic for items potentially missing IDs in initial state
-          // For safety, we just check if ID exists
-          alert("To prevent errors in this demo, deletion of default exchange rates is restricted.");
-      }
+      else if (activeConfigTab === 'expat') deleteExchangeRate(id); // Use dedicated delete
   };
 
   const renderTable = () => {
