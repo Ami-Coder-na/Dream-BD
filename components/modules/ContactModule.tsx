@@ -1,19 +1,39 @@
+
 import React, { useState } from 'react';
-import { Mail, Phone, MapPin, Send } from 'lucide-react';
+import { Mail, Phone, MapPin, Send, Loader2 } from 'lucide-react';
 import { Button } from '../ui/Button';
 import { useSiteConfig } from '../../contexts/SiteConfigContext';
+import { useData } from '../../contexts/DataContext';
 
 interface Props {
   isBangla: boolean;
 }
 
 export const ContactModule: React.FC<Props> = ({ isBangla }) => {
-  const [submitted, setSubmitted] = useState(false);
+  const { addMessage } = useData();
   const { settings } = useSiteConfig();
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitted, setSubmitted] = useState(false);
+  const [formData, setFormData] = useState({
+    name: '',
+    email: '',
+    phone: '',
+    message: ''
+  });
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setSubmitted(true);
+    setIsSubmitting(true);
+    
+    try {
+      await addMessage(formData);
+      setSubmitted(true);
+      setFormData({ name: '', email: '', phone: '', message: '' });
+    } catch (err) {
+      alert(isBangla ? 'দুঃখিত, বার্তা পাঠানো সম্ভব হয়নি।' : 'Sorry, failed to send message.');
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   if (submitted) {
@@ -66,6 +86,8 @@ export const ContactModule: React.FC<Props> = ({ isBangla }) => {
                    <input 
                      type="text" 
                      required
+                     value={formData.name}
+                     onChange={e => setFormData({...formData, name: e.target.value})}
                      className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-brand-500 focus:border-transparent outline-none bg-gray-50 focus:bg-white transition-all"
                    />
                  </div>
@@ -75,6 +97,8 @@ export const ContactModule: React.FC<Props> = ({ isBangla }) => {
                    </label>
                    <input 
                      type="text" 
+                     value={formData.phone}
+                     onChange={e => setFormData({...formData, phone: e.target.value})}
                      className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-brand-500 focus:border-transparent outline-none bg-gray-50 focus:bg-white transition-all"
                    />
                  </div>
@@ -86,6 +110,8 @@ export const ContactModule: React.FC<Props> = ({ isBangla }) => {
                  <input 
                    type="email" 
                    required
+                   value={formData.email}
+                   onChange={e => setFormData({...formData, email: e.target.value})}
                    className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-brand-500 focus:border-transparent outline-none bg-gray-50 focus:bg-white transition-all"
                  />
                </div>
@@ -96,11 +122,13 @@ export const ContactModule: React.FC<Props> = ({ isBangla }) => {
                  <textarea 
                    rows={5}
                    required
+                   value={formData.message}
+                   onChange={e => setFormData({...formData, message: e.target.value})}
                    className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-brand-500 focus:border-transparent outline-none resize-none bg-gray-50 focus:bg-white transition-all"
                  ></textarea>
                </div>
-               <Button type="submit" size="lg" className="w-full">
-                 {isBangla ? 'বার্তা পাঠান' : 'Send Message'}
+               <Button type="submit" size="lg" disabled={isSubmitting} className="w-full">
+                 {isSubmitting ? <Loader2 className="animate-spin" /> : (isBangla ? 'বার্তা পাঠান' : 'Send Message')}
                </Button>
              </form>
            </div>

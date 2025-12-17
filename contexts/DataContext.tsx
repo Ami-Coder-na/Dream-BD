@@ -64,6 +64,7 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const [vocationalCourses, setVocationalCourses] = useState<any[]>([]);
   const [donors, setDonors] = useState<any[]>([]);
   const [enrolledCourses, setEnrolledCourses] = useState<any[]>([]);
+  const [messages, setMessages] = useState<any[]>([]);
   
   // Visitor Analytics State
   const [totalVisitors, setTotalVisitors] = useState<number>(0);
@@ -183,6 +184,7 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     setVocationalCourses(getLocal('db_courses', MOCK_VOCATIONAL_COURSES));
     setDonors(getLocal('db_donors', []));
     setEnrolledCourses(getLocal('db_enrolled', []));
+    setMessages(getLocal('db_messages', []));
     
     // Fetch Visitor Count
     fetchVisitorCount();
@@ -203,6 +205,7 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         fetchTable('vocational_courses', setVocationalCourses),
         fetchTable('donors', setDonors),
         fetchTable('enrolled_courses', setEnrolledCourses),
+        fetchTable('contact_messages', setMessages),
       ]);
     }
   };
@@ -510,10 +513,33 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       await optimisticAdd('enrolled_courses', enrollment, setEnrolledCourses, enrolledCourses);
   };
 
+  const addMessage = async (msg: any) => {
+    const newMessage = { ...msg, status: 'Unread' };
+    await optimisticAdd('contact_messages', newMessage, setMessages, messages);
+  };
+
+  const markMessageRead = async (id: number) => {
+    const updated = messages.map(m => m.id === id ? { ...m, status: 'Read' } : m);
+    setMessages(updated);
+    setLocal('db_messages', updated);
+    if (isSupabaseConfigured) {
+        await supabase.from('contact_messages').update({ status: 'Read' }).eq('id', id);
+    }
+  };
+
+  const deleteMessage = async (id: number) => {
+    const filtered = messages.filter(m => m.id !== id);
+    setMessages(filtered);
+    setLocal('db_messages', filtered);
+    if (isSupabaseConfigured) {
+        await supabase.from('contact_messages').delete().eq('id', id);
+    }
+  };
+
   return (
     <DataContext.Provider value={{ 
       jobs, blogs, requests, grievances, users, marketPrices, retailProducts, wholesaleAds,
-      lawyers, exchangeRates, vocationalCourses, donors, enrolledCourses,
+      lawyers, exchangeRates, vocationalCourses, donors, enrolledCourses, messages,
       totalVisitors, logVisit, // Expose Visitor Stats
       addJob, deleteJob, updateJob,
       addBlog, deleteBlog, updateBlog,
@@ -527,6 +553,7 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       addExchangeRate, deleteExchangeRate,
       addVocationalCourse, deleteVocationalCourse,
       addDonor, enrollCourse,
+      addMessage, markMessageRead, deleteMessage,
       refreshData
     }}>
       {children}

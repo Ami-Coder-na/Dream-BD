@@ -1,10 +1,8 @@
 import { GoogleGenAI, GenerateContentResponse } from "@google/genai";
 
 // Initialize client securely using process.env.API_KEY directly.
-// We use a fallback to prevent "Uncaught Error" during module initialization if the key is missing.
-// This ensures the app loads even if the AI feature isn't configured yet.
-const apiKey = process.env.API_KEY || 'MISSING_API_KEY';
-const ai = new GoogleGenAI({ apiKey });
+// Always use const ai = new GoogleGenAI({apiKey: process.env.API_KEY});
+const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
 
 export const generateAssistantResponse = async (
   prompt: string, 
@@ -12,11 +10,6 @@ export const generateAssistantResponse = async (
   history: {role: string, parts: {text: string}[]}[],
   attachment?: { mimeType: string; data: string }
 ): Promise<string> => {
-  if (apiKey === 'MISSING_API_KEY' || !apiKey) {
-    console.error("Gemini API Key is missing. Please check your .env file or Vercel environment variables.");
-    return "I am unable to connect to my brain right now because the API Key is missing. Please contact the administrator.";
-  }
-
   try {
     // Enhanced System Instruction
     const systemInstruction = `You are 'Dream Assistant', an advanced and empathetic AI companion for the 'Dream BD' digital platform in Bangladesh. 
@@ -37,11 +30,12 @@ export const generateAssistantResponse = async (
     
     Structure your response to be direct and helpful. Avoid generic fluff.`;
 
-    const model = 'gemini-2.5-flash';
+    // Use gemini-3-flash-preview for basic text tasks/chat. 
+    const modelName = 'gemini-3-flash-preview';
     
     // Construct the chat history for context
     const chat = ai.chats.create({
-      model: model,
+      model: modelName,
       config: {
         systemInstruction: systemInstruction,
         temperature: 0.7, // Balanced creativity and accuracy
@@ -62,14 +56,19 @@ export const generateAssistantResponse = async (
       });
     }
 
-    const result: GenerateContentResponse = await chat.sendMessage({
-      message: parts.length === 1 ? prompt : parts
+    // chat.sendMessage accepts a message parameter
+    const response: GenerateContentResponse = await chat.sendMessage({
+      message: parts.length === 1 ? prompt : { parts: parts }
     });
 
-    return result.text || "Sorry, I could not generate a response at this time.";
+    // Access the text property directly, not as a function
+    return response.text || "Sorry, I could not generate a response at this time.";
 
-  } catch (error) {
+  } catch (error: any) {
     console.error("Gemini API Error:", error);
+    if (error?.message?.includes("Requested entity was not found")) {
+      return "The AI model is currently unavailable or misconfigured. Please try again later.";
+    }
     return "I am having trouble connecting to the network. Please check your connection and try again.";
   }
 };

@@ -4,7 +4,7 @@ import {
   LayoutDashboard, Users, Settings, Database, Activity, 
   LogOut, Shield, Bell, FileText, ShoppingBag, Trash2, AlertOctagon, 
   Clock, DollarSign, Mail, Key, EyeOff, Eye, ChevronDown, UserPlus, FilePlus, AlertTriangle,
-  Globe, Sparkles, Monitor, RefreshCw, CheckCircle, BarChart3, TrendingUp
+  Globe, Sparkles, Monitor, RefreshCw, CheckCircle, BarChart3, TrendingUp, Inbox
 } from 'lucide-react';
 import { AdminUsers } from './admin/AdminUsers';
 import { AdminContent } from './admin/AdminContent';
@@ -14,6 +14,7 @@ import { AdminGrievance } from './admin/AdminGrievance';
 import { AdminEmergency } from './admin/AdminEmergency';
 import { AdminMarket } from './admin/AdminMarket';
 import { AdminWebsiteManage } from './admin/AdminWebsiteManage';
+import { AdminMessages } from './admin/AdminMessages';
 import { Button } from '../ui/Button';
 import { useData } from '../../contexts/DataContext';
 import { isSupabaseConfigured } from '../../services/supabaseClient';
@@ -23,10 +24,10 @@ interface Props {
   onExit: () => void;
 }
 
-type AdminSection = 'overview' | 'website-manage' | 'users' | 'content' | 'module-config' | 'market' | 'grievance' | 'emergency' | 'settings';
+type AdminSection = 'overview' | 'website-manage' | 'users' | 'content' | 'inbox' | 'module-config' | 'market' | 'grievance' | 'emergency' | 'settings';
 
 export const AdminModule: React.FC<Props> = ({ isBangla, onExit }) => {
-  const { requests, totalVisitors } = useData(); // Get dynamic data
+  const { requests, totalVisitors, messages } = useData(); // Get dynamic data
 
   // Session Configuration
   const SESSION_KEY = 'dream_admin_session';
@@ -58,7 +59,9 @@ export const AdminModule: React.FC<Props> = ({ isBangla, onExit }) => {
   const [showPassword, setShowPassword] = useState(false);
   const [activeSection, setActiveSection] = useState<AdminSection>('overview');
 
-  // Dashboard Stats (Reset to 0 / Dynamic)
+  // Dashboard Stats
+  const unreadMessagesCount = messages.filter((m: any) => m.status === 'Unread').length;
+
   const stats = {
     users: '0', // In a real app, fetch from UserContext
     revenue: '৳ 0',
@@ -132,7 +135,7 @@ export const AdminModule: React.FC<Props> = ({ isBangla, onExit }) => {
       {/* Top Stats Row */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         
-        {/* VISITOR COUNT - NEW */}
+        {/* VISITOR COUNT */}
         <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm flex items-center justify-between group hover:shadow-md transition-all">
             <div>
                 <p className="text-gray-500 text-xs font-bold uppercase tracking-wider">Total Visitors</p>
@@ -146,15 +149,17 @@ export const AdminModule: React.FC<Props> = ({ isBangla, onExit }) => {
             </div>
         </div>
 
-        {/* Users */}
-        <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm flex items-center justify-between">
+        {/* Unread Messages - NEW */}
+        <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm flex items-center justify-between group hover:shadow-md transition-all cursor-pointer" onClick={() => setActiveSection('inbox')}>
             <div>
-                <p className="text-gray-500 text-xs font-bold uppercase tracking-wider">Registered Users</p>
-                <h3 className="text-3xl font-bold text-gray-900 mt-2">{stats.users}</h3>
-                <p className="text-gray-400 text-xs font-bold mt-1">No new signups</p>
+                <p className="text-gray-500 text-xs font-bold uppercase tracking-wider">Unread Inbox</p>
+                <h3 className="text-3xl font-bold text-gray-900 mt-2">{unreadMessagesCount}</h3>
+                <p className={`${unreadMessagesCount > 0 ? 'text-indigo-600 animate-pulse' : 'text-gray-400'} text-xs font-bold mt-1`}>
+                  {unreadMessagesCount > 0 ? 'New Contact Messages' : 'No new messages'}
+                </p>
             </div>
-            <div className="p-4 rounded-2xl bg-blue-50 text-blue-600">
-                <Users size={24} />
+            <div className={`p-4 rounded-2xl ${unreadMessagesCount > 0 ? 'bg-indigo-600 text-white shadow-lg' : 'bg-gray-50 text-gray-400'} transition-all`}>
+                <Inbox size={24} />
             </div>
         </div>
 
@@ -331,6 +336,10 @@ export const AdminModule: React.FC<Props> = ({ isBangla, onExit }) => {
           <button onClick={() => setActiveSection('website-manage')} className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all ${activeSection === 'website-manage' ? 'bg-brand-600 text-white shadow-lg' : 'text-gray-400 hover:bg-gray-800 hover:text-white'}`}><Monitor size={18} /> Website Manage</button>
           <button onClick={() => setActiveSection('users')} className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all ${activeSection === 'users' ? 'bg-brand-600 text-white shadow-lg' : 'text-gray-400 hover:bg-gray-800 hover:text-white'}`}><Users size={18} /> Users & Roles</button>
           <button onClick={() => setActiveSection('content')} className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all ${activeSection === 'content' ? 'bg-brand-600 text-white shadow-lg' : 'text-gray-400 hover:bg-gray-800 hover:text-white'}`}><FileText size={18} /> Content Mod</button>
+          <button onClick={() => setActiveSection('inbox')} className={`w-full flex items-center justify-between gap-3 px-4 py-3 rounded-xl transition-all ${activeSection === 'inbox' ? 'bg-brand-600 text-white shadow-lg' : 'text-gray-400 hover:bg-gray-800 hover:text-white'}`}>
+            <div className="flex items-center gap-3"><Inbox size={18} /> Inbox</div>
+            {unreadMessagesCount > 0 && <span className="bg-red-500 text-white text-[10px] font-bold px-2 py-0.5 rounded-full">{unreadMessagesCount}</span>}
+          </button>
           <button onClick={() => setActiveSection('module-config')} className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all ${activeSection === 'module-config' ? 'bg-brand-600 text-white shadow-lg' : 'text-gray-400 hover:bg-gray-800 hover:text-white'}`}><Database size={18} /> Module Config</button>
           <button onClick={() => setActiveSection('market')} className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all ${activeSection === 'market' ? 'bg-brand-600 text-white shadow-lg' : 'text-gray-400 hover:bg-gray-800 hover:text-white'}`}><ShoppingBag size={18} /> Market & Prices</button>
           <button onClick={() => setActiveSection('grievance')} className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all ${activeSection === 'grievance' ? 'bg-brand-600 text-white shadow-lg' : 'text-gray-400 hover:bg-gray-800 hover:text-white'}`}><Trash2 size={18} /> Grievances</button>
@@ -366,6 +375,7 @@ export const AdminModule: React.FC<Props> = ({ isBangla, onExit }) => {
         {activeSection === 'website-manage' && <AdminWebsiteManage />}
         {activeSection === 'users' && <AdminUsers />}
         {activeSection === 'content' && <AdminContent />}
+        {activeSection === 'inbox' && <AdminMessages />}
         {activeSection === 'module-config' && <AdminConfig isBangla={isBangla} />}
         {activeSection === 'market' && <AdminMarket />}
         {activeSection === 'grievance' && <AdminGrievance />}
