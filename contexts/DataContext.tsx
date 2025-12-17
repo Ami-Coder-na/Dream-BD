@@ -54,8 +54,7 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     if (!data || typeof data !== 'object') return data;
     const normalized: any = {};
     for (const key in data) {
-      // Very important: Supabase is case-sensitive for columns if they are not double-quoted in SQL
-      // Our schema uses lowercase column names, so we lowercase all keys here.
+      // Supabase columns are lowercase in our provided schema
       normalized[key.toLowerCase()] = data[key] === undefined ? null : data[key];
     }
     return normalized;
@@ -147,12 +146,12 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
             const payload = normalizeData(newItem);
             const { error } = await supabase.from(table).insert([payload]);
             if (error) {
-                console.error(`Supabase Error [${table}]:`, error.message);
+                console.error(`Supabase Insert Error into table [${table}]:`, error.message, "Payload:", payload);
                 throw error;
             }
             await fetchTable(table, setter);
         } catch (err) {
-            console.error("Optimistic Add Failed:", err);
+            console.error("Critical: Supabase Request Failed.", err);
         }
     }
   };
@@ -168,21 +167,17 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   };
 
   const addRequest = async (request: any) => {
-    // 1. Separate 'contentType' which is used only for internal logic, not stored in DB
     const { contentType, ...dbData } = request;
-    
     const table = contentType === 'blog' ? 'blog_requests' : 'requests';
     const setter = contentType === 'blog' ? setBlogRequests : setRequests;
     const current = contentType === 'blog' ? blogRequests : requests;
     
-    // 2. Prepare the data with status and date
     const newReq = { 
       ...dbData, 
       status: 'Pending', 
       postedDate: dbData.postedDate || new Date().toLocaleDateString() 
     };
     
-    // 3. Send to DB and Update UI
     await optimisticAdd(table, newReq, setter, current);
   };
 

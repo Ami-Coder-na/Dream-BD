@@ -15,15 +15,15 @@ interface ErrorBoundaryState {
 /**
  * ErrorBoundary component to catch rendering errors in the application.
  */
-// Fix: Extending React.Component explicitly to ensure standard property definitions are inherited correctly
 export class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoundaryState> {
-  // Fix: Declare and initialize state property directly on the class to ensure it's correctly typed on the instance
-  public state: ErrorBoundaryState = {
-    hasError: false,
-    error: null
-  };
-
-  // Fix: Removed constructor as it was redundant with property initialization above and can sometimes interfere with base class type inference
+  // Use a constructor to ensure that 'props' and 'state' are correctly initialized and typed by inheritance
+  constructor(props: ErrorBoundaryProps) {
+    super(props);
+    this.state = {
+      hasError: false,
+      error: null
+    };
+  }
 
   static getDerivedStateFromError(error: Error): ErrorBoundaryState {
     // Update state so the next render will show the fallback UI.
@@ -44,7 +44,7 @@ export class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoun
   };
 
   render(): ReactNode {
-    // Fix: Access state properties safely from the instance
+    // Access state properties from the instance
     if (this.state.hasError) {
       return (
         <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4">
@@ -61,7 +61,6 @@ export class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoun
               দুঃখিত, একটি অপ্রত্যাশিত সমস্যা দেখা দিয়েছে। অনুগ্রহ করে পেজটি রিলোড করুন।
               <br />
               <span className="text-xs mt-2 block opacity-70">
-                {/* Fix: Use safe navigation for error object */}
                 Error: {this.state.error?.message || 'Unknown Error'}
               </span>
             </p>
@@ -81,7 +80,7 @@ export class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoun
       );
     }
 
-    // Fix: Access props correctly from the instance which are inherited from React.Component
+    // Access props from the instance which are now correctly recognized by TypeScript
     return this.props.children;
   }
 }
