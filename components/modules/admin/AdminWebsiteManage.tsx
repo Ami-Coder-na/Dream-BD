@@ -249,6 +249,19 @@ export const AdminWebsiteManage = () => {
                 </div>
             ) : (
                 <div className="text-center py-6">
+                    {/* NEW WARNING MESSAGE */}
+                    <div className="bg-yellow-50 border border-yellow-200 p-4 rounded-xl text-left mb-6 flex items-start gap-3">
+                        <AlertTriangle className="text-yellow-600 shrink-0 mt-1" size={20} />
+                        <div>
+                            <h4 className="font-bold text-yellow-800 text-sm">গুরুত্বপূর্ণ নোট / Important Note:</h4>
+                            <p className="text-yellow-700 text-xs mt-1">
+                                বর্তমানে ডাটাবেস সেটিংস শুধু এই ব্রাউজারে (Local Storage) সেভ করা আছে। অন্য ইউজাররা আপডেট দেখতে চাইলে <code>services/supabaseClient.ts</code> ফাইলে <strong>HARDCODED_URL</strong> এবং <strong>HARDCODED_KEY</strong> এর মধ্যে আপনার URL ও Key বসিয়ে দিন।
+                                <br/><br/>
+                                <em>Configuration here is local to this browser. To share with all users, add keys to the code or environment variables.</em>
+                            </p>
+                        </div>
+                    </div>
+
                     <div className="flex flex-wrap gap-4 justify-center mb-6">
                         <Button onClick={() => handleTestConnection(false)} variant="outline" className="flex items-center gap-2">
                             <Zap size={16} /> Check Connection

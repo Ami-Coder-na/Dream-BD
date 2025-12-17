@@ -1,5 +1,12 @@
 import { createClient } from '@supabase/supabase-js';
 
+// --- GLOBAL CONFIGURATION (সবার জন্য) ---
+// If you want ALL users to see the data without configuring Environment Variables,
+// paste your Supabase URL and Key inside the quotes below.
+// Example: const HARDCODED_URL = 'https://xyz.supabase.co';
+const HARDCODED_URL = ''; 
+const HARDCODED_KEY = '';
+
 // Helper to safely access environment variables
 const getEnv = (key: string) => {
   let val = '';
@@ -23,7 +30,7 @@ const getEnv = (key: string) => {
   return val || '';
 };
 
-// Check Local Storage for manually entered keys (Admin Panel Feature)
+// Check Local Storage for manually entered keys (Admin Panel Feature - Browser Specific)
 const getStoredConfig = (key: string) => {
   if (typeof window !== 'undefined') {
     return localStorage.getItem(key) || '';
@@ -37,9 +44,10 @@ const ENV_KEY = getEnv('VITE_SUPABASE_ANON_KEY');
 const STORED_URL = getStoredConfig('dream_sb_url');
 const STORED_KEY = getStoredConfig('dream_sb_key');
 
-// Prioritize Environment variables, fallback to Stored (Manual) Config
-const SUPABASE_URL = ENV_URL || STORED_URL;
-const SUPABASE_ANON_KEY = ENV_KEY || STORED_KEY;
+// PRIORITY: Hardcoded > Environment > LocalStorage
+// This ensures if you put keys in code, everyone gets connected.
+const SUPABASE_URL = HARDCODED_URL || ENV_URL || STORED_URL;
+const SUPABASE_ANON_KEY = HARDCODED_KEY || ENV_KEY || STORED_KEY;
 
 const isConfigured = 
   SUPABASE_URL && 
