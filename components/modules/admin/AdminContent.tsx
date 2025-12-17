@@ -2,321 +2,381 @@
 import React, { useState, useRef } from 'react';
 import { 
   Briefcase, FileText, Plus, Search, Eye, Edit3, Trash2, 
-  Check, X, ArrowLeft, Save, MapPin, DollarSign, Calendar, 
-  Tag, User, Building2, ImageIcon, Loader2, Upload, 
-  ShoppingBasket, Gem, Info, RefreshCw, Layers, Scale, Plane, Wrench
+  Check, X, ArrowLeft, Save, 
+  MapPin, DollarSign, Calendar, Tag, User, Building2, Image as ImageIcon, Loader2, Upload
 } from 'lucide-react';
 import { Button } from '../../ui/Button';
 import { useData } from '../../../contexts/DataContext';
 
-type ContentTab = 'jobs' | 'blogs' | 'amar_bd' | 'amar_jela' | 'market' | 'services' | 'moderation';
-
 export const AdminContent = () => {
-  const { 
-    jobs, blogs, requests, blogRequests, marketPrices, retailProducts, districtBranding, districtDetails,
-    lawyers, exchangeRates, vocationalCourses,
-    addJob, updateJob, deleteJob, 
-    addBlog, updateBlog, deleteBlog,
-    addMarketPrice, updateMarketPrice, deleteMarketPrice,
-    addRetailProduct, updateRetailProduct, deleteRetailProduct,
-    addBranding, updateBranding, deleteBranding,
-    updateDistrictDetails,
-    addLawyer, deleteLawyer,
-    addExchangeRate, deleteExchangeRate,
-    addVocationalCourse, deleteVocationalCourse,
-    handleRequestAction 
-  } = useData();
+  const { jobs, blogs, requests, blogRequests, addJob, addBlog, deleteJob, deleteBlog, handleRequestAction, updateJob, updateBlog } = useData();
   
-  const [activeTab, setActiveTab] = useState<ContentTab>('jobs');
-  const [view, setView] = useState<'list' | 'edit'>('list');
+  const [view, setView] = useState<'list' | 'create_job' | 'create_blog' | 'details' | 'edit_job' | 'edit_blog'>('list');
+  const [activeTab, setActiveTab] = useState<'jobs' | 'blogs' | 'requests'>('jobs');
+  const [contentSearch, setContentSearch] = useState('');
   const [selectedItem, setSelectedItem] = useState<any>(null);
   const [isProcessing, setIsProcessing] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
+  // Form States
+  const [jobForm, setJobForm] = useState<any>({});
+  const [blogForm, setBlogForm] = useState<any>({});
+
   // --- ACTIONS ---
+  const handleDelete = async (id: number, type: 'job' | 'blog') => {
+    if(!confirm('Are you sure you want to delete this content?')) return;
+    if (type === 'job') await deleteJob(id);
+    else await deleteBlog(id);
+    if (view === 'details') setView('list');
+  };
 
   const handleEdit = (item: any) => {
     setSelectedItem(item);
-    setView('edit');
-  };
-
-  const handleAddNew = () => {
-    setSelectedItem({});
-    setView('edit');
-  };
-
-  const handleDelete = async (type: string, id: any) => {
-    if (!confirm('Are you sure you want to delete this?')) return;
-    setIsProcessing(true);
-    try {
-        if (type === 'job') await deleteJob(id);
-        if (type === 'blog') await deleteBlog(id);
-        if (type === 'branding') await deleteBranding(id);
-        if (type === 'price') await deleteMarketPrice(id);
-        if (type === 'retail') await deleteRetailProduct(id);
-        if (type === 'lawyer') await deleteLawyer(id);
-        if (type === 'rate') await deleteExchangeRate(id);
-        if (type === 'course') await deleteVocationalCourse(id);
-    } catch(e) {}
-    setIsProcessing(false);
-  };
-
-  const handleSave = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setIsProcessing(true);
-    
-    try {
-        if (activeTab === 'jobs') {
-            selectedItem.id ? await updateJob(selectedItem) : await addJob({ ...selectedItem, postedBy: 'Admin', postedDate: new Date().toLocaleDateString(), status: 'Active' });
-        } else if (activeTab === 'blogs') {
-            selectedItem.id ? await updateBlog(selectedItem) : await addBlog({ ...selectedItem, author: 'Admin', postedDate: new Date().toLocaleDateString(), status: 'Active' });
-        } else if (activeTab === 'amar_bd') {
-            selectedItem.id ? await updateBranding(selectedItem) : await addBranding(selectedItem);
-        } else if (activeTab === 'market') {
-            // Logic for price vs retail could be handled here or by separate forms
-            if(selectedItem.unit) await addMarketPrice(selectedItem);
-            else await addRetailProduct(selectedItem);
-        } else if (activeTab === 'amar_jela') {
-            await updateDistrictDetails(selectedItem);
-        } else if (activeTab === 'services') {
-            if(selectedItem.currency) await addExchangeRate(selectedItem);
-            else if(selectedItem.speciality) await addLawyer(selectedItem);
-            else await addVocationalCourse(selectedItem);
-        }
-        alert('Saved Successfully!');
-        setView('list');
-    } catch (err) { alert('Error saving data'); }
-    
-    setIsProcessing(false);
+    if (item.category && item.author) { 
+        setBlogForm({ ...item });
+        setView('edit_blog');
+    } else {
+        setJobForm({ ...item });
+        setView('edit_job');
+    }
   };
 
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
       const reader = new FileReader();
-      reader.onloadend = () => setSelectedItem({ ...selectedItem, image: reader.result as string });
+      reader.onloadend = () => {
+        setBlogForm((prev: any) => ({ ...prev, image: reader.result as string }));
+      };
       reader.readAsDataURL(file);
     }
   };
 
-  // --- RENDERERS ---
+  const handleJobSubmit = async (e: React.FormEvent) => {
+      e.preventDefault();
+      setIsProcessing(true);
+      if (view === 'edit_job') {
+          await updateJob(jobForm);
+          alert('Job Updated Successfully!');
+      } else {
+          const jobData = { 
+            ...jobForm, 
+            category: jobForm.category || 'Private', 
+            postedBy: 'Admin',
+            level: 'Entry' 
+          };
+          await addJob(jobData);
+          alert('Job Created Successfully!');
+      }
+      setIsProcessing(false);
+      setJobForm({});
+      setView('list');
+  };
 
-  if (view === 'edit') {
+  const handleBlogSubmit = async (e: React.FormEvent) => {
+      e.preventDefault();
+      setIsProcessing(true);
+      
+      const wordCount = (blogForm.content || '').split(/\s+/).length;
+      const readTime = Math.ceil(wordCount / 200) + ' min read';
+      const excerpt = (blogForm.content || '').substring(0, 100) + '...';
+
+      const finalBlogData = {
+          ...blogForm,
+          readTime: blogForm.readTime || readTime,
+          excerpt: blogForm.excerpt || excerpt,
+          author: blogForm.author || 'Admin'
+      };
+
+      if (view === 'edit_blog') {
+          await updateBlog(finalBlogData);
+          alert('Blog Updated Successfully!');
+      } else {
+          await addBlog(finalBlogData);
+          alert('Blog Published Successfully!');
+      }
+      setIsProcessing(false);
+      setBlogForm({});
+      setView('list');
+  };
+
+  const handleActionClick = async (item: any, action: 'approve' | 'reject', type: 'job' | 'blog') => {
+      setIsProcessing(true);
+      await handleRequestAction(item, action, type);
+      setIsProcessing(false);
+      setView('list');
+  };
+
+  const renderStatusBadge = (status: string) => (
+    <span className={`px-2.5 py-1 rounded-full text-xs font-bold border ${
+      status === 'Active' 
+        ? 'bg-green-50 text-green-700 border-green-200' 
+        : status === 'Pending' 
+          ? 'bg-orange-50 text-orange-700 border-orange-200'
+          : 'bg-gray-100 text-gray-600 border-gray-200'
+    }`}>
+      {status}
+    </span>
+  );
+
+  const handleViewDetails = (item: any, type: 'job' | 'blog') => {
+      setSelectedItem({ ...item, contentType: type });
+      setView('details');
+  };
+
+  if (view === 'create_job' || view === 'edit_job') {
     return (
-      <div className="space-y-6 animate-fade-in max-w-4xl mx-auto">
+      <div className="space-y-6 animate-fade-in max-w-5xl mx-auto">
         <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
-          <div className="p-6 border-b border-gray-100 flex justify-between items-center bg-gray-50">
-            <h3 className="text-xl font-bold text-gray-900 flex items-center gap-2 capitalize">
-              <Edit3 size={20} /> {selectedItem.id ? 'Edit' : 'Add New'} {activeTab.replace('_', ' ')}
+          <div className="p-6 border-b border-gray-100 flex justify-between items-center">
+            <h3 className="text-xl font-bold text-gray-900 flex items-center gap-2">
+              <Briefcase className="text-gray-800" size={24} /> {view === 'edit_job' ? 'Edit Job' : 'Create Job'}
             </h3>
-            <Button variant="outline" onClick={() => setView('list')} className="bg-white border-gray-200">
-              <ArrowLeft size={16} className="mr-2" /> Back
+            <Button variant="outline" onClick={() => setView('list')} className="flex items-center gap-2 text-gray-600 bg-white hover:bg-gray-50 border-gray-200">
+              <ArrowLeft size={16} /> Back to List
             </Button>
           </div>
-          
-          <form onSubmit={handleSave} className="p-8 space-y-6">
-             {/* Dynamic Form based on Tab */}
-             {activeTab === 'jobs' && (
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                   <div className="col-span-2">
-                      <label className="block text-xs font-bold text-gray-400 uppercase mb-2">Job Title</label>
-                      <input required className="w-full p-3 bg-gray-50 border rounded-xl" value={selectedItem.title || ''} onChange={e => setSelectedItem({...selectedItem, title: e.target.value})} />
-                   </div>
-                   <div><label className="block text-xs font-bold text-gray-400 uppercase mb-2">Company</label><input required className="w-full p-3 bg-gray-50 border rounded-xl" value={selectedItem.company || ''} onChange={e => setSelectedItem({...selectedItem, company: e.target.value})} /></div>
-                   <div><label className="block text-xs font-bold text-gray-400 uppercase mb-2">Location</label><input required className="w-full p-3 bg-gray-50 border rounded-xl" value={selectedItem.location || ''} onChange={e => setSelectedItem({...selectedItem, location: e.target.value})} /></div>
+          <div className="p-8">
+            <form className="space-y-6" onSubmit={handleJobSubmit}>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="space-y-2">
+                  <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider">Job Title</label>
+                  <input required type="text" value={jobForm.title || ''} onChange={e => setJobForm({...jobForm, title: e.target.value})} placeholder="e.g. Software Engineer" className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-gray-900 transition-all text-sm font-medium" />
                 </div>
-             )}
-
-             {activeTab === 'blogs' && (
-                <div className="space-y-6">
-                   <div><label className="block text-xs font-bold text-gray-400 uppercase mb-2">Blog Title</label><input required className="w-full p-3 bg-gray-50 border rounded-xl" value={selectedItem.title || ''} onChange={e => setSelectedItem({...selectedItem, title: e.target.value})} /></div>
-                   <div className="grid grid-cols-2 gap-4">
-                      <div><label className="block text-xs font-bold text-gray-400 uppercase mb-2">Category</label><input className="w-full p-3 bg-gray-50 border rounded-xl" value={selectedItem.category || ''} onChange={e => setSelectedItem({...selectedItem, category: e.target.value})} /></div>
-                      <div>
-                        <label className="block text-xs font-bold text-gray-400 uppercase mb-2">Image</label>
-                        <input type="file" className="hidden" ref={fileInputRef} onChange={handleImageUpload} />
-                        <button type="button" onClick={() => fileInputRef.current?.click()} className="w-full p-3 bg-gray-50 border rounded-xl text-left truncate flex items-center gap-2">
-                           <Upload size={14}/> {selectedItem.image ? 'Image Selected' : 'Upload Image'}
-                        </button>
-                      </div>
-                   </div>
-                   <div><label className="block text-xs font-bold text-gray-400 uppercase mb-2">Content</label><textarea rows={8} className="w-full p-3 bg-gray-50 border rounded-xl resize-none" value={selectedItem.content || ''} onChange={e => setSelectedItem({...selectedItem, content: e.target.value})} /></div>
+                <div className="space-y-2">
+                  <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider">Company</label>
+                  <input required type="text" value={jobForm.company || ''} onChange={e => setJobForm({...jobForm, company: e.target.value})} placeholder="Company Name" className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-gray-900 transition-all text-sm font-medium" />
                 </div>
-             )}
-
-             {/* Footer Actions */}
-             <div className="flex justify-end gap-3 pt-6 border-t">
-                <Button type="button" variant="outline" onClick={() => setView('list')}>Cancel</Button>
-                <Button type="submit" disabled={isProcessing} className="bg-green-600 text-white font-bold px-8">
-                  {isProcessing ? <Loader2 size={18} className="animate-spin" /> : 'Save Content'}
+                <div className="space-y-2">
+                  <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider">Job Type</label>
+                  <select value={jobForm.type || 'Full Time'} onChange={e => setJobForm({...jobForm, type: e.target.value})} className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-gray-900 transition-all text-sm font-medium appearance-none cursor-pointer">
+                    <option>Full Time</option>
+                    <option>Part Time</option>
+                    <option>Contract</option>
+                    <option>Remote</option>
+                  </select>
+                </div>
+                <div className="space-y-2">
+                  <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider">Category</label>
+                  <select value={jobForm.category || 'Private'} onChange={e => setJobForm({...jobForm, category: e.target.value})} className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-gray-900 transition-all text-sm font-medium appearance-none cursor-pointer">
+                    <option value="Government">Government</option>
+                    <option value="Private">Private</option>
+                    <option value="NGO">NGO</option>
+                    <option value="International">International</option>
+                    <option value="Autonomous">Autonomous</option>
+                    <option value="Local Government">Local Government</option>
+                    <option value="Public University">Public University</option>
+                  </select>
+                </div>
+                <div className="space-y-2">
+                  <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider">Location</label>
+                  <input required type="text" value={jobForm.location || ''} onChange={e => setJobForm({...jobForm, location: e.target.value})} placeholder="Dhaka" className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-gray-900 transition-all text-sm font-medium" />
+                </div>
+                <div className="space-y-2">
+                  <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider">Salary Range</label>
+                  <input required type="text" value={jobForm.salary || ''} onChange={e => setJobForm({...jobForm, salary: e.target.value})} placeholder="20k-30k" className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-gray-900 transition-all text-sm font-medium" />
+                </div>
+                <div className="space-y-2">
+                  <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider">Deadline</label>
+                  <input required type="date" value={jobForm.deadline || ''} onChange={e => setJobForm({...jobForm, deadline: e.target.value})} className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-gray-900 transition-all text-sm font-medium text-gray-500" />
+                </div>
+              </div>
+              <div className="space-y-2">
+                <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider">Description</label>
+                <textarea required rows={5} value={jobForm.description || ''} onChange={e => setJobForm({...jobForm, description: e.target.value})} placeholder="Job details..." className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-gray-900 transition-all text-sm font-medium resize-none"></textarea>
+              </div>
+              <div className="flex justify-end gap-3 pt-4 border-t border-gray-50">
+                <Button type="button" variant="outline" onClick={() => setView('list')} className="px-6 bg-white hover:bg-gray-50 border-gray-200 text-gray-700">Cancel</Button>
+                <Button type="submit" disabled={isProcessing} className="bg-green-600 hover:bg-green-700 text-white px-6 font-bold flex items-center gap-2">
+                  {isProcessing && <Loader2 size={16} className="animate-spin" />}
+                  {view === 'edit_job' ? 'Update Job' : 'Publish Job'}
                 </Button>
-             </div>
-          </form>
+              </div>
+            </form>
+          </div>
         </div>
       </div>
     );
   }
 
+  if (view === 'create_blog' || view === 'edit_blog') {
+    return (
+      <div className="space-y-6 animate-fade-in max-w-5xl mx-auto">
+        <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+          <div className="p-6 border-b border-gray-100 flex justify-between items-center">
+            <h3 className="text-xl font-bold text-gray-900 flex items-center gap-2">
+              <FileText className="text-gray-800" size={24} /> {view === 'edit_blog' ? 'Edit Blog' : 'Create Blog'}
+            </h3>
+            <Button variant="outline" onClick={() => setView('list')} className="flex items-center gap-2 text-gray-600 bg-white hover:bg-gray-50 border-gray-200">
+              <ArrowLeft size={16} /> Back to List
+            </Button>
+          </div>
+          <div className="p-8">
+            <form className="space-y-6" onSubmit={handleBlogSubmit}>
+              <div className="space-y-2">
+                <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider">Blog Title</label>
+                <input required type="text" value={blogForm.title || ''} onChange={e => setBlogForm({...blogForm, title: e.target.value})} placeholder="Article Headline" className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-gray-900 transition-all text-sm font-medium" />
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="space-y-2">
+                  <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider">Category</label>
+                  <select value={blogForm.category || ''} onChange={e => setBlogForm({...blogForm, category: e.target.value})} className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-gray-900 transition-all text-sm font-medium appearance-none cursor-pointer">
+                    <option value="">Select Category</option>
+                    <option>Agriculture</option>
+                    <option>Health</option>
+                    <option>Education</option>
+                    <option>Transport</option>
+                    <option>Crafts</option>
+                    <option>Technology</option>
+                  </select>
+                </div>
+                <div className="space-y-2">
+                  <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider">Author</label>
+                  <input type="text" value={blogForm.author || ''} onChange={e => setBlogForm({...blogForm, author: e.target.value})} placeholder="Admin" className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-gray-900 transition-all text-sm font-medium" />
+                </div>
+              </div>
+              <div className="space-y-2">
+                 <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider">Blog Image</label>
+                 <div className="relative w-full border border-gray-200 rounded-xl bg-gray-50 cursor-pointer hover:bg-gray-100 transition-colors h-[46px] flex items-center px-4" onClick={() => fileInputRef.current?.click()}>
+                   <span className="text-sm text-gray-500 truncate">{blogForm.image ? 'Image Selected (Click to change)' : 'Upload Blog Image'}</span>
+                   <input type="file" accept="image/*" className="hidden" ref={fileInputRef} onChange={handleImageUpload} />
+                   <Upload className="absolute right-4 text-gray-400" size={18} />
+                 </div>
+              </div>
+              <div className="space-y-2">
+                <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider">Content (HTML Supported)</label>
+                <textarea required rows={8} value={blogForm.content || ''} onChange={e => setBlogForm({...blogForm, content: e.target.value})} placeholder="Write blog content here..." className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-gray-900 transition-all text-sm font-medium resize-none"></textarea>
+              </div>
+              <div className="flex justify-end gap-3 pt-4 border-t border-gray-50">
+                <Button type="button" variant="outline" onClick={() => setView('list')} className="px-6 bg-white hover:bg-gray-50 border-gray-200 text-gray-700">Cancel</Button>
+                <Button type="submit" disabled={isProcessing} className="bg-green-600 hover:bg-green-700 text-white px-6 font-bold flex items-center gap-2">
+                  {isProcessing && <Loader2 size={16} className="animate-spin" />}
+                  {view === 'edit_blog' ? 'Update Blog' : 'Publish Blog'}
+                </Button>
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (view === 'details' && selectedItem) {
+      const isPending = selectedItem.status === 'Pending';
+      const isBlog = selectedItem.author || selectedItem.contentType === 'blog';
+
+      return (
+        <div className="space-y-6 animate-fade-in max-w-5xl mx-auto">
+            <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+                <div className="p-6 border-b border-gray-100 flex justify-between items-center">
+                    <Button variant="outline" onClick={() => setView('list')} className="flex items-center gap-2 text-gray-600 bg-white hover:bg-gray-50 border-gray-200">
+                        <ArrowLeft size={16} /> Back
+                    </Button>
+                    <div className="flex gap-2">
+                        {isPending ? (
+                            <>
+                                <Button disabled={isProcessing} onClick={() => handleActionClick(selectedItem, 'approve', isBlog ? 'blog' : 'job')} className="bg-green-600 hover:bg-green-700 text-white flex items-center gap-2">
+                                    {isProcessing ? <Loader2 size={16} className="animate-spin" /> : <Check size={16} />} Approve
+                                </Button>
+                                <Button disabled={isProcessing} onClick={() => handleActionClick(selectedItem, 'reject', isBlog ? 'blog' : 'job')} className="bg-red-600 hover:bg-red-700 text-white flex items-center gap-2">
+                                    {isProcessing ? <Loader2 size={16} className="animate-spin" /> : <X size={16} />} Reject
+                                </Button>
+                            </>
+                        ) : (
+                            <button onClick={() => handleEdit(selectedItem)} className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-all border border-gray-200">
+                                <Edit3 size={18} />
+                            </button>
+                        )}
+                    </div>
+                </div>
+                <div className="p-8">
+                    <div className="mb-6">{renderStatusBadge(selectedItem.status)}</div>
+                    <h1 className="text-3xl font-bold text-gray-900 mb-6">{selectedItem.title}</h1>
+                    <div className="flex flex-wrap items-center gap-6 text-sm text-gray-500 mb-8 border-b border-gray-100 pb-8">
+                        <div className="flex items-center gap-2"><User size={16} /><span>{selectedItem.postedBy || selectedItem.author}</span></div>
+                        <div className="flex items-center gap-2"><Calendar size={16} /><span>{selectedItem.postedDate}</span></div>
+                        <div className="flex items-center gap-2"><Eye size={16} /><span>{selectedItem.views || 0} views</span></div>
+                        {selectedItem.company && <div className="flex items-center gap-2"><Building2 size={16} /><span>{selectedItem.company}</span></div>}
+                        {selectedItem.category && <div className="flex items-center gap-2"><Tag size={16} /><span>{selectedItem.category}</span></div>}
+                    </div>
+                    <div>
+                        <h4 className="text-lg font-bold text-gray-900 mb-4">{isBlog ? 'Article Content' : 'Job Description'}</h4>
+                        <div className="text-gray-700 leading-relaxed whitespace-pre-wrap">{selectedItem.content || selectedItem.description}</div>
+                        {selectedItem.image && <div className="mt-6"><img src={selectedItem.image} alt="Post" className="max-h-64 rounded-xl border border-gray-200" /></div>}
+                    </div>
+                </div>
+            </div>
+        </div>
+      );
+  }
+
   return (
     <div className="space-y-6 animate-fade-in">
-       {/* Tab Navigation */}
-       <div className="bg-white p-2 rounded-2xl shadow-sm border border-gray-100 flex flex-wrap gap-2 overflow-x-auto">
-          {[
-            { id: 'jobs', label: 'Jobs', icon: <Briefcase size={16}/> },
-            { id: 'blogs', label: 'Blogs', icon: <FileText size={16}/> },
-            { id: 'amar_bd', label: 'Amar BD', icon: <Gem size={16}/> },
-            { id: 'amar_jela', label: 'Amar Jela', icon: <MapPin size={16}/> },
-            { id: 'market', label: 'Market', icon: <ShoppingBasket size={16}/> },
-            { id: 'services', label: 'Services', icon: <Wrench size={16}/> },
-            { id: 'moderation', label: 'Moderation', icon: <Layers size={16}/> },
-          ].map(tab => (
-            <button
-              key={tab.id}
-              onClick={() => { setActiveTab(tab.id as ContentTab); setView('list'); }}
-              className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-bold transition-all whitespace-nowrap ${
-                activeTab === tab.id ? 'bg-gray-900 text-white shadow-lg' : 'text-gray-500 hover:bg-gray-100'
-              }`}
-            >
-              {tab.icon} {tab.label}
-              {tab.id === 'moderation' && (requests.length + blogRequests.length) > 0 && (
-                <span className="bg-orange-500 text-white text-[10px] px-2 py-0.5 rounded-full ml-1">{requests.length + blogRequests.length}</span>
+        <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
+           <div className="flex flex-col md:flex-row justify-between items-center gap-6 mb-6">
+              <div className="flex bg-gray-50 p-1.5 rounded-xl border border-gray-200 w-full md:w-fit">
+                  <button onClick={() => setActiveTab('jobs')} className={`flex-1 md:flex-none px-6 py-2 rounded-lg text-sm font-bold transition-all ${activeTab === 'jobs' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-600 hover:bg-gray-200'}`}>Approved Jobs</button>
+                  <button onClick={() => setActiveTab('blogs')} className={`flex-1 md:flex-none px-6 py-2 rounded-lg text-sm font-bold transition-all ${activeTab === 'blogs' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-600 hover:bg-gray-200'}`}>Approved Blogs</button>
+                  <button onClick={() => setActiveTab('requests')} className={`flex-1 md:flex-none px-6 py-2 rounded-lg text-sm font-bold transition-all flex items-center justify-center gap-2 ${activeTab === 'requests' ? 'bg-white text-orange-700 shadow-sm' : 'text-gray-600 hover:bg-gray-200'}`}>Moderation Queue {(requests.length + blogRequests.length) > 0 && <span className="bg-orange-500 text-white text-[10px] px-2 py-0.5 rounded-full shadow-sm">{requests.length + blogRequests.length}</span>}</button>
+              </div>
+              {activeTab !== 'requests' && (
+                <div className="flex flex-col sm:flex-row gap-3 w-full md:w-auto">
+                   <div className="relative flex-1 sm:w-64"><Search className="absolute left-3 top-3 text-gray-400" size={16} /><input type="text" placeholder="Search..." value={contentSearch} onChange={(e) => setContentSearch(e.target.value)} className="w-full pl-9 pr-4 py-2 bg-white border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-gray-200 h-10" /></div>
+                   <Button onClick={() => { if (activeTab === 'jobs') { setJobForm({}); setView('create_job'); } else { setBlogForm({}); setView('create_blog'); } }} className="bg-green-600 hover:bg-green-700 text-white font-bold px-4 h-10 rounded-lg shadow-sm flex items-center gap-2"><Plus size={16} /> {activeTab === 'jobs' ? 'Post Job' : 'Write Blog'}</Button>
+                </div>
               )}
-            </button>
-          ))}
-       </div>
+           </div>
 
-       {/* List Views */}
-       <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden min-h-[500px]">
-          <div className="p-6 border-b border-gray-100 flex justify-between items-center bg-gray-50/50">
-             <h3 className="font-bold text-gray-800 text-lg flex items-center gap-2 capitalize">
-               {activeTab.replace('_', ' ')} Management
-             </h3>
-             {activeTab !== 'moderation' && activeTab !== 'amar_jela' && (
-                <Button onClick={handleAddNew} size="sm" className="bg-green-600 text-white"><Plus size={16}/> Add New</Button>
-             )}
-          </div>
-
-          <div className="overflow-x-auto">
-             {activeTab === 'jobs' && (
-                <table className="w-full text-left text-sm">
-                   <thead className="bg-gray-50/80 text-gray-500 uppercase font-bold text-[10px]">
-                      <tr><th className="p-4">Job Title</th><th className="p-4">Company</th><th className="p-4">Date</th><th className="p-4 text-right">Actions</th></tr>
-                   </thead>
-                   <tbody className="divide-y divide-gray-50">
-                      {jobs.map((item: any) => (
-                         <tr key={item.id} className="hover:bg-gray-50">
-                            <td className="p-4 font-bold text-gray-900">{item.title}</td>
-                            <td className="p-4 text-gray-600">{item.company}</td>
-                            <td className="p-4 text-gray-400">{item.postedDate}</td>
-                            <td className="p-4 text-right"><div className="flex justify-end gap-2"><button onClick={() => handleEdit(item)} className="p-2 text-gray-400 hover:text-blue-600"><Edit3 size={16}/></button><button onClick={() => handleDelete('job', item.id)} className="p-2 text-gray-400 hover:text-red-600"><Trash2 size={16}/></button></div></td>
-                         </tr>
-                      ))}
-                   </tbody>
-                </table>
-             )}
-
-             {activeTab === 'blogs' && (
-                <table className="w-full text-left text-sm">
-                   <thead className="bg-gray-50/80 text-gray-500 uppercase font-bold text-[10px]">
-                      <tr><th className="p-4">Blog Title</th><th className="p-4">Author</th><th className="p-4">Category</th><th className="p-4 text-right">Actions</th></tr>
-                   </thead>
-                   <tbody className="divide-y divide-gray-50">
-                      {blogs.map((item: any) => (
-                         <tr key={item.id} className="hover:bg-gray-50">
-                            <td className="p-4 font-bold text-gray-900">{item.title}</td>
-                            <td className="p-4 text-gray-600">{item.author}</td>
-                            <td className="p-4 font-medium text-blue-600">{item.category}</td>
-                            <td className="p-4 text-right"><div className="flex justify-end gap-2"><button onClick={() => handleEdit(item)} className="p-2 text-gray-400 hover:text-blue-600"><Edit3 size={16}/></button><button onClick={() => handleDelete('blog', item.id)} className="p-2 text-gray-400 hover:text-red-600"><Trash2 size={16}/></button></div></td>
-                         </tr>
-                      ))}
-                   </tbody>
-                </table>
-             )}
-
-             {activeTab === 'market' && (
-                <div className="p-6 space-y-8">
-                   <div>
-                      <h4 className="font-bold text-gray-400 text-xs uppercase mb-4 tracking-widest">Market Prices</h4>
-                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                         {marketPrices.map((item: any) => (
-                            <div key={item.id} className="p-4 bg-gray-50 border rounded-xl flex justify-between items-center group">
-                               <div><p className="font-bold text-gray-900">{item.nameEn}</p><p className="text-xs text-gray-500">Today: ৳{item.today}</p></div>
-                               <button onClick={() => handleDelete('price', item.id)} className="p-2 text-gray-300 group-hover:text-red-600"><Trash2 size={14}/></button>
-                            </div>
-                         ))}
-                      </div>
-                   </div>
-                   <div>
-                      <h4 className="font-bold text-gray-400 text-xs uppercase mb-4 tracking-widest">Retail Products</h4>
-                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                         {retailProducts.map((item: any) => (
-                            <div key={item.id} className="p-4 bg-gray-50 border rounded-xl flex justify-between items-center group">
-                               <div><p className="font-bold text-gray-900">{item.nameEn}</p><p className="text-xs text-gray-500">Price: ৳{item.price}</p></div>
-                               <button onClick={() => handleDelete('retail', item.id)} className="p-2 text-gray-300 group-hover:text-red-600"><Trash2 size={14}/></button>
-                            </div>
-                         ))}
-                      </div>
-                   </div>
-                </div>
-             )}
-
-             {activeTab === 'services' && (
-                <div className="p-6 space-y-8">
-                   <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                      <div className="bg-gray-50 p-4 rounded-xl border">
-                         <h4 className="font-bold text-indigo-700 flex items-center gap-2 mb-4"><Scale size={16}/> Lawyers ({lawyers.length})</h4>
-                         <div className="space-y-2">
-                            {lawyers.map((l: any) => (
-                               <div key={l.id} className="p-2 bg-white rounded border flex justify-between items-center"><span className="text-sm font-medium">{l.name}</span><button onClick={() => handleDelete('lawyer', l.id)}><Trash2 size={12} className="text-red-300"/></button></div>
-                            ))}
-                         </div>
-                      </div>
-                      <div className="bg-gray-50 p-4 rounded-xl border">
-                         <h4 className="font-bold text-cyan-700 flex items-center gap-2 mb-4"><Plane size={16}/> Exchange Rates ({exchangeRates.length})</h4>
-                         <div className="space-y-2">
-                            {exchangeRates.map((r: any) => (
-                               <div key={r.id} className="p-2 bg-white rounded border flex justify-between items-center"><span className="text-sm font-medium">{r.currency}: ৳{r.rate}</span><button onClick={() => handleDelete('rate', r.id)}><Trash2 size={12} className="text-red-300"/></button></div>
-                            ))}
-                         </div>
-                      </div>
-                      <div className="bg-gray-50 p-4 rounded-xl border">
-                         <h4 className="font-bold text-amber-700 flex items-center gap-2 mb-4"><Wrench size={16}/> Courses ({vocationalCourses.length})</h4>
-                         <div className="space-y-2">
-                            {vocationalCourses.map((c: any) => (
-                               <div key={c.id} className="p-2 bg-white rounded border flex justify-between items-center"><span className="text-sm font-medium truncate max-w-[150px]">{c.title}</span><button onClick={() => handleDelete('course', c.id)}><Trash2 size={12} className="text-red-300"/></button></div>
-                            ))}
-                         </div>
-                      </div>
-                   </div>
-                </div>
-             )}
-
-             {activeTab === 'moderation' && (
-                <div className="p-8 space-y-8">
-                   <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                      <div className="space-y-4">
-                         <h4 className="font-bold text-gray-500 uppercase text-xs tracking-widest flex items-center gap-2"><Briefcase size={14}/> Pending Jobs ({requests.length})</h4>
-                         {requests.map((r: any) => (
-                            <div key={r.id} className="p-4 bg-gray-50 border rounded-xl flex justify-between items-center">
-                               <div><p className="font-bold text-gray-900">{r.title}</p><p className="text-xs text-gray-500">By: {r.postedBy}</p></div>
-                               <div className="flex gap-2"><button onClick={() => handleRequestAction(r, 'approve', 'job')} className="p-2 bg-green-100 text-green-700 rounded-lg"><Check size={16}/></button><button onClick={() => handleRequestAction(r, 'reject', 'job')} className="p-2 bg-red-100 text-red-700 rounded-lg"><X size={16}/></button></div>
-                            </div>
-                         ))}
-                      </div>
-                      <div className="space-y-4">
-                         <h4 className="font-bold text-gray-500 uppercase text-xs tracking-widest flex items-center gap-2"><FileText size={14}/> Pending Blogs ({blogRequests.length})</h4>
-                         {blogRequests.map((r: any) => (
-                            <div key={r.id} className="p-4 bg-gray-50 border rounded-xl flex justify-between items-center">
-                               <div><p className="font-bold text-gray-900 truncate max-w-[200px]">{r.title}</p><p className="text-xs text-gray-500">By: {r.author}</p></div>
-                               <div className="flex gap-2"><button onClick={() => handleRequestAction(r, 'approve', 'blog')} className="p-2 bg-green-100 text-green-700 rounded-lg"><Check size={16}/></button><button onClick={() => handleRequestAction(r, 'reject', 'blog')} className="p-2 bg-red-100 text-red-700 rounded-lg"><X size={16}/></button></div>
-                            </div>
-                         ))}
-                      </div>
-                   </div>
-                </div>
-             )}
-          </div>
-       </div>
+           {activeTab === 'requests' ? (
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                 <div className="bg-white border border-gray-100 rounded-2xl p-6 shadow-sm h-full">
+                    <h4 className="font-bold text-lg text-gray-800 mb-6 flex items-center gap-2"><Briefcase size={20} className="text-purple-600"/> Pending Jobs ({requests.length})</h4>
+                    <div className="space-y-4">
+                       {requests.map((req:any) => (
+                          <div key={req.id} className="p-4 bg-white border border-gray-100 rounded-xl hover:shadow-md transition-all">
+                             <div className="flex justify-between items-start mb-2"><div><h5 className="font-bold text-gray-900 text-base">{req.title}</h5><p className="text-xs text-gray-500 mt-1">{req.company} • {req.location}</p></div><span className="text-xs text-gray-400">{req.postedDate}</span></div>
+                             <div className="flex justify-between items-center mt-4"><span className="text-xs font-medium text-gray-500 bg-gray-100 px-2 py-1 rounded">By: {req.postedBy}</span><div className="flex gap-3"><button onClick={() => handleViewDetails(req, 'job')} className="text-gray-400 hover:text-blue-600 transition-colors"><Eye size={18}/></button><button onClick={() => handleActionClick(req, 'approve', 'job')} className="text-green-500 hover:text-green-600 transition-colors"><Check size={18}/></button><button onClick={() => handleActionClick(req, 'reject', 'job')} className="text-red-500 hover:text-red-600 transition-colors"><X size={18}/></button></div></div>
+                          </div>
+                       ))}
+                       {requests.length === 0 && <p className="text-center text-gray-400 py-4 italic">No pending jobs.</p>}
+                    </div>
+                 </div>
+                 
+                 <div className="bg-white border border-gray-100 rounded-2xl p-6 shadow-sm h-full">
+                    <h4 className="font-bold text-lg text-gray-800 mb-6 flex items-center gap-2"><FileText size={20} className="text-blue-600"/> Pending Blogs ({blogRequests.length})</h4>
+                    <div className="space-y-4">
+                       {blogRequests.map((req:any) => (
+                          <div key={req.id} className="p-4 bg-white border border-gray-100 rounded-xl hover:shadow-md transition-all">
+                             <div className="flex justify-between items-start mb-2"><div><h5 className="font-bold text-gray-900 text-base">{req.title}</h5><p className="text-xs text-gray-500 mt-1">Category: {req.category}</p></div><span className="text-xs text-gray-400">{req.postedDate}</span></div>
+                             <div className="flex justify-between items-center mt-4"><span className="text-xs font-medium text-gray-500 bg-gray-100 px-2 py-1 rounded">Author: {req.author}</span><div className="flex gap-3"><button onClick={() => handleViewDetails(req, 'blog')} className="text-gray-400 hover:text-blue-600 transition-colors"><Eye size={18}/></button><button onClick={() => handleActionClick(req, 'approve', 'blog')} className="text-green-500 hover:text-green-600 transition-colors"><Check size={18}/></button><button onClick={() => handleActionClick(req, 'reject', 'blog')} className="text-red-500 hover:text-red-600 transition-colors"><X size={18}/></button></div></div>
+                          </div>
+                       ))}
+                       {blogRequests.length === 0 && <p className="text-center text-gray-400 py-4 italic">No pending blogs.</p>}
+                    </div>
+                 </div>
+              </div>
+           ) : (
+              <div className="overflow-x-auto">
+                 <table className="w-full text-left border-collapse">
+                    <thead className="bg-gray-50/50 border-b border-gray-100">
+                       <tr><th className="p-4 text-xs font-bold text-gray-500 uppercase tracking-wider">{activeTab === 'jobs' ? 'JOB TITLE' : 'BLOG TITLE'}</th><th className="p-4 text-xs font-bold text-gray-500 uppercase tracking-wider">{activeTab === 'jobs' ? 'COMPANY/DETAILS' : 'CATEGORY/AUTHOR'}</th><th className="p-4 text-xs font-bold text-gray-500 uppercase tracking-wider">POSTED DATE</th><th className="p-4 text-xs font-bold text-gray-500 uppercase tracking-wider">VIEWS</th><th className="p-4 text-xs font-bold text-gray-500 uppercase tracking-wider">STATUS</th><th className="p-4 text-xs font-bold text-gray-500 uppercase tracking-wider text-right">ACTIONS</th></tr>
+                    </thead>
+                    <tbody className="divide-y divide-gray-50">
+                       {(activeTab === 'jobs' ? jobs : blogs).map((item: any) => (
+                          <tr key={item.id} className="hover:bg-gray-50/50 transition-colors group">
+                             <td className="p-4 font-bold text-gray-900 text-sm">{item.title}</td>
+                             <td className="p-4 text-sm text-gray-600">{activeTab === 'jobs' ? <><span className="block text-gray-900 font-medium">{item.company}</span><span className="text-xs text-gray-500">{item.type}</span></> : <><span className="block text-gray-900 font-medium">{item.category}</span><span className="text-xs text-gray-500">by {item.author}</span></>}</td>
+                             <td className="p-4 text-sm text-gray-500">{item.postedDate}</td>
+                             <td className="p-4 text-sm font-bold text-gray-700 bg-gray-50 rounded-lg w-fit h-fit px-2 py-1">{item.views}</td>
+                             <td className="p-4">{renderStatusBadge(item.status)}</td>
+                             <td className="p-4 text-right"><div className="flex justify-end gap-3 text-gray-400"><button onClick={() => handleViewDetails(item, activeTab === 'jobs' ? 'job' : 'blog')} className="hover:text-gray-600 transition-colors"><Eye size={18}/></button><button onClick={() => handleEdit(item)} className="hover:text-gray-600 transition-colors"><Edit3 size={18}/></button><button onClick={() => handleDelete(item.id, activeTab === 'jobs' ? 'job' : 'blog')} className="hover:text-red-500 transition-colors"><Trash2 size={18}/></button></div></td>
+                          </tr>
+                       ))}
+                    </tbody>
+                 </table>
+              </div>
+           )}
+        </div>
     </div>
   );
 };

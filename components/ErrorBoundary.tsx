@@ -1,4 +1,5 @@
-import React, { Component, ErrorInfo, ReactNode } from 'react';
+
+import React, { ErrorInfo, ReactNode } from 'react';
 import { AlertTriangle, RefreshCw, Home } from 'lucide-react';
 import { Button } from './ui/Button';
 
@@ -14,16 +15,14 @@ interface ErrorBoundaryState {
 /**
  * ErrorBoundary component to catch rendering errors in the application.
  */
-// Explicitly extend React.Component to ensure the TypeScript compiler correctly identifies the base class and provides 'props' and 'state'.
 export class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoundaryState> {
-  // Removed 'override' modifier as it was causing compilation errors when the compiler failed to link to the base class correctly.
-  state: ErrorBoundaryState = {
-    hasError: false,
-    error: null
-  };
-
+  // Use a constructor to ensure that 'props' and 'state' are correctly initialized and typed by inheritance
   constructor(props: ErrorBoundaryProps) {
     super(props);
+    this.state = {
+      hasError: false,
+      error: null
+    };
   }
 
   static getDerivedStateFromError(error: Error): ErrorBoundaryState {
@@ -31,7 +30,7 @@ export class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoun
     return { hasError: true, error };
   }
 
-  // Removed 'override' for better compatibility with strict TypeScript configurations.
+  // Log error information for debugging
   componentDidCatch(error: Error, errorInfo: ErrorInfo) {
     console.error('Uncaught error:', error, errorInfo);
   }
@@ -44,7 +43,6 @@ export class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoun
     window.location.href = '/';
   };
 
-  // Removed 'override' to fix the error where the compiler didn't recognize the base class inheritance.
   render(): ReactNode {
     // Access state properties from the instance
     if (this.state.hasError) {
@@ -82,7 +80,7 @@ export class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoun
       );
     }
 
-    // Accessing children from props which are now correctly inherited from React.Component.
+    // Access props from the instance which are now correctly recognized by TypeScript
     return this.props.children;
   }
 }
