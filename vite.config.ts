@@ -7,15 +7,21 @@ export default defineConfig(({ mode }) => {
   // Set the third parameter to '' to load all env regardless of the `VITE_` prefix.
   const env = loadEnv(mode, (process as any).cwd(), '');
   
+  // Combine process.env and loaded env to ensure we capture Vercel system variables
+  const processEnv = { ...process.env, ...env };
+
   return {
     plugins: [react()],
     define: {
       // Define process.env to prevent "Uncaught ReferenceError: process is not defined"
       'process.env': {
-        API_KEY: env.API_KEY || env.VITE_API_KEY || '',
-        // Map standard Vercel/Supabase integration variables to the VITE_ variables expected by the app
-        VITE_SUPABASE_URL: env.VITE_SUPABASE_URL || env.SUPABASE_URL || env.NEXT_PUBLIC_SUPABASE_URL || '',
-        VITE_SUPABASE_ANON_KEY: env.VITE_SUPABASE_ANON_KEY || env.SUPABASE_ANON_KEY || env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '',
+        API_KEY: processEnv.API_KEY || processEnv.VITE_API_KEY || '',
+        
+        // Map standard Vercel/Supabase integration variables (SUPABASE_URL) to VITE_ variables
+        // We check both 'env' (from files) and 'process.env' (from system/Vercel UI)
+        VITE_SUPABASE_URL: processEnv.VITE_SUPABASE_URL || processEnv.SUPABASE_URL || processEnv.NEXT_PUBLIC_SUPABASE_URL || '',
+        VITE_SUPABASE_ANON_KEY: processEnv.VITE_SUPABASE_ANON_KEY || processEnv.SUPABASE_ANON_KEY || processEnv.NEXT_PUBLIC_SUPABASE_ANON_KEY || '',
+        
         NODE_ENV: mode
       },
       // Define global to prevent "Uncaught ReferenceError: global is not defined" in some libs

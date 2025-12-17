@@ -1,15 +1,46 @@
 import { createClient } from '@supabase/supabase-js';
 
-// In Vite + Vercel, we configured vite.config.ts to expose these specific keys on process.env
-// We check process.env first (injected by build), then import.meta.env (native Vite)
-// We cast import.meta to any to avoid TypeScript errors when types aren't fully configured
-const SUPABASE_URL = process.env.VITE_SUPABASE_URL || ((import.meta as any).env && (import.meta as any).env.VITE_SUPABASE_URL) || '';
-const SUPABASE_ANON_KEY = process.env.VITE_SUPABASE_ANON_KEY || ((import.meta as any).env && (import.meta as any).env.VITE_SUPABASE_ANON_KEY) || '';
+// Helper to safely access environment variables
+// We prefer process.env because we explicitly polyfilled it in vite.config.ts 
+// to capture Vercel system variables (SUPABASE_URL) and map them to VITE_ keys.
+const getEnv = (key: string) => {
+  let val = '';
+  
+  // Try process.env first (injected by vite.config.ts define)
+  try {
+    // @ts-ignore
+    if (typeof process !== 'undefined' && process.env) {
+      // @ts-ignore
+      val = process.env[key];
+    }
+  } catch (e) {
+    // ignore
+  }
 
-// Debugging: Check console to see if keys are loaded (Masked for security)
-console.log("Supabase Connection Check:");
-console.log("- URL Provided:", SUPABASE_URL ? "Yes (" + SUPABASE_URL.substring(0, 15) + "...)" : "No");
-console.log("- Key Provided:", SUPABASE_ANON_KEY ? "Yes (Length: " + SUPABASE_ANON_KEY.length + ")" : "No");
+  // Try import.meta.env as fallback (native Vite)
+  // We use optional chaining or explicit checks to avoid crashing if env is undefined
+  if (!val) {
+    try {
+      // @ts-ignore
+      if (typeof import.meta !== 'undefined' && import.meta.env) {
+        // @ts-ignore
+        val = import.meta.env[key];
+      }
+    } catch (e) {
+      // ignore
+    }
+  }
+  
+  return val || '';
+};
+
+const SUPABASE_URL = getEnv('VITE_SUPABASE_URL');
+const SUPABASE_ANON_KEY = getEnv('VITE_SUPABASE_ANON_KEY');
+
+// Debugging (Check console in browser)
+console.log("[Supabase] Initializing Client...");
+console.log("- URL Configured:", !!SUPABASE_URL && !SUPABASE_URL.includes('placeholder'));
+console.log("- Key Configured:", !!SUPABASE_ANON_KEY && !SUPABASE_ANON_KEY.includes('placeholder'));
 
 const isConfigured = 
   SUPABASE_URL && 
@@ -22,12 +53,12 @@ const isConfigured =
 export const isSupabaseConfigured = isConfigured;
 
 if (!isConfigured) {
-  console.warn("⚠️ Supabase Config Missing. App running in Offline Mode.");
+  console.warn("⚠️ Supabase Config Missing. App running in Offline/Local Mode.");
 }
 
 export const supabase = createClient(
-  SUPABASE_URL || 'https://placeholder.supabase.co', 
-  SUPABASE_ANON_KEY || 'placeholder-key', {
+  isConfigured ? SUPABASE_URL : 'https://placeholder.supabase.co', 
+  isConfigured ? SUPABASE_ANON_KEY : 'placeholder-key', {
   auth: {
     persistSession: true,
     autoRefreshToken: true,
