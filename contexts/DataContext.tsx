@@ -2,7 +2,7 @@ import React, { createContext, useState, useContext, useEffect, ReactNode } from
 import { supabase, isSupabaseConfigured } from '../services/supabaseClient';
 import { User, UserRole } from '../types';
 
-// Mock Data
+// Mock Data (Fallback)
 const MOCK_JOBS = [
   { id: 1, title: 'Assistant Teacher', company: 'Dhaka Govt High School', type: 'Full Time', location: 'Dhaka', salary: '25k-35k', deadline: '2023-12-31', category: 'Government', description: 'Teaching position for Science subjects.', postedBy: 'Admin', postedDate: '10/24/2023', status: 'Active', views: 120, level: 'Entry' },
   { id: 2, title: 'Sales Executive', company: 'Pran RFL', type: 'Full Time', location: 'Chittagong', salary: '15k-20k', deadline: '2023-11-20', category: 'Private', description: 'Field sales executive needed.', postedBy: 'Admin', postedDate: '10/25/2023', status: 'Active', views: 85, level: 'Entry' }
@@ -78,6 +78,8 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     if (!data || typeof data !== 'object') return data;
     const normalized: any = {};
     for (const key in data) {
+      if (key === 'id' || key === 'created_at') continue; // Don't insert IDs or timestamps manually
+      if (data[key] === undefined) continue; // Skip undefined
       normalized[key.toLowerCase()] = data[key];
     }
     return normalized;
@@ -86,12 +88,17 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const fetchTable = async (table: string, setter: any, orderBy = 'created_at', ascending = false) => {
     if (!isSupabaseConfigured) return;
     const { data, error } = await supabase.from(table).select('*').order(orderBy, { ascending });
-    if (!error && data) setter(data);
+    if (error) {
+        console.error(`Error fetching ${table}:`, error);
+        return;
+    }
+    if (data) setter(data);
   };
 
   const fetchData = async () => {
     if (isSupabaseConfigured) {
-      await Promise.all([
+      // Use Promise.allSettled to ensure one failure doesn't stop others
+      await Promise.allSettled([
         fetchTable('jobs', setJobs),
         fetchTable('blogs', setBlogs),
         fetchTable('requests', setRequests),
@@ -148,33 +155,36 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   // --- GENERIC OPTIMISTIC ADD HELPER ---
   const optimisticAdd = async (table: string, newItem: any, setter: React.Dispatch<React.SetStateAction<any[]>>, currentList: any[]) => {
     // 1. Optimistic Update (Immediate UI Change)
-    const tempItem = { ...newItem, id: Date.now() }; // Temporary ID
+    const tempItem = { ...newItem, id: Date.now() }; // Temporary ID for UI
     setter(prev => [tempItem, ...prev]);
 
     if (isSupabaseConfigured) {
         // 2. DB Insert
-        const { id, ...dbData } = tempItem; // Remove temp ID
-        
-        // CRITICAL FIX: Normalize keys to lowercase
-        const normalizedDbData = normalizeData(dbData);
+        // Normalization: Keys to lowercase, remove 'id' and 'created_at'
+        const normalizedDbData = normalizeData(newItem);
 
-        const { error } = await supabase.from(table).insert([normalizedDbData]);
+        console.log(`Attempting to insert into ${table}:`, normalizedDbData);
+
+        const { data, error } = await supabase.from(table).insert([normalizedDbData]).select();
         
         if (error) {
             console.error(`Error adding to ${table}:`, error);
-            const errorMsg = error.message || JSON.stringify(error);
-            const errorDetails = error.details || error.hint || '';
             
-            if (errorMsg.includes('relation') && errorMsg.includes('does not exist')) {
-                alert(`System Error: The database table '${table}' does not exist. Please run the SQL Schema in Admin > Website Manage.`);
-            } else if (errorMsg.includes('row-level security')) {
-                alert(`Permission Error: Access denied to table '${table}'. Please run the SQL Schema to fix permissions.`);
-            } else {
-                alert(`Error saving data: ${errorMsg}. ${errorDetails}`);
+            // Detailed Error Message construction
+            let errorMsg = `Database Error (${error.code}): ${error.message}`;
+            if (error.details) errorMsg += `\nDetails: ${error.details}`;
+            if (error.hint) errorMsg += `\nHint: ${error.hint}`;
+
+            if (error.message?.includes('relation') && error.message?.includes('does not exist')) {
+               errorMsg = `Table '${table}' not found. Please go to Admin > Website Manage and click 'Copy SQL' then run it in Supabase SQL Editor.`;
             }
+
+            alert(errorMsg);
+            
             // Revert on error
             setter(currentList); 
         } else {
+            console.log(`Successfully inserted into ${table}:`, data);
             // 3. Fetch fresh data (to get real ID)
             await fetchTable(table, setter);
         }
@@ -186,15 +196,34 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
   // Actions
   const addJob = async (job: any) => {
-    const newJob = { ...job, postedDate: new Date().toLocaleDateString(), views: 0, status: 'Active' };
+    // Ensure all fields are strings or numbers, no undefined
+    const newJob = { 
+        title: job.title || '',
+        company: job.company || '',
+        location: job.location || '',
+        salary: job.salary || '',
+        type: job.type || 'Full Time',
+        category: job.category || 'Private',
+        description: job.description || '',
+        deadline: job.deadline || '',
+        postedBy: job.postedBy || 'Admin',
+        postedDate: new Date().toLocaleDateString(),
+        status: 'Active',
+        views: 0,
+        level: job.level || 'Entry'
+    };
     await optimisticAdd('jobs', newJob, setJobs, jobs);
   };
 
   const updateJob = async (updatedJob: any) => {
     if (isSupabaseConfigured) {
         const normalizedData = normalizeData(updatedJob);
-        await supabase.from('jobs').update(normalizedData).eq('id', updatedJob.id);
-        await fetchTable('jobs', setJobs);
+        const { error } = await supabase.from('jobs').update(normalizedData).eq('id', updatedJob.id);
+        if (error) {
+            alert(`Update Error: ${error.message}`);
+        } else {
+            await fetchTable('jobs', setJobs);
+        }
     } else {
         const updated = jobs.map(j => j.id === updatedJob.id ? updatedJob : j);
         setJobs(updated);
@@ -207,7 +236,10 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     setJobs(jobs.filter(j => j.id !== id));
     if (isSupabaseConfigured) {
         const { error } = await supabase.from('jobs').delete().eq('id', id);
-        if(error) setJobs(prev);
+        if(error) {
+            alert(`Delete Error: ${error.message}`);
+            setJobs(prev);
+        }
     } else {
         setLocal('db_jobs', jobs.filter(j => j.id !== id));
     }

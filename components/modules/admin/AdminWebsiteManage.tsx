@@ -2,10 +2,12 @@ import React, { useState, useEffect, useRef } from 'react';
 import { 
   Monitor, Layout, Layers, ToggleLeft, ToggleRight, 
   AlertTriangle, Megaphone, Power, CheckCircle, Smartphone, Database, Server, HardDrive, Copy, Check, Save, RefreshCw, Key,
-  Globe, MapPin, Phone, Mail, Upload, X, Image as ImageIcon
+  Globe, MapPin, Phone, Mail, Upload, X, Image as ImageIcon,
+  Zap
 } from 'lucide-react';
+import { Button } from '../../ui/Button';
 import { useSiteConfig, ToggableModule, LandingSection } from '../../../contexts/SiteConfigContext';
-import { isSupabaseConfigured } from '../../../services/supabaseClient';
+import { isSupabaseConfigured, supabase } from '../../../services/supabaseClient';
 import { AppModule } from '../../../types';
 
 const SCHEMA_SQL = `
@@ -155,6 +157,7 @@ export const AdminWebsiteManage = () => {
   const [dbUrl, setDbUrl] = useState(localStorage.getItem('dream_sb_url') || '');
   const [dbKey, setDbKey] = useState(localStorage.getItem('dream_sb_key') || '');
   const [isSaving, setIsSaving] = useState(false);
+  const [testResult, setTestResult] = useState<string | null>(null);
 
   const handleCopySQL = () => {
     navigator.clipboard.writeText(SCHEMA_SQL);
@@ -172,6 +175,20 @@ export const AdminWebsiteManage = () => {
         alert('Configuration Saved! The page will refresh to connect.');
         window.location.reload();
     }, 1000);
+  };
+
+  const handleTestConnection = async () => {
+      setTestResult('Testing...');
+      try {
+          const { count, error } = await supabase.from('jobs').select('*', { count: 'exact', head: true });
+          if (error) {
+              setTestResult(`Error: ${error.message} (Code: ${error.code})`);
+          } else {
+              setTestResult(`Success! Connected. Job count: ${count}`);
+          }
+      } catch (err: any) {
+          setTestResult(`Failed: ${err.message}`);
+      }
   };
 
   const handleDisconnect = () => {
@@ -282,16 +299,22 @@ export const AdminWebsiteManage = () => {
                 </div>
             ) : (
                 <div className="text-center py-6">
-                    <div className="w-16 h-16 bg-green-100 text-green-600 rounded-full flex items-center justify-center mx-auto mb-3">
-                        <CheckCircle size={32} />
+                    <div className="flex gap-4 justify-center mb-6">
+                        <Button onClick={handleTestConnection} variant="outline" className="flex items-center gap-2">
+                            <Zap size={16} /> Test Connection
+                        </Button>
                     </div>
-                    <h3 className="font-bold text-gray-900 text-lg">System is Online</h3>
-                    <p className="text-gray-500 mb-6">Run this SQL code to fix database columns and permissions.</p>
                     
+                    {testResult && (
+                        <div className={`mb-6 p-4 rounded-xl border text-left text-sm font-mono ${testResult.startsWith('Success') ? 'bg-green-50 border-green-200 text-green-800' : 'bg-red-50 border-red-200 text-red-800'}`}>
+                            {testResult}
+                        </div>
+                    )}
+
                     <div className="bg-gray-900 text-white p-6 rounded-2xl border border-gray-800 text-left">
                         <h4 className="font-bold text-lg mb-2 flex items-center gap-2 text-green-400"><Server size={20}/> Database Repair & Setup</h4>
                         <p className="text-sm text-gray-300 mb-4 leading-relaxed">
-                            Run this SQL in Supabase Query Editor. It uses <strong>IF NOT EXISTS</strong> to safely add missing columns without deleting data. It fixes permission issues and normalizes columns to lowercase.
+                            Run this SQL in Supabase Query Editor to fix table columns and permissions.
                         </p>
                         
                         <div className="bg-black/50 p-4 rounded-xl font-mono text-xs text-green-300 mb-4 h-32 overflow-y-auto border border-gray-700">
