@@ -109,7 +109,7 @@ interface DataContextType {
 const DataContext = createContext<DataContextType | undefined>(undefined);
 
 export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
-  // Initialize state from LocalStorage if Supabase is NOT configured, otherwise use initial defaults
+  // Initialize state
   const [jobs, setJobs] = useState<any[]>(() => isSupabaseConfigured ? INITIAL_JOBS : getLocal('db_jobs', INITIAL_JOBS));
   const [blogs, setBlogs] = useState<any[]>(() => isSupabaseConfigured ? INITIAL_BLOGS : getLocal('db_blogs', INITIAL_BLOGS));
   const [requests, setRequests] = useState<any[]>(() => isSupabaseConfigured ? INITIAL_REQUESTS : getLocal('db_requests', INITIAL_REQUESTS));
@@ -124,56 +124,41 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const [donors, setDonors] = useState<any[]>(() => isSupabaseConfigured ? INITIAL_DONORS : getLocal('db_donors', INITIAL_DONORS));
   const [enrolledCourses, setEnrolledCourses] = useState<any[]>(() => isSupabaseConfigured ? INITIAL_ENROLLED_COURSES : getLocal('db_enrolled', INITIAL_ENROLLED_COURSES));
 
-  // --- SUPABASE DATA FETCHING ---
-  const fetchData = async () => {
-    if (!isSupabaseConfigured) return;
-
+  // --- SUPABASE DATA FETCHING HELPER ---
+  const fetchTable = async (table: string, setter: React.Dispatch<React.SetStateAction<any[]>>, orderBy = 'created_at', ascending = false) => {
     try {
-      const { data: dbJobs } = await supabase.from('jobs').select('*').order('created_at', { ascending: false });
-      if (dbJobs) setJobs(dbJobs);
-
-      const { data: dbBlogs } = await supabase.from('blogs').select('*').order('created_at', { ascending: false });
-      if (dbBlogs) setBlogs(dbBlogs);
-
-      const { data: dbPrices } = await supabase.from('market_prices').select('*').order('id', { ascending: true });
-      if (dbPrices && dbPrices.length > 0) setMarketPrices(dbPrices);
-
-      const { data: dbUsers } = await supabase.from('users').select('*').order('created_at', { ascending: false });
-      if (dbUsers) setUsers(dbUsers);
-
-      const { data: dbRequests } = await supabase.from('requests').select('*').order('created_at', { ascending: false });
-      if (dbRequests) setRequests(dbRequests);
-
-      const { data: dbGrievances } = await supabase.from('grievances').select('*').order('created_at', { ascending: false });
-      if (dbGrievances) setGrievances(dbGrievances);
-
-      const { data: dbAds } = await supabase.from('wholesale_ads').select('*').order('created_at', { ascending: false });
-      if (dbAds) setWholesaleAds(dbAds);
-
-      const { data: dbLawyers } = await supabase.from('lawyers').select('*').order('created_at', { ascending: false });
-      if (dbLawyers) setLawyers(dbLawyers);
-
-      const { data: dbDonors } = await supabase.from('donors').select('*').order('created_at', { ascending: false });
-      if (dbDonors) setDonors(dbDonors);
-
-      const { data: dbRetail } = await supabase.from('retail_products').select('*').order('created_at', { ascending: false });
-      if (dbRetail) setRetailProducts(dbRetail);
-
-      const { data: dbRates } = await supabase.from('exchange_rates').select('*').order('created_at', { ascending: false });
-      if (dbRates) setExchangeRates(dbRates);
-
-      const { data: dbVocational } = await supabase.from('vocational_courses').select('*').order('created_at', { ascending: false });
-      if (dbVocational) setVocationalCourses(dbVocational);
-
-      const { data: dbEnrolled } = await supabase.from('enrolled_courses').select('*').order('created_at', { ascending: false });
-      if (dbEnrolled) setEnrolledCourses(dbEnrolled);
-
-    } catch (error) {
-      console.error("Supabase Fetch Error:", error);
+      const { data, error } = await supabase.from(table).select('*').order(orderBy, { ascending });
+      if (error) {
+        console.error(`Error fetching ${table}:`, error.message);
+      } else if (data) {
+        setter(data);
+      }
+    } catch (e) {
+      console.error(`Exception fetching ${table}:`, e);
     }
   };
 
-  // RSS Feed Fetcher (Client Side Only)
+  const fetchData = async () => {
+    if (!isSupabaseConfigured) return;
+    
+    // Fetch all tables
+    await Promise.all([
+      fetchTable('jobs', setJobs),
+      fetchTable('blogs', setBlogs),
+      fetchTable('market_prices', setMarketPrices, 'id', true),
+      fetchTable('users', setUsers),
+      fetchTable('requests', setRequests),
+      fetchTable('grievances', setGrievances),
+      fetchTable('wholesale_ads', setWholesaleAds),
+      fetchTable('lawyers', setLawyers),
+      fetchTable('donors', setDonors),
+      fetchTable('retail_products', setRetailProducts),
+      fetchTable('exchange_rates', setExchangeRates),
+      fetchTable('vocational_courses', setVocationalCourses),
+      fetchTable('enrolled_courses', setEnrolledCourses),
+    ]);
+  };
+
   const fetchLiveNews = async () => {
     try {
       const RSS_URL = 'https://www.tbsnews.net/rss/economy.xml';
@@ -200,6 +185,7 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         }));
         
         setBlogs(prev => {
+           // Keep DB blogs, append news
            const dbBlogsOnly = prev.filter((b: any) => !b.id.toString().startsWith('news_'));
            return [...dbBlogsOnly, ...fetchedBlogs];
         });
@@ -222,6 +208,7 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         .subscribe();
     } else {
       const handleStorageChange = (e: StorageEvent) => {
+        // ... (Local storage listener logic remains same)
         if (e.key === 'db_jobs') setJobs(getLocal('db_jobs', INITIAL_JOBS));
         if (e.key === 'db_blogs') setBlogs(getLocal('db_blogs', INITIAL_BLOGS));
         if (e.key === 'db_requests') setRequests(getLocal('db_requests', INITIAL_REQUESTS));
@@ -248,13 +235,14 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     fetchLiveNews();
   };
 
-  // --- ACTIONS ---
+  // --- ACTIONS (UPDATED TO REFETCH) ---
 
   const addJob = async (job: any) => {
     const { id, ...jobData } = job;
     if (isSupabaseConfigured) {
         const newJob = { ...jobData, postedDate: new Date().toLocaleDateString(), views: 0, status: 'Active' };
         await supabase.from('jobs').insert([newJob]);
+        await fetchTable('jobs', setJobs); // Force Update
     } else {
         const newJob = { ...jobData, id: Date.now(), postedDate: new Date().toLocaleDateString(), views: 0, status: 'Active' };
         const updated = [newJob, ...jobs];
@@ -266,6 +254,7 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const updateJob = async (updatedJob: any) => {
     if (isSupabaseConfigured) {
         await supabase.from('jobs').update(updatedJob).eq('id', updatedJob.id);
+        await fetchTable('jobs', setJobs); // Force Update
     } else {
         const updated = jobs.map(j => j.id === updatedJob.id ? updatedJob : j);
         setJobs(updated);
@@ -276,6 +265,7 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const deleteJob = async (id: number) => {
     if (isSupabaseConfigured) {
         await supabase.from('jobs').delete().eq('id', id);
+        await fetchTable('jobs', setJobs); // Force Update
     } else {
         const updated = jobs.filter(j => j.id !== id);
         setJobs(updated);
@@ -288,6 +278,7 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     if (isSupabaseConfigured) {
         const newBlog = { ...blogData, postedDate: new Date().toLocaleDateString(), views: 0, status: 'Active' };
         await supabase.from('blogs').insert([newBlog]);
+        await fetchTable('blogs', setBlogs); // Force Update
     } else {
         const newBlog = { ...blogData, id: Date.now(), postedDate: new Date().toLocaleDateString(), views: 0, status: 'Active' };
         const updated = [newBlog, ...blogs];
@@ -299,6 +290,7 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const updateBlog = async (updatedBlog: any) => {
     if (isSupabaseConfigured) {
         await supabase.from('blogs').update(updatedBlog).eq('id', updatedBlog.id);
+        await fetchTable('blogs', setBlogs); // Force Update
     } else {
         const updated = blogs.map(b => b.id === updatedBlog.id ? updatedBlog : b);
         setBlogs(updated);
@@ -309,6 +301,7 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const deleteBlog = async (id: number) => {
     if (isSupabaseConfigured) {
         await supabase.from('blogs').delete().eq('id', id);
+        await fetchTable('blogs', setBlogs); // Force Update
     } else {
         const updated = blogs.filter(b => b.id !== id);
         setBlogs(updated);
@@ -320,6 +313,7 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     if (isSupabaseConfigured) {
         const newReq = { ...request, status: 'Pending', postedDate: new Date().toLocaleDateString() };
         await supabase.from('requests').insert([newReq]);
+        await fetchTable('requests', setRequests);
     } else {
         const newReq = { ...request, id: Date.now(), status: 'Pending', postedDate: new Date().toLocaleDateString() };
         const updated = [newReq, ...requests];
@@ -331,6 +325,7 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const handleRequestAction = async (item: any, action: 'approve' | 'reject') => {
     if (isSupabaseConfigured) {
         await supabase.from('requests').delete().eq('id', item.id);
+        await fetchTable('requests', setRequests);
     } else {
         const updatedReqs = requests.filter(r => r.id !== item.id);
         setRequests(updatedReqs);
@@ -348,6 +343,7 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     if (isSupabaseConfigured) {
         const newReport = { ...report, status: 'Pending', date: new Date().toLocaleDateString() };
         await supabase.from('grievances').insert([newReport]);
+        await fetchTable('grievances', setGrievances);
     } else {
         const newReport = { ...report, id: Date.now(), status: 'Pending', date: new Date().toLocaleDateString() };
         const updated = [newReport, ...grievances];
@@ -359,6 +355,7 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const updateGrievanceStatus = async (id: number, status: string) => {
     if (isSupabaseConfigured) {
         await supabase.from('grievances').update({ status }).eq('id', id);
+        await fetchTable('grievances', setGrievances);
     } else {
         const updated = grievances.map(g => g.id === id ? { ...g, status } : g);
         setGrievances(updated);
@@ -369,6 +366,7 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const deleteGrievance = async (id: number) => {
     if (isSupabaseConfigured) {
         await supabase.from('grievances').delete().eq('id', id);
+        await fetchTable('grievances', setGrievances);
     } else {
         const updated = grievances.filter(g => g.id !== id);
         setGrievances(updated);
@@ -382,6 +380,7 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     if (isSupabaseConfigured) {
         const newUser = { ...user, status: 'Active', date: new Date().toLocaleDateString() };
         await supabase.from('users').insert([newUser]);
+        await fetchTable('users', setUsers);
     } else {
         const newUser = { ...user, status: 'Active', date: new Date().toLocaleDateString() };
         if(!newUser.id) newUser.id = `u${Date.now()}`;
@@ -394,6 +393,7 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const updateUserStatus = async (id: string, status: 'Active' | 'Suspended') => {
     if (isSupabaseConfigured) {
         await supabase.from('users').update({ status }).eq('id', id);
+        await fetchTable('users', setUsers);
     } else {
         const updated = users.map(u => u.id === id ? { ...u, status } : u);
         setUsers(updated);
@@ -404,6 +404,7 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const deleteUser = async (id: string) => {
     if (isSupabaseConfigured) {
         await supabase.from('users').delete().eq('id', id);
+        await fetchTable('users', setUsers);
     } else {
         const updated = users.filter(u => u.id !== id);
         setUsers(updated);
@@ -414,6 +415,7 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const resetPassword = async (email: string, newPass: string) => {
     if (isSupabaseConfigured) {
         await supabase.from('users').update({ password: newPass }).eq('email', email);
+        await fetchTable('users', setUsers);
     } else {
         const updated = users.map(u => u.email === email ? { ...u, password: newPass } : u);
         setUsers(updated);
@@ -425,6 +427,7 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     setMarketPrices(newPrices);
     if (isSupabaseConfigured) {
         await supabase.from('market_prices').upsert(newPrices);
+        await fetchTable('market_prices', setMarketPrices, 'id', true);
     } else {
         setLocal('db_prices', newPrices);
     }
@@ -434,6 +437,7 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       const { id, ...data } = product;
       if (isSupabaseConfigured) {
           await supabase.from('retail_products').insert([data]);
+          await fetchTable('retail_products', setRetailProducts);
       } else {
           const updated = [...retailProducts, { ...product, id: Date.now() }];
           setRetailProducts(updated);
@@ -443,6 +447,7 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const updateRetailProduct = async (product: any) => {
       if (isSupabaseConfigured) {
           await supabase.from('retail_products').update(product).eq('id', product.id);
+          await fetchTable('retail_products', setRetailProducts);
       } else {
           const updated = retailProducts.map(p => p.id === product.id ? product : p);
           setRetailProducts(updated);
@@ -452,6 +457,7 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const deleteRetailProduct = async (id: number) => {
       if (isSupabaseConfigured) {
           await supabase.from('retail_products').delete().eq('id', id);
+          await fetchTable('retail_products', setRetailProducts);
       } else {
           const updated = retailProducts.filter(p => p.id !== id);
           setRetailProducts(updated);
@@ -463,6 +469,7 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     if (isSupabaseConfigured) {
         const newAd = { ...ad, status: 'Pending', date: new Date().toLocaleDateString() };
         await supabase.from('wholesale_ads').insert([newAd]);
+        await fetchTable('wholesale_ads', setWholesaleAds);
     } else {
         const newAd = { ...ad, id: Date.now(), status: 'Pending', date: new Date().toLocaleDateString() };
         const updated = [newAd, ...wholesaleAds];
@@ -474,6 +481,7 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const updateWholesaleAd = async (updatedAd: any) => {
     if (isSupabaseConfigured) {
         await supabase.from('wholesale_ads').update(updatedAd).eq('id', updatedAd.id);
+        await fetchTable('wholesale_ads', setWholesaleAds);
     } else {
         const updated = wholesaleAds.map(a => a.id === updatedAd.id ? updatedAd : a);
         setWholesaleAds(updated);
@@ -484,6 +492,7 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const deleteWholesaleAd = async (id: number) => {
     if (isSupabaseConfigured) {
         await supabase.from('wholesale_ads').delete().eq('id', id);
+        await fetchTable('wholesale_ads', setWholesaleAds);
     } else {
         const updated = wholesaleAds.filter(a => a.id !== id);
         setWholesaleAds(updated);
@@ -496,6 +505,7 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       const newLawyer = { ...data, status: 'Active' };
       if (isSupabaseConfigured) {
           await supabase.from('lawyers').insert([newLawyer]);
+          await fetchTable('lawyers', setLawyers);
       } else {
           const updated = [newLawyer, ...lawyers];
           setLawyers(updated);
@@ -505,6 +515,7 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const deleteLawyer = async (id: number) => {
       if (isSupabaseConfigured) {
           await supabase.from('lawyers').delete().eq('id', id);
+          await fetchTable('lawyers', setLawyers);
       } else {
           const updated = lawyers.filter(l => l.id !== id);
           setLawyers(updated);
@@ -516,6 +527,7 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       const { id, ...data } = rate;
       if (isSupabaseConfigured) {
           await supabase.from('exchange_rates').insert([data]);
+          await fetchTable('exchange_rates', setExchangeRates);
       } else {
           const updated = [...exchangeRates, { ...rate, id: Date.now() }];
           setExchangeRates(updated);
@@ -526,6 +538,7 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const deleteExchangeRate = async (id: number) => {
       if (isSupabaseConfigured) {
           await supabase.from('exchange_rates').delete().eq('id', id);
+          await fetchTable('exchange_rates', setExchangeRates);
       } else {
           const updated = exchangeRates.filter(r => r.id !== id);
           setExchangeRates(updated);
@@ -537,6 +550,7 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       const { id, ...data } = course;
       if (isSupabaseConfigured) {
           await supabase.from('vocational_courses').insert([{...data, status: 'Active'}]);
+          await fetchTable('vocational_courses', setVocationalCourses);
       } else {
           const updated = [...vocationalCourses, { ...course, id: Date.now(), status: 'Active' }];
           setVocationalCourses(updated);
@@ -546,6 +560,7 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const deleteVocationalCourse = async (id: number) => {
       if (isSupabaseConfigured) {
           await supabase.from('vocational_courses').delete().eq('id', id);
+          await fetchTable('vocational_courses', setVocationalCourses);
       } else {
           const updated = vocationalCourses.filter((c: any) => c.id !== id);
           setVocationalCourses(updated);
@@ -556,6 +571,7 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const addDonor = async (donor: any) => {
       if (isSupabaseConfigured) {
           await supabase.from('donors').insert([donor]);
+          await fetchTable('donors', setDonors);
       } else {
           const updated = [donor, ...donors];
           setDonors(updated);
@@ -566,6 +582,7 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const enrollCourse = async (enrollment: any) => {
       if (isSupabaseConfigured) {
           await supabase.from('enrolled_courses').insert([enrollment]);
+          await fetchTable('enrolled_courses', setEnrolledCourses);
       } else {
           const updated = [enrollment, ...enrolledCourses];
           setEnrolledCourses(updated);
@@ -586,7 +603,7 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       addRetailProduct, updateRetailProduct, deleteRetailProduct,
       addWholesaleAd, updateWholesaleAd, deleteWholesaleAd,
       addLawyer, deleteLawyer, 
-      addExchangeRate, deleteExchangeRate, // New Methods
+      addExchangeRate, deleteExchangeRate,
       addVocationalCourse, deleteVocationalCourse,
       addDonor, enrollCourse,
       refreshData
