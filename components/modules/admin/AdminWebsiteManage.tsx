@@ -4,7 +4,7 @@ import {
   Monitor, Layout, Layers, ToggleLeft, ToggleRight, 
   AlertTriangle, Megaphone, Power, CheckCircle, Smartphone, Database, Server, HardDrive, Copy, Check, Save, RefreshCw, Key,
   Globe, MapPin, Phone, Mail, Upload, X, Image as ImageIcon,
-  Zap, PlusCircle, RotateCcw, Wifi, WifiOff, Globe2, Lock, ShieldCheck, Terminal, AlertCircle, Info
+  Zap, PlusCircle, RotateCcw, Wifi, WifiOff, Globe2, Lock, ShieldCheck, Terminal, AlertCircle, Info, Code, ArrowRight
 } from 'lucide-react';
 import { Button } from '../../ui/Button';
 import { useSiteConfig, ToggableModule, LandingSection } from '../../../contexts/SiteConfigContext';
@@ -54,6 +54,7 @@ GRANT ALL ON ALL SEQUENCES IN SCHEMA public TO anon, authenticated;
 export const AdminWebsiteManage = () => {
   const { modules, sections, settings, toggleModule, toggleSection, updateSettings } = useSiteConfig();
   const [copied, setCopied] = useState(false);
+  const [configCopied, setConfigCopied] = useState(false);
   const logoInputRef = useRef<HTMLInputElement>(null);
 
   // DB Config State
@@ -62,6 +63,7 @@ export const AdminWebsiteManage = () => {
   const [isSaving, setIsSaving] = useState(false);
   const [testResult, setTestResult] = useState<string | null>(null);
   const [statusColor, setStatusColor] = useState('gray');
+  const [showGlobalInstructions, setShowGlobalInstructions] = useState(false);
 
   useEffect(() => {
       if (isSupabaseConfigured) {
@@ -73,6 +75,13 @@ export const AdminWebsiteManage = () => {
     navigator.clipboard.writeText(SCHEMA_SQL);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
+  };
+
+  const handleCopyConfig = () => {
+    const code = `const HARDCODED_URL = '${dbUrl}';\nconst HARDCODED_KEY = '${dbKey}';`;
+    navigator.clipboard.writeText(code);
+    setConfigCopied(true);
+    setTimeout(() => setConfigCopied(false), 2000);
   };
 
   const handleSaveDbConfig = () => {
@@ -178,48 +187,93 @@ export const AdminWebsiteManage = () => {
     <div className="space-y-8 animate-fade-in max-w-5xl mx-auto">
       
       {/* --- STATUS BANNER --- */}
-      <div className={`relative overflow-hidden rounded-2xl p-1 shadow-sm ${isGlobalConfig ? 'bg-gradient-to-r from-emerald-400 to-cyan-500' : 'bg-gradient-to-r from-amber-400 to-orange-500'}`}>
-        <div className="bg-white/95 backdrop-blur-sm rounded-xl p-6 md:p-8">
-          <div className="flex flex-col md:flex-row items-center md:items-start justify-between gap-6">
-            <div className="flex items-start gap-5">
-              <div className={`p-4 rounded-2xl shadow-lg shrink-0 ${isGlobalConfig ? 'bg-emerald-500 text-white' : 'bg-amber-500 text-white'}`}>
-                {isGlobalConfig ? <Globe2 size={36} /> : <Lock size={36} />}
+      <div className={`relative overflow-hidden rounded-2xl p-1 shadow-md ${isGlobalConfig ? 'bg-gradient-to-r from-emerald-400 to-cyan-500' : 'bg-gradient-to-r from-amber-400 to-orange-500'}`}>
+        <div className="bg-white/95 backdrop-blur-md rounded-xl p-6 md:p-8">
+          <div className="flex flex-col lg:flex-row items-center lg:items-start justify-between gap-8">
+            
+            <div className="flex items-start gap-6">
+              <div className={`p-5 rounded-2xl shadow-xl shrink-0 ${isGlobalConfig ? 'bg-emerald-500 text-white' : 'bg-amber-500 text-white'}`}>
+                {isGlobalConfig ? <Globe2 size={40} /> : <Lock size={40} />}
               </div>
-              <div className="text-center md:text-left">
-                <h2 className={`text-2xl font-black tracking-tight ${isGlobalConfig ? 'text-emerald-900' : 'text-amber-900'}`}>
+              <div className="text-center lg:text-left">
+                <h2 className={`text-3xl font-black tracking-tight ${isGlobalConfig ? 'text-emerald-900' : 'text-amber-900'}`}>
                   {isGlobalConfig ? 'GLOBAL SYSTEM ONLINE' : 'LOCAL MODE (RESTRICTED)'}
                 </h2>
-                <p className={`mt-2 font-medium max-w-lg ${isGlobalConfig ? 'text-emerald-700' : 'text-amber-800'}`}>
+                <p className={`mt-2 font-medium text-lg max-w-lg ${isGlobalConfig ? 'text-emerald-700' : 'text-amber-800'}`}>
                   {isGlobalConfig 
-                    ? 'Your application is connected to the cloud via secure environment variables. Data is synced in real-time for all users.' 
-                    : 'The database is connected only on this browser. Updates will NOT be visible to other users. Add keys to code for global access.'}
+                    ? 'Success! Your app is connected to the cloud. All users can see the data.' 
+                    : 'The database is connected only on this device. Other users CANNOT see your updates.'}
                 </p>
+                
+                {/* GLOBAL ACTIVATION BUTTON */}
                 {!isGlobalConfig && (
-                  <div className="mt-4 inline-flex items-center gap-2 bg-amber-100 text-amber-800 px-4 py-2 rounded-lg text-xs font-bold border border-amber-200">
-                    <AlertTriangle size={14} />
-                    Edit services/supabaseClient.ts to fix this.
+                  <div className="mt-6 flex flex-col sm:flex-row gap-4 justify-center lg:justify-start">
+                    <Button 
+                      onClick={() => setShowGlobalInstructions(!showGlobalInstructions)} 
+                      className="bg-amber-600 hover:bg-amber-700 text-white border-none shadow-lg shadow-amber-200 font-bold px-6 py-3 rounded-xl flex items-center justify-center gap-2 transform hover:scale-105 transition-all"
+                    >
+                      <Globe2 size={18} /> {showGlobalInstructions ? 'Hide Instructions' : 'Enable Global Mode'}
+                    </Button>
+                    {isSupabaseConfigured && (
+                       <div className="flex items-center gap-2 px-4 py-2 bg-green-50 border border-green-200 rounded-xl text-green-700 text-sm font-bold">
+                          <CheckCircle size={16} /> Local Connection Active
+                       </div>
+                    )}
                   </div>
                 )}
               </div>
             </div>
             
+            {/* Status Indicator */}
             {isSupabaseConfigured && (
-              <div className="flex flex-col gap-3 w-full md:w-auto">
-                <div className="bg-gray-50 rounded-xl p-3 border border-gray-100 flex items-center justify-between gap-4">
-                   <div className="flex items-center gap-2 text-sm font-bold text-gray-600">
-                      <div className={`w-2.5 h-2.5 rounded-full ${statusColor === 'green' ? 'bg-green-500 animate-pulse' : statusColor === 'red' ? 'bg-red-500' : 'bg-gray-400'}`}></div>
-                      Connection
+              <div className="flex flex-col gap-3 w-full lg:w-auto">
+                <div className="bg-gray-50 rounded-xl p-4 border border-gray-200 flex items-center justify-between gap-4 shadow-inner">
+                   <div className="flex items-center gap-2 text-sm font-bold text-gray-700">
+                      <div className={`w-3 h-3 rounded-full ${statusColor === 'green' ? 'bg-green-500 animate-pulse' : statusColor === 'red' ? 'bg-red-500' : 'bg-gray-400'}`}></div>
+                      Status
                    </div>
-                   <span className={`text-xs font-bold px-2 py-0.5 rounded ${statusColor === 'green' ? 'bg-green-100 text-green-700' : statusColor === 'red' ? 'bg-red-100 text-red-700' : 'bg-gray-200 text-gray-600'}`}>
-                     {statusColor === 'green' ? 'Active' : statusColor === 'red' ? 'Error' : 'Idle'}
+                   <span className={`text-xs font-bold px-2 py-1 rounded uppercase ${statusColor === 'green' ? 'bg-green-100 text-green-700' : statusColor === 'red' ? 'bg-red-100 text-red-700' : 'bg-gray-200 text-gray-600'}`}>
+                     {statusColor === 'green' ? 'Connected' : statusColor === 'red' ? 'Error' : 'Idle'}
                    </span>
                 </div>
-                <Button onClick={() => handleTestConnection(false)} variant="outline" className="w-full justify-center bg-white hover:bg-gray-50 text-gray-700 border-gray-300">
+                <Button onClick={() => handleTestConnection(false)} variant="outline" className="w-full justify-center bg-white hover:bg-gray-50 text-gray-700 border-gray-300 font-bold">
                    <Zap size={16} className="mr-2 text-yellow-500"/> Test Connection
                 </Button>
               </div>
             )}
           </div>
+
+          {/* GLOBAL INSTRUCTIONS PANEL */}
+          {showGlobalInstructions && (
+            <div className="mt-8 bg-slate-900 rounded-2xl p-6 border border-slate-700 text-white animate-fade-in relative overflow-hidden">
+                <div className="absolute top-0 right-0 w-32 h-32 bg-emerald-500 rounded-full blur-[60px] opacity-20"></div>
+                <div className="relative z-10">
+                    <div className="flex justify-between items-center mb-4">
+                        <h3 className="text-xl font-bold flex items-center gap-2"><Code size={24} className="text-emerald-400" /> Make It Global</h3>
+                        <button onClick={() => setShowGlobalInstructions(false)} className="bg-slate-800 p-2 rounded-full hover:bg-slate-700"><X size={20}/></button>
+                    </div>
+                    <p className="text-slate-300 mb-4 text-sm">To make your database connection visible to <strong>everyone (Global)</strong>, you must update the source code. Copy the code below and paste it into the <code>services/supabaseClient.ts</code> file.</p>
+                    
+                    <div className="bg-black/50 rounded-xl border border-slate-700 p-4 mb-4 relative group">
+                        <pre className="font-mono text-xs sm:text-sm text-emerald-400 overflow-x-auto whitespace-pre-wrap break-all">
+{`const HARDCODED_URL = '${dbUrl || 'YOUR_PROJECT_URL_HERE'}';
+const HARDCODED_KEY = '${dbKey || 'YOUR_ANON_KEY_HERE'}';`}
+                        </pre>
+                        <button 
+                            onClick={handleCopyConfig}
+                            className="absolute top-2 right-2 bg-white text-slate-900 px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-2 hover:bg-emerald-50 transition-colors shadow-lg"
+                        >
+                            {configCopied ? <Check size={14}/> : <Copy size={14}/>} {configCopied ? 'Copied' : 'Copy Code'}
+                        </button>
+                    </div>
+                    
+                    <div className="flex items-center gap-3 text-sm text-slate-400 bg-slate-800/50 p-3 rounded-lg border border-slate-700/50">
+                        <Info size={16} className="text-emerald-400 shrink-0" />
+                        <span>After pasting, save the file. The "Status Banner" above will turn <strong>Green</strong>.</span>
+                    </div>
+                </div>
+            </div>
+          )}
         </div>
       </div>
 
@@ -248,7 +302,7 @@ export const AdminWebsiteManage = () => {
                         <div>
                           <h4 className="font-bold text-blue-900 mb-1">Setup Required</h4>
                           <p className="text-sm text-blue-800">
-                            To enable global access, paste your Supabase keys directly into <code>services/supabaseClient.ts</code>. Alternatively, use the form below for a temporary local connection.
+                            Enter your Supabase URL and Key below to connect locally. To make it global, use the button in the top banner.
                           </p>
                         </div>
                     </div>
