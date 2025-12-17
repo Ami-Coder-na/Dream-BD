@@ -4,17 +4,17 @@ import { createClient } from '@supabase/supabase-js';
 // If you want ALL users to see the data, paste your keys here inside the quotes.
 // অন্য ইউজারদের আপডেট দেখাতে হলে অবশ্যই এখানে কি (Key) বসাতে হবে।
 
-const HARDCODED_URL = ''; // e.g. 'https://xyz.supabase.co'
-const HARDCODED_KEY = ''; // e.g. 'eyJ...'
+// FIXED: Applied the keys provided in the setup
+const HARDCODED_URL = 'https://zpsxpqurazjeqviwooky.supabase.co';
+const HARDCODED_KEY = 'sb_publishable_gqz_Uzt_JhlNsC59yHXuAQ_IzRiKc3F';
 
 // Helper to safely access environment variables
 // IMPROVED: Smartly detects if user pasted a value directly instead of a key name
 const getEnv = (key: string) => {
   if (!key) return '';
 
-  // Smart Fix: If the input looks like a URL or Key (starts with http or eyJ), return it directly
-  // This fixes the issue where users paste the actual value inside getEnv('VALUE')
-  if (key.startsWith('http') || key.startsWith('ey')) {
+  // Smart Fix: If the input looks like a URL or Key (starts with http or eyJ or sb_), return it directly
+  if (key.startsWith('http') || key.startsWith('ey') || key.startsWith('sb_')) {
     return key;
   }
 
@@ -48,8 +48,8 @@ const getStoredConfig = (key: string) => {
 };
 
 // Config Sources
-const ENV_URL = getEnv('https://zpsxpqurazjeqviwooky.supabase.co'); 
-const ENV_KEY = getEnv('sb_publishable_gqz_Uzt_JhlNsC59yHXuAQ_IzRiKc3F');
+const ENV_URL = getEnv('VITE_SUPABASE_URL'); 
+const ENV_KEY = getEnv('VITE_SUPABASE_ANON_KEY');
 
 const STORED_URL = getStoredConfig('dream_sb_url');
 const STORED_KEY = getStoredConfig('dream_sb_key');
