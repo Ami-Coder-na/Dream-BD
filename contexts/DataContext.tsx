@@ -1,33 +1,34 @@
 import React, { createContext, useState, useContext, useEffect, ReactNode } from 'react';
 import { supabase, isSupabaseConfigured } from '../services/supabaseClient';
-import { User, UserRole } from '../types';
 
-// Initial Mock Data
-const INITIAL_USERS = [
-  { id: 'u1', name: 'Admin User', email: 'admin@dreambd.com', role: 'Admin', password: 'admin123', status: 'Active', date: '01/01/2024', avatar: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?auto=format&fit=crop&q=80&w=150' },
-  { id: 'u2', name: 'Rahim Uddin', email: 'user@example.com', role: 'Citizen', password: 'user123', status: 'Active', date: '05/01/2024', avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&q=80&w=150' },
-];
-
+// --- MOCK DATA FOR INITIALIZATION (Fallback) ---
 const INITIAL_JOBS = [
-  { id: 1, title: 'Software Engineer', company: 'Tech BD', location: 'Dhaka', salary: '40k-60k', type: 'Full Time', category: 'Private', description: 'React Developer needed.', postedDate: '10/10/2023', status: 'Active', views: 120, level: 'Mid' },
-  { id: 2, title: 'Agricultural Officer', company: 'Govt of BD', location: 'Rangpur', salary: '25k-40k', type: 'Full Time', category: 'Government', description: 'Field officer.', postedDate: '12/10/2023', status: 'Active', views: 450, level: 'Entry' },
+  { id: 1, title: 'Software Engineer', company: 'Tech BD', location: 'Dhaka', salary: '40k-60k', type: 'Full Time', postedDate: '12/10/2023', category: 'Private', status: 'Active', views: 120, level: 'Entry' },
+  { id: 2, title: 'Assistant Teacher', company: 'Govt. Primary School', location: 'Comilla', salary: '20k-30k', type: 'Full Time', postedDate: '10/10/2023', category: 'Government', status: 'Active', views: 450, level: 'Entry' },
 ];
 
 const INITIAL_BLOGS = [
-  { id: 1, title: 'Modern Farming Techniques', category: 'Agriculture', author: 'Dr. Hasan', content: 'Use of technology in farming...', postedDate: '01/11/2023', image: 'https://images.unsplash.com/photo-1625246333195-78d9c38ad449', views: 50, status: 'Active', date: 'Nov 1, 2023', readTime: '5 min' }
+  { id: 1, title: 'Smart Agriculture in 2024', category: 'Agriculture', author: 'Dr. Rahim', date: 'Oct 20, 2023', postedDate: 'Oct 20, 2023', views: 230, status: 'Active', image: 'https://images.unsplash.com/photo-1625246333195-55197c3401e8', content: 'Modern farming techniques...', excerpt: 'Modern farming techniques...' },
 ];
 
-const INITIAL_PRICES = [
-  { id: 1, nameEn: 'Rice (Miniket)', nameBn: 'চাল (মিনিকেট)', unit: 'kg', today: 70, yesterday: 68, trend: 'up' },
-  { id: 2, nameEn: 'Potato', nameBn: 'আলু', unit: 'kg', today: 45, yesterday: 45, trend: 'stable' },
-  { id: 3, nameEn: 'Onion (Local)', nameBn: 'পেঁয়াজ (দেশি)', unit: 'kg', today: 90, yesterday: 85, trend: 'up' },
+const INITIAL_MARKET_PRICES = [
+  { id: 1, nameEn: 'Rice (Miniket)', nameBn: 'চাল (মিনিকেট)', unit: 'kg', today: 75, yesterday: 72, trend: 'up' },
+  { id: 2, nameEn: 'Potato', nameBn: 'আলু', unit: 'kg', today: 45, yesterday: 50, trend: 'down' },
+  { id: 3, nameEn: 'Onion (Local)', nameBn: 'পেঁয়াজ (দেশি)', unit: 'kg', today: 90, yesterday: 90, trend: 'stable' },
 ];
 
-// Helper for local storage
+const INITIAL_USERS = [
+  { id: 'u1', name: 'Admin User', email: 'admin@dreambd.com', role: 'Admin', status: 'Active', date: '01/01/2023', password: 'admin123' },
+  { id: 'u2', name: 'Rahim Uddin', email: 'user@example.com', role: 'Farmer', status: 'Active', date: '15/05/2023', password: 'user123' },
+];
+
+// Helper to get local storage data safely
 const getLocal = (key: string, defaultVal: any) => {
-  if (typeof window === 'undefined') return defaultVal;
-  const stored = localStorage.getItem(key);
-  return stored ? JSON.parse(stored) : defaultVal;
+  if (typeof window !== 'undefined') {
+    const saved = localStorage.getItem(key);
+    return saved ? JSON.parse(saved) : defaultVal;
+  }
+  return defaultVal;
 };
 
 const setLocal = (key: string, value: any) => {
@@ -39,81 +40,60 @@ const setLocal = (key: string, value: any) => {
 const DataContext = createContext<any>(undefined);
 
 export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
-  const [users, setUsers] = useState<any[]>([]);
-  const [jobs, setJobs] = useState<any[]>([]);
-  const [blogs, setBlogs] = useState<any[]>([]);
-  const [requests, setRequests] = useState<any[]>([]);
-  const [grievances, setGrievances] = useState<any[]>([]);
-  const [marketPrices, setMarketPrices] = useState<any[]>([]);
-  const [retailProducts, setRetailProducts] = useState<any[]>([]);
-  const [wholesaleAds, setWholesaleAds] = useState<any[]>([]);
-  const [lawyers, setLawyers] = useState<any[]>([]);
-  const [exchangeRates, setExchangeRates] = useState<any[]>([]);
-  const [vocationalCourses, setVocationalCourses] = useState<any[]>([]);
-  const [donors, setDonors] = useState<any[]>([]);
-  const [enrolledCourses, setEnrolledCourses] = useState<any[]>([]);
+  // State
+  const [jobs, setJobs] = useState<any[]>(() => getLocal('db_jobs', INITIAL_JOBS));
+  const [blogs, setBlogs] = useState<any[]>(() => getLocal('db_blogs', INITIAL_BLOGS));
+  const [requests, setRequests] = useState<any[]>(() => getLocal('db_requests', []));
+  const [grievances, setGrievances] = useState<any[]>(() => getLocal('db_grievances', []));
+  const [users, setUsers] = useState<any[]>(() => getLocal('db_users', INITIAL_USERS));
+  const [marketPrices, setMarketPrices] = useState<any[]>(() => getLocal('db_prices', INITIAL_MARKET_PRICES));
+  const [retailProducts, setRetailProducts] = useState<any[]>(() => getLocal('db_retail', []));
+  const [wholesaleAds, setWholesaleAds] = useState<any[]>(() => getLocal('db_ads', []));
+  const [lawyers, setLawyers] = useState<any[]>(() => getLocal('db_lawyers', []));
+  const [exchangeRates, setExchangeRates] = useState<any[]>(() => getLocal('db_rates', []));
+  const [vocationalCourses, setVocationalCourses] = useState<any[]>(() => getLocal('db_courses', []));
+  const [donors, setDonors] = useState<any[]>(() => getLocal('db_donors', []));
+  const [enrolledCourses, setEnrolledCourses] = useState<any[]>(() => getLocal('db_enrolled', []));
 
-  // Fetch function
-  const fetchTable = async (table: string, setter: any, orderBy = 'created_at', ascending = false) => {
+  // Fetch Data from Supabase
+  const fetchTable = async (table: string, setter: React.Dispatch<React.SetStateAction<any[]>>, orderBy = 'created_at', ascending = false) => {
     if (!isSupabaseConfigured) return;
-    try {
-        const { data, error } = await supabase.from(table).select('*').order(orderBy, { ascending });
-        if (!error && data) setter(data);
-    } catch (e) {
-        console.error(`Error fetching ${table}`, e);
-    }
+    const { data, error } = await supabase.from(table).select('*').order(orderBy, { ascending });
+    if (!error && data) setter(data);
   };
 
   const fetchData = async () => {
     if (isSupabaseConfigured) {
-        await Promise.all([
-            fetchTable('users', setUsers),
-            fetchTable('jobs', setJobs),
-            fetchTable('blogs', setBlogs),
-            fetchTable('requests', setRequests),
-            fetchTable('grievances', setGrievances),
-            fetchTable('market_prices', setMarketPrices, 'id', true), // prices usually static list
-            fetchTable('retail_products', setRetailProducts),
-            fetchTable('wholesale_ads', setWholesaleAds),
-            fetchTable('lawyers', setLawyers),
-            fetchTable('exchange_rates', setExchangeRates),
-            fetchTable('vocational_courses', setVocationalCourses),
-            fetchTable('donors', setDonors),
-            fetchTable('enrolled_courses', setEnrolledCourses)
-        ]);
-    } else {
-        // Load from Local Storage or Defaults
-        setUsers(getLocal('db_users', INITIAL_USERS));
-        setJobs(getLocal('db_jobs', INITIAL_JOBS));
-        setBlogs(getLocal('db_blogs', INITIAL_BLOGS));
-        setRequests(getLocal('db_requests', []));
-        setGrievances(getLocal('db_grievances', []));
-        setMarketPrices(getLocal('db_prices', INITIAL_PRICES));
-        setRetailProducts(getLocal('db_retail', []));
-        setWholesaleAds(getLocal('db_ads', []));
-        setLawyers(getLocal('db_lawyers', []));
-        setExchangeRates(getLocal('db_rates', []));
-        setVocationalCourses(getLocal('db_courses', []));
-        setDonors(getLocal('db_donors', []));
-        setEnrolledCourses(getLocal('db_enrolled', []));
+      await Promise.all([
+        fetchTable('jobs', setJobs),
+        fetchTable('blogs', setBlogs),
+        fetchTable('requests', setRequests),
+        fetchTable('grievances', setGrievances),
+        fetchTable('users', setUsers),
+        fetchTable('market_prices', setMarketPrices),
+        fetchTable('retail_products', setRetailProducts),
+        fetchTable('wholesale_ads', setWholesaleAds),
+        fetchTable('lawyers', setLawyers),
+        fetchTable('exchange_rates', setExchangeRates),
+        fetchTable('vocational_courses', setVocationalCourses),
+        fetchTable('donors', setDonors),
+        fetchTable('enrolled_courses', setEnrolledCourses),
+      ]);
     }
   };
 
   useEffect(() => {
     fetchData();
     
-    // Subscribe to realtime changes if online
     if (isSupabaseConfigured) {
-        const subscription = supabase
-            .channel('public:all')
+        // Realtime Subscription
+        const channel = supabase.channel('db-changes')
             .on('postgres_changes', { event: '*', schema: 'public' }, () => {
                 fetchData();
             })
             .subscribe();
 
-        return () => {
-            supabase.removeChannel(subscription);
-        };
+        return () => { supabase.removeChannel(channel); };
     }
   }, []);
 
@@ -153,7 +133,7 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     }
   };
 
-  // --- CRUD FUNCTIONS ---
+  // --- Actions ---
 
   const addJob = async (job: any) => {
     const newJob = { ...job, postedDate: new Date().toLocaleDateString(), views: 0, status: 'Active' };
@@ -172,7 +152,6 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   };
 
   const deleteJob = async (id: number) => {
-    // Optimistic Delete
     const prev = [...jobs];
     setJobs(jobs.filter(j => j.id !== id));
 

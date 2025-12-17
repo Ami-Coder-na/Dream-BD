@@ -1,7 +1,8 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { 
   Monitor, Layout, Layers, ToggleLeft, ToggleRight, 
-  AlertTriangle, Megaphone, Power, CheckCircle, Smartphone, Database, Server, HardDrive, Copy, Check, Save, RefreshCw, Key
+  AlertTriangle, Megaphone, Power, CheckCircle, Smartphone, Database, Server, HardDrive, Copy, Check, Save, RefreshCw, Key,
+  Globe, MapPin, Phone, Mail, Upload, X, Image as ImageIcon
 } from 'lucide-react';
 import { useSiteConfig, ToggableModule, LandingSection } from '../../../contexts/SiteConfigContext';
 import { isSupabaseConfigured } from '../../../services/supabaseClient';
@@ -148,6 +149,7 @@ alter publication supabase_realtime set table
 export const AdminWebsiteManage = () => {
   const { modules, sections, settings, toggleModule, toggleSection, updateSettings } = useSiteConfig();
   const [copied, setCopied] = useState(false);
+  const logoInputRef = useRef<HTMLInputElement>(null);
 
   // DB Config State
   const [dbUrl, setDbUrl] = useState(localStorage.getItem('dream_sb_url') || '');
@@ -179,6 +181,22 @@ export const AdminWebsiteManage = () => {
           window.location.reload();
       }
   }
+
+  const handleLogoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        updateSettings('websiteLogo', reader.result as string);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const handleRemoveLogo = () => {
+    updateSettings('websiteLogo', '');
+    if (logoInputRef.current) logoInputRef.current.value = '';
+  };
 
   // Helper for Toggle Switch
   const ToggleSwitch = ({ label, checked, onChange, color = 'bg-green-500' }: { label: string, checked: boolean, onChange: () => void, color?: string }) => (
@@ -292,6 +310,113 @@ export const AdminWebsiteManage = () => {
                 </div>
             )}
          </div>
+      </div>
+
+      {/* General Information (Branding & Contact) */}
+      <div className="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden">
+        <div className="p-6 border-b border-gray-100 flex items-center gap-3 bg-gray-50">
+          <div className="p-2 bg-blue-100 text-blue-700 rounded-lg">
+            <Globe size={20} />
+          </div>
+          <div>
+            <h3 className="text-lg font-bold text-gray-900">General Information</h3>
+            <p className="text-xs text-gray-500">Website branding, logo, and contact details</p>
+          </div>
+        </div>
+        
+        <div className="p-6 grid grid-cols-1 lg:grid-cols-3 gap-8">
+           {/* Logo Section */}
+           <div className="col-span-1">
+              <label className="block text-sm font-bold text-gray-700 mb-3">Website Logo</label>
+              <div 
+                className="border-2 border-dashed border-gray-300 rounded-xl p-6 flex flex-col items-center justify-center min-h-[200px] cursor-pointer hover:bg-gray-50 transition-colors relative group"
+                onClick={() => logoInputRef.current?.click()}
+              >
+                 <input 
+                   type="file" 
+                   accept="image/*" 
+                   className="hidden" 
+                   ref={logoInputRef}
+                   onChange={handleLogoUpload}
+                 />
+                 
+                 {settings.websiteLogo ? (
+                   <div className="relative w-full h-full flex flex-col items-center">
+                      <img src={settings.websiteLogo} alt="Logo" className="max-h-32 object-contain mb-2" />
+                      <button 
+                        onClick={(e) => { e.stopPropagation(); handleRemoveLogo(); }}
+                        className="absolute top-0 right-0 bg-red-500 text-white p-1 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
+                      >
+                        <X size={16} />
+                      </button>
+                      <p className="text-xs text-gray-500 mt-2">Click to change</p>
+                   </div>
+                 ) : (
+                   <div className="text-center">
+                      <div className="bg-gray-100 p-3 rounded-full inline-block mb-3">
+                        <ImageIcon size={24} className="text-gray-400" />
+                      </div>
+                      <p className="text-sm font-bold text-gray-600">Upload Logo</p>
+                      <p className="text-xs text-gray-400 mt-1">PNG, JPG, SVG (Max 2MB)</p>
+                   </div>
+                 )}
+              </div>
+           </div>
+
+           {/* Info Inputs */}
+           <div className="col-span-1 lg:col-span-2 space-y-5">
+              <div>
+                 <label className="block text-sm font-bold text-gray-700 mb-2">Website Title</label>
+                 <input 
+                   type="text" 
+                   value={settings.websiteTitle}
+                   onChange={(e) => updateSettings('websiteTitle', e.target.value)}
+                   className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none"
+                   placeholder="e.g. Dream BD"
+                 />
+              </div>
+              
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                 <div>
+                    <label className="block text-sm font-bold text-gray-700 mb-2 flex items-center gap-2">
+                      <Mail size={16} className="text-gray-400"/> Contact Email
+                    </label>
+                    <input 
+                      type="text" 
+                      value={settings.contactEmail}
+                      onChange={(e) => updateSettings('contactEmail', e.target.value)}
+                      className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none"
+                      placeholder="info@example.com"
+                    />
+                 </div>
+                 <div>
+                    <label className="block text-sm font-bold text-gray-700 mb-2 flex items-center gap-2">
+                      <Phone size={16} className="text-gray-400"/> Contact Phone
+                    </label>
+                    <input 
+                      type="text" 
+                      value={settings.contactPhone}
+                      onChange={(e) => updateSettings('contactPhone', e.target.value)}
+                      className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none"
+                      placeholder="+880 1..."
+                    />
+                 </div>
+              </div>
+
+              <div>
+                 <label className="block text-sm font-bold text-gray-700 mb-2 flex items-center gap-2">
+                   <MapPin size={16} className="text-gray-400"/> Address
+                 </label>
+                 <textarea 
+                   rows={2}
+                   value={settings.address}
+                   onChange={(e) => updateSettings('address', e.target.value)}
+                   className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none resize-none"
+                   placeholder="Office Address..."
+                 />
+              </div>
+           </div>
+        </div>
       </div>
 
       {/* Advanced Settings: Global Controls */}

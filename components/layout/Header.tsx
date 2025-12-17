@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Menu, X, Globe, Bell, LogOut, ChevronDown, User as UserIcon, Heart, Map, ShoppingBasket, Check, Trash2, Info, AlertTriangle, CheckCircle, ShieldAlert } from 'lucide-react';
 import { Button } from '../ui/Button';
@@ -98,10 +97,14 @@ export const Header: React.FC<HeaderProps> = ({
               className="flex items-center gap-3 cursor-pointer" 
               onClick={onNavigateHome}
             >
-              <div className="w-10 h-10 bg-brand-600 rounded-xl flex items-center justify-center text-white font-bold text-xl shadow-lg">
-                D
-              </div>
-              <span className="text-2xl font-bold text-gray-800 tracking-tight">Dream BD</span>
+              {settings.websiteLogo ? (
+                <img src={settings.websiteLogo} alt="Logo" className="h-10 w-auto object-contain" />
+              ) : (
+                <div className="w-10 h-10 bg-brand-600 rounded-xl flex items-center justify-center text-white font-bold text-xl shadow-lg">
+                  {settings.websiteTitle.charAt(0) || 'D'}
+                </div>
+              )}
+              <span className="text-2xl font-bold text-gray-800 tracking-tight">{settings.websiteTitle}</span>
             </div>
 
             {/* Desktop Menu */}

@@ -1,5 +1,4 @@
-
-import React, { createContext, useState, useContext, ReactNode } from 'react';
+import React, { createContext, useState, useContext, ReactNode, useEffect } from 'react';
 import { AppModule } from '../types';
 
 // Define which modules can be toggled
@@ -15,6 +14,11 @@ interface SiteConfig {
     maintenanceMode: boolean;
     announcement: string;
     announcementActive: boolean;
+    websiteTitle: string;
+    websiteLogo: string; // Base64 or URL
+    contactEmail: string;
+    contactPhone: string;
+    address: string;
   };
   toggleModule: (id: ToggableModule) => void;
   toggleSection: (id: LandingSection) => void;
@@ -59,27 +63,59 @@ const defaultSections: Record<LandingSection, boolean> = {
   testimonials: true,
 };
 
+const defaultSettings = {
+  maintenanceMode: false,
+  announcement: 'স্বাগতম! আমাদের ওয়েবসাইট এখন সম্পূর্ণ লাইভ।',
+  announcementActive: true,
+  websiteTitle: 'Dream BD',
+  websiteLogo: '',
+  contactEmail: 'info@dreambd.gov.bd',
+  contactPhone: '+880 1234 567890',
+  address: 'ICT Tower, Agargaon, Dhaka-1207, Bangladesh'
+};
+
 const SiteConfigContext = createContext<SiteConfig | undefined>(undefined);
 
 export const SiteConfigProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
-  const [modules, setModules] = useState(defaultModules);
-  const [sections, setSections] = useState(defaultSections);
-  const [settings, setSettings] = useState({
-    maintenanceMode: false,
-    announcement: 'স্বাগতম! আমাদের ওয়েবসাইট এখন সম্পূর্ণ লাইভ।',
-    announcementActive: true,
+  // Initialize state from LocalStorage if available
+  const [modules, setModules] = useState(() => {
+    const saved = localStorage.getItem('site_modules');
+    return saved ? JSON.parse(saved) : defaultModules;
   });
 
+  const [sections, setSections] = useState(() => {
+    const saved = localStorage.getItem('site_sections');
+    return saved ? JSON.parse(saved) : defaultSections;
+  });
+
+  const [settings, setSettings] = useState(() => {
+    const saved = localStorage.getItem('site_settings');
+    return saved ? { ...defaultSettings, ...JSON.parse(saved) } : defaultSettings;
+  });
+
+  // Persist changes to LocalStorage
+  useEffect(() => {
+    localStorage.setItem('site_modules', JSON.stringify(modules));
+  }, [modules]);
+
+  useEffect(() => {
+    localStorage.setItem('site_sections', JSON.stringify(sections));
+  }, [sections]);
+
+  useEffect(() => {
+    localStorage.setItem('site_settings', JSON.stringify(settings));
+  }, [settings]);
+
   const toggleModule = (id: ToggableModule) => {
-    setModules(prev => ({ ...prev, [id]: !prev[id] }));
+    setModules((prev: any) => ({ ...prev, [id]: !prev[id] }));
   };
 
   const toggleSection = (id: LandingSection) => {
-    setSections(prev => ({ ...prev, [id]: !prev[id] }));
+    setSections((prev: any) => ({ ...prev, [id]: !prev[id] }));
   };
 
   const updateSettings = (key: keyof typeof settings, value: any) => {
-    setSettings(prev => ({ ...prev, [key]: value }));
+    setSettings((prev: any) => ({ ...prev, [key]: value }));
   };
 
   return (

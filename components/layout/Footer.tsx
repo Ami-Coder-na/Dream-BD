@@ -1,7 +1,7 @@
-
 import React from 'react';
 import { Globe, MapPin, Phone, Mail } from 'lucide-react';
 import { AppModule } from '../../types';
+import { useSiteConfig } from '../../contexts/SiteConfigContext';
 
 interface FooterProps {
   isBangla: boolean;
@@ -11,14 +11,22 @@ interface FooterProps {
 }
 
 export const Footer: React.FC<FooterProps> = ({ isBangla, toggleLanguage, onNavigateHome, onModuleSelect }) => {
+  const { settings } = useSiteConfig();
+
   return (
     <footer className="bg-gray-900 text-gray-400 py-16">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12 mb-12">
           <div>
             <div className="flex items-center gap-3 mb-6 cursor-pointer" onClick={onNavigateHome}>
-              <div className="w-8 h-8 bg-brand-500 rounded-lg flex items-center justify-center text-white font-bold">D</div>
-              <span className="text-2xl font-bold text-white">Dream BD</span>
+              {settings.websiteLogo ? (
+                <img src={settings.websiteLogo} alt="Logo" className="h-8 w-auto object-contain" />
+              ) : (
+                <div className="w-8 h-8 bg-brand-500 rounded-lg flex items-center justify-center text-white font-bold">
+                  {settings.websiteTitle.charAt(0) || 'D'}
+                </div>
+              )}
+              <span className="text-2xl font-bold text-white">{settings.websiteTitle}</span>
             </div>
             <p className="text-sm leading-relaxed mb-6">
               {isBangla 
@@ -55,22 +63,22 @@ export const Footer: React.FC<FooterProps> = ({ isBangla, toggleLanguage, onNavi
             <ul className="space-y-4 text-sm">
               <li className="flex items-start gap-3">
                 <MapPin size={18} className="mt-0.5 text-brand-500" />
-                <span>ICT Tower, Agargaon,<br/>Dhaka-1207, Bangladesh</span>
+                <span className="whitespace-pre-wrap">{settings.address}</span>
               </li>
               <li className="flex items-center gap-3">
                 <Phone size={18} className="text-brand-500" />
-                <span>+880 1234 567890</span>
+                <span>{settings.contactPhone}</span>
               </li>
               <li className="flex items-center gap-3">
                 <Mail size={18} className="text-brand-500" />
-                <span>info@dreambd.gov.bd</span>
+                <span>{settings.contactEmail}</span>
               </li>
             </ul>
           </div>
         </div>
         
         <div className="border-t border-gray-800 pt-8 flex flex-col md:flex-row justify-between items-center gap-4 text-sm">
-          <p>© 2024 Dream BD. All rights reserved.</p>
+          <p>© {new Date().getFullYear()} {settings.websiteTitle}. All rights reserved.</p>
           <div className="flex items-center gap-4">
               <div className="flex items-center gap-2">
                   <Globe size={14} />

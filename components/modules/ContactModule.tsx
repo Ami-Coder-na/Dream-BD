@@ -1,7 +1,7 @@
-
 import React, { useState } from 'react';
 import { Mail, Phone, MapPin, Send } from 'lucide-react';
 import { Button } from '../ui/Button';
+import { useSiteConfig } from '../../contexts/SiteConfigContext';
 
 interface Props {
   isBangla: boolean;
@@ -9,6 +9,7 @@ interface Props {
 
 export const ContactModule: React.FC<Props> = ({ isBangla }) => {
   const [submitted, setSubmitted] = useState(false);
+  const { settings } = useSiteConfig();
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -120,8 +121,8 @@ export const ContactModule: React.FC<Props> = ({ isBangla }) => {
                    </div>
                    <div>
                      <h3 className="font-bold text-lg">{isBangla ? 'অফিস' : 'Office'}</h3>
-                     <p className="text-violet-100 opacity-90">
-                       ICT Tower, Agargaon,<br/>Dhaka-1207, Bangladesh
+                     <p className="text-violet-100 opacity-90 whitespace-pre-wrap">
+                       {settings.address}
                      </p>
                    </div>
                  </div>
@@ -131,7 +132,7 @@ export const ContactModule: React.FC<Props> = ({ isBangla }) => {
                    </div>
                    <div>
                      <h3 className="font-bold text-lg">{isBangla ? 'ফোন' : 'Phone'}</h3>
-                     <p className="text-violet-100 opacity-90 font-mono">+880 1234 567890</p>
+                     <p className="text-violet-100 opacity-90 font-mono">{settings.contactPhone}</p>
                      <p className="text-xs mt-1 text-violet-200">
                        {isBangla ? '(সকাল ৯টা - বিকাল ৫টা)' : '(9 AM - 5 PM)'}
                      </p>
@@ -143,7 +144,7 @@ export const ContactModule: React.FC<Props> = ({ isBangla }) => {
                    </div>
                    <div>
                      <h3 className="font-bold text-lg">{isBangla ? 'ইমেল' : 'Email'}</h3>
-                     <p className="text-violet-100 opacity-90">support@dreambd.gov.bd</p>
+                     <p className="text-violet-100 opacity-90">{settings.contactEmail}</p>
                    </div>
                  </div>
                </div>
