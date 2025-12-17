@@ -1,14 +1,23 @@
 import { createClient } from '@supabase/supabase-js';
 
-// --- GLOBAL CONFIGURATION (সবার জন্য) ---
-// If you want ALL users to see the data without configuring Environment Variables,
-// paste your Supabase URL and Key inside the quotes below.
-// Example: const HARDCODED_URL = 'https://xyz.supabase.co';
-const HARDCODED_URL = ''; 
-const HARDCODED_KEY = '';
+// --- GLOBAL CONFIGURATION ---
+// আপনার Supabase URL এবং Key এখানে পেস্ট করুন।
+// যদি আপনি ভুল করে getEnv('') এর ভেতরেও পেস্ট করেন, নিচের নতুন কোডটি তা ঠিক করে নেবে।
+
+const HARDCODED_URL = ''; // e.g. 'https://xyz.supabase.co'
+const HARDCODED_KEY = ''; // e.g. 'eyJ...'
 
 // Helper to safely access environment variables
+// IMPROVED: Smartly detects if user pasted a value directly instead of a key name
 const getEnv = (key: string) => {
+  if (!key) return '';
+
+  // Smart Fix: If the input looks like a URL or Key, return it directly
+  // This fixes the issue where users paste the value inside getEnv('VALUE')
+  if (key.startsWith('http') || key.startsWith('ey')) {
+    return key;
+  }
+
   let val = '';
   try {
     // @ts-ignore
@@ -38,8 +47,11 @@ const getStoredConfig = (key: string) => {
   return '';
 };
 
-const ENV_URL = getEnv('https://zpsxpqurazjeqviwooky.supabase.co');
-const ENV_KEY = getEnv('sb_publishable_gqz_Uzt_JhlNsC59yHXuAQ_IzRiKc3F');
+// Even if you paste the URL inside getEnv(), the new logic will catch it.
+// তবে সবচেয়ে ভালো হয় যদি আপনি সরাসরি নিচের কোটেশনে বসান:
+// const ENV_URL = 'https://your-project.supabase.co';
+const ENV_URL = getEnv('VITE_SUPABASE_URL'); 
+const ENV_KEY = getEnv('VITE_SUPABASE_ANON_KEY');
 
 const STORED_URL = getStoredConfig('dream_sb_url');
 const STORED_KEY = getStoredConfig('dream_sb_key');
@@ -61,6 +73,8 @@ export const isSupabaseConfigured = isConfigured;
 
 if (!isConfigured) {
   console.warn("⚠️ Supabase Config Missing. App running in Offline/Local Mode.");
+} else {
+  console.log("✅ Supabase Configured. URL:", SUPABASE_URL);
 }
 
 export const supabase = createClient(

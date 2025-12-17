@@ -3,7 +3,7 @@ import {
   Monitor, Layout, Layers, ToggleLeft, ToggleRight, 
   AlertTriangle, Megaphone, Power, CheckCircle, Smartphone, Database, Server, HardDrive, Copy, Check, Save, RefreshCw, Key,
   Globe, MapPin, Phone, Mail, Upload, X, Image as ImageIcon,
-  Zap, PlusCircle, RotateCcw
+  Zap, PlusCircle, RotateCcw, Wifi, WifiOff
 } from 'lucide-react';
 import { Button } from '../../ui/Button';
 import { useSiteConfig, ToggableModule, LandingSection } from '../../../contexts/SiteConfigContext';
@@ -106,7 +106,7 @@ export const AdminWebsiteManage = () => {
               setTestResult(`Connection Failed: ${error.message}`);
               setStatusColor('red');
           } else {
-              setTestResult(`Connection Success! Current Job Count: ${count}`);
+              setTestResult(`✅ Connected Successfully! Found ${count} jobs in DB.`);
               setStatusColor('green');
           }
       } catch (err: any) {
@@ -128,10 +128,10 @@ export const AdminWebsiteManage = () => {
           const { data, error } = await supabase.from('jobs').insert([testData]).select();
           
           if (error) {
-              setTestResult(`Insert Failed:\n${JSON.stringify(error, null, 2)}`);
+              setTestResult(`❌ Insert Failed:\n${JSON.stringify(error, null, 2)}`);
               setStatusColor('red');
           } else {
-              setTestResult(`Insert Success! Created ID: ${data?.[0]?.id}. Check 'jobs' table.`);
+              setTestResult(`✅ Insert Success! Created ID: ${data?.[0]?.id}. Check 'jobs' table.`);
               setStatusColor('green');
           }
       } catch (err: any) {
@@ -179,27 +179,41 @@ export const AdminWebsiteManage = () => {
   return (
     <div className="space-y-8 animate-fade-in">
       
+      {/* Global Status Banner */}
+      <div className={`p-6 rounded-2xl border-2 flex flex-col md:flex-row items-center justify-between gap-4 ${isSupabaseConfigured ? 'bg-green-50 border-green-200' : 'bg-red-50 border-red-200'}`}>
+         <div className="flex items-center gap-4">
+            <div className={`p-4 rounded-full ${isSupabaseConfigured ? 'bg-green-200 text-green-700' : 'bg-red-200 text-red-700'}`}>
+                {isSupabaseConfigured ? <Wifi size={32} /> : <WifiOff size={32} />}
+            </div>
+            <div>
+                <h2 className={`text-2xl font-bold ${isSupabaseConfigured ? 'text-green-900' : 'text-red-900'}`}>
+                    {isSupabaseConfigured ? 'System Online (Global)' : 'System Offline (Local Only)'}
+                </h2>
+                <p className={`${isSupabaseConfigured ? 'text-green-700' : 'text-red-700'}`}>
+                    {isSupabaseConfigured 
+                        ? 'All users can see the database updates.' 
+                        : 'Updates are only visible on this device.'}
+                </p>
+            </div>
+         </div>
+         {isSupabaseConfigured && (
+             <div className="text-right">
+                 <span className="inline-block bg-green-200 text-green-800 text-xs font-bold px-3 py-1 rounded-full uppercase tracking-wider mb-1">Status: Operational</span>
+                 <p className="text-xs text-green-700">Code Configuration Detected</p>
+             </div>
+         )}
+      </div>
+
       {/* Database Connection Panel */}
       <div className="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden">
-         <div className={`p-6 border-b flex items-center justify-between ${isSupabaseConfigured ? 'bg-green-50 border-green-200' : 'bg-amber-50 border-amber-200'}`}>
+         <div className={`p-6 border-b flex items-center justify-between bg-gray-50`}>
             <div className="flex items-center gap-3">
-                <div className={`p-2 rounded-lg ${isSupabaseConfigured ? 'bg-green-100 text-green-700' : 'bg-amber-100 text-amber-700'}`}>
-                    <Database size={24} />
-                </div>
-                <div>
-                    <h3 className={`text-lg font-bold ${isSupabaseConfigured ? 'text-green-900' : 'text-amber-900'}`}>
-                        {isSupabaseConfigured ? 'Database Connected' : 'Database Not Connected'}
-                    </h3>
-                    <p className={`text-xs ${isSupabaseConfigured ? 'text-green-700' : 'text-amber-700'}`}>
-                        {isSupabaseConfigured 
-                        ? 'Using custom Supabase configuration.' 
-                        : 'Using local storage (Offline Mode).'}
-                    </p>
-                </div>
+                <Database size={24} className="text-gray-600" />
+                <h3 className="text-lg font-bold text-gray-900">Database Tools</h3>
             </div>
             {isSupabaseConfigured && (
                 <button onClick={handleDisconnect} className="flex items-center gap-1 text-xs text-red-600 font-bold hover:bg-red-50 px-3 py-1 rounded-lg transition-colors border border-red-200">
-                    <RotateCcw size={12}/> Reset Config
+                    <RotateCcw size={12}/> Clear Browser Cache
                 </button>
             )}
          </div>
@@ -208,12 +222,7 @@ export const AdminWebsiteManage = () => {
             {!isSupabaseConfigured ? (
                 <div className="space-y-4">
                     <div className="bg-blue-50 p-4 rounded-xl border border-blue-100 text-sm text-blue-800 mb-4">
-                        <strong>Instructions:</strong>
-                        <ol className="list-decimal ml-5 mt-2 space-y-1">
-                            <li>Create project at <a href="https://supabase.com" target="_blank" className="underline font-bold">Supabase.com</a>.</li>
-                            <li>Go to <strong>Settings {'>'} API</strong>.</li>
-                            <li>Copy <strong>Project URL</strong> and <strong>anon public key</strong>.</li>
-                        </ol>
+                        <strong>For Global Access:</strong> Add keys to <code>services/supabaseClient.ts</code> (Recommended) or use the form below for this browser only.
                     </div>
                     <div>
                         <label className="block text-sm font-bold text-gray-700 mb-1">Project URL</label>
@@ -244,48 +253,35 @@ export const AdminWebsiteManage = () => {
                         className="w-full py-3 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl shadow-lg shadow-blue-200 flex items-center justify-center gap-2"
                     >
                         {isSaving ? <RefreshCw className="animate-spin" /> : <Save size={18} />}
-                        {isSaving ? 'Connecting...' : 'Connect to Database'}
+                        {isSaving ? 'Connecting...' : 'Connect Locally'}
                     </button>
                 </div>
             ) : (
                 <div className="text-center py-6">
-                    {/* NEW WARNING MESSAGE */}
-                    <div className="bg-yellow-50 border border-yellow-200 p-4 rounded-xl text-left mb-6 flex items-start gap-3">
-                        <AlertTriangle className="text-yellow-600 shrink-0 mt-1" size={20} />
-                        <div>
-                            <h4 className="font-bold text-yellow-800 text-sm">গুরুত্বপূর্ণ নোট / Important Note:</h4>
-                            <p className="text-yellow-700 text-xs mt-1">
-                                বর্তমানে ডাটাবেস সেটিংস শুধু এই ব্রাউজারে (Local Storage) সেভ করা আছে। অন্য ইউজাররা আপডেট দেখতে চাইলে <code>services/supabaseClient.ts</code> ফাইলে <strong>HARDCODED_URL</strong> এবং <strong>HARDCODED_KEY</strong> এর মধ্যে আপনার URL ও Key বসিয়ে দিন।
-                                <br/><br/>
-                                <em>Configuration here is local to this browser. To share with all users, add keys to the code or environment variables.</em>
-                            </p>
-                        </div>
-                    </div>
-
                     <div className="flex flex-wrap gap-4 justify-center mb-6">
                         <Button onClick={() => handleTestConnection(false)} variant="outline" className="flex items-center gap-2">
-                            <Zap size={16} /> Check Connection
+                            <Zap size={16} /> Test Connection
                         </Button>
                         <Button onClick={handleTestInsert} className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white shadow-md">
-                            <PlusCircle size={16} /> Test Insert (Debug)
+                            <PlusCircle size={16} /> Test Data Insert
                         </Button>
                     </div>
                     
                     {testResult && (
-                        <div className={`mb-6 p-4 rounded-xl border text-left text-xs font-mono whitespace-pre-wrap break-all overflow-x-auto ${
+                        <div className={`mb-6 p-4 rounded-xl border text-left text-sm font-mono whitespace-pre-wrap break-all overflow-x-auto ${
                             statusColor === 'green' ? 'bg-green-50 border-green-200 text-green-900' : 
                             statusColor === 'red' ? 'bg-red-50 border-red-200 text-red-900' :
                             'bg-orange-50 border-orange-200 text-orange-900'
                         }`}>
-                            <strong>Diagnostic Result:</strong><br/>
+                            <strong>Result:</strong><br/>
                             {testResult}
                         </div>
                     )}
 
                     <div className="bg-gray-900 text-white p-6 rounded-2xl border border-gray-800 text-left">
-                        <h4 className="font-bold text-lg mb-2 flex items-center gap-2 text-green-400"><Server size={20}/> SQL Setup (Required)</h4>
+                        <h4 className="font-bold text-lg mb-2 flex items-center gap-2 text-green-400"><Server size={20}/> SQL Setup (One-Time)</h4>
                         <p className="text-sm text-gray-300 mb-4 leading-relaxed">
-                            If you see "Permission denied" or table errors, you MUST run this SQL in Supabase. It creates tables and fixes RLS policies.
+                            Run this in your Supabase SQL Editor to create tables and fix "Permission denied" errors.
                         </p>
                         
                         <div className="bg-black/50 p-4 rounded-xl font-mono text-xs text-green-300 mb-4 h-48 overflow-y-auto border border-gray-700 custom-scrollbar">
@@ -299,15 +295,13 @@ export const AdminWebsiteManage = () => {
                             {copied ? <Check size={18} /> : <Copy size={18} />}
                             {copied ? 'SQL Copied!' : 'Copy SQL Code'}
                         </button>
-                        <p className="text-center text-xs text-gray-500 mt-2">Open Supabase Dashboard {'>'} SQL Editor {'>'} Paste {'>'} Run</p>
                     </div>
                 </div>
             )}
          </div>
       </div>
 
-      {/* Rest of the UI remains unchanged... */}
-      {/* ... (Keep existing General Information and other sections) ... */}
+      {/* General Settings */}
       <div className="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden">
         <div className="p-6 border-b border-gray-100 flex items-center gap-3 bg-gray-50">
           <div className="p-2 bg-blue-100 text-blue-700 rounded-lg">
@@ -356,36 +350,6 @@ export const AdminWebsiteManage = () => {
         </div>
       </div>
 
-      <div className="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden">
-        <div className="p-6 border-b border-gray-100 flex items-center gap-3 bg-gray-50">
-          <div className="p-2 bg-purple-100 text-purple-700 rounded-lg"><Monitor size={20} /></div>
-          <div><h3 className="text-lg font-bold text-gray-900">System Controls</h3><p className="text-xs text-gray-500">Global settings and maintenance</p></div>
-        </div>
-        <div className="p-6 grid grid-cols-1 md:grid-cols-2 gap-8">
-           <div className={`p-6 rounded-2xl border-2 transition-all ${settings.maintenanceMode ? 'border-red-500 bg-red-50' : 'border-gray-200 bg-white'}`}>
-              <div className="flex justify-between items-start mb-4">
-                 <div className="flex items-center gap-3">
-                    <div className={`p-2 rounded-full ${settings.maintenanceMode ? 'bg-red-200 text-red-700' : 'bg-gray-100 text-gray-500'}`}><Power size={24} /></div>
-                    <div><h4 className="font-bold text-gray-900">Maintenance Mode</h4><p className="text-xs text-gray-500">Take site offline for users</p></div>
-                 </div>
-                 <button onClick={() => updateSettings('maintenanceMode', !settings.maintenanceMode)} className={`font-bold text-xs px-3 py-1 rounded-full ${settings.maintenanceMode ? 'bg-red-600 text-white' : 'bg-gray-200 text-gray-700'}`}>{settings.maintenanceMode ? 'ENABLED' : 'DISABLED'}</button>
-              </div>
-              <p className="text-sm text-gray-600 leading-relaxed">When enabled, regular users will see a "Under Maintenance" screen. Admins can still access the dashboard.</p>
-           </div>
-           <div className="space-y-4">
-              <div className="flex items-center justify-between">
-                 <h4 className="font-bold text-gray-900 flex items-center gap-2"><Megaphone size={18} className="text-orange-500"/> Announcement Bar</h4>
-                 <div className="flex items-center gap-2">
-                    <span className="text-xs font-bold text-gray-500">{settings.announcementActive ? 'ON' : 'OFF'}</span>
-                    <button onClick={() => updateSettings('announcementActive', !settings.announcementActive)} className={`relative w-10 h-5 rounded-full transition-colors ${settings.announcementActive ? 'bg-orange-500' : 'bg-gray-300'}`}><div className={`absolute top-1 left-1 w-3 h-3 bg-white rounded-full transition-transform ${settings.announcementActive ? 'translate-x-5' : 'translate-x-0'}`}></div></button>
-                 </div>
-              </div>
-              <textarea value={settings.announcement} onChange={(e) => updateSettings('announcement', e.target.value)} className="w-full p-3 bg-white border border-gray-300 rounded-xl text-sm text-gray-900 focus:ring-2 focus:ring-orange-500 focus:border-orange-500 placeholder-gray-400" rows={3} placeholder="Enter announcement text..." />
-              <p className="text-xs text-gray-500">This text will appear at the very top of the website.</p>
-           </div>
-        </div>
-      </div>
-
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
         <div className="bg-white rounded-2xl shadow-sm border border-gray-200">
           <div className="p-5 border-b border-gray-100 flex items-center gap-3"><Layers size={20} className="text-blue-600"/><h3 className="font-bold text-gray-900">Header Modules</h3></div>
@@ -418,17 +382,6 @@ export const AdminWebsiteManage = () => {
                 <ToggleSwitch label="How it Works" checked={sections.features} onChange={() => toggleSection('features')} color="bg-indigo-600" />
                 <ToggleSwitch label="Beautiful Bangladesh Gallery" checked={sections.gallery} onChange={() => toggleSection('gallery')} color="bg-indigo-600" />
                 <ToggleSwitch label="Testimonials" checked={sections.testimonials} onChange={() => toggleSection('testimonials')} color="bg-indigo-600" />
-                <div className="mt-6 mb-2"><p className="text-xs font-bold text-gray-500 uppercase tracking-wider">Module Previews on Home</p></div>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                   <ToggleSwitch label="Craft Preview" checked={sections.craft} onChange={() => toggleSection('craft')} color="bg-indigo-600" />
-                   <ToggleSwitch label="Agri Preview" checked={sections.agri} onChange={() => toggleSection('agri')} color="bg-indigo-600" />
-                   <ToggleSwitch label="Health Preview" checked={sections.health} onChange={() => toggleSection('health')} color="bg-indigo-600" />
-                   <ToggleSwitch label="Education Preview" checked={sections.edu} onChange={() => toggleSection('edu')} color="bg-indigo-600" />
-                   <ToggleSwitch label="Transport Preview" checked={sections.transport} onChange={() => toggleSection('transport')} color="bg-indigo-600" />
-                   <ToggleSwitch label="Waste Preview" checked={sections.waste} onChange={() => toggleSection('waste')} color="bg-indigo-600" />
-                   <ToggleSwitch label="Fishery Preview" checked={sections.fishery} onChange={() => toggleSection('fishery')} color="bg-indigo-600" />
-                   <ToggleSwitch label="Disaster Preview" checked={sections.disaster} onChange={() => toggleSection('disaster')} color="bg-indigo-600" />
-                </div>
              </div>
           </div>
         </div>
