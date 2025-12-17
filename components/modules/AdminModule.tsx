@@ -4,7 +4,7 @@ import {
   LayoutDashboard, Users, Settings, Database, Activity, 
   LogOut, Shield, Bell, FileText, ShoppingBag, Trash2, AlertOctagon, 
   Clock, DollarSign, Mail, Key, EyeOff, Eye, ChevronDown, UserPlus, FilePlus, AlertTriangle,
-  Globe, Sparkles, Monitor
+  Globe, Sparkles, Monitor, RefreshCw
 } from 'lucide-react';
 import { AdminUsers } from './admin/AdminUsers';
 import { AdminContent } from './admin/AdminContent';
@@ -84,6 +84,10 @@ export const AdminModule: React.FC<Props> = ({ isBangla, onExit }) => {
       setIsAuthenticated(false);
       onExit(); // Navigate back to home
     }
+  };
+
+  const handleSystemRefresh = () => {
+    window.location.reload();
   };
 
   const fillDemoCredentials = () => {
@@ -320,9 +324,18 @@ export const AdminModule: React.FC<Props> = ({ isBangla, onExit }) => {
           <button onClick={handleLogout}><LogOut size={20} className="text-gray-600"/></button>
         </div>
 
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 capitalize">{activeSection.replace('-', ' ')}</h1>
-          <p className="text-gray-500 text-sm mt-1">Manage {activeSection.replace('-', ' ')} settings and data.</p>
+        <div className="mb-8 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div>
+            <h1 className="text-3xl font-bold text-gray-900 capitalize">{activeSection.replace('-', ' ')}</h1>
+            <p className="text-gray-500 text-sm mt-1">Manage {activeSection.replace('-', ' ')} settings and data.</p>
+          </div>
+          <button 
+            onClick={handleSystemRefresh}
+            className="flex items-center gap-2 px-4 py-2 bg-white border border-gray-200 rounded-xl text-gray-600 hover:bg-gray-50 hover:text-brand-600 transition-all shadow-sm font-medium"
+          >
+            <RefreshCw size={18} />
+            Refresh System
+          </button>
         </div>
 
         {activeSection === 'overview' && renderOverview()}

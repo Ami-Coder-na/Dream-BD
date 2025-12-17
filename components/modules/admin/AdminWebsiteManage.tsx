@@ -2,7 +2,7 @@
 import React from 'react';
 import { 
   Monitor, Layout, Layers, ToggleLeft, ToggleRight, 
-  AlertTriangle, Megaphone, Power, CheckCircle, Smartphone, Database, Server
+  AlertTriangle, Megaphone, Power, CheckCircle, Smartphone, Database, Server, HardDrive
 } from 'lucide-react';
 import { useSiteConfig, ToggableModule, LandingSection } from '../../../contexts/SiteConfigContext';
 import { isSupabaseConfigured } from '../../../services/supabaseClient';
@@ -27,25 +27,25 @@ export const AdminWebsiteManage = () => {
   return (
     <div className="space-y-8 animate-fade-in">
       
-      {/* Database Connection Status (New) */}
-      <div className={`rounded-2xl p-6 border-2 flex items-center justify-between ${isSupabaseConfigured ? 'bg-green-50 border-green-200' : 'bg-red-50 border-red-200'}`}>
+      {/* Database Connection Status */}
+      <div className={`rounded-2xl p-6 border-2 flex flex-col md:flex-row items-center justify-between gap-4 ${isSupabaseConfigured ? 'bg-green-50 border-green-200' : 'bg-amber-50 border-amber-200'}`}>
          <div className="flex items-center gap-4">
-            <div className={`p-3 rounded-full ${isSupabaseConfigured ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
-               <Database size={24} />
+            <div className={`p-3 rounded-full ${isSupabaseConfigured ? 'bg-green-100 text-green-700' : 'bg-amber-100 text-amber-700'}`}>
+               {isSupabaseConfigured ? <Database size={24} /> : <HardDrive size={24} />}
             </div>
             <div>
-               <h3 className={`text-lg font-bold ${isSupabaseConfigured ? 'text-green-900' : 'text-red-900'}`}>
-                 {isSupabaseConfigured ? 'Database Connected' : 'Using Local Storage'}
+               <h3 className={`text-lg font-bold ${isSupabaseConfigured ? 'text-green-900' : 'text-amber-900'}`}>
+                 {isSupabaseConfigured ? 'Database Connected' : 'Local Mode Active'}
                </h3>
-               <p className={`text-sm ${isSupabaseConfigured ? 'text-green-700' : 'text-red-700'}`}>
+               <p className={`text-sm ${isSupabaseConfigured ? 'text-green-700' : 'text-amber-700'}`}>
                  {isSupabaseConfigured 
                    ? 'Connected to Supabase. Data is syncing in real-time.' 
-                   : 'Supabase URL/Key missing in environment variables. Data will not persist.'}
+                   : 'Running on browser storage. Data persists locally on this device only.'}
                </p>
             </div>
          </div>
-         <div className={`px-4 py-1.5 rounded-full text-xs font-bold uppercase ${isSupabaseConfigured ? 'bg-green-200 text-green-800' : 'bg-red-200 text-red-800'}`}>
-            {isSupabaseConfigured ? 'Online' : 'Offline'}
+         <div className={`px-4 py-1.5 rounded-full text-xs font-bold uppercase ${isSupabaseConfigured ? 'bg-green-200 text-green-800' : 'bg-amber-200 text-amber-800'}`}>
+            {isSupabaseConfigured ? 'Online' : 'Local Storage'}
          </div>
       </div>
 
