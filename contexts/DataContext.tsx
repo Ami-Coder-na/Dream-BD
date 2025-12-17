@@ -20,12 +20,6 @@ const INITIAL_BLOGS: any[] = [
 const BASE_MARKET_PRICES = [
   { id: 1, nameBn: 'তাজা আলু', nameEn: 'Fresh Potato', unit: 'kg', today: 45, yesterday: 40, trend: 'up' },
   { id: 2, nameBn: 'দেশি পেঁয়াজ', nameEn: 'Local Onion', unit: 'kg', today: 90, yesterday: 85, trend: 'up' },
-  { id: 3, nameBn: 'রুই মাছ', nameEn: 'Rui Fish', unit: 'kg', today: 350, yesterday: 360, trend: 'down' },
-  { id: 4, nameBn: 'মসুর ডাল', nameEn: 'Lentils', unit: 'kg', today: 130, yesterday: 130, trend: 'stable' },
-  { id: 5, nameBn: 'সবুজ আপেল', nameEn: 'Green Apple', unit: 'kg', today: 220, yesterday: 210, trend: 'up' },
-  { id: 6, nameBn: 'সয়াবিন তেল', nameEn: 'Soybean Oil', unit: 'L', today: 170, yesterday: 175, trend: 'down' },
-  { id: 7, nameBn: 'বেগুন', nameEn: 'Eggplant', unit: 'kg', today: 60, yesterday: 55, trend: 'up' },
-  { id: 8, nameBn: 'ব্রয়লার মুরগি', nameEn: 'Broiler Chicken', unit: 'kg', today: 190, yesterday: 190, trend: 'stable' },
 ];
 
 const INITIAL_RETAIL_PRODUCTS: any[] = [];
@@ -56,21 +50,10 @@ const setLocal = (key: string, data: any) => {
 };
 
 // --- CONTEXT SETUP ---
-
 interface DataContextType {
-  jobs: any[];
-  blogs: any[];
-  requests: any[];
-  grievances: any[];
-  users: any[];
-  marketPrices: any[];
-  retailProducts: any[];
-  wholesaleAds: any[];
-  lawyers: any[];
-  exchangeRates: any[];
-  vocationalCourses: any[];
-  donors: any[];
-  enrolledCourses: any[];
+  jobs: any[]; blogs: any[]; requests: any[]; grievances: any[]; users: any[];
+  marketPrices: any[]; retailProducts: any[]; wholesaleAds: any[]; lawyers: any[];
+  exchangeRates: any[]; vocationalCourses: any[]; donors: any[]; enrolledCourses: any[];
 
   addJob: (job: any) => Promise<void>;
   deleteJob: (id: number) => Promise<void>;
@@ -102,14 +85,12 @@ interface DataContextType {
   deleteVocationalCourse: (id: number) => Promise<void>;
   addDonor: (donor: any) => Promise<void>;
   enrollCourse: (enrollment: any) => Promise<void>;
-  
   refreshData: () => void;
 }
 
 const DataContext = createContext<DataContextType | undefined>(undefined);
 
 export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
-  // Initialize state
   const [jobs, setJobs] = useState<any[]>(() => isSupabaseConfigured ? INITIAL_JOBS : getLocal('db_jobs', INITIAL_JOBS));
   const [blogs, setBlogs] = useState<any[]>(() => isSupabaseConfigured ? INITIAL_BLOGS : getLocal('db_blogs', INITIAL_BLOGS));
   const [requests, setRequests] = useState<any[]>(() => isSupabaseConfigured ? INITIAL_REQUESTS : getLocal('db_requests', INITIAL_REQUESTS));
@@ -124,24 +105,20 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const [donors, setDonors] = useState<any[]>(() => isSupabaseConfigured ? INITIAL_DONORS : getLocal('db_donors', INITIAL_DONORS));
   const [enrolledCourses, setEnrolledCourses] = useState<any[]>(() => isSupabaseConfigured ? INITIAL_ENROLLED_COURSES : getLocal('db_enrolled', INITIAL_ENROLLED_COURSES));
 
-  // --- SUPABASE DATA FETCHING HELPER ---
+  // --- SUPABASE DATA FETCHING ---
   const fetchTable = async (table: string, setter: React.Dispatch<React.SetStateAction<any[]>>, orderBy = 'created_at', ascending = false) => {
     try {
       const { data, error } = await supabase.from(table).select('*').order(orderBy, { ascending });
-      if (error) {
-        console.error(`Error fetching ${table}:`, error.message);
-      } else if (data) {
-        setter(data);
-      }
+      if (error) throw error;
+      if (data) setter(data);
     } catch (e) {
-      console.error(`Exception fetching ${table}:`, e);
+      // Fail silently in UI but log
+      console.warn(`Fetch error for ${table}. Using existing state.`);
     }
   };
 
   const fetchData = async () => {
     if (!isSupabaseConfigured) return;
-    
-    // Fetch all tables
     await Promise.all([
       fetchTable('jobs', setJobs),
       fetchTable('blogs', setBlogs),
@@ -159,102 +136,71 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     ]);
   };
 
-  const fetchLiveNews = async () => {
-    try {
-      const RSS_URL = 'https://www.tbsnews.net/rss/economy.xml';
-      const API_URL = `https://api.rss2json.com/v1/api.json?rss_url=${encodeURIComponent(RSS_URL)}`;
-      const response = await fetch(API_URL);
-      const data = await response.json();
-
-      if (data.status === 'ok' && data.items) {
-        const fetchedBlogs = data.items.slice(0, 6).map((item: any, index: number) => ({
-          id: `news_${index}`,
-          title: item.title,
-          category: 'Economy & Agri',
-          content: item.description, 
-          excerpt: item.description.replace(/<[^>]*>?/gm, '').substring(0, 100) + '...',
-          author: item.author || 'TBS News',
-          postedDate: new Date(item.pubDate).toLocaleDateString(),
-          date: new Date(item.pubDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
-          views: 100,
-          readTime: '3 min read',
-          image: item.thumbnail || item.enclosure?.link || 'https://images.unsplash.com/photo-1589923188900-85dae523342b',
-          status: 'Active',
-          isExternal: true,
-          link: item.link
-        }));
-        
-        setBlogs(prev => {
-           // Keep DB blogs, append news
-           const dbBlogsOnly = prev.filter((b: any) => !b.id.toString().startsWith('news_'));
-           return [...dbBlogsOnly, ...fetchedBlogs];
-        });
-      }
-    } catch (error) {
-      // console.error("Failed to fetch live news");
-    }
-  };
-
+  // Real-time Subscription Setup
   useEffect(() => {
     fetchData();
-    fetchLiveNews();
 
-    let subscription: any = null;
-    
     if (isSupabaseConfigured) {
-      subscription = supabase
-        .channel('public:db_changes')
-        .on('postgres_changes', { event: '*', schema: 'public' }, () => fetchData())
+      const channels = supabase.channel('custom-all-channel')
+        .on('postgres_changes', { event: '*', schema: 'public' }, (payload) => {
+          console.log('Change received!', payload);
+          fetchData(); // Refetch all data on any change
+        })
         .subscribe();
+
+      return () => {
+        supabase.removeChannel(channels);
+      };
     } else {
+      // Local Storage Listener
       const handleStorageChange = (e: StorageEvent) => {
-        // ... (Local storage listener logic remains same)
         if (e.key === 'db_jobs') setJobs(getLocal('db_jobs', INITIAL_JOBS));
-        if (e.key === 'db_blogs') setBlogs(getLocal('db_blogs', INITIAL_BLOGS));
-        if (e.key === 'db_requests') setRequests(getLocal('db_requests', INITIAL_REQUESTS));
-        if (e.key === 'db_users') setUsers(getLocal('db_users', INITIAL_USERS));
-        if (e.key === 'db_prices') setMarketPrices(getLocal('db_prices', BASE_MARKET_PRICES));
-        if (e.key === 'db_retail') setRetailProducts(getLocal('db_retail', INITIAL_RETAIL_PRODUCTS));
-        if (e.key === 'db_ads') setWholesaleAds(getLocal('db_ads', INITIAL_WHOLESALE_ADS));
-        if (e.key === 'db_lawyers') setLawyers(getLocal('db_lawyers', INITIAL_LAWYERS));
-        if (e.key === 'db_rates') setExchangeRates(getLocal('db_rates', INITIAL_EXCHANGE_RATES));
-        if (e.key === 'db_courses') setVocationalCourses(getLocal('db_courses', INITIAL_VOCATIONAL_COURSES));
-        if (e.key === 'db_donors') setDonors(getLocal('db_donors', INITIAL_DONORS));
+        // ... (other keys can be added if needed for multi-tab sync in local mode)
       };
       window.addEventListener('storage', handleStorageChange);
       return () => window.removeEventListener('storage', handleStorageChange);
     }
-
-    return () => {
-      if (subscription) supabase.removeChannel(subscription);
-    };
   }, []);
 
-  const refreshData = () => {
-    fetchData();
-    fetchLiveNews();
+  const refreshData = () => fetchData();
+
+  // --- GENERIC OPTIMISTIC ADD HELPER ---
+  const optimisticAdd = async (table: string, newItem: any, setter: React.Dispatch<React.SetStateAction<any[]>>, currentList: any[]) => {
+    // 1. Optimistic Update (Immediate UI Change)
+    const tempItem = { ...newItem, id: Date.now() }; // Temporary ID
+    setter(prev => [tempItem, ...prev]);
+
+    if (isSupabaseConfigured) {
+        // 2. DB Insert
+        const { id, ...dbData } = tempItem; // Remove temp ID, let DB generate
+        const { error } = await supabase.from(table).insert([dbData]);
+        
+        if (error) {
+            console.error(`Error adding to ${table}:`, error.message);
+            alert("Error saving data. Please try again.");
+            // Revert on error
+            setter(currentList); 
+        } else {
+            // 3. Fetch fresh data (to get real ID)
+            await fetchTable(table, setter);
+        }
+    } else {
+        // Local Storage Mode
+        setLocal(`db_${table}`, [tempItem, ...currentList]);
+    }
   };
 
-  // --- ACTIONS (UPDATED TO REFETCH) ---
+  // --- ACTIONS ---
 
   const addJob = async (job: any) => {
-    const { id, ...jobData } = job;
-    if (isSupabaseConfigured) {
-        const newJob = { ...jobData, postedDate: new Date().toLocaleDateString(), views: 0, status: 'Active' };
-        await supabase.from('jobs').insert([newJob]);
-        await fetchTable('jobs', setJobs); // Force Update
-    } else {
-        const newJob = { ...jobData, id: Date.now(), postedDate: new Date().toLocaleDateString(), views: 0, status: 'Active' };
-        const updated = [newJob, ...jobs];
-        setJobs(updated);
-        setLocal('db_jobs', updated);
-    }
+    const newJob = { ...job, postedDate: new Date().toLocaleDateString(), views: 0, status: 'Active' };
+    await optimisticAdd('jobs', newJob, setJobs, jobs);
   };
 
   const updateJob = async (updatedJob: any) => {
     if (isSupabaseConfigured) {
         await supabase.from('jobs').update(updatedJob).eq('id', updatedJob.id);
-        await fetchTable('jobs', setJobs); // Force Update
+        await fetchTable('jobs', setJobs);
     } else {
         const updated = jobs.map(j => j.id === updatedJob.id ? updatedJob : j);
         setJobs(updated);
@@ -263,34 +209,27 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   };
 
   const deleteJob = async (id: number) => {
+    // Optimistic Delete
+    const prev = [...jobs];
+    setJobs(jobs.filter(j => j.id !== id));
+
     if (isSupabaseConfigured) {
-        await supabase.from('jobs').delete().eq('id', id);
-        await fetchTable('jobs', setJobs); // Force Update
+        const { error } = await supabase.from('jobs').delete().eq('id', id);
+        if(error) setJobs(prev); // Revert
     } else {
-        const updated = jobs.filter(j => j.id !== id);
-        setJobs(updated);
-        setLocal('db_jobs', updated);
+        setLocal('db_jobs', jobs.filter(j => j.id !== id));
     }
   };
 
   const addBlog = async (blog: any) => {
-    const { id, ...blogData } = blog;
-    if (isSupabaseConfigured) {
-        const newBlog = { ...blogData, postedDate: new Date().toLocaleDateString(), views: 0, status: 'Active' };
-        await supabase.from('blogs').insert([newBlog]);
-        await fetchTable('blogs', setBlogs); // Force Update
-    } else {
-        const newBlog = { ...blogData, id: Date.now(), postedDate: new Date().toLocaleDateString(), views: 0, status: 'Active' };
-        const updated = [newBlog, ...blogs];
-        setBlogs(updated);
-        setLocal('db_blogs', updated);
-    }
+    const newBlog = { ...blog, postedDate: new Date().toLocaleDateString(), views: 0, status: 'Active' };
+    await optimisticAdd('blogs', newBlog, setBlogs, blogs);
   };
 
   const updateBlog = async (updatedBlog: any) => {
     if (isSupabaseConfigured) {
         await supabase.from('blogs').update(updatedBlog).eq('id', updatedBlog.id);
-        await fetchTable('blogs', setBlogs); // Force Update
+        await fetchTable('blogs', setBlogs);
     } else {
         const updated = blogs.map(b => b.id === updatedBlog.id ? updatedBlog : b);
         setBlogs(updated);
@@ -299,37 +238,30 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   };
 
   const deleteBlog = async (id: number) => {
+    const prev = [...blogs];
+    setBlogs(blogs.filter(b => b.id !== id));
     if (isSupabaseConfigured) {
-        await supabase.from('blogs').delete().eq('id', id);
-        await fetchTable('blogs', setBlogs); // Force Update
+        const { error } = await supabase.from('blogs').delete().eq('id', id);
+        if(error) setBlogs(prev);
     } else {
-        const updated = blogs.filter(b => b.id !== id);
-        setBlogs(updated);
-        setLocal('db_blogs', updated);
+        setLocal('db_blogs', blogs.filter(b => b.id !== id));
     }
   };
 
   const addRequest = async (request: any) => {
-    if (isSupabaseConfigured) {
-        const newReq = { ...request, status: 'Pending', postedDate: new Date().toLocaleDateString() };
-        await supabase.from('requests').insert([newReq]);
-        await fetchTable('requests', setRequests);
-    } else {
-        const newReq = { ...request, id: Date.now(), status: 'Pending', postedDate: new Date().toLocaleDateString() };
-        const updated = [newReq, ...requests];
-        setRequests(updated);
-        setLocal('db_requests', updated);
-    }
+    const newReq = { ...request, status: 'Pending', postedDate: new Date().toLocaleDateString() };
+    await optimisticAdd('requests', newReq, setRequests, requests);
   };
 
   const handleRequestAction = async (item: any, action: 'approve' | 'reject') => {
+    // Remove from request list first
+    const prevRequests = [...requests];
+    setRequests(requests.filter(r => r.id !== item.id));
+
     if (isSupabaseConfigured) {
         await supabase.from('requests').delete().eq('id', item.id);
-        await fetchTable('requests', setRequests);
     } else {
-        const updatedReqs = requests.filter(r => r.id !== item.id);
-        setRequests(updatedReqs);
-        setLocal('db_requests', updatedReqs);
+        setLocal('db_requests', requests.filter(r => r.id !== item.id));
     }
 
     if (action === 'approve') {
@@ -340,16 +272,8 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   };
 
   const addGrievance = async (report: any) => {
-    if (isSupabaseConfigured) {
-        const newReport = { ...report, status: 'Pending', date: new Date().toLocaleDateString() };
-        await supabase.from('grievances').insert([newReport]);
-        await fetchTable('grievances', setGrievances);
-    } else {
-        const newReport = { ...report, id: Date.now(), status: 'Pending', date: new Date().toLocaleDateString() };
-        const updated = [newReport, ...grievances];
-        setGrievances(updated);
-        setLocal('db_grievances', updated);
-    }
+    const newReport = { ...report, status: 'Pending', date: new Date().toLocaleDateString() };
+    await optimisticAdd('grievances', newReport, setGrievances, grievances);
   };
 
   const updateGrievanceStatus = async (id: number, status: string) => {
@@ -364,26 +288,26 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   };
 
   const deleteGrievance = async (id: number) => {
+    const prev = [...grievances];
+    setGrievances(grievances.filter(g => g.id !== id));
     if (isSupabaseConfigured) {
-        await supabase.from('grievances').delete().eq('id', id);
-        await fetchTable('grievances', setGrievances);
+        const { error } = await supabase.from('grievances').delete().eq('id', id);
+        if(error) setGrievances(prev);
     } else {
-        const updated = grievances.filter(g => g.id !== id);
-        setGrievances(updated);
-        setLocal('db_grievances', updated);
+        setLocal('db_grievances', grievances.filter(g => g.id !== id));
     }
   };
 
   const addUser = async (user: any) => {
     if (users.some((u: any) => u.email === user.email)) { alert('Email already registered!'); return; }
+    const newUser = { ...user, status: 'Active', date: new Date().toLocaleDateString() };
+    if(!newUser.id) newUser.id = `u${Date.now()}`;
     
+    // For users table, we need careful handling as it's critical
     if (isSupabaseConfigured) {
-        const newUser = { ...user, status: 'Active', date: new Date().toLocaleDateString() };
-        await supabase.from('users').insert([newUser]);
-        await fetchTable('users', setUsers);
+        const { error } = await supabase.from('users').insert([newUser]);
+        if(!error) await fetchTable('users', setUsers);
     } else {
-        const newUser = { ...user, status: 'Active', date: new Date().toLocaleDateString() };
-        if(!newUser.id) newUser.id = `u${Date.now()}`;
         const updated = [newUser, ...users];
         setUsers(updated);
         setLocal('db_users', updated);
@@ -402,20 +326,19 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   };
 
   const deleteUser = async (id: string) => {
+    const prev = [...users];
+    setUsers(users.filter(u => u.id !== id));
     if (isSupabaseConfigured) {
-        await supabase.from('users').delete().eq('id', id);
-        await fetchTable('users', setUsers);
+        const { error } = await supabase.from('users').delete().eq('id', id);
+        if(error) setUsers(prev);
     } else {
-        const updated = users.filter(u => u.id !== id);
-        setUsers(updated);
-        setLocal('db_users', updated);
+        setLocal('db_users', users.filter(u => u.id !== id));
     }
   };
 
   const resetPassword = async (email: string, newPass: string) => {
     if (isSupabaseConfigured) {
         await supabase.from('users').update({ password: newPass }).eq('email', email);
-        await fetchTable('users', setUsers);
     } else {
         const updated = users.map(u => u.email === email ? { ...u, password: newPass } : u);
         setUsers(updated);
@@ -434,15 +357,7 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   };
   
   const addRetailProduct = async (product: any) => {
-      const { id, ...data } = product;
-      if (isSupabaseConfigured) {
-          await supabase.from('retail_products').insert([data]);
-          await fetchTable('retail_products', setRetailProducts);
-      } else {
-          const updated = [...retailProducts, { ...product, id: Date.now() }];
-          setRetailProducts(updated);
-          setLocal('db_retail', updated);
-      }
+      await optimisticAdd('retail_products', product, setRetailProducts, retailProducts);
   };
   const updateRetailProduct = async (product: any) => {
       if (isSupabaseConfigured) {
@@ -455,27 +370,19 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       }
   };
   const deleteRetailProduct = async (id: number) => {
+      const prev = [...retailProducts];
+      setRetailProducts(retailProducts.filter(p => p.id !== id));
       if (isSupabaseConfigured) {
-          await supabase.from('retail_products').delete().eq('id', id);
-          await fetchTable('retail_products', setRetailProducts);
+          const { error } = await supabase.from('retail_products').delete().eq('id', id);
+          if(error) setRetailProducts(prev);
       } else {
-          const updated = retailProducts.filter(p => p.id !== id);
-          setRetailProducts(updated);
-          setLocal('db_retail', updated);
+          setLocal('db_retail', retailProducts.filter(p => p.id !== id));
       }
   };
 
   const addWholesaleAd = async (ad: any) => {
-    if (isSupabaseConfigured) {
-        const newAd = { ...ad, status: 'Pending', date: new Date().toLocaleDateString() };
-        await supabase.from('wholesale_ads').insert([newAd]);
-        await fetchTable('wholesale_ads', setWholesaleAds);
-    } else {
-        const newAd = { ...ad, id: Date.now(), status: 'Pending', date: new Date().toLocaleDateString() };
-        const updated = [newAd, ...wholesaleAds];
-        setWholesaleAds(updated);
-        setLocal('db_ads', updated);
-    }
+    const newAd = { ...ad, status: 'Pending', date: new Date().toLocaleDateString() };
+    await optimisticAdd('wholesale_ads', newAd, setWholesaleAds, wholesaleAds);
   };
 
   const updateWholesaleAd = async (updatedAd: any) => {
@@ -490,104 +397,67 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   };
 
   const deleteWholesaleAd = async (id: number) => {
+    const prev = [...wholesaleAds];
+    setWholesaleAds(wholesaleAds.filter(a => a.id !== id));
     if (isSupabaseConfigured) {
-        await supabase.from('wholesale_ads').delete().eq('id', id);
-        await fetchTable('wholesale_ads', setWholesaleAds);
+        const { error } = await supabase.from('wholesale_ads').delete().eq('id', id);
+        if(error) setWholesaleAds(prev);
     } else {
-        const updated = wholesaleAds.filter(a => a.id !== id);
-        setWholesaleAds(updated);
-        setLocal('db_ads', updated);
+        setLocal('db_ads', wholesaleAds.filter(a => a.id !== id));
     }
   };
 
   const addLawyer = async (lawyer: any) => {
-      const { id, ...data } = lawyer;
-      const newLawyer = { ...data, status: 'Active' };
-      if (isSupabaseConfigured) {
-          await supabase.from('lawyers').insert([newLawyer]);
-          await fetchTable('lawyers', setLawyers);
-      } else {
-          const updated = [newLawyer, ...lawyers];
-          setLawyers(updated);
-          setLocal('db_lawyers', updated);
-      }
+      const newLawyer = { ...lawyer, status: 'Active' };
+      await optimisticAdd('lawyers', newLawyer, setLawyers, lawyers);
   };
   const deleteLawyer = async (id: number) => {
+      const prev = [...lawyers];
+      setLawyers(lawyers.filter(l => l.id !== id));
       if (isSupabaseConfigured) {
-          await supabase.from('lawyers').delete().eq('id', id);
-          await fetchTable('lawyers', setLawyers);
+          const { error } = await supabase.from('lawyers').delete().eq('id', id);
+          if(error) setLawyers(prev);
       } else {
-          const updated = lawyers.filter(l => l.id !== id);
-          setLawyers(updated);
-          setLocal('db_lawyers', updated);
+          setLocal('db_lawyers', lawyers.filter(l => l.id !== id));
       }
   };
   
   const addExchangeRate = async (rate: any) => {
-      const { id, ...data } = rate;
-      if (isSupabaseConfigured) {
-          await supabase.from('exchange_rates').insert([data]);
-          await fetchTable('exchange_rates', setExchangeRates);
-      } else {
-          const updated = [...exchangeRates, { ...rate, id: Date.now() }];
-          setExchangeRates(updated);
-          setLocal('db_rates', updated);
-      }
+      await optimisticAdd('exchange_rates', rate, setExchangeRates, exchangeRates);
   };
   
   const deleteExchangeRate = async (id: number) => {
+      const prev = [...exchangeRates];
+      setExchangeRates(exchangeRates.filter(r => r.id !== id));
       if (isSupabaseConfigured) {
-          await supabase.from('exchange_rates').delete().eq('id', id);
-          await fetchTable('exchange_rates', setExchangeRates);
+          const { error } = await supabase.from('exchange_rates').delete().eq('id', id);
+          if(error) setExchangeRates(prev);
       } else {
-          const updated = exchangeRates.filter(r => r.id !== id);
-          setExchangeRates(updated);
-          setLocal('db_rates', updated);
+          setLocal('db_rates', exchangeRates.filter(r => r.id !== id));
       }
   };
 
   const addVocationalCourse = async (course: any) => {
-      const { id, ...data } = course;
-      if (isSupabaseConfigured) {
-          await supabase.from('vocational_courses').insert([{...data, status: 'Active'}]);
-          await fetchTable('vocational_courses', setVocationalCourses);
-      } else {
-          const updated = [...vocationalCourses, { ...course, id: Date.now(), status: 'Active' }];
-          setVocationalCourses(updated);
-          setLocal('db_courses', updated);
-      }
+      const newCourse = { ...course, status: 'Active' };
+      await optimisticAdd('vocational_courses', newCourse, setVocationalCourses, vocationalCourses);
   };
   const deleteVocationalCourse = async (id: number) => {
+      const prev = [...vocationalCourses];
+      setVocationalCourses(vocationalCourses.filter(c => c.id !== id));
       if (isSupabaseConfigured) {
-          await supabase.from('vocational_courses').delete().eq('id', id);
-          await fetchTable('vocational_courses', setVocationalCourses);
+          const { error } = await supabase.from('vocational_courses').delete().eq('id', id);
+          if(error) setVocationalCourses(prev);
       } else {
-          const updated = vocationalCourses.filter((c: any) => c.id !== id);
-          setVocationalCourses(updated);
-          setLocal('db_courses', updated);
+          setLocal('db_courses', vocationalCourses.filter(c => c.id !== id));
       }
   };
 
   const addDonor = async (donor: any) => {
-      if (isSupabaseConfigured) {
-          await supabase.from('donors').insert([donor]);
-          await fetchTable('donors', setDonors);
-      } else {
-          const updated = [donor, ...donors];
-          setDonors(updated);
-          setLocal('db_donors', updated);
-      }
+      await optimisticAdd('donors', donor, setDonors, donors);
   };
   
   const enrollCourse = async (enrollment: any) => {
-      if (isSupabaseConfigured) {
-          await supabase.from('enrolled_courses').insert([enrollment]);
-          await fetchTable('enrolled_courses', setEnrolledCourses);
-      } else {
-          const updated = [enrollment, ...enrolledCourses];
-          setEnrolledCourses(updated);
-          setLocal('db_enrolled', updated);
-      }
+      await optimisticAdd('enrolled_courses', enrollment, setEnrolledCourses, enrolledCourses);
   };
 
   return (
