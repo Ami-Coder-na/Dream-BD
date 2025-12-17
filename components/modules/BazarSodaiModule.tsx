@@ -2,9 +2,9 @@
 import React, { useState, useMemo } from 'react';
 import { 
   ShoppingBasket, TrendingUp, Truck, Search, Filter, 
-  PlusCircle, Sun, CloudRain, Snowflake, User,
+  PlusCircle, Sun, CloudRain, Snowflake, User as UserIcon,
   CheckCircle, X, RefreshCw, MapPin, ChevronDown, Tag, 
-  Package, DollarSign, MapPinned, Info
+  Package, DollarSign, MapPinned, Info, Phone
 } from 'lucide-react';
 import { Button } from '../ui/Button';
 import { getOptimizedImageUrl } from '../utils/imageUtils';
@@ -43,7 +43,9 @@ export const BazarSodaiModule: React.FC<Props> = ({ isBangla, user, onLogin }) =
     quantity: '',
     price: '',
     location: '',
-    sellerType: 'Farmer'
+    sellerType: 'Farmer',
+    name: user?.name || '',
+    phone: user?.phone || ''
   });
 
   const filteredWholesaleListings = useMemo(() => {
@@ -62,6 +64,7 @@ export const BazarSodaiModule: React.FC<Props> = ({ isBangla, user, onLogin }) =
       return;
     }
     setSubmitted(false);
+    setAdForm({ ...adForm, name: user.name, phone: user.phone || '' });
     setShowPostModal(true);
   };
 
@@ -76,14 +79,15 @@ export const BazarSodaiModule: React.FC<Props> = ({ isBangla, user, onLogin }) =
       price: adForm.price,
       location: adForm.location,
       sellerType: adForm.sellerType,
-      seller: user?.name || 'Anonymous',
+      seller: adForm.name,
+      phone: adForm.phone,
       postedDate: new Date().toLocaleDateString()
     };
 
     try {
       await addRequest(request);
       setSubmitted(true);
-      setAdForm({ product: '', quantity: '', price: '', location: '', sellerType: 'Farmer' });
+      setAdForm({ product: '', quantity: '', price: '', location: '', sellerType: 'Farmer', name: '', phone: '' });
     } catch (err) {
       alert('Error submitting ad');
     } finally {
@@ -105,7 +109,7 @@ export const BazarSodaiModule: React.FC<Props> = ({ isBangla, user, onLogin }) =
           </h1>
         </div>
 
-        {/* Navigation Tabs - Retail Removed */}
+        {/* Navigation Tabs */}
         <div className="flex justify-center mb-10">
           <div className="bg-white p-1.5 rounded-full shadow-md border border-gray-100 flex gap-1 overflow-x-auto">
             <button 
@@ -177,11 +181,17 @@ export const BazarSodaiModule: React.FC<Props> = ({ isBangla, user, onLogin }) =
                   <div className="flex items-center justify-between pt-4 border-t border-gray-50">
                     <div className="flex items-center gap-3">
                       <div className="w-10 h-10 bg-orange-100 rounded-full flex items-center justify-center text-orange-600 font-bold">{item.seller?.charAt(0)}</div>
-                      <span className="text-sm font-bold text-gray-700">{item.seller}</span>
+                      <div className="flex flex-col">
+                        <span className="text-sm font-bold text-gray-700">{item.seller}</span>
+                        {item.phone && <span className="text-[10px] text-gray-400 font-medium">{item.phone}</span>}
+                      </div>
                     </div>
-                    <Button size="sm" className="bg-orange-600 hover:bg-orange-700 border-none shadow-md shadow-orange-600/10 font-bold">
-                      {isBangla ? 'যোগাযোগ' : 'Contact'}
-                    </Button>
+                    <a 
+                      href={`tel:${item.phone}`} 
+                      className={`inline-flex items-center justify-center p-2 rounded-full transition-all ${item.phone ? 'bg-orange-600 text-white shadow-md hover:bg-orange-700' : 'bg-gray-100 text-gray-300 cursor-not-allowed'}`}
+                    >
+                      <Phone size={18} />
+                    </a>
                   </div>
                 </div>
               ))}
@@ -268,71 +278,95 @@ export const BazarSodaiModule: React.FC<Props> = ({ isBangla, user, onLogin }) =
                   <Button onClick={() => setShowPostModal(false)} className="bg-orange-600 hover:bg-orange-700 px-10">OK</Button>
                 </div>
               ) : (
-                <form onSubmit={handleAdSubmit} className="space-y-6">
+                <form onSubmit={handleAdSubmit} className="space-y-5">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                    <div>
+                      <label className="block text-sm font-bold text-gray-700 mb-1.5 flex items-center gap-2">
+                        <UserIcon size={14} className="text-orange-500"/> {isBangla ? 'আপনার নাম' : 'Your Name'} *
+                      </label>
+                      <input 
+                        required 
+                        type="text" 
+                        className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-2xl focus:ring-2 focus:ring-orange-500 outline-none"
+                        value={adForm.name}
+                        onChange={e => setAdForm({...adForm, name: e.target.value})}
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-bold text-gray-700 mb-1.5 flex items-center gap-2">
+                        <Phone size={14} className="text-orange-500"/> {isBangla ? 'মোবাইল নম্বর' : 'Phone Number'} *
+                      </label>
+                      <input 
+                        required 
+                        type="text" 
+                        className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-2xl focus:ring-2 focus:ring-orange-500 outline-none"
+                        value={adForm.phone}
+                        onChange={e => setAdForm({...adForm, phone: e.target.value})}
+                      />
+                    </div>
+                  </div>
+
                   <div>
-                    <label className="block text-sm font-bold text-gray-700 mb-2 flex items-center gap-2">
-                      <Package size={16} className="text-orange-500"/> {isBangla ? 'পণ্যের নাম' : 'Product Name'} *
+                    <label className="block text-sm font-bold text-gray-700 mb-1.5 flex items-center gap-2">
+                      <Package size={14} className="text-orange-500"/> {isBangla ? 'পণ্যের নাম' : 'Product Name'} *
                     </label>
                     <input 
                       required 
                       type="text" 
-                      className="w-full px-5 py-4 bg-gray-50 border border-gray-200 rounded-2xl focus:ring-2 focus:ring-orange-500 outline-none text-lg"
-                      placeholder={isBangla ? 'যেমন: মিনিকেট চাল, বগুড়ার দই...' : 'e.g. Miniket Rice, Bogra Curd...'}
+                      className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-2xl focus:ring-2 focus:ring-orange-500 outline-none"
+                      placeholder={isBangla ? 'যেমন: মিনিকেট চাল, বগুড়ার দই...' : 'e.g. Miniket Rice, Bogra Curd...'}
                       value={adForm.product}
                       onChange={e => setAdForm({...adForm, product: e.target.value})}
                     />
                   </div>
 
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="grid grid-cols-2 gap-5">
                     <div>
-                      <label className="block text-sm font-bold text-gray-700 mb-2">{isBangla ? 'পরিমাণ' : 'Quantity'} *</label>
+                      <label className="block text-sm font-bold text-gray-700 mb-1.5">{isBangla ? 'পরিমাণ' : 'Quantity'} *</label>
                       <input 
                         required 
                         type="text" 
-                        className="w-full px-5 py-4 bg-gray-50 border border-gray-200 rounded-2xl focus:ring-2 focus:ring-orange-500 outline-none"
-                        placeholder={isBangla ? 'যেমন: ১০০ কেজি, ৫০০ পিস...' : 'e.g. 100 kg, 500 pcs...'}
+                        className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-2xl focus:ring-2 focus:ring-orange-500 outline-none"
+                        placeholder={isBangla ? 'যেমন: ১০০ কেজি' : 'e.g. 100 kg'}
                         value={adForm.quantity}
                         onChange={e => setAdForm({...adForm, quantity: e.target.value})}
                       />
                     </div>
                     <div>
-                      <label className="block text-sm font-bold text-gray-700 mb-2 flex items-center gap-2">
-                        <DollarSign size={16} className="text-orange-500"/> {isBangla ? 'দাম (৳)' : 'Price (৳)'} *
-                      </label>
+                      <label className="block text-sm font-bold text-gray-700 mb-1.5">{isBangla ? 'দাম (৳)' : 'Price (৳)'} *</label>
                       <input 
                         required 
                         type="text" 
-                        className="w-full px-5 py-4 bg-gray-50 border border-gray-200 rounded-2xl focus:ring-2 focus:ring-orange-500 outline-none"
-                        placeholder={isBangla ? 'যেমন: ৫০ টাকা / কেজি' : 'e.g. 50 / kg'}
+                        className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-2xl focus:ring-2 focus:ring-orange-500 outline-none"
+                        placeholder={isBangla ? 'যেমন: ৫০ / কেজি' : 'e.g. 50 / kg'}
                         value={adForm.price}
                         onChange={e => setAdForm({...adForm, price: e.target.value})}
                       />
                     </div>
                   </div>
 
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="grid grid-cols-2 gap-5">
                     <div>
-                      <label className="block text-sm font-bold text-gray-700 mb-2 flex items-center gap-2">
-                        <MapPinned size={16} className="text-orange-500"/> {isBangla ? 'স্থান/জেলা' : 'Location'} *
+                      <label className="block text-sm font-bold text-gray-700 mb-1.5 flex items-center gap-2">
+                        <MapPinned size={14} className="text-orange-500"/> {isBangla ? 'স্থান/জেলা' : 'Location'} *
                       </label>
                       <input 
                         required 
                         type="text" 
-                        className="w-full px-5 py-4 bg-gray-50 border border-gray-200 rounded-2xl focus:ring-2 focus:ring-orange-500 outline-none"
-                        placeholder={isBangla ? 'যেমন: দিনাজপুর, বগুড়া...' : 'e.g. Dinajpur, Bogra...'}
+                        className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-2xl focus:ring-2 focus:ring-orange-500 outline-none"
                         value={adForm.location}
                         onChange={e => setAdForm({...adForm, location: e.target.value})}
                       />
                     </div>
                     <div>
-                      <label className="block text-sm font-bold text-gray-700 mb-2">{isBangla ? 'বিক্রেতার ধরন' : 'Seller Type'} *</label>
+                      <label className="block text-sm font-bold text-gray-700 mb-1.5">{isBangla ? 'বিক্রেতার ধরন' : 'Seller Type'} *</label>
                       <select 
-                        className="w-full px-5 py-4 bg-gray-50 border border-gray-200 rounded-2xl focus:ring-2 focus:ring-orange-500 outline-none cursor-pointer"
+                        className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-2xl focus:ring-2 focus:ring-orange-500 outline-none cursor-pointer"
                         value={adForm.sellerType}
                         onChange={e => setAdForm({...adForm, sellerType: e.target.value})}
                       >
                         <option value="Farmer">{isBangla ? 'কৃষক' : 'Farmer'}</option>
-                        <option value="Trader">{isBangla ? 'ব্যবসায়ী' : 'Trader'}</option>
+                        <option value="Trader">{isBangla ? 'ব্যবসায়ী' : 'Trader'}</option>
                         <option value="Manufacturer">{isBangla ? 'প্রস্তুতকারক' : 'Manufacturer'}</option>
                       </select>
                     </div>
@@ -347,7 +381,7 @@ export const BazarSodaiModule: React.FC<Props> = ({ isBangla, user, onLogin }) =
                       {isSubmitting ? <RefreshCw className="animate-spin" size={20} /> : <PlusCircle size={20} />}
                       {isBangla ? 'বিজ্ঞাপন জমা দিন' : 'Submit Ad'}
                     </Button>
-                    <p className="text-center text-xs text-gray-400 flex items-center justify-center gap-1 uppercase tracking-widest">
+                    <p className="text-center text-[10px] text-gray-400 flex items-center justify-center gap-1 uppercase tracking-widest">
                        <Info size={12}/> Secure system • Manual review
                     </p>
                   </div>

@@ -22,6 +22,7 @@ create table if not exists public.wholesale_requests (
   location text,
   sellertype text,
   seller text,
+  phone text,
   status text default 'Pending',
   posteddate text,
   created_at timestamp with time zone default timezone('utc'::text, now()) not null
@@ -36,6 +37,7 @@ create table if not exists public.wholesale_ads (
   location text,
   sellertype text,
   seller text,
+  phone text,
   status text default 'Active',
   posteddate text,
   created_at timestamp with time zone default timezone('utc'::text, now()) not null
