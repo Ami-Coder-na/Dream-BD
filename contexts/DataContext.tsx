@@ -168,9 +168,9 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
             const { error } = await supabase.from(table).insert([normalizedDbData]);
             
             if (error) {
-                // EXPLICIT ALERT FOR DEBUGGING
+                // EXPLICIT ALERT FOR DEBUGGING - JSON STRINGIFY TO SEE REAL ERROR OBJECT
                 console.error(`Supabase Insert Error for ${table}:`, error);
-                alert(`Database Error (${error.code}): ${error.message}. Check console for details.`);
+                alert(`Database Error:\n${JSON.stringify(error, null, 2)}`);
                 
                 // Fallback to local
                 setLocal(`db_${table}`, newList);
