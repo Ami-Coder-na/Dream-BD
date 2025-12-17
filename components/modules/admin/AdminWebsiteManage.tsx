@@ -1,13 +1,14 @@
+
 import React, { useState, useEffect, useRef } from 'react';
 import { 
   Monitor, Layout, Layers, ToggleLeft, ToggleRight, 
   AlertTriangle, Megaphone, Power, CheckCircle, Smartphone, Database, Server, HardDrive, Copy, Check, Save, RefreshCw, Key,
   Globe, MapPin, Phone, Mail, Upload, X, Image as ImageIcon,
-  Zap, PlusCircle, RotateCcw, Wifi, WifiOff
+  Zap, PlusCircle, RotateCcw, Wifi, WifiOff, Globe2, Lock, ShieldCheck, Terminal, AlertCircle, Info
 } from 'lucide-react';
 import { Button } from '../../ui/Button';
 import { useSiteConfig, ToggableModule, LandingSection } from '../../../contexts/SiteConfigContext';
-import { isSupabaseConfigured, supabase } from '../../../services/supabaseClient';
+import { isSupabaseConfigured, isGlobalConfig, supabase } from '../../../services/supabaseClient';
 import { AppModule } from '../../../types';
 
 const SCHEMA_SQL = `
@@ -77,12 +78,10 @@ export const AdminWebsiteManage = () => {
   const handleSaveDbConfig = () => {
     setIsSaving(true);
     let finalUrl = dbUrl.trim();
-    // Ensure https://
     if (finalUrl && !finalUrl.startsWith('http')) {
         finalUrl = 'https://' + finalUrl;
         setDbUrl(finalUrl);
     }
-    // Remove trailing slash
     if (finalUrl.endsWith('/')) {
         finalUrl = finalUrl.slice(0, -1);
     }
@@ -92,7 +91,7 @@ export const AdminWebsiteManage = () => {
     
     setTimeout(() => {
         setIsSaving(false);
-        alert('Configuration Saved! The page will refresh to connect.');
+        alert('Local Configuration Saved! Page will reload.');
         window.location.reload();
     }, 1000);
   };
@@ -100,17 +99,16 @@ export const AdminWebsiteManage = () => {
   const handleTestConnection = async (silent = false) => {
       if(!silent) setTestResult('Testing Connection...');
       try {
-          // Simple count query
           const { count, error } = await supabase.from('jobs').select('*', { count: 'exact', head: true });
           if (error) {
               setTestResult(`Connection Failed: ${error.message}`);
               setStatusColor('red');
           } else {
-              setTestResult(`✅ Connected Successfully! Found ${count} jobs in DB.`);
+              setTestResult(`✅ Connected Successfully! Found ${count} jobs.`);
               setStatusColor('green');
           }
       } catch (err: any) {
-          setTestResult(`Network/Client Error: ${err.message}`);
+          setTestResult(`Error: ${err.message}`);
           setStatusColor('red');
       }
   };
@@ -141,7 +139,7 @@ export const AdminWebsiteManage = () => {
   };
 
   const handleDisconnect = () => {
-      if(confirm('Are you sure? This will clear the API Key and URL.')) {
+      if(confirm('Clear local keys? This will not affect code-based configuration.')) {
           localStorage.removeItem('dream_sb_url');
           localStorage.removeItem('dream_sb_key');
           window.location.reload();
@@ -165,223 +163,267 @@ export const AdminWebsiteManage = () => {
   };
 
   const ToggleSwitch = ({ label, checked, onChange, color = 'bg-green-500' }: { label: string, checked: boolean, onChange: () => void, color?: string }) => (
-    <div className="flex items-center justify-between p-4 bg-gray-50 rounded-xl border border-gray-100 hover:border-gray-300 transition-all">
-      <span className="font-medium text-gray-900">{label}</span>
+    <div className="flex items-center justify-between p-4 bg-white rounded-xl border border-gray-100 hover:border-gray-200 shadow-sm transition-all">
+      <span className="font-semibold text-gray-800">{label}</span>
       <button 
         onClick={onChange}
-        className={`relative w-12 h-6 rounded-full transition-colors duration-300 ${checked ? color : 'bg-gray-300'}`}
+        className={`relative w-12 h-6 rounded-full transition-colors duration-300 ${checked ? color : 'bg-gray-200'}`}
       >
-        <div className={`absolute top-1 left-1 w-4 h-4 bg-white rounded-full shadow-md transform transition-transform duration-300 ${checked ? 'translate-x-6' : 'translate-x-0'}`}></div>
+        <div className={`absolute top-1 left-1 w-4 h-4 bg-white rounded-full shadow-sm transform transition-transform duration-300 ${checked ? 'translate-x-6' : 'translate-x-0'}`}></div>
       </button>
     </div>
   );
 
   return (
-    <div className="space-y-8 animate-fade-in">
+    <div className="space-y-8 animate-fade-in max-w-5xl mx-auto">
       
-      {/* Global Status Banner */}
-      <div className={`p-6 rounded-2xl border-2 flex flex-col md:flex-row items-center justify-between gap-4 ${isSupabaseConfigured ? 'bg-green-50 border-green-200' : 'bg-red-50 border-red-200'}`}>
-         <div className="flex items-center gap-4">
-            <div className={`p-4 rounded-full ${isSupabaseConfigured ? 'bg-green-200 text-green-700' : 'bg-red-200 text-red-700'}`}>
-                {isSupabaseConfigured ? <Wifi size={32} /> : <WifiOff size={32} />}
-            </div>
-            <div>
-                <h2 className={`text-2xl font-bold ${isSupabaseConfigured ? 'text-green-900' : 'text-red-900'}`}>
-                    {isSupabaseConfigured ? 'System Online (Global)' : 'System Offline (Local Only)'}
+      {/* --- STATUS BANNER --- */}
+      <div className={`relative overflow-hidden rounded-2xl p-1 shadow-sm ${isGlobalConfig ? 'bg-gradient-to-r from-emerald-400 to-cyan-500' : 'bg-gradient-to-r from-amber-400 to-orange-500'}`}>
+        <div className="bg-white/95 backdrop-blur-sm rounded-xl p-6 md:p-8">
+          <div className="flex flex-col md:flex-row items-center md:items-start justify-between gap-6">
+            <div className="flex items-start gap-5">
+              <div className={`p-4 rounded-2xl shadow-lg shrink-0 ${isGlobalConfig ? 'bg-emerald-500 text-white' : 'bg-amber-500 text-white'}`}>
+                {isGlobalConfig ? <Globe2 size={36} /> : <Lock size={36} />}
+              </div>
+              <div className="text-center md:text-left">
+                <h2 className={`text-2xl font-black tracking-tight ${isGlobalConfig ? 'text-emerald-900' : 'text-amber-900'}`}>
+                  {isGlobalConfig ? 'GLOBAL SYSTEM ONLINE' : 'LOCAL MODE (RESTRICTED)'}
                 </h2>
-                <p className={`${isSupabaseConfigured ? 'text-green-700' : 'text-red-700'}`}>
-                    {isSupabaseConfigured 
-                        ? 'All users can see the database updates.' 
-                        : 'Updates are only visible on this device.'}
+                <p className={`mt-2 font-medium max-w-lg ${isGlobalConfig ? 'text-emerald-700' : 'text-amber-800'}`}>
+                  {isGlobalConfig 
+                    ? 'Your application is connected to the cloud via secure environment variables. Data is synced in real-time for all users.' 
+                    : 'The database is connected only on this browser. Updates will NOT be visible to other users. Add keys to code for global access.'}
                 </p>
+                {!isGlobalConfig && (
+                  <div className="mt-4 inline-flex items-center gap-2 bg-amber-100 text-amber-800 px-4 py-2 rounded-lg text-xs font-bold border border-amber-200">
+                    <AlertTriangle size={14} />
+                    Edit services/supabaseClient.ts to fix this.
+                  </div>
+                )}
+              </div>
             </div>
-         </div>
-         {isSupabaseConfigured && (
-             <div className="text-right">
-                 <span className="inline-block bg-green-200 text-green-800 text-xs font-bold px-3 py-1 rounded-full uppercase tracking-wider mb-1">Status: Operational</span>
-                 <p className="text-xs text-green-700">Code Configuration Detected</p>
-             </div>
-         )}
+            
+            {isSupabaseConfigured && (
+              <div className="flex flex-col gap-3 w-full md:w-auto">
+                <div className="bg-gray-50 rounded-xl p-3 border border-gray-100 flex items-center justify-between gap-4">
+                   <div className="flex items-center gap-2 text-sm font-bold text-gray-600">
+                      <div className={`w-2.5 h-2.5 rounded-full ${statusColor === 'green' ? 'bg-green-500 animate-pulse' : statusColor === 'red' ? 'bg-red-500' : 'bg-gray-400'}`}></div>
+                      Connection
+                   </div>
+                   <span className={`text-xs font-bold px-2 py-0.5 rounded ${statusColor === 'green' ? 'bg-green-100 text-green-700' : statusColor === 'red' ? 'bg-red-100 text-red-700' : 'bg-gray-200 text-gray-600'}`}>
+                     {statusColor === 'green' ? 'Active' : statusColor === 'red' ? 'Error' : 'Idle'}
+                   </span>
+                </div>
+                <Button onClick={() => handleTestConnection(false)} variant="outline" className="w-full justify-center bg-white hover:bg-gray-50 text-gray-700 border-gray-300">
+                   <Zap size={16} className="mr-2 text-yellow-500"/> Test Connection
+                </Button>
+              </div>
+            )}
+          </div>
+        </div>
       </div>
 
-      {/* Database Connection Panel */}
-      <div className="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden">
-         <div className={`p-6 border-b flex items-center justify-between bg-gray-50`}>
+      {/* --- DATABASE TOOLS CARD --- */}
+      <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+         <div className="px-8 py-6 border-b border-gray-100 flex flex-col md:flex-row justify-between items-center gap-4 bg-gradient-to-r from-gray-50 to-white">
             <div className="flex items-center gap-3">
-                <Database size={24} className="text-gray-600" />
-                <h3 className="text-lg font-bold text-gray-900">Database Tools</h3>
+                <div className="p-2 bg-blue-50 text-blue-600 rounded-lg"><Database size={24} /></div>
+                <div>
+                  <h3 className="text-xl font-bold text-gray-900">Database Tools</h3>
+                  <p className="text-xs text-gray-500">Configure connection and run diagnostics</p>
+                </div>
             </div>
-            {isSupabaseConfigured && (
-                <button onClick={handleDisconnect} className="flex items-center gap-1 text-xs text-red-600 font-bold hover:bg-red-50 px-3 py-1 rounded-lg transition-colors border border-red-200">
-                    <RotateCcw size={12}/> Clear Browser Cache
+            {!isGlobalConfig && isSupabaseConfigured && (
+                <button onClick={handleDisconnect} className="text-xs text-red-600 font-bold hover:bg-red-50 px-4 py-2 rounded-lg transition-colors border border-red-200 flex items-center gap-2">
+                    <RotateCcw size={14}/> Clear Local Keys
                 </button>
             )}
          </div>
          
-         <div className="p-6">
+         <div className="p-8">
             {!isSupabaseConfigured ? (
-                <div className="space-y-4">
-                    <div className="bg-blue-50 p-4 rounded-xl border border-blue-100 text-sm text-blue-800 mb-4">
-                        <strong>For Global Access:</strong> Add keys to <code>services/supabaseClient.ts</code> (Recommended) or use the form below for this browser only.
+                <div className="max-w-2xl mx-auto">
+                    <div className="bg-blue-50 p-6 rounded-2xl border border-blue-100 mb-8 flex gap-4">
+                        <Info className="text-blue-600 shrink-0" size={24} />
+                        <div>
+                          <h4 className="font-bold text-blue-900 mb-1">Setup Required</h4>
+                          <p className="text-sm text-blue-800">
+                            To enable global access, paste your Supabase keys directly into <code>services/supabaseClient.ts</code>. Alternatively, use the form below for a temporary local connection.
+                          </p>
+                        </div>
                     </div>
-                    <div>
-                        <label className="block text-sm font-bold text-gray-700 mb-1">Project URL</label>
-                        <input 
-                            type="text" 
-                            value={dbUrl}
-                            onChange={(e) => setDbUrl(e.target.value)}
-                            placeholder="https://your-project.supabase.co"
-                            className="w-full p-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none font-mono text-sm"
-                        />
-                    </div>
-                    <div>
-                        <label className="block text-sm font-bold text-gray-700 mb-1">API Key (anon)</label>
-                        <div className="relative">
+                    
+                    <div className="space-y-6">
+                        <div className="relative group">
+                            <label className="block text-xs font-bold text-gray-500 uppercase mb-1.5 ml-1">Project URL</label>
+                            <Server className="absolute left-4 top-[34px] text-gray-400 group-focus-within:text-blue-500 transition-colors" size={18} />
+                            <input 
+                                type="text" 
+                                value={dbUrl}
+                                onChange={(e) => setDbUrl(e.target.value)}
+                                placeholder="https://your-project.supabase.co"
+                                className="w-full pl-12 pr-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:bg-white focus:border-transparent outline-none font-mono text-sm transition-all"
+                            />
+                        </div>
+                        <div className="relative group">
+                            <label className="block text-xs font-bold text-gray-500 uppercase mb-1.5 ml-1">API Key (Anon)</label>
+                            <Key className="absolute left-4 top-[34px] text-gray-400 group-focus-within:text-blue-500 transition-colors" size={18} />
                             <input 
                                 type="password" 
                                 value={dbKey}
                                 onChange={(e) => setDbKey(e.target.value)}
                                 placeholder="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
-                                className="w-full p-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none pr-10 font-mono text-sm"
+                                className="w-full pl-12 pr-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:bg-white focus:border-transparent outline-none font-mono text-sm transition-all"
                             />
-                            <Key size={16} className="absolute right-4 top-4 text-gray-400"/>
                         </div>
+                        <button onClick={handleSaveDbConfig} className="w-full py-4 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl shadow-lg shadow-blue-200 flex items-center justify-center gap-3 transition-transform hover:scale-[1.02]">
+                            {isSaving ? <RefreshCw className="animate-spin" /> : <Save size={20} />} Connect Locally
+                        </button>
                     </div>
-                    <button 
-                        onClick={handleSaveDbConfig}
-                        disabled={isSaving || !dbUrl || !dbKey}
-                        className="w-full py-3 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl shadow-lg shadow-blue-200 flex items-center justify-center gap-2"
-                    >
-                        {isSaving ? <RefreshCw className="animate-spin" /> : <Save size={18} />}
-                        {isSaving ? 'Connecting...' : 'Connect Locally'}
-                    </button>
                 </div>
             ) : (
-                <div className="text-center py-6">
-                    <div className="flex flex-wrap gap-4 justify-center mb-6">
-                        <Button onClick={() => handleTestConnection(false)} variant="outline" className="flex items-center gap-2">
-                            <Zap size={16} /> Test Connection
+                <div className="flex flex-col gap-8">
+                    {/* Test Controls */}
+                    <div className="flex flex-wrap gap-4 items-center justify-center p-6 bg-gray-50 rounded-2xl border border-gray-100 border-dashed">
+                        <Button onClick={handleTestInsert} className="bg-white text-gray-800 border border-gray-200 hover:border-blue-300 hover:text-blue-600 shadow-sm flex items-center gap-2 px-6 py-4 h-auto">
+                            <div className="bg-blue-100 p-2 rounded-lg text-blue-600"><PlusCircle size={20} /></div>
+                            <div className="text-left">
+                              <span className="block text-xs text-gray-400 uppercase font-bold">Debug</span>
+                              <span className="block font-bold">Test Insert</span>
+                            </div>
                         </Button>
-                        <Button onClick={handleTestInsert} className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white shadow-md">
-                            <PlusCircle size={16} /> Test Data Insert
+                        <Button onClick={() => handleTestConnection(false)} className="bg-white text-gray-800 border border-gray-200 hover:border-green-300 hover:text-green-600 shadow-sm flex items-center gap-2 px-6 py-4 h-auto">
+                            <div className="bg-green-100 p-2 rounded-lg text-green-600"><Zap size={20} /></div>
+                            <div className="text-left">
+                              <span className="block text-xs text-gray-400 uppercase font-bold">Diagnostics</span>
+                              <span className="block font-bold">Test Connection</span>
+                            </div>
                         </Button>
                     </div>
                     
+                    {/* Console Output */}
                     {testResult && (
-                        <div className={`mb-6 p-4 rounded-xl border text-left text-sm font-mono whitespace-pre-wrap break-all overflow-x-auto ${
+                        <div className={`rounded-xl border p-4 text-sm font-mono whitespace-pre-wrap overflow-x-auto shadow-inner ${
                             statusColor === 'green' ? 'bg-green-50 border-green-200 text-green-900' : 
-                            statusColor === 'red' ? 'bg-red-50 border-red-200 text-red-900' :
-                            'bg-orange-50 border-orange-200 text-orange-900'
+                            statusColor === 'red' ? 'bg-red-50 border-red-200 text-red-900' : 
+                            'bg-gray-900 text-gray-100 border-gray-700'
                         }`}>
-                            <strong>Result:</strong><br/>
+                            <div className="flex items-center gap-2 mb-2 opacity-50 text-xs uppercase font-bold border-b border-current pb-2">
+                                <Terminal size={12} /> System Output
+                            </div>
                             {testResult}
                         </div>
                     )}
 
-                    <div className="bg-gray-900 text-white p-6 rounded-2xl border border-gray-800 text-left">
-                        <h4 className="font-bold text-lg mb-2 flex items-center gap-2 text-green-400"><Server size={20}/> SQL Setup (One-Time)</h4>
-                        <p className="text-sm text-gray-300 mb-4 leading-relaxed">
-                            Run this in your Supabase SQL Editor to create tables and fix "Permission denied" errors.
-                        </p>
-                        
-                        <div className="bg-black/50 p-4 rounded-xl font-mono text-xs text-green-300 mb-4 h-48 overflow-y-auto border border-gray-700 custom-scrollbar">
-                            {SCHEMA_SQL}
+                    {/* SQL Section */}
+                    <div className="bg-slate-900 text-slate-300 rounded-2xl overflow-hidden border border-slate-800 shadow-2xl">
+                        <div className="bg-slate-950 px-6 py-4 flex justify-between items-center border-b border-slate-800">
+                            <div className="flex items-center gap-3">
+                                <Server size={18} className="text-emerald-400" />
+                                <span className="font-bold text-slate-100">SQL Schema Setup</span>
+                            </div>
+                            <button 
+                                onClick={handleCopySQL} 
+                                className="flex items-center gap-2 text-xs font-bold bg-slate-800 hover:bg-slate-700 text-white px-3 py-1.5 rounded-lg transition-colors border border-slate-700"
+                            >
+                                {copied ? <Check size={14} className="text-green-400"/> : <Copy size={14} />} 
+                                {copied ? 'Copied!' : 'Copy Code'}
+                            </button>
                         </div>
-
-                        <button 
-                            onClick={handleCopySQL}
-                            className="w-full flex items-center justify-center gap-2 px-6 py-3 bg-green-600 hover:bg-green-700 text-white rounded-xl text-sm font-bold transition-all shadow-lg shadow-green-900/20"
-                        >
-                            {copied ? <Check size={18} /> : <Copy size={18} />}
-                            {copied ? 'SQL Copied!' : 'Copy SQL Code'}
-                        </button>
+                        <div className="p-6">
+                            <p className="text-sm text-slate-400 mb-4 bg-slate-800/50 p-3 rounded-lg border border-slate-700">
+                                <span className="text-amber-400 font-bold">Instruction:</span> Run this code in the Supabase SQL Editor to create necessary tables and fix "Permission Denied" errors.
+                            </p>
+                            <div className="bg-black/50 p-4 rounded-xl font-mono text-xs text-emerald-400 h-64 overflow-y-auto border border-slate-800 custom-scrollbar leading-relaxed">
+                                {SCHEMA_SQL}
+                            </div>
+                        </div>
                     </div>
                 </div>
             )}
          </div>
       </div>
 
-      {/* General Settings */}
+      {/* General Settings (Logo, Title etc) */}
       <div className="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden">
         <div className="p-6 border-b border-gray-100 flex items-center gap-3 bg-gray-50">
-          <div className="p-2 bg-blue-100 text-blue-700 rounded-lg">
-            <Globe size={20} />
-          </div>
-          <div>
-            <h3 className="text-lg font-bold text-gray-900">General Information</h3>
-            <p className="text-xs text-gray-500">Website branding, logo, and contact details</p>
-          </div>
+          <div className="p-2 bg-blue-100 text-blue-700 rounded-lg"><Globe size={20} /></div>
+          <div><h3 className="text-lg font-bold text-gray-900">General Information</h3><p className="text-xs text-gray-500">Website branding, logo, and contact details</p></div>
         </div>
-        
         <div className="p-6 grid grid-cols-1 lg:grid-cols-3 gap-8">
            <div className="col-span-1">
               <label className="block text-sm font-bold text-gray-700 mb-3">Website Logo</label>
-              <div 
-                className="border-2 border-dashed border-gray-300 rounded-xl p-6 flex flex-col items-center justify-center min-h-[200px] cursor-pointer hover:bg-gray-50 transition-colors relative group"
-                onClick={() => logoInputRef.current?.click()}
-              >
+              <div className="border-2 border-dashed border-gray-300 rounded-xl p-6 flex flex-col items-center justify-center min-h-[200px] cursor-pointer hover:bg-gray-50 transition-colors relative group" onClick={() => logoInputRef.current?.click()}>
                  <input type="file" accept="image/*" className="hidden" ref={logoInputRef} onChange={handleLogoUpload} />
                  {settings.websiteLogo ? (
                    <div className="relative w-full h-full flex flex-col items-center">
                       <img src={settings.websiteLogo} alt="Logo" className="max-h-32 object-contain mb-2" />
                       <button onClick={(e) => { e.stopPropagation(); handleRemoveLogo(); }} className="absolute top-0 right-0 bg-red-500 text-white p-1 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"><X size={16} /></button>
-                      <p className="text-xs text-gray-500 mt-2">Click to change</p>
                    </div>
                  ) : (
-                   <div className="text-center">
-                      <div className="bg-gray-100 p-3 rounded-full inline-block mb-3"><ImageIcon size={24} className="text-gray-400" /></div>
-                      <p className="text-sm font-bold text-gray-600">Upload Logo</p>
-                      <p className="text-xs text-gray-400 mt-1">PNG, JPG, SVG (Max 2MB)</p>
-                   </div>
+                   <div className="text-center"><ImageIcon size={24} className="text-gray-400 mx-auto mb-2" /><p className="text-sm font-bold text-gray-600">Upload Logo</p></div>
                  )}
               </div>
            </div>
            <div className="col-span-1 lg:col-span-2 space-y-5">
-              <div>
-                 <label className="block text-sm font-bold text-gray-700 mb-2">Website Title</label>
-                 <input type="text" value={settings.websiteTitle} onChange={(e) => updateSettings('websiteTitle', e.target.value)} className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none" placeholder="e.g. Dream BD" />
-              </div>
+              <div><label className="block text-sm font-bold text-gray-700 mb-2">Website Title</label><input type="text" value={settings.websiteTitle} onChange={(e) => updateSettings('websiteTitle', e.target.value)} className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none" /></div>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-                 <div><label className="block text-sm font-bold text-gray-700 mb-2 flex items-center gap-2"><Mail size={16} className="text-gray-400"/> Contact Email</label><input type="text" value={settings.contactEmail} onChange={(e) => updateSettings('contactEmail', e.target.value)} className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none" placeholder="info@example.com" /></div>
-                 <div><label className="block text-sm font-bold text-gray-700 mb-2 flex items-center gap-2"><Phone size={16} className="text-gray-400"/> Contact Phone</label><input type="text" value={settings.contactPhone} onChange={(e) => updateSettings('contactPhone', e.target.value)} className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none" placeholder="+880 1..." /></div>
+                 <div><label className="block text-sm font-bold text-gray-700 mb-2">Contact Email</label><input type="text" value={settings.contactEmail} onChange={(e) => updateSettings('contactEmail', e.target.value)} className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none" /></div>
+                 <div><label className="block text-sm font-bold text-gray-700 mb-2">Contact Phone</label><input type="text" value={settings.contactPhone} onChange={(e) => updateSettings('contactPhone', e.target.value)} className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none" /></div>
               </div>
-              <div><label className="block text-sm font-bold text-gray-700 mb-2 flex items-center gap-2"><MapPin size={16} className="text-gray-400"/> Address</label><textarea rows={2} value={settings.address} onChange={(e) => updateSettings('address', e.target.value)} className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none resize-none" placeholder="Office Address..." /></div>
+              <div><label className="block text-sm font-bold text-gray-700 mb-2">Address</label><textarea rows={2} value={settings.address} onChange={(e) => updateSettings('address', e.target.value)} className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none resize-none" /></div>
            </div>
         </div>
       </div>
 
+      {/* --- MODULE TOGGLES --- */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-        <div className="bg-white rounded-2xl shadow-sm border border-gray-200">
-          <div className="p-5 border-b border-gray-100 flex items-center gap-3"><Layers size={20} className="text-blue-600"/><h3 className="font-bold text-gray-900">Header Modules</h3></div>
+        <div className="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden">
+          <div className="p-5 border-b border-gray-100 flex items-center gap-3 bg-gray-50/50">
+            <Layers size={20} className="text-indigo-600"/>
+            <h3 className="font-bold text-gray-900">Active Modules</h3>
+          </div>
           <div className="p-6">
              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <ToggleSwitch label="Amar Bangladesh" checked={modules[AppModule.AMAR_BD]} onChange={() => toggleModule(AppModule.AMAR_BD)} color="bg-blue-600" />
-                <ToggleSwitch label="Amar Jela" checked={modules[AppModule.AMAR_JELA]} onChange={() => toggleModule(AppModule.AMAR_JELA)} color="bg-blue-600" />
-                <ToggleSwitch label="Bazar Sodai" checked={modules[AppModule.BAZAR_SODAI]} onChange={() => toggleModule(AppModule.BAZAR_SODAI)} color="bg-blue-600" />
-                <ToggleSwitch label="Jobs" checked={modules[AppModule.JOB]} onChange={() => toggleModule(AppModule.JOB)} color="bg-blue-600" />
-                <ToggleSwitch label="Blog" checked={modules[AppModule.BLOG]} onChange={() => toggleModule(AppModule.BLOG)} color="bg-blue-600" />
-                <ToggleSwitch label="Contact" checked={modules[AppModule.CONTACT]} onChange={() => toggleModule(AppModule.CONTACT)} color="bg-blue-600" />
-                <div className="sm:col-span-2 mt-4 mb-2"><p className="text-xs font-bold text-gray-500 uppercase tracking-wider">Services Dropdown Items</p></div>
-                <ToggleSwitch label="Agriculture" checked={modules[AppModule.AGRI]} onChange={() => toggleModule(AppModule.AGRI)} color="bg-blue-600" />
-                <ToggleSwitch label="Health" checked={modules[AppModule.HEALTH]} onChange={() => toggleModule(AppModule.HEALTH)} color="bg-blue-600" />
+                <ToggleSwitch label="Amar Bangladesh" checked={modules[AppModule.AMAR_BD]} onChange={() => toggleModule(AppModule.AMAR_BD)} color="bg-green-500" />
+                <ToggleSwitch label="Amar Jela" checked={modules[AppModule.AMAR_JELA]} onChange={() => toggleModule(AppModule.AMAR_JELA)} color="bg-teal-500" />
+                <ToggleSwitch label="Bazar Sodai" checked={modules[AppModule.BAZAR_SODAI]} onChange={() => toggleModule(AppModule.BAZAR_SODAI)} color="bg-lime-500" />
+                <ToggleSwitch label="Jobs" checked={modules[AppModule.JOB]} onChange={() => toggleModule(AppModule.JOB)} color="bg-blue-500" />
+                <ToggleSwitch label="Blog" checked={modules[AppModule.BLOG]} onChange={() => toggleModule(AppModule.BLOG)} color="bg-emerald-500" />
+                <ToggleSwitch label="Contact" checked={modules[AppModule.CONTACT]} onChange={() => toggleModule(AppModule.CONTACT)} color="bg-purple-500" />
+             </div>
+             
+             <div className="mt-6 mb-3 flex items-center gap-2">
+               <div className="h-px bg-gray-200 flex-1"></div>
+               <span className="text-xs font-bold text-gray-400 uppercase tracking-wider">Service Modules</span>
+               <div className="h-px bg-gray-200 flex-1"></div>
+             </div>
+
+             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <ToggleSwitch label="Agriculture" checked={modules[AppModule.AGRI]} onChange={() => toggleModule(AppModule.AGRI)} color="bg-green-600" />
+                <ToggleSwitch label="Health" checked={modules[AppModule.HEALTH]} onChange={() => toggleModule(AppModule.HEALTH)} color="bg-red-500" />
                 <ToggleSwitch label="Education" checked={modules[AppModule.EDU]} onChange={() => toggleModule(AppModule.EDU)} color="bg-blue-600" />
-                <ToggleSwitch label="Transport" checked={modules[AppModule.TRANSPORT]} onChange={() => toggleModule(AppModule.TRANSPORT)} color="bg-blue-600" />
-                <ToggleSwitch label="Disaster" checked={modules[AppModule.DISASTER]} onChange={() => toggleModule(AppModule.DISASTER)} color="bg-blue-600" />
-                <ToggleSwitch label="Fishery" checked={modules[AppModule.FISHERY]} onChange={() => toggleModule(AppModule.FISHERY)} color="bg-blue-600" />
-                <ToggleSwitch label="Waste Mgmt" checked={modules[AppModule.WASTE]} onChange={() => toggleModule(AppModule.WASTE)} color="bg-blue-600" />
-                <ToggleSwitch label="Crafts" checked={modules[AppModule.CRAFT]} onChange={() => toggleModule(AppModule.CRAFT)} color="bg-blue-600" />
+                <ToggleSwitch label="Transport" checked={modules[AppModule.TRANSPORT]} onChange={() => toggleModule(AppModule.TRANSPORT)} color="bg-indigo-600" />
+                <ToggleSwitch label="Disaster" checked={modules[AppModule.DISASTER]} onChange={() => toggleModule(AppModule.DISASTER)} color="bg-orange-500" />
+                <ToggleSwitch label="Fishery" checked={modules[AppModule.FISHERY]} onChange={() => toggleModule(AppModule.FISHERY)} color="bg-cyan-600" />
+                <ToggleSwitch label="Waste Mgmt" checked={modules[AppModule.WASTE]} onChange={() => toggleModule(AppModule.WASTE)} color="bg-gray-600" />
+                <ToggleSwitch label="Crafts" checked={modules[AppModule.CRAFT]} onChange={() => toggleModule(AppModule.CRAFT)} color="bg-amber-600" />
              </div>
           </div>
         </div>
-        <div className="bg-white rounded-2xl shadow-sm border border-gray-200 h-fit">
-          <div className="p-5 border-b border-gray-100 flex items-center gap-3"><Layout size={20} className="text-indigo-600"/><h3 className="font-bold text-gray-900">Landing Page Sections</h3></div>
+
+        <div className="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden h-fit">
+          <div className="p-5 border-b border-gray-100 flex items-center gap-3 bg-gray-50/50">
+            <Layout size={20} className="text-pink-600"/>
+            <h3 className="font-bold text-gray-900">Landing Page Sections</h3>
+          </div>
           <div className="p-6">
              <div className="space-y-4">
-                <ToggleSwitch label="Hero Section (Top Banner)" checked={sections.hero} onChange={() => toggleSection('hero')} color="bg-indigo-600" />
-                <ToggleSwitch label="About Platform" checked={sections.about} onChange={() => toggleSection('about')} color="bg-indigo-600" />
-                <ToggleSwitch label="How it Works" checked={sections.features} onChange={() => toggleSection('features')} color="bg-indigo-600" />
-                <ToggleSwitch label="Beautiful Bangladesh Gallery" checked={sections.gallery} onChange={() => toggleSection('gallery')} color="bg-indigo-600" />
-                <ToggleSwitch label="Testimonials" checked={sections.testimonials} onChange={() => toggleSection('testimonials')} color="bg-indigo-600" />
+                <ToggleSwitch label="Hero Section (Top Banner)" checked={sections.hero} onChange={() => toggleSection('hero')} color="bg-pink-500" />
+                <ToggleSwitch label="About Platform" checked={sections.about} onChange={() => toggleSection('about')} color="bg-pink-500" />
+                <ToggleSwitch label="How it Works" checked={sections.features} onChange={() => toggleSection('features')} color="bg-pink-500" />
+                <ToggleSwitch label="Beautiful Bangladesh Gallery" checked={sections.gallery} onChange={() => toggleSection('gallery')} color="bg-pink-500" />
+                <ToggleSwitch label="Testimonials" checked={sections.testimonials} onChange={() => toggleSection('testimonials')} color="bg-pink-500" />
              </div>
           </div>
         </div>

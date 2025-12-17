@@ -1,8 +1,8 @@
 import { createClient } from '@supabase/supabase-js';
 
-// --- GLOBAL CONFIGURATION ---
-// আপনার Supabase URL এবং Key এখানে পেস্ট করুন।
-// যদি আপনি ভুল করে getEnv('') এর ভেতরেও পেস্ট করেন, নিচের নতুন কোডটি তা ঠিক করে নেবে।
+// --- GLOBAL CONFIGURATION (সবার জন্য) ---
+// If you want ALL users to see the data, paste your keys here inside the quotes.
+// অন্য ইউজারদের আপডেট দেখাতে হলে অবশ্যই এখানে কি (Key) বসাতে হবে।
 
 const HARDCODED_URL = ''; // e.g. 'https://xyz.supabase.co'
 const HARDCODED_KEY = ''; // e.g. 'eyJ...'
@@ -12,8 +12,8 @@ const HARDCODED_KEY = ''; // e.g. 'eyJ...'
 const getEnv = (key: string) => {
   if (!key) return '';
 
-  // Smart Fix: If the input looks like a URL or Key, return it directly
-  // This fixes the issue where users paste the value inside getEnv('VALUE')
+  // Smart Fix: If the input looks like a URL or Key (starts with http or eyJ), return it directly
+  // This fixes the issue where users paste the actual value inside getEnv('VALUE')
   if (key.startsWith('http') || key.startsWith('ey')) {
     return key;
   }
@@ -47,19 +47,25 @@ const getStoredConfig = (key: string) => {
   return '';
 };
 
-// Even if you paste the URL inside getEnv(), the new logic will catch it.
-// তবে সবচেয়ে ভালো হয় যদি আপনি সরাসরি নিচের কোটেশনে বসান:
-// const ENV_URL = 'https://your-project.supabase.co';
-const ENV_URL = getEnv('VITE_SUPABASE_URL'); 
-const ENV_KEY = getEnv('VITE_SUPABASE_ANON_KEY');
+// Config Sources
+const ENV_URL = getEnv('https://zpsxpqurazjeqviwooky.supabase.co'); 
+const ENV_KEY = getEnv('sb_publishable_gqz_Uzt_JhlNsC59yHXuAQ_IzRiKc3F');
 
 const STORED_URL = getStoredConfig('dream_sb_url');
 const STORED_KEY = getStoredConfig('dream_sb_key');
 
-// PRIORITY: Hardcoded > Environment > LocalStorage
-// This ensures if you put keys in code, everyone gets connected.
-const SUPABASE_URL = HARDCODED_URL || ENV_URL || STORED_URL;
-const SUPABASE_ANON_KEY = HARDCODED_KEY || ENV_KEY || STORED_KEY;
+// LOGIC: 
+// 1. GLOBAL: Comes from Code (HARDCODED) or Environment Variables (Vercel/System). Visible to ALL users.
+// 2. LOCAL: Comes from Browser LocalStorage. Visible ONLY to you.
+
+const GLOBAL_URL = HARDCODED_URL || ENV_URL;
+const GLOBAL_KEY = HARDCODED_KEY || ENV_KEY;
+
+export const isGlobalConfig = !!(GLOBAL_URL && GLOBAL_KEY && GLOBAL_URL.includes('http'));
+
+// Final URL/Key to use (Global takes priority, then Local)
+const SUPABASE_URL = GLOBAL_URL || STORED_URL;
+const SUPABASE_ANON_KEY = GLOBAL_KEY || STORED_KEY;
 
 const isConfigured = 
   SUPABASE_URL && 
@@ -74,7 +80,11 @@ export const isSupabaseConfigured = isConfigured;
 if (!isConfigured) {
   console.warn("⚠️ Supabase Config Missing. App running in Offline/Local Mode.");
 } else {
-  console.log("✅ Supabase Configured. URL:", SUPABASE_URL);
+  if (isGlobalConfig) {
+    console.log("✅ App connected Globally (Code/Env).");
+  } else {
+    console.log("⚠️ App connected Locally (Browser Storage). Other users won't see this.");
+  }
 }
 
 export const supabase = createClient(
