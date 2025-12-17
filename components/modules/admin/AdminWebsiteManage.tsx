@@ -8,8 +8,8 @@ import { isSupabaseConfigured } from '../../../services/supabaseClient';
 import { AppModule } from '../../../types';
 
 const SCHEMA_SQL = `
--- ENABLE REALTIME FOR ALL TABLES
--- (This ensures data updates instantly without refresh)
+-- ENABLE REALTIME FOR ALL TABLES (FIXED)
+-- Use SET TABLE to avoid "already member" errors
 
 -- 1. JOBS
 create table if not exists public.jobs (
@@ -230,8 +230,21 @@ drop policy if exists "Allow all" on public.enrolled_courses;
 create policy "Allow all" on public.enrolled_courses for all using (true) with check (true);
 
 -- CRITICAL: ENABLE REALTIME REPLICATION FOR ALL TABLES
--- (Using ALTER PUBLICATION is safer than recreating it)
-alter publication supabase_realtime add table public.jobs, public.blogs, public.market_prices, public.users, public.requests, public.grievances, public.wholesale_ads, public.retail_products, public.lawyers, public.exchange_rates, public.vocational_courses, public.donors, public.enrolled_courses;
+-- Using SET TABLE prevents "already member" errors by resetting the list
+alter publication supabase_realtime set table 
+  public.jobs, 
+  public.blogs, 
+  public.market_prices, 
+  public.users, 
+  public.requests, 
+  public.grievances, 
+  public.wholesale_ads, 
+  public.retail_products, 
+  public.lawyers, 
+  public.exchange_rates, 
+  public.vocational_courses, 
+  public.donors, 
+  public.enrolled_courses;
 `;
 
 export const AdminWebsiteManage = () => {
@@ -362,7 +375,7 @@ export const AdminWebsiteManage = () => {
                     <div className="bg-gray-900 text-white p-6 rounded-2xl border border-gray-800 text-left">
                         <h4 className="font-bold text-lg mb-2 flex items-center gap-2 text-green-400"><Server size={20}/> Step 2: Create Tables & Realtime</h4>
                         <p className="text-sm text-gray-300 mb-4 leading-relaxed">
-                            Since you just connected (or if you are facing issues), run this SQL code in your Supabase SQL Editor. It creates tables and <strong>Enables Realtime Updates</strong>.
+                            Run this updated SQL code. It uses <strong>SET TABLE</strong> instead of ADD TABLE to fix the "already member" error.
                         </p>
                         
                         <div className="bg-black/50 p-4 rounded-xl font-mono text-xs text-green-300 mb-4 h-32 overflow-y-auto border border-gray-700">
