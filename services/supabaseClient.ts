@@ -38,8 +38,8 @@ const getStoredConfig = (key: string) => {
   return '';
 };
 
-const ENV_URL = getEnv('VITE_SUPABASE_URL');
-const ENV_KEY = getEnv('VITE_SUPABASE_ANON_KEY');
+const ENV_URL = getEnv('https://zpsxpqurazjeqviwooky.supabase.co');
+const ENV_KEY = getEnv('sb_publishable_gqz_Uzt_JhlNsC59yHXuAQ_IzRiKc3F');
 
 const STORED_URL = getStoredConfig('dream_sb_url');
 const STORED_KEY = getStoredConfig('dream_sb_key');
