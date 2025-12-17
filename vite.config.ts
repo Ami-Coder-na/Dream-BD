@@ -13,8 +13,9 @@ export default defineConfig(({ mode }) => {
       // Define process.env to prevent "Uncaught ReferenceError: process is not defined"
       'process.env': {
         API_KEY: env.API_KEY || env.VITE_API_KEY || '',
-        VITE_SUPABASE_URL: env.VITE_SUPABASE_URL || '',
-        VITE_SUPABASE_ANON_KEY: env.VITE_SUPABASE_ANON_KEY || '',
+        // Map standard Vercel/Supabase integration variables to the VITE_ variables expected by the app
+        VITE_SUPABASE_URL: env.VITE_SUPABASE_URL || env.SUPABASE_URL || env.NEXT_PUBLIC_SUPABASE_URL || '',
+        VITE_SUPABASE_ANON_KEY: env.VITE_SUPABASE_ANON_KEY || env.SUPABASE_ANON_KEY || env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '',
         NODE_ENV: mode
       },
       // Define global to prevent "Uncaught ReferenceError: global is not defined" in some libs
