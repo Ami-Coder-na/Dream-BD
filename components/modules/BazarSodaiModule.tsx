@@ -18,9 +18,9 @@ interface Props {
 }
 
 const WHOLESALE_LISTINGS = [
-  { id: 1, productEn: 'Dinajpur Lychee', productBn: 'দিনাজপুরের লিচু', quantity: '5000 pcs', price: '৳ 3.5 / pc', location: 'Dinajpur', seller: 'Karim Fruit Store', sellerType: 'Store', date: '2 hrs ago', phone: '01711111111' },
-  { id: 2, productEn: 'Bogra Doi', productBn: 'বগুড়ার দই', quantity: '100 pots', price: '৳ 180 / pot', location: 'Bogra', seller: 'Misty Bari', sellerType: 'Manufacturer', date: '5 hrs ago', phone: '01822222222' },
-  { id: 3, productEn: 'Miniket Rice', productBn: 'মিনিকেট চাল', quantity: '50 Mon', price: '৳ 2800 / mon', location: 'Naogaon', seller: 'Bhai Bhai Traders', sellerType: 'Trader', date: '1 day ago', phone: '01933333333' },
+  { id: 1, productEn: 'Dinajpur Lychee', productBn: 'দিনাজপুরের লিচু', quantity: '5000 pcs', price: '৳ 3.5 / pc', location: 'Dinajpur', seller: 'Karim Fruit Store', sellerType: 'Store', date: '2 hrs ago' },
+  { id: 2, productEn: 'Bogra Doi', productBn: 'বগুড়ার দই', quantity: '100 pots', price: '৳ 180 / pot', location: 'Bogra', seller: 'Misty Bari', sellerType: 'Manufacturer', date: '5 hrs ago' },
+  { id: 3, productEn: 'Miniket Rice', productBn: 'মিনিকেট চাল', quantity: '50 Mon', price: '৳ 2800 / mon', location: 'Naogaon', seller: 'Bhai Bhai Traders', sellerType: 'Trader', date: '1 day ago' },
 ];
 
 const SEASONAL_INFO_BASE = [
@@ -64,15 +64,7 @@ export const BazarSodaiModule: React.FC<Props> = ({ isBangla, user, onLogin }) =
       return;
     }
     setSubmitted(false);
-    setAdForm({ 
-      product: '', 
-      quantity: '', 
-      price: '', 
-      location: '', 
-      sellerType: 'Farmer', 
-      name: user.name, 
-      phone: user.phone || '' 
-    });
+    setAdForm({ ...adForm, name: user.name, phone: user.phone || '' });
     setShowPostModal(true);
   };
 
@@ -97,7 +89,7 @@ export const BazarSodaiModule: React.FC<Props> = ({ isBangla, user, onLogin }) =
       setSubmitted(true);
       setAdForm({ product: '', quantity: '', price: '', location: '', sellerType: 'Farmer', name: '', phone: '' });
     } catch (err) {
-      alert('Error submitting ad. Please check database schema.');
+      alert('Error submitting ad');
     } finally {
       setIsSubmitting(false);
     }
@@ -194,18 +186,12 @@ export const BazarSodaiModule: React.FC<Props> = ({ isBangla, user, onLogin }) =
                         {item.phone && <span className="text-[10px] text-gray-400 font-medium">{item.phone}</span>}
                       </div>
                     </div>
-                    {item.phone ? (
-                        <a 
-                          href={`tel:${item.phone}`} 
-                          className="inline-flex items-center justify-center p-2.5 rounded-full bg-orange-600 text-white shadow-md hover:bg-orange-700 hover:scale-110 transition-all"
-                        >
-                          <Phone size={18} />
-                        </a>
-                    ) : (
-                        <Button size="sm" className="bg-orange-600 hover:bg-orange-700 border-none shadow-md shadow-orange-600/10 font-bold">
-                            {isBangla ? 'যোগাযোগ' : 'Contact'}
-                        </Button>
-                    )}
+                    <a 
+                      href={`tel:${item.phone}`} 
+                      className={`inline-flex items-center justify-center p-2 rounded-full transition-all ${item.phone ? 'bg-orange-600 text-white shadow-md hover:bg-orange-700' : 'bg-gray-100 text-gray-300 cursor-not-allowed'}`}
+                    >
+                      <Phone size={18} />
+                    </a>
                   </div>
                 </div>
               ))}
@@ -312,7 +298,7 @@ export const BazarSodaiModule: React.FC<Props> = ({ isBangla, user, onLogin }) =
                       </label>
                       <input 
                         required 
-                        type="tel" 
+                        type="text" 
                         className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-2xl focus:ring-2 focus:ring-orange-500 outline-none"
                         value={adForm.phone}
                         onChange={e => setAdForm({...adForm, phone: e.target.value})}
