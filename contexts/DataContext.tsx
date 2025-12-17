@@ -25,6 +25,7 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const [jobs, setJobs] = useState<any[]>([]);
   const [blogs, setBlogs] = useState<any[]>([]);
   const [requests, setRequests] = useState<any[]>([]);
+  const [blogRequests, setBlogRequests] = useState<any[]>([]);
   const [grievances, setGrievances] = useState<any[]>([]);
   const [users, setUsers] = useState<any[]>([]);
   const [marketPrices, setMarketPrices] = useState<any[]>([]);
@@ -104,6 +105,7 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     setJobs(getLocal('db_jobs', MOCK_JOBS));
     setBlogs(getLocal('db_blogs', MOCK_BLOGS));
     setRequests(getLocal('db_requests', []));
+    setBlogRequests(getLocal('db_blog_requests', []));
     setGrievances(getLocal('db_grievances', []));
     setUsers(getLocal('db_users', MOCK_USERS));
     setMessages(getLocal('db_messages', []));
@@ -112,6 +114,7 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       fetchTable('jobs', setJobs);
       fetchTable('blogs', setBlogs);
       fetchTable('requests', setRequests);
+      fetchTable('blog_requests', setBlogRequests);
       fetchTable('grievances', setGrievances);
       fetchTable('users', setUsers);
       fetchTable('contact_messages', setMessages);
@@ -168,17 +171,28 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   };
 
   const addRequest = async (request: any) => {
+    const table = request.contentType === 'blog' ? 'blog_requests' : 'requests';
+    const setter = request.contentType === 'blog' ? setBlogRequests : setRequests;
+    const current = request.contentType === 'blog' ? blogRequests : requests;
+    
     const newReq = { ...request, status: 'Pending', postedDate: new Date().toLocaleDateString() };
-    await optimisticAdd('requests', newReq, setRequests, requests);
+    await optimisticAdd(table, newReq, setter, current);
   };
 
-  const handleRequestAction = async (item: any, action: 'approve' | 'reject') => {
-    setRequests(requests.filter(r => r.id !== item.id));
-    if (isSupabaseConfigured) await supabase.from('requests').delete().eq('id', item.id);
+  const handleRequestAction = async (item: any, action: 'approve' | 'reject', type: 'job' | 'blog') => {
+    const table = type === 'blog' ? 'blog_requests' : 'requests';
+    
+    if (type === 'blog') {
+      setBlogRequests(blogRequests.filter(r => r.id !== item.id));
+    } else {
+      setRequests(requests.filter(r => r.id !== item.id));
+    }
+    
+    if (isSupabaseConfigured) await supabase.from(table).delete().eq('id', item.id);
 
     if (action === 'approve') {
       const { id, created_at, contentType, ...rest } = item;
-      if (contentType === 'job') await addJob(rest);
+      if (type === 'job') await addJob(rest);
       else await addBlog(rest);
     }
   };
@@ -324,7 +338,7 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
   return (
     <DataContext.Provider value={{ 
-      jobs, blogs, requests, grievances, users, messages, donors, marketPrices, retailProducts, wholesaleAds, lawyers, exchangeRates, vocationalCourses, enrolledCourses,
+      jobs, blogs, requests, blogRequests, grievances, users, messages, donors, marketPrices, retailProducts, wholesaleAds, lawyers, exchangeRates, vocationalCourses, enrolledCourses,
       addJob, updateJob, deleteJob,
       addBlog, updateBlog, deleteBlog,
       addRequest, handleRequestAction,

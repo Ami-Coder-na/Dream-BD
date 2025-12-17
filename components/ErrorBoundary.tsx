@@ -1,4 +1,3 @@
-
 import React, { Component, ErrorInfo, ReactNode } from 'react';
 import { AlertTriangle, RefreshCw, Home } from 'lucide-react';
 import { Button } from './ui/Button';
@@ -15,10 +14,11 @@ interface ErrorBoundaryState {
 /**
  * ErrorBoundary component to catch rendering errors in the application.
  */
-// Fix: Use Component from react import and add explicit constructor to ensure props is recognized correctly by the TypeScript compiler
+// Fix: Explicitly inherit from Component to ensure state and props are recognized by TypeScript
 export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
   constructor(props: ErrorBoundaryProps) {
     super(props);
+    // Fix: Initialize state; it is a member of the Component class
     this.state = {
       hasError: false,
       error: null
@@ -45,6 +45,7 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
 
   render(): ReactNode {
     // Check if an error has occurred and show fallback UI
+    // Fix: Access state property inherited from Component (line 50)
     if (this.state.hasError) {
       return (
         <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4">
@@ -61,6 +62,7 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
               দুঃখিত, একটি অপ্রত্যাশিত সমস্যা দেখা দিয়েছে। অনুগ্রহ করে পেজটি রিলোড করুন।
               <br />
               <span className="text-xs mt-2 block opacity-70">
+                {/* Fix: Access error property from state (line 67) */}
                 Error: {this.state.error?.message || 'Unknown Error'}
               </span>
             </p>
@@ -81,6 +83,7 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
     }
 
     // Standard return of children when no error exists
+    // Fix: Access props property inherited from Component (line 88)
     return this.props.children;
   }
 }
