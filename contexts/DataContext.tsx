@@ -177,7 +177,14 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         
         if (error) {
             console.error(`Error adding to ${table}:`, error.message);
-            alert("Error saving data. Please try again.");
+            // More descriptive error if table missing
+            if (error.message.includes('relation') && error.message.includes('does not exist')) {
+                alert(`System Error: The database table '${table}' does not exist. Please run the SQL Schema in Admin > Website Manage.`);
+            } else if (error.message.includes('row-level security')) {
+                alert(`Permission Error: Access denied to table '${table}'. Please run the SQL Schema to fix permissions.`);
+            } else {
+                alert(`Error saving data: ${error.message}`);
+            }
             // Revert on error
             setter(currentList); 
         } else {
