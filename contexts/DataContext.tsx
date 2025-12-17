@@ -54,10 +54,8 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     if (!data || typeof data !== 'object') return data;
     const normalized: any = {};
     for (const key in data) {
-      if (key === 'id' || key === 'created_at' || key === 'status') {
-         normalized[key] = data[key];
-         continue;
-      }
+      // Very important: Supabase is case-sensitive for columns if they are not double-quoted in SQL
+      // Our schema uses lowercase column names, so we lowercase all keys here.
       normalized[key.toLowerCase()] = data[key] === undefined ? null : data[key];
     }
     return normalized;
@@ -68,7 +66,6 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     const newItem = { ...item };
     
     const fieldMap: Record<string, string> = {
-      'contenttype': 'contentType',
       'postedby': 'postedBy',
       'posteddate': 'postedDate',
       'readtime': 'readTime',
@@ -150,7 +147,7 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
             const payload = normalizeData(newItem);
             const { error } = await supabase.from(table).insert([payload]);
             if (error) {
-                console.error(`Supabase Error inserting into ${table}:`, error.message, payload);
+                console.error(`Supabase Error [${table}]:`, error.message);
                 throw error;
             }
             await fetchTable(table, setter);
@@ -171,13 +168,21 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   };
 
   const addRequest = async (request: any) => {
-    // Extract contentType to determine routing, but remove it from the final DB payload
-    const { contentType, ...cleanData } = request;
+    // 1. Separate 'contentType' which is used only for internal logic, not stored in DB
+    const { contentType, ...dbData } = request;
+    
     const table = contentType === 'blog' ? 'blog_requests' : 'requests';
     const setter = contentType === 'blog' ? setBlogRequests : setRequests;
     const current = contentType === 'blog' ? blogRequests : requests;
     
-    const newReq = { ...cleanData, status: 'Pending', postedDate: new Date().toLocaleDateString() };
+    // 2. Prepare the data with status and date
+    const newReq = { 
+      ...dbData, 
+      status: 'Pending', 
+      postedDate: dbData.postedDate || new Date().toLocaleDateString() 
+    };
+    
+    // 3. Send to DB and Update UI
     await optimisticAdd(table, newReq, setter, current);
   };
 
@@ -193,7 +198,7 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     if (isSupabaseConfigured) await supabase.from(table).delete().eq('id', item.id);
 
     if (action === 'approve') {
-      const { id, created_at, contentType, ...rest } = item;
+      const { id, created_at, ...rest } = item;
       if (type === 'job') await addJob(rest);
       else await addBlog(rest);
     }
