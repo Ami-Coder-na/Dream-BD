@@ -8,8 +8,8 @@ import { isSupabaseConfigured } from '../../../services/supabaseClient';
 import { AppModule } from '../../../types';
 
 const SCHEMA_SQL = `
--- ENABLE REALTIME FOR ALL TABLES (FIXED)
--- Use SET TABLE to avoid "already member" errors
+-- ENABLE REALTIME FOR ALL TABLES (FIXED & UPDATED)
+-- Includes 'level' column for jobs/requests
 
 -- 1. JOBS
 create table if not exists public.jobs (
@@ -26,7 +26,8 @@ create table if not exists public.jobs (
   "postedBy" text,
   "postedDate" text,
   status text default 'Active',
-  views numeric default 0
+  views numeric default 0,
+  level text
 );
 alter table public.jobs enable row level security;
 drop policy if exists "Allow all" on public.jobs;
@@ -103,7 +104,8 @@ create table if not exists public.requests (
   "postedBy" text,
   "postedDate" text,
   image text,
-  status text default 'Pending'
+  status text default 'Pending',
+  level text
 );
 alter table public.requests enable row level security;
 drop policy if exists "Allow all" on public.requests;
@@ -228,6 +230,10 @@ create table if not exists public.enrolled_courses (
 alter table public.enrolled_courses enable row level security;
 drop policy if exists "Allow all" on public.enrolled_courses;
 create policy "Allow all" on public.enrolled_courses for all using (true) with check (true);
+
+-- 14. SCHEMA MIGRATION (ADD MISSING COLUMNS IF TABLE EXISTS)
+alter table public.jobs add column if not exists level text;
+alter table public.requests add column if not exists level text;
 
 -- CRITICAL: ENABLE REALTIME REPLICATION FOR ALL TABLES
 -- Using SET TABLE prevents "already member" errors by resetting the list
@@ -370,12 +376,12 @@ export const AdminWebsiteManage = () => {
                         <CheckCircle size={32} />
                     </div>
                     <h3 className="font-bold text-gray-900 text-lg">System is Online</h3>
-                    <p className="text-gray-500 mb-6">You must run the SQL schema to create tables and enable realtime.</p>
+                    <p className="text-gray-500 mb-6">You must run the updated SQL schema to fix table columns.</p>
                     
                     <div className="bg-gray-900 text-white p-6 rounded-2xl border border-gray-800 text-left">
-                        <h4 className="font-bold text-lg mb-2 flex items-center gap-2 text-green-400"><Server size={20}/> Step 2: Create Tables & Realtime</h4>
+                        <h4 className="font-bold text-lg mb-2 flex items-center gap-2 text-green-400"><Server size={20}/> Step 2: Update Tables</h4>
                         <p className="text-sm text-gray-300 mb-4 leading-relaxed">
-                            Run this updated SQL code. It uses <strong>SET TABLE</strong> instead of ADD TABLE to fix the "already member" error.
+                            Run this updated SQL code. It adds missing columns (like <strong>'level'</strong> for jobs) and ensures everything is up to date.
                         </p>
                         
                         <div className="bg-black/50 p-4 rounded-xl font-mono text-xs text-green-300 mb-4 h-32 overflow-y-auto border border-gray-700">
