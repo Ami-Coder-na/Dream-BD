@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { 
   Briefcase, FileText, Plus, Search, Eye, Edit3, Trash2, 
@@ -48,7 +47,13 @@ export const AdminContent = () => {
           alert('Job Updated Successfully!');
       } else {
           // Use category from form or default to Private
-          const jobData = { ...jobForm, category: jobForm.category || 'Private', postedBy: 'Admin' };
+          // IMPORTANT: Include 'level' field (defaulting to 'Entry') to match schema and prevent "Error saving data"
+          const jobData = { 
+            ...jobForm, 
+            category: jobForm.category || 'Private', 
+            postedBy: 'Admin',
+            level: 'Entry' // Default level for Admin posts
+          };
           await addJob(jobData);
           alert('Job Created Successfully!');
       }

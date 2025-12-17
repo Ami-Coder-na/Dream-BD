@@ -1,164 +1,119 @@
-
 import React, { createContext, useState, useContext, useEffect, ReactNode } from 'react';
 import { supabase, isSupabaseConfigured } from '../services/supabaseClient';
+import { User, UserRole } from '../types';
 
-// --- INITIAL MOCK DATA (Fallback) ---
-const INITIAL_JOBS: any[] = [];
-const INITIAL_BLOGS: any[] = [
-  {
-    id: 1,
-    title: "আধুনিক কৃষি প্রযুক্তির ব্যবহার",
-    category: "Agriculture",
-    content: "কৃষিতে ড্রোন এবং স্মার্ট সেন্সর ব্যবহারের ফলে উৎপাদন বাড়ছে...",
-    author: "System Admin",
-    postedDate: new Date().toLocaleDateString(),
-    views: 120,
-    status: 'Active'
-  }
+// Initial Mock Data
+const INITIAL_USERS = [
+  { id: 'u1', name: 'Admin User', email: 'admin@dreambd.com', role: 'Admin', password: 'admin123', status: 'Active', date: '01/01/2024', avatar: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?auto=format&fit=crop&q=80&w=150' },
+  { id: 'u2', name: 'Rahim Uddin', email: 'user@example.com', role: 'Citizen', password: 'user123', status: 'Active', date: '05/01/2024', avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&q=80&w=150' },
 ];
 
-const BASE_MARKET_PRICES = [
-  { id: 1, nameBn: 'তাজা আলু', nameEn: 'Fresh Potato', unit: 'kg', today: 45, yesterday: 40, trend: 'up' },
-  { id: 2, nameBn: 'দেশি পেঁয়াজ', nameEn: 'Local Onion', unit: 'kg', today: 90, yesterday: 85, trend: 'up' },
+const INITIAL_JOBS = [
+  { id: 1, title: 'Software Engineer', company: 'Tech BD', location: 'Dhaka', salary: '40k-60k', type: 'Full Time', category: 'Private', description: 'React Developer needed.', postedDate: '10/10/2023', status: 'Active', views: 120, level: 'Mid' },
+  { id: 2, title: 'Agricultural Officer', company: 'Govt of BD', location: 'Rangpur', salary: '25k-40k', type: 'Full Time', category: 'Government', description: 'Field officer.', postedDate: '12/10/2023', status: 'Active', views: 450, level: 'Entry' },
 ];
 
-const INITIAL_RETAIL_PRODUCTS: any[] = [];
-const INITIAL_WHOLESALE_ADS: any[] = [];
-const INITIAL_REQUESTS: any[] = [];
-const INITIAL_GRIEVANCES: any[] = [];
-const INITIAL_USERS: any[] = [];
-const INITIAL_LAWYERS: any[] = [];
-const INITIAL_EXCHANGE_RATES: any[] = [];
-const INITIAL_VOCATIONAL_COURSES: any[] = [];
-const INITIAL_DONORS: any[] = [];
-const INITIAL_ENROLLED_COURSES: any[] = [];
+const INITIAL_BLOGS = [
+  { id: 1, title: 'Modern Farming Techniques', category: 'Agriculture', author: 'Dr. Hasan', content: 'Use of technology in farming...', postedDate: '01/11/2023', image: 'https://images.unsplash.com/photo-1625246333195-78d9c38ad449', views: 50, status: 'Active', date: 'Nov 1, 2023', readTime: '5 min' }
+];
 
-// --- HELPER FOR LOCAL STORAGE ---
-const getLocal = (key: string, fallback: any) => {
-  if (typeof window !== 'undefined') {
-    const saved = localStorage.getItem(key);
-    return saved ? JSON.parse(saved) : fallback;
-  }
-  return fallback;
+const INITIAL_PRICES = [
+  { id: 1, nameEn: 'Rice (Miniket)', nameBn: 'চাল (মিনিকেট)', unit: 'kg', today: 70, yesterday: 68, trend: 'up' },
+  { id: 2, nameEn: 'Potato', nameBn: 'আলু', unit: 'kg', today: 45, yesterday: 45, trend: 'stable' },
+  { id: 3, nameEn: 'Onion (Local)', nameBn: 'পেঁয়াজ (দেশি)', unit: 'kg', today: 90, yesterday: 85, trend: 'up' },
+];
+
+// Helper for local storage
+const getLocal = (key: string, defaultVal: any) => {
+  if (typeof window === 'undefined') return defaultVal;
+  const stored = localStorage.getItem(key);
+  return stored ? JSON.parse(stored) : defaultVal;
 };
 
-const setLocal = (key: string, data: any) => {
+const setLocal = (key: string, value: any) => {
   if (typeof window !== 'undefined') {
-    localStorage.setItem(key, JSON.stringify(data));
-    window.dispatchEvent(new Event('storage'));
+    localStorage.setItem(key, JSON.stringify(value));
   }
 };
 
-// --- CONTEXT SETUP ---
-interface DataContextType {
-  jobs: any[]; blogs: any[]; requests: any[]; grievances: any[]; users: any[];
-  marketPrices: any[]; retailProducts: any[]; wholesaleAds: any[]; lawyers: any[];
-  exchangeRates: any[]; vocationalCourses: any[]; donors: any[]; enrolledCourses: any[];
-
-  addJob: (job: any) => Promise<void>;
-  deleteJob: (id: number) => Promise<void>;
-  updateJob: (job: any) => Promise<void>;
-  addBlog: (blog: any) => Promise<void>;
-  deleteBlog: (id: number) => Promise<void>;
-  updateBlog: (blog: any) => Promise<void>;
-  addRequest: (request: any) => Promise<void>;
-  handleRequestAction: (item: any, action: 'approve' | 'reject') => Promise<void>;
-  addGrievance: (report: any) => Promise<void>;
-  updateGrievanceStatus: (id: number, status: string) => Promise<void>;
-  deleteGrievance: (id: number) => Promise<void>;
-  addUser: (user: any) => Promise<void>;
-  updateUserStatus: (id: string, status: 'Active' | 'Suspended') => Promise<void>;
-  deleteUser: (id: string) => Promise<void>;
-  resetPassword: (email: string, newPass: string) => Promise<void>;
-  updateMarketPrices: (prices: any[]) => Promise<void>;
-  addRetailProduct: (product: any) => Promise<void>;
-  deleteRetailProduct: (id: number) => Promise<void>;
-  updateRetailProduct: (product: any) => Promise<void>;
-  addWholesaleAd: (ad: any) => Promise<void>;
-  updateWholesaleAd: (ad: any) => Promise<void>;
-  deleteWholesaleAd: (id: number) => Promise<void>;
-  addLawyer: (lawyer: any) => Promise<void>;
-  deleteLawyer: (id: number) => Promise<void>;
-  addExchangeRate: (rate: any) => Promise<void>;
-  deleteExchangeRate: (id: number) => Promise<void>;
-  addVocationalCourse: (course: any) => Promise<void>;
-  deleteVocationalCourse: (id: number) => Promise<void>;
-  addDonor: (donor: any) => Promise<void>;
-  enrollCourse: (enrollment: any) => Promise<void>;
-  refreshData: () => void;
-}
-
-const DataContext = createContext<DataContextType | undefined>(undefined);
+const DataContext = createContext<any>(undefined);
 
 export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
-  const [jobs, setJobs] = useState<any[]>(() => isSupabaseConfigured ? INITIAL_JOBS : getLocal('db_jobs', INITIAL_JOBS));
-  const [blogs, setBlogs] = useState<any[]>(() => isSupabaseConfigured ? INITIAL_BLOGS : getLocal('db_blogs', INITIAL_BLOGS));
-  const [requests, setRequests] = useState<any[]>(() => isSupabaseConfigured ? INITIAL_REQUESTS : getLocal('db_requests', INITIAL_REQUESTS));
-  const [grievances, setGrievances] = useState<any[]>(() => isSupabaseConfigured ? INITIAL_GRIEVANCES : getLocal('db_grievances', INITIAL_GRIEVANCES));
-  const [users, setUsers] = useState<any[]>(() => isSupabaseConfigured ? INITIAL_USERS : getLocal('db_users', INITIAL_USERS));
-  const [marketPrices, setMarketPrices] = useState<any[]>(() => isSupabaseConfigured ? BASE_MARKET_PRICES : getLocal('db_prices', BASE_MARKET_PRICES));
-  const [retailProducts, setRetailProducts] = useState<any[]>(() => isSupabaseConfigured ? INITIAL_RETAIL_PRODUCTS : getLocal('db_retail', INITIAL_RETAIL_PRODUCTS));
-  const [wholesaleAds, setWholesaleAds] = useState<any[]>(() => isSupabaseConfigured ? INITIAL_WHOLESALE_ADS : getLocal('db_ads', INITIAL_WHOLESALE_ADS));
-  const [lawyers, setLawyers] = useState<any[]>(() => isSupabaseConfigured ? INITIAL_LAWYERS : getLocal('db_lawyers', INITIAL_LAWYERS));
-  const [exchangeRates, setExchangeRates] = useState<any[]>(() => isSupabaseConfigured ? INITIAL_EXCHANGE_RATES : getLocal('db_rates', INITIAL_EXCHANGE_RATES));
-  const [vocationalCourses, setVocationalCourses] = useState<any[]>(() => isSupabaseConfigured ? INITIAL_VOCATIONAL_COURSES : getLocal('db_courses', INITIAL_VOCATIONAL_COURSES));
-  const [donors, setDonors] = useState<any[]>(() => isSupabaseConfigured ? INITIAL_DONORS : getLocal('db_donors', INITIAL_DONORS));
-  const [enrolledCourses, setEnrolledCourses] = useState<any[]>(() => isSupabaseConfigured ? INITIAL_ENROLLED_COURSES : getLocal('db_enrolled', INITIAL_ENROLLED_COURSES));
+  const [users, setUsers] = useState<any[]>([]);
+  const [jobs, setJobs] = useState<any[]>([]);
+  const [blogs, setBlogs] = useState<any[]>([]);
+  const [requests, setRequests] = useState<any[]>([]);
+  const [grievances, setGrievances] = useState<any[]>([]);
+  const [marketPrices, setMarketPrices] = useState<any[]>([]);
+  const [retailProducts, setRetailProducts] = useState<any[]>([]);
+  const [wholesaleAds, setWholesaleAds] = useState<any[]>([]);
+  const [lawyers, setLawyers] = useState<any[]>([]);
+  const [exchangeRates, setExchangeRates] = useState<any[]>([]);
+  const [vocationalCourses, setVocationalCourses] = useState<any[]>([]);
+  const [donors, setDonors] = useState<any[]>([]);
+  const [enrolledCourses, setEnrolledCourses] = useState<any[]>([]);
 
-  // --- SUPABASE DATA FETCHING ---
-  const fetchTable = async (table: string, setter: React.Dispatch<React.SetStateAction<any[]>>, orderBy = 'created_at', ascending = false) => {
+  // Fetch function
+  const fetchTable = async (table: string, setter: any, orderBy = 'created_at', ascending = false) => {
+    if (!isSupabaseConfigured) return;
     try {
-      const { data, error } = await supabase.from(table).select('*').order(orderBy, { ascending });
-      if (error) throw error;
-      if (data) setter(data);
+        const { data, error } = await supabase.from(table).select('*').order(orderBy, { ascending });
+        if (!error && data) setter(data);
     } catch (e) {
-      // Fail silently in UI but log
-      console.warn(`Fetch error for ${table}. Using existing state.`);
+        console.error(`Error fetching ${table}`, e);
     }
   };
 
   const fetchData = async () => {
-    if (!isSupabaseConfigured) return;
-    await Promise.all([
-      fetchTable('jobs', setJobs),
-      fetchTable('blogs', setBlogs),
-      fetchTable('market_prices', setMarketPrices, 'id', true),
-      fetchTable('users', setUsers),
-      fetchTable('requests', setRequests),
-      fetchTable('grievances', setGrievances),
-      fetchTable('wholesale_ads', setWholesaleAds),
-      fetchTable('lawyers', setLawyers),
-      fetchTable('donors', setDonors),
-      fetchTable('retail_products', setRetailProducts),
-      fetchTable('exchange_rates', setExchangeRates),
-      fetchTable('vocational_courses', setVocationalCourses),
-      fetchTable('enrolled_courses', setEnrolledCourses),
-    ]);
+    if (isSupabaseConfigured) {
+        await Promise.all([
+            fetchTable('users', setUsers),
+            fetchTable('jobs', setJobs),
+            fetchTable('blogs', setBlogs),
+            fetchTable('requests', setRequests),
+            fetchTable('grievances', setGrievances),
+            fetchTable('market_prices', setMarketPrices, 'id', true), // prices usually static list
+            fetchTable('retail_products', setRetailProducts),
+            fetchTable('wholesale_ads', setWholesaleAds),
+            fetchTable('lawyers', setLawyers),
+            fetchTable('exchange_rates', setExchangeRates),
+            fetchTable('vocational_courses', setVocationalCourses),
+            fetchTable('donors', setDonors),
+            fetchTable('enrolled_courses', setEnrolledCourses)
+        ]);
+    } else {
+        // Load from Local Storage or Defaults
+        setUsers(getLocal('db_users', INITIAL_USERS));
+        setJobs(getLocal('db_jobs', INITIAL_JOBS));
+        setBlogs(getLocal('db_blogs', INITIAL_BLOGS));
+        setRequests(getLocal('db_requests', []));
+        setGrievances(getLocal('db_grievances', []));
+        setMarketPrices(getLocal('db_prices', INITIAL_PRICES));
+        setRetailProducts(getLocal('db_retail', []));
+        setWholesaleAds(getLocal('db_ads', []));
+        setLawyers(getLocal('db_lawyers', []));
+        setExchangeRates(getLocal('db_rates', []));
+        setVocationalCourses(getLocal('db_courses', []));
+        setDonors(getLocal('db_donors', []));
+        setEnrolledCourses(getLocal('db_enrolled', []));
+    }
   };
 
-  // Real-time Subscription Setup
   useEffect(() => {
     fetchData();
-
+    
+    // Subscribe to realtime changes if online
     if (isSupabaseConfigured) {
-      const channels = supabase.channel('custom-all-channel')
-        .on('postgres_changes', { event: '*', schema: 'public' }, (payload) => {
-          console.log('Change received!', payload);
-          fetchData(); // Refetch all data on any change
-        })
-        .subscribe();
+        const subscription = supabase
+            .channel('public:all')
+            .on('postgres_changes', { event: '*', schema: 'public' }, () => {
+                fetchData();
+            })
+            .subscribe();
 
-      return () => {
-        supabase.removeChannel(channels);
-      };
-    } else {
-      // Local Storage Listener
-      const handleStorageChange = (e: StorageEvent) => {
-        if (e.key === 'db_jobs') setJobs(getLocal('db_jobs', INITIAL_JOBS));
-        // ... (other keys can be added if needed for multi-tab sync in local mode)
-      };
-      window.addEventListener('storage', handleStorageChange);
-      return () => window.removeEventListener('storage', handleStorageChange);
+        return () => {
+            supabase.removeChannel(subscription);
+        };
     }
   }, []);
 
@@ -176,14 +131,15 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         const { error } = await supabase.from(table).insert([dbData]);
         
         if (error) {
-            console.error(`Error adding to ${table}:`, error.message);
+            console.error(`Error adding to ${table}:`, error);
             // More descriptive error if table missing
             if (error.message.includes('relation') && error.message.includes('does not exist')) {
                 alert(`System Error: The database table '${table}' does not exist. Please run the SQL Schema in Admin > Website Manage.`);
             } else if (error.message.includes('row-level security')) {
                 alert(`Permission Error: Access denied to table '${table}'. Please run the SQL Schema to fix permissions.`);
             } else {
-                alert(`Error saving data: ${error.message}`);
+                // Improved generic error message
+                alert(`Error saving data: ${error.message || JSON.stringify(error)}`);
             }
             // Revert on error
             setter(currentList); 
@@ -197,7 +153,7 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     }
   };
 
-  // --- ACTIONS ---
+  // --- CRUD FUNCTIONS ---
 
   const addJob = async (job: any) => {
     const newJob = { ...job, postedDate: new Date().toLocaleDateString(), views: 0, status: 'Active' };
@@ -310,7 +266,6 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     const newUser = { ...user, status: 'Active', date: new Date().toLocaleDateString() };
     if(!newUser.id) newUser.id = `u${Date.now()}`;
     
-    // For users table, we need careful handling as it's critical
     if (isSupabaseConfigured) {
         const { error } = await supabase.from('users').insert([newUser]);
         if(!error) await fetchTable('users', setUsers);
