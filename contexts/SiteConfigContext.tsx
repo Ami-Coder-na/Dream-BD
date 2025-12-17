@@ -101,9 +101,12 @@ export const SiteConfigProvider: React.FC<{ children: ReactNode }> = ({ children
     
     try {
       const { data, error } = await supabase.from('app_config').select('*');
-      if (error) throw error;
+      if (error) {
+          console.warn("Supabase Fetch Error:", error.message);
+          return;
+      }
 
-      if (data) {
+      if (data && data.length > 0) {
         data.forEach(item => {
           if (item.key === 'modules') setModules(item.value);
           if (item.key === 'sections') setSections(item.value);
@@ -118,7 +121,8 @@ export const SiteConfigProvider: React.FC<{ children: ReactNode }> = ({ children
   const pushRemoteConfig = async (key: string, value: any) => {
     if (!isSupabaseConfigured) return;
     try {
-      await supabase.from('app_config').upsert({ key, value });
+      const { error } = await supabase.from('app_config').upsert({ key, value });
+      if (error) console.error("Error pushing config:", error);
     } catch (err) {
       console.warn("Failed to push config:", err);
     }
@@ -132,6 +136,7 @@ export const SiteConfigProvider: React.FC<{ children: ReactNode }> = ({ children
       const subscription = supabase
         .channel('app_config_changes')
         .on('postgres_changes', { event: '*', schema: 'public', table: 'app_config' }, (payload) => {
+           // Real-time update from other users
            const { key, value } = payload.new as any;
            if (key === 'modules') setModules(value);
            if (key === 'sections') setSections(value);
@@ -145,7 +150,7 @@ export const SiteConfigProvider: React.FC<{ children: ReactNode }> = ({ children
     }
   }, []);
 
-  // Persist changes to LocalStorage AND Supabase
+  // Persist changes to LocalStorage
   useEffect(() => {
     localStorage.setItem('site_modules', JSON.stringify(modules));
   }, [modules]);
@@ -160,20 +165,20 @@ export const SiteConfigProvider: React.FC<{ children: ReactNode }> = ({ children
 
   const toggleModule = (id: ToggableModule) => {
     const newState = { ...modules, [id]: !modules[id] };
-    setModules(newState);
-    pushRemoteConfig('modules', newState);
+    setModules(newState); // Optimistic Update
+    pushRemoteConfig('modules', newState); // Push to DB
   };
 
   const toggleSection = (id: LandingSection) => {
     const newState = { ...sections, [id]: !sections[id] };
-    setSections(newState);
-    pushRemoteConfig('sections', newState);
+    setSections(newState); // Optimistic Update
+    pushRemoteConfig('sections', newState); // Push to DB
   };
 
   const updateSettings = (key: keyof typeof settings, value: any) => {
     const newState = { ...settings, [key]: value };
-    setSettings(newState);
-    pushRemoteConfig('settings', newState);
+    setSettings(newState); // Optimistic Update
+    pushRemoteConfig('settings', newState); // Push to DB
   };
 
   return (
