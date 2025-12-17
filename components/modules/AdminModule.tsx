@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   LayoutDashboard, Users, Settings, Database, Activity, 
   LogOut, Shield, Bell, FileText, ShoppingBag, Trash2, AlertOctagon, 
@@ -27,8 +27,31 @@ type AdminSection = 'overview' | 'website-manage' | 'users' | 'content' | 'modul
 export const AdminModule: React.FC<Props> = ({ isBangla, onExit }) => {
   const { requests } = useData(); // Get dynamic data
 
-  // Auth State
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  // Session Configuration
+  const SESSION_KEY = 'dream_admin_session';
+  const SESSION_DURATION = 12 * 60 * 60 * 1000; // 12 Hours (2 times logout in 24h)
+
+  // Auth State with Persistence Logic
+  const [isAuthenticated, setIsAuthenticated] = useState(() => {
+    const saved = localStorage.getItem(SESSION_KEY);
+    if (saved) {
+      try {
+        const { timestamp } = JSON.parse(saved);
+        // Check if session is still valid (within 12 hours)
+        if (Date.now() - timestamp < SESSION_DURATION) {
+          return true;
+        } else {
+          // Session expired
+          localStorage.removeItem(SESSION_KEY);
+          return false;
+        }
+      } catch (e) {
+        return false;
+      }
+    }
+    return false;
+  });
+
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
@@ -47,8 +70,19 @@ export const AdminModule: React.FC<Props> = ({ isBangla, onExit }) => {
     e.preventDefault();
     if ((email === 'admin@dreambd.com' && password === 'admin123') || (email === 'demo' && password === 'demo')) {
       setIsAuthenticated(true);
+      // Save session with timestamp
+      localStorage.setItem(SESSION_KEY, JSON.stringify({ timestamp: Date.now() }));
     } else {
       alert('Invalid Credentials. Try admin@dreambd.com / admin123');
+    }
+  };
+
+  // Logout Handler
+  const handleLogout = () => {
+    if(confirm('Are you sure you want to logout?')) {
+      localStorage.removeItem(SESSION_KEY);
+      setIsAuthenticated(false);
+      onExit(); // Navigate back to home
     }
   };
 
@@ -276,14 +310,14 @@ export const AdminModule: React.FC<Props> = ({ isBangla, onExit }) => {
           <button onClick={() => setActiveSection('settings')} className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all ${activeSection === 'settings' ? 'bg-brand-600 text-white shadow-lg' : 'text-gray-400 hover:bg-gray-800 hover:text-white'}`}><Settings size={18} /> Settings</button>
         </nav>
         <div className="p-4 border-t border-gray-800">
-          <button onClick={onExit} className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-red-400 hover:bg-red-900/30 transition-all"><LogOut size={18} /> Exit Admin</button>
+          <button onClick={handleLogout} className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-red-400 hover:bg-red-900/30 transition-all"><LogOut size={18} /> Logout</button>
         </div>
       </aside>
 
       <main className="flex-1 md:ml-64 p-4 md:p-8 overflow-y-auto">
         <div className="md:hidden flex justify-between items-center mb-6 bg-white p-4 rounded-xl shadow-sm">
           <h2 className="font-bold text-gray-800">Dream Admin</h2>
-          <button onClick={onExit}><LogOut size={20} className="text-gray-600"/></button>
+          <button onClick={handleLogout}><LogOut size={20} className="text-gray-600"/></button>
         </div>
 
         <div className="mb-8">
