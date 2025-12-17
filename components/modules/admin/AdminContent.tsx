@@ -81,21 +81,36 @@ export const AdminContent = () => {
                 <div className="p-8">
                     <div className="mb-6">{renderStatusBadge(selectedItem.status)}</div>
                     <h1 className="text-3xl font-bold text-gray-900 mb-6">{selectedItem.title || selectedItem.product}</h1>
+                    
                     <div className="flex flex-wrap items-center gap-6 text-sm text-gray-500 mb-8 border-b border-gray-100 pb-8">
-                        <div className="flex items-center gap-2"><User size={16} /><span>{selectedItem.postedBy || selectedItem.author || selectedItem.seller}</span></div>
-                        {selectedItem.phone && <div className="flex items-center gap-2"><Phone size={16} /><span>{selectedItem.phone}</span></div>}
+                        <div className="flex items-center gap-2">
+                            <div className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center"><User size={16} className="text-gray-400" /></div>
+                            <span className="font-bold text-gray-800">{selectedItem.postedBy || selectedItem.author || selectedItem.seller}</span>
+                        </div>
+                        {selectedItem.phone && (
+                            <div className="flex items-center gap-2">
+                                <Phone size={16} className="text-green-500" />
+                                <span className="font-bold text-blue-600 underline">{selectedItem.phone}</span>
+                            </div>
+                        )}
                         <div className="flex items-center gap-2"><Calendar size={16} /><span>{selectedItem.postedDate}</span></div>
                         {selectedItem.location && <div className="flex items-center gap-2"><MapPin size={16} /><span>{selectedItem.location}</span></div>}
                     </div>
-                    {selectedItem.content || selectedItem.description ? (
-                      <div className="text-gray-700 leading-relaxed whitespace-pre-wrap">{selectedItem.content || selectedItem.description}</div>
-                    ) : (
+
+                    {selectedItem.product ? (
                       <div className="bg-gray-50 p-6 rounded-2xl grid grid-cols-1 md:grid-cols-2 gap-6 border border-gray-100 shadow-inner">
                         <div className="space-y-1"><p className="text-xs font-bold text-gray-400 uppercase">Quantity</p><p className="text-xl font-bold text-gray-900">{selectedItem.quantity}</p></div>
                         <div className="space-y-1"><p className="text-xs font-bold text-gray-400 uppercase">Asking Price</p><p className="text-xl font-bold text-orange-600">{selectedItem.price}</p></div>
                         <div className="space-y-1"><p className="text-xs font-bold text-gray-400 uppercase">Seller Type</p><p className="text-lg font-medium text-gray-800">{selectedItem.sellerType}</p></div>
-                        <div className="space-y-1"><p className="text-xs font-bold text-gray-400 uppercase">Contact Number</p><p className="text-lg font-bold text-blue-600 underline">{selectedItem.phone || 'N/A'}</p></div>
+                        <div className="space-y-1">
+                            <p className="text-xs font-bold text-gray-400 uppercase">Contact Action</p>
+                            <a href={`tel:${selectedItem.phone}`} className="inline-flex items-center gap-2 bg-green-100 text-green-700 px-4 py-1.5 rounded-lg text-sm font-bold hover:bg-green-200 transition-all">
+                                <Phone size={14} /> Call Seller Now
+                            </a>
+                        </div>
                       </div>
+                    ) : (
+                      <div className="text-gray-700 leading-relaxed whitespace-pre-wrap">{selectedItem.content || selectedItem.description}</div>
                     )}
                 </div>
             </div>
@@ -150,7 +165,8 @@ export const AdminContent = () => {
                        {wholesaleRequests.map((req:any) => (
                           <div key={req.id} className="p-4 bg-gray-50 rounded-xl hover:shadow-md transition-all">
                              <h5 className="font-bold text-gray-900 text-sm mb-1">{req.product}</h5>
-                             <p className="text-[10px] text-gray-500 mb-4">{req.quantity} • {req.price}</p>
+                             <p className="text-[10px] text-gray-500 mb-2">{req.quantity} • {req.price}</p>
+                             <p className="text-[10px] text-orange-600 font-bold mb-4">By: {req.seller} ({req.phone})</p>
                              <div className="flex justify-end gap-2"><button onClick={() => handleViewDetails(req, 'wholesale')} className="p-2 text-gray-400 hover:text-blue-600"><Eye size={16}/></button><button onClick={() => handleActionClick(req, 'approve', 'wholesale')} className="p-2 text-green-500"><Check size={16}/></button><button onClick={() => handleActionClick(req, 'reject', 'wholesale')} className="p-2 text-red-500"><X size={16}/></button></div>
                           </div>
                        ))}
