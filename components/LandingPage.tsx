@@ -1,11 +1,11 @@
-
 import React, { useState, useEffect } from 'react';
 import { 
   ShoppingBag, Sprout, BookOpen, HeartPulse, 
   Bus, Trash2, Fish, AlertOctagon, CheckCircle, Star, Sparkles,
   ArrowRight, MapPin, Calendar, ShieldAlert, TrendingUp, CloudRain, Phone, Activity,
-  UserPlus, LayoutGrid, Smile, Building2, Landmark, Truck, Globe,
-  CloudSun, Stethoscope, Recycle, Navigation, Clock, Fuel, ChevronDown, Camera
+  UserPlus, LayoutGrid, Shield, Building2, Landmark, Truck, Globe,
+  CloudSun, Stethoscope, Recycle, Navigation, Clock, Fuel, ChevronDown, Camera,
+  Smile
 } from 'lucide-react';
 import { Button } from './ui/Button';
 import { User, AppModule, Notification } from '../types';
@@ -131,18 +131,18 @@ export const LandingPage: React.FC<Props> = ({
                 ? 'স্বপ্ন দেখুন, গড়ুন আগামীর বাংলাদেশ। কারুশিল্প থেকে কৃষি, স্বাস্থ্য থেকে শিক্ষা—সব সেবা এখন আপনার হাতের মুঠোয়।'
                 : 'Dream it, build it. From heritage crafts to smart agriculture, health to education—access all essential services at your fingertips.'}
             </p>
-            <div className="flex flex-col sm:flex-row gap-4 justify-center">
+            <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
               <Button 
                 onClick={onOpenAiChat} 
                 size="lg" 
-                className="text-lg px-10 py-4 shadow-xl shadow-brand-600/30 hover:shadow-2xl hover:shadow-brand-600/50 hover:scale-105 active:scale-95 transition-all duration-300 flex items-center gap-2 relative overflow-hidden group"
+                className="text-lg px-10 py-4 shadow-xl shadow-brand-600/30 hover:shadow-2xl hover:shadow-brand-600/50 hover:scale-105 active:scale-95 transition-all duration-300 flex items-center gap-2 relative overflow-hidden group w-full sm:w-auto"
               >
                  <span className="absolute inset-0 w-full h-full bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000 ease-in-out"></span>
                  <Sparkles size={20} className="animate-pulse" />
                 {isBangla ? 'AI-এর সাথে কথা বলুন' : 'Talk With AI'} 
               </Button>
-              
-              <Button onClick={() => scrollToSection('about')} variant="outline" size="lg" className="text-lg px-10 py-4 bg-white border-gray-300 hover:bg-gray-50">
+
+              <Button onClick={() => scrollToSection('about')} variant="outline" size="lg" className="text-lg px-10 py-4 bg-white border-gray-300 hover:bg-gray-50 w-full sm:w-auto">
                 {isBangla ? 'আরও জানুন' : 'Learn More'}
               </Button>
             </div>

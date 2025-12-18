@@ -1,8 +1,18 @@
+
 import { GoogleGenAI, GenerateContentResponse, Type } from "@google/genai";
+
+// Secure initialization check
+const getApiKey = () => {
+  try {
+    return process.env.API_KEY || '';
+  } catch (e) {
+    return '';
+  }
+};
 
 // Initialize client securely using obtained key exclusively from process.env.API_KEY as per guidelines.
 // Assume process.env.API_KEY is pre-configured and valid.
-const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+const ai = new GoogleGenAI({ apiKey: getApiKey() });
 
 export const generateAssistantResponse = async (
   prompt: string, 
@@ -11,6 +21,9 @@ export const generateAssistantResponse = async (
   attachment?: { mimeType: string; data: string }
 ): Promise<string> => {
   try {
+    const key = getApiKey();
+    if (!key) throw new Error("API Key missing");
+
     const systemInstruction = `You are 'Dream Assistant', an advanced AI for 'Dream BD'. 
     Mission: To empower citizens of Bangladesh with accurate information.
     Current User Context: ${context}.
@@ -61,6 +74,9 @@ export const analyzePlantDisease = async (
   isBangla: boolean
 ): Promise<{ disease: string; severity: string; solution: string; isPlant: boolean }> => {
   try {
+    const key = getApiKey();
+    if (!key) throw new Error("API Key missing");
+
     const modelName = 'gemini-3-flash-preview';
     
     const systemInstruction = `You are an expert Plant Pathologist for Bangladesh Agriculture.

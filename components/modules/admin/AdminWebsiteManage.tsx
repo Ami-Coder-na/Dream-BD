@@ -64,12 +64,12 @@ interface ToggleSwitchProps {
   color?: string;
 }
 
-const ToggleSwitch: React.FC<ToggleSwitchProps> = ({ label, checked, onChange, color = 'bg-green-500' }) => (
-  <div className="flex items-center justify-between p-4 bg-white rounded-xl border border-gray-100 hover:border-gray-200 shadow-sm transition-all">
-    <span className="font-semibold text-gray-800">{label}</span>
+const ToggleSwitch: React.FC<ToggleSwitchProps> = ({ label, checked, onChange, color = 'bg-brand-600' }) => (
+  <div className="flex items-center justify-between p-4 bg-gray-50 rounded-xl border border-gray-200 hover:border-brand-200 shadow-sm transition-all group">
+    <span className="font-bold text-gray-700 text-sm">{label}</span>
     <button 
       onClick={onChange} 
-      className={`relative w-12 h-6 rounded-full transition-colors duration-300 ${checked ? color : 'bg-gray-200'}`}
+      className={`relative w-12 h-6 rounded-full transition-colors duration-300 ${checked ? color : 'bg-gray-300'}`}
     >
       <div className={`absolute top-1 left-1 w-4 h-4 bg-white rounded-full shadow-sm transform transition-transform duration-300 ${checked ? 'translate-x-6' : 'translate-x-0'}`}></div>
     </button>
@@ -87,7 +87,7 @@ export const AdminWebsiteManage = () => {
   const [isSaving, setIsSaving] = useState(false);
   const [testResult, setTestResult] = useState<string | null>(null);
   const [statusColor, setStatusColor] = useState('gray');
-  const [showGlobalInstructions, setShowGlobalInstructions] = useState(true);
+  const [showGlobalInstructions, setShowGlobalInstructions] = useState(false);
   const [isUploadingLogo, setIsUploadingLogo] = useState(false);
 
   useEffect(() => {
@@ -124,7 +124,7 @@ export const AdminWebsiteManage = () => {
       try {
           const { count, error } = await supabase.from('requests').select('*', { count: 'exact', head: true });
           if (error) { setTestResult(`Connection Failed: ${error.message}`); setStatusColor('red'); }
-          else { setTestResult(`✅ Connected! Found ${count} pending requests.`); setStatusColor('green'); }
+          else { setTestResult(`✅ Connected! Database is live.`); setStatusColor('green'); }
       } catch (err: any) { setTestResult(`Error: ${err.message}`); setStatusColor('red'); }
   };
 
@@ -142,64 +142,256 @@ export const AdminWebsiteManage = () => {
   };
 
   return (
-    <div className="space-y-8 animate-fade-in max-w-5xl mx-auto">
-      <div className={`relative overflow-hidden rounded-2xl p-1 shadow-md ${isGlobalConfig ? 'bg-gradient-to-r from-emerald-400 to-cyan-500' : 'bg-gradient-to-r from-amber-400 to-orange-50'}`}>
+    <div className="space-y-8 animate-fade-in max-w-7xl mx-auto pb-20">
+      
+      {/* 1. Connection Status Banner */}
+      <div className={`relative overflow-hidden rounded-2xl p-1 shadow-lg ${isGlobalConfig ? 'bg-gradient-to-r from-emerald-500 to-cyan-500' : 'bg-gradient-to-r from-amber-400 to-orange-500'}`}>
         <div className="bg-white/95 backdrop-blur-md rounded-xl p-6 md:p-8">
           <div className="flex flex-col lg:flex-row items-center lg:items-start justify-between gap-8">
             <div className="flex items-start gap-6">
-              <div className={`p-5 rounded-2xl shadow-xl shrink-0 ${isGlobalConfig ? 'bg-emerald-500 text-white' : 'bg-amber-500 text-white'}`}>{isGlobalConfig ? <Globe2 size={40} /> : <Lock size={40} />}</div>
+              <div className={`p-5 rounded-2xl shadow-xl shrink-0 ${isGlobalConfig ? 'bg-emerald-500 text-white' : 'bg-amber-500 text-white'}`}>
+                {isGlobalConfig ? <Globe2 size={40} /> : <Lock size={40} />}
+              </div>
               <div className="text-center lg:text-left">
-                <h2 className={`text-3xl font-black tracking-tight ${isGlobalConfig ? 'text-emerald-900' : 'text-amber-900'}`}>{isGlobalConfig ? 'GLOBAL SYSTEM ONLINE' : 'LOCAL MODE (RESTRICTED)'}</h2>
-                <p className={`mt-2 font-medium text-lg max-w-lg ${isGlobalConfig ? 'text-emerald-700' : 'text-amber-800'}`}>{isGlobalConfig ? 'Success! Real-time syncing is active.' : 'Connected locally only.'}</p>
+                <h2 className={`text-3xl font-black tracking-tight ${isGlobalConfig ? 'text-emerald-900' : 'text-amber-900'}`}>
+                  {isGlobalConfig ? 'GLOBAL SYSTEM ONLINE' : 'LOCAL MODE ENABLED'}
+                </h2>
+                <p className={`mt-2 font-medium text-lg max-w-lg ${isGlobalConfig ? 'text-emerald-700' : 'text-amber-800'}`}>
+                  {isGlobalConfig ? 'Success! Your database is connected and syncing globally.' : 'The app is running in restricted mode. Configure Supabase to enable global sync.'}
+                </p>
                 <div className="mt-6 flex flex-col sm:flex-row gap-4 justify-center lg:justify-start">
-                  <Button onClick={() => setShowGlobalInstructions(!showGlobalInstructions)} className="bg-amber-600 hover:bg-amber-700 text-white border-none shadow-lg font-bold px-6 py-3 rounded-xl flex items-center gap-2 transition-all"><Globe2 size={18} /> {showGlobalInstructions ? 'Hide Code' : 'View Global Config'}</Button>
+                   <Button onClick={() => setShowGlobalInstructions(!showGlobalInstructions)} variant="outline" className="bg-white border-gray-300 font-bold">
+                     {showGlobalInstructions ? 'Hide Instructions' : 'Setup Global Access'}
+                   </Button>
+                   <Button onClick={() => handleTestConnection(false)} className="bg-brand-600 text-white flex items-center gap-2">
+                     <Zap size={18} /> Test Sync
+                   </Button>
                 </div>
               </div>
             </div>
-            {isSupabaseConfigured && (
-              <div className="flex flex-col gap-3 w-full lg:w-auto">
-                <div className="bg-gray-50 rounded-xl p-4 border border-gray-200 flex items-center justify-between gap-4 shadow-inner">
-                   <div className="flex items-center gap-2 text-sm font-bold text-gray-700"><div className={`w-3 h-3 rounded-full ${statusColor === 'green' ? 'bg-green-500 animate-pulse' : statusColor === 'red' ? 'bg-red-500' : 'bg-gray-400'}`}></div>Status</div>
-                   <span className={`text-xs font-bold px-2 py-1 rounded uppercase ${statusColor === 'green' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}> {statusColor === 'green' ? 'Connected' : 'Error'} </span>
-                </div>
-                <Button onClick={() => handleTestConnection(false)} variant="outline" className="w-full justify-center bg-white hover:bg-gray-50 text-gray-700 border-gray-300 font-bold"><Zap size={16} className="mr-2 text-yellow-500"/> Test Connection</Button>
+            {testResult && (
+              <div className={`p-4 rounded-xl border font-bold text-sm ${statusColor === 'green' ? 'bg-green-50 text-green-700 border-green-200' : 'bg-red-50 text-red-700 border-red-200'}`}>
+                {testResult}
               </div>
             )}
           </div>
+          
           {showGlobalInstructions && (
-            <div className="mt-8 bg-slate-900 rounded-2xl p-6 border border-slate-700 text-white animate-fade-in relative overflow-hidden">
-                <div className="absolute top-0 right-0 w-32 h-32 bg-emerald-500 rounded-full blur-[60px] opacity-20"></div>
-                <div className="relative z-10">
-                    <div className="flex justify-between items-center mb-4"><h3 className="text-xl font-bold flex items-center gap-2"><Code size={24} className="text-emerald-400" /> Setup Global Database</h3><button onClick={() => setShowGlobalInstructions(false)} className="bg-slate-800 p-2 rounded-full hover:bg-slate-700"><X size={20}/></button></div>
-                    <div className="bg-black/50 rounded-xl border border-slate-700 p-4 mb-4 relative group">
-                        <pre className="font-mono text-xs sm:text-sm text-emerald-400 overflow-x-auto whitespace-pre-wrap break-all">{`const HARDCODED_URL = '${dbUrl || 'YOUR_PROJECT_URL'}';\nconst HARDCODED_KEY = '${dbKey || 'YOUR_ANON_KEY'}';`}</pre>
-                        <button onClick={handleCopyConfig} className="absolute top-2 right-2 bg-white text-slate-900 px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-2 hover:bg-emerald-50 transition-colors shadow-lg">{configCopied ? <Check size={14}/> : <Copy size={14}/>} {configCopied ? 'Copied' : 'Copy'}</button>
-                    </div>
+            <div className="mt-8 bg-slate-900 rounded-2xl p-6 border border-slate-700 text-white animate-fade-in">
+                <div className="flex justify-between items-center mb-4">
+                  <h3 className="text-xl font-bold flex items-center gap-2"><Code size={24} className="text-emerald-400" /> Supabase Connection</h3>
+                  <button onClick={() => setShowGlobalInstructions(false)}><X size={20}/></button>
+                </div>
+                <div className="bg-black/50 rounded-xl p-4 font-mono text-sm text-emerald-400 overflow-x-auto break-all">
+                  {`SUPABASE_URL: ${dbUrl || 'PROJECT_URL'}\nSUPABASE_ANON_KEY: ${dbKey || 'ANON_KEY'}`}
                 </div>
             </div>
           )}
         </div>
       </div>
 
-      <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
-         <div className="px-8 py-6 border-b border-gray-100 flex flex-col md:flex-row justify-between items-center gap-4 bg-gradient-to-r from-gray-50 to-white">
-            <div className="flex items-center gap-3"><div className="p-2 bg-blue-50 text-blue-600 rounded-lg"><Database size={24} /></div><div><h3 className="text-xl font-bold text-gray-900">Database & SQL</h3><p className="text-xs text-gray-500">Run this SQL in your Supabase Editor</p></div></div>
+      {/* 2. Platform Control Center (The missing part) */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        
+        {/* Module Management */}
+        <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+          <div className="p-6 border-b border-gray-100 bg-gray-50 flex items-center gap-3">
+            <Layers className="text-brand-600" />
+            <h3 className="text-xl font-bold text-gray-900">Module Management</h3>
+          </div>
+          <div className="p-6 grid grid-cols-1 sm:grid-cols-2 gap-4">
+            {Object.keys(modules).filter(m => m !== 'admin').map((modId) => (
+              <ToggleSwitch 
+                key={modId}
+                label={modId.charAt(0).toUpperCase() + modId.slice(1).replace('_', ' ')}
+                checked={modules[modId as ToggableModule]}
+                onChange={() => toggleModule(modId as ToggableModule)}
+              />
+            ))}
+          </div>
+        </div>
+
+        {/* Landing Page Sections */}
+        <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+          <div className="p-6 border-b border-gray-100 bg-gray-50 flex items-center gap-3">
+            <Layout className="text-brand-600" />
+            <h3 className="text-xl font-bold text-gray-900">Landing Page Sections</h3>
+          </div>
+          <div className="p-6 grid grid-cols-1 sm:grid-cols-2 gap-4">
+            {Object.keys(sections).map((secId) => (
+              <ToggleSwitch 
+                key={secId}
+                label={secId.charAt(0).toUpperCase() + secId.slice(1)}
+                checked={sections[secId as LandingSection]}
+                onChange={() => toggleSection(secId as LandingSection)}
+                color="bg-indigo-600"
+              />
+            ))}
+          </div>
+        </div>
+      </div>
+
+      {/* 3. Website Identity & Maintenance */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        
+        {/* Maintenance & Announcement */}
+        <div className="lg:col-span-1 space-y-8">
+          <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
+            <h3 className="text-lg font-bold text-gray-900 mb-6 flex items-center gap-2">
+              <Power className="text-red-500" /> System Controls
+            </h3>
+            <div className="space-y-4">
+              <ToggleSwitch 
+                label="Maintenance Mode" 
+                checked={settings.maintenanceMode} 
+                onChange={() => updateSettings('maintenanceMode', !settings.maintenanceMode)}
+                color="bg-red-600"
+              />
+              <ToggleSwitch 
+                label="Global Announcement" 
+                checked={settings.announcementActive} 
+                onChange={() => updateSettings('announcementActive', !settings.announcementActive)}
+              />
+            </div>
+            
+            {settings.announcementActive && (
+              <div className="mt-6 animate-fade-in">
+                <label className="block text-xs font-bold text-gray-500 uppercase mb-2">Announcement Text</label>
+                <textarea 
+                  className="w-full p-4 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-brand-500 outline-none"
+                  value={settings.announcement}
+                  onChange={(e) => updateSettings('announcement', e.target.value)}
+                  rows={3}
+                />
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Website Identity */}
+        <div className="lg:col-span-2 bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+           <div className="p-6 border-b border-gray-100 bg-gray-50 flex items-center gap-3">
+             <Smartphone className="text-brand-600" />
+             <h3 className="text-xl font-bold text-gray-900">Website Identity</h3>
+           </div>
+           <div className="p-8 grid grid-cols-1 md:grid-cols-2 gap-8">
+              <div className="space-y-6">
+                <div>
+                  <label className="block text-sm font-bold text-gray-700 mb-2">Website Title</label>
+                  <input 
+                    type="text"
+                    className="w-full p-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-brand-500 outline-none font-bold"
+                    value={settings.websiteTitle}
+                    onChange={(e) => updateSettings('websiteTitle', e.target.value)}
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-bold text-gray-700 mb-2">Logo</label>
+                  <div className="flex items-center gap-4">
+                    <div className="w-16 h-16 rounded-xl border border-gray-200 bg-white flex items-center justify-center overflow-hidden">
+                      {settings.websiteLogo ? <img src={settings.websiteLogo} className="w-full h-full object-contain" /> : <ImageIcon className="text-gray-300" />}
+                    </div>
+                    <Button onClick={() => logoInputRef.current?.click()} variant="outline" size="sm">
+                      {isUploadingLogo ? 'Uploading...' : 'Upload New Logo'}
+                    </Button>
+                    <input type="file" ref={logoInputRef} className="hidden" accept="image/*" onChange={handleLogoUpload} />
+                  </div>
+                </div>
+              </div>
+
+              <div className="space-y-6">
+                <div>
+                  <label className="block text-sm font-bold text-gray-700 mb-2">Contact Email</label>
+                  <input 
+                    type="email"
+                    className="w-full p-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-brand-500 outline-none"
+                    value={settings.contactEmail}
+                    onChange={(e) => updateSettings('contactEmail', e.target.value)}
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-bold text-gray-700 mb-2">Contact Phone</label>
+                  <input 
+                    type="text"
+                    className="w-full p-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-brand-500 outline-none"
+                    value={settings.contactPhone}
+                    onChange={(e) => updateSettings('contactPhone', e.target.value)}
+                  />
+                </div>
+              </div>
+              
+              <div className="md:col-span-2">
+                <label className="block text-sm font-bold text-gray-700 mb-2">Office Address</label>
+                <textarea 
+                  className="w-full p-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-brand-500 outline-none"
+                  value={settings.address}
+                  onChange={(e) => updateSettings('address', e.target.value)}
+                  rows={2}
+                />
+              </div>
+           </div>
+        </div>
+      </div>
+
+      {/* 4. Database Setup & SQL */}
+      <div className="bg-slate-900 rounded-3xl shadow-2xl overflow-hidden border border-slate-800">
+         <div className="p-8 border-b border-slate-800 flex flex-col md:flex-row justify-between items-center gap-6 bg-slate-950">
+            <div className="flex items-center gap-4">
+              <div className="p-3 bg-blue-500/20 text-blue-400 rounded-2xl"><Database size={32} /></div>
+              <div>
+                <h3 className="text-2xl font-bold text-white">Database & SQL Configuration</h3>
+                <p className="text-slate-400 text-sm">Configure Supabase for global real-time data synchronization</p>
+              </div>
+            </div>
+            {!isSupabaseConfigured && (
+              <div className="flex gap-3">
+                 <Button onClick={() => handleSaveDbConfig()} disabled={isSaving} className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-3 rounded-xl font-bold shadow-lg shadow-blue-900/50">
+                   {isSaving ? 'Connecting...' : 'Connect Supabase'}
+                 </Button>
+              </div>
+            )}
          </div>
+
          <div className="p-8">
             {!isSupabaseConfigured ? (
-                <div className="max-w-2xl mx-auto space-y-6">
-                    <input type="text" value={dbUrl} onChange={(e) => setDbUrl(e.target.value)} placeholder="Supabase Project URL" className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none" />
-                    <input type="password" value={dbKey} onChange={(e) => setDbKey(e.target.value)} placeholder="Supabase Anon Key" className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none" />
-                    <button onClick={handleSaveDbConfig} className="w-full py-4 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl shadow-lg">Save & Connect</button>
+              <div className="max-w-3xl mx-auto space-y-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                   <div>
+                     <label className="block text-xs font-bold text-slate-500 uppercase mb-2 ml-1">Supabase URL</label>
+                     <input type="text" value={dbUrl} onChange={e => setDbUrl(e.target.value)} className="w-full p-4 bg-slate-800 border border-slate-700 rounded-xl text-white outline-none focus:ring-2 focus:ring-blue-500" placeholder="https://xyz.supabase.co" />
+                   </div>
+                   <div>
+                     <label className="block text-xs font-bold text-slate-500 uppercase mb-2 ml-1">Anon Public Key</label>
+                     <input type="password" value={dbKey} onChange={e => setDbKey(e.target.value)} className="w-full p-4 bg-slate-800 border border-slate-700 rounded-xl text-white outline-none focus:ring-2 focus:ring-blue-500" placeholder="eyJhbG..." />
+                   </div>
                 </div>
+                <div className="bg-blue-500/10 border border-blue-500/20 p-5 rounded-2xl flex items-start gap-4">
+                   <Info className="text-blue-400 shrink-0" size={24} />
+                   <p className="text-blue-100 text-sm leading-relaxed">
+                     Paste your Supabase credentials here to enable global database syncing. Your settings will be saved locally in this browser. To make them permanent for all users, update the <strong>HARDCODED_URL</strong> in <code className="bg-black/50 px-1 rounded">supabaseClient.ts</code>.
+                   </p>
+                </div>
+              </div>
             ) : (
-                <div className="bg-slate-900 text-slate-300 rounded-2xl overflow-hidden border border-slate-800 shadow-2xl">
-                    <div className="bg-slate-950 px-6 py-4 flex justify-between items-center border-b border-slate-800">
-                        <div className="flex items-center gap-3"><Server size={18} className="text-emerald-400" /><span className="font-bold text-slate-100">SQL Schema (Required)</span></div>
-                        <button onClick={handleCopySQL} className="flex items-center gap-2 text-xs font-bold bg-slate-800 hover:bg-slate-700 text-white px-3 py-1.5 rounded-lg border border-slate-700">{copied ? <Check size={14} className="text-green-400"/> : <Copy size={14} />} {copied ? 'Copied!' : 'Copy Code'}</button>
+              <div className="space-y-6">
+                 <div className="flex justify-between items-center text-slate-400 text-sm mb-2">
+                    <span className="flex items-center gap-2"><CheckCircle size={16} className="text-emerald-500"/> Supabase Connected</span>
+                    <button onClick={() => { localStorage.removeItem('dream_sb_url'); localStorage.removeItem('dream_sb_key'); window.location.reload(); }} className="hover:text-red-400 flex items-center gap-1 font-bold text-xs"><RotateCcw size={12}/> Reset Config</button>
+                 </div>
+                 <div className="relative group">
+                    <div className="bg-black/50 rounded-2xl border border-slate-800 p-6 font-mono text-xs text-emerald-400 h-[350px] overflow-y-auto custom-scrollbar">
+                      {SCHEMA_SQL}
                     </div>
-                    <div className="p-6"><div className="bg-black/50 p-4 rounded-xl font-mono text-xs text-emerald-400 h-64 overflow-y-auto border border-slate-800 custom-scrollbar">{SCHEMA_SQL}</div></div>
-                </div>
+                    <button 
+                      onClick={handleCopySQL} 
+                      className="absolute top-4 right-4 bg-white hover:bg-emerald-50 text-slate-900 px-4 py-2 rounded-xl text-sm font-bold flex items-center gap-2 shadow-xl transition-all"
+                    >
+                      {copied ? <Check size={18} /> : <Copy size={18} />}
+                      {copied ? 'Copied SQL' : 'Copy SQL Schema'}
+                    </button>
+                 </div>
+                 <p className="text-slate-500 text-center text-xs">Run this SQL in your Supabase SQL Editor to create required tables.</p>
+              </div>
             )}
          </div>
       </div>

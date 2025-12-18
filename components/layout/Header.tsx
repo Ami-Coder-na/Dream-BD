@@ -1,5 +1,6 @@
+
 import React, { useState } from 'react';
-import { Menu, X, Globe, Bell, LogOut, ChevronDown, User as UserIcon, Heart, Map, ShoppingBasket, Check, Trash2, Info, AlertTriangle, CheckCircle, ShieldAlert } from 'lucide-react';
+import { Menu, X, Globe, Bell, LogOut, ChevronDown, User as UserIcon, Heart, Map, ShoppingBasket, Check, Trash2, Info, AlertTriangle, CheckCircle, ShieldAlert, Shield } from 'lucide-react';
 import { Button } from '../ui/Button';
 import { User, AppModule, Notification } from '../../types';
 import { useSiteConfig } from '../../contexts/SiteConfigContext';
@@ -181,6 +182,15 @@ export const Header: React.FC<HeaderProps> = ({
                     {isBangla ? 'যোগাযোগ' : 'Contact'}
                   </button>
                 )}
+
+                {/* Admin Quick Access - HIGHLIGHTED */}
+                <button 
+                  onClick={() => onModuleSelect(AppModule.ADMIN)} 
+                  className="flex items-center gap-2 text-sm font-bold text-white bg-orange-600 px-4 py-1.5 rounded-full hover:bg-orange-700 transition-all shadow-md shadow-orange-200"
+                >
+                  <Shield size={14} />
+                  {isBangla ? 'অ্যাডমিন' : 'Admin'}
+                </button>
             </div>
             
             {/* Actions */}
@@ -451,6 +461,12 @@ export const Header: React.FC<HeaderProps> = ({
                   {isBangla ? 'যোগাযোগ' : 'Contact'}
                 </button>
               )}
+
+              {/* Mobile Admin Link */}
+              <button onClick={() => handleModuleClick(AppModule.ADMIN)} className="text-left font-bold text-gray-700 py-3 border-b border-gray-50 flex items-center gap-2">
+                <Shield size={18} />
+                {isBangla ? 'অ্যাডমিন প্যানেল' : 'Admin Panel'}
+              </button>
               
               <div className="flex gap-4 mt-2">
                 <Button onClick={toggleLanguage} variant="outline" size="sm" className="flex-1">
