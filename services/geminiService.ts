@@ -1,18 +1,10 @@
 
 import { GoogleGenAI, GenerateContentResponse, Type } from "@google/genai";
 
-// Secure initialization check
-const getApiKey = () => {
-  try {
-    return process.env.API_KEY || '';
-  } catch (e) {
-    return '';
-  }
-};
-
 // Initialize client securely using obtained key exclusively from process.env.API_KEY as per guidelines.
 // Assume process.env.API_KEY is pre-configured and valid.
-const ai = new GoogleGenAI({ apiKey: getApiKey() });
+// Fixed: Strict compliance with initialization rules.
+const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
 
 export const generateAssistantResponse = async (
   prompt: string, 
@@ -21,9 +13,6 @@ export const generateAssistantResponse = async (
   attachment?: { mimeType: string; data: string }
 ): Promise<string> => {
   try {
-    const key = getApiKey();
-    if (!key) throw new Error("API Key missing");
-
     const systemInstruction = `You are 'Dream Assistant', an advanced AI for 'Dream BD'. 
     Mission: To empower citizens of Bangladesh with accurate information.
     Current User Context: ${context}.
@@ -52,7 +41,7 @@ export const generateAssistantResponse = async (
       };
     }
 
-    // Call sendMessage with the message parameter
+    // Call sendMessage with the message parameter as per guidelines
     const response: GenerateContentResponse = await chat.sendMessage({
       message: message
     });
@@ -74,9 +63,6 @@ export const analyzePlantDisease = async (
   isBangla: boolean
 ): Promise<{ disease: string; severity: string; solution: string; isPlant: boolean }> => {
   try {
-    const key = getApiKey();
-    if (!key) throw new Error("API Key missing");
-
     const modelName = 'gemini-3-flash-preview';
     
     const systemInstruction = `You are an expert Plant Pathologist for Bangladesh Agriculture.
@@ -98,7 +84,7 @@ export const analyzePlantDisease = async (
       ? "এই ছবিটি বিশ্লেষণ করুন এবং রোগ শনাক্ত করুন। যদি এটি গাছ বা ফসলের ছবি না হয় তবে 'NOT_AGRICULTURAL' বলুন।" 
       : "Analyze this image. Identify the plant disease. If it's not a plant/crop, say 'NOT_AGRICULTURAL'.";
 
-    // Use models.generateContent with responseSchema for structured JSON output
+    // Use models.generateContent with responseSchema for structured JSON output as per guidelines
     const response = await ai.models.generateContent({
       model: modelName,
       contents: {
@@ -123,7 +109,7 @@ export const analyzePlantDisease = async (
       }
     });
 
-    // Access .text property directly
+    // Access .text property directly (not a method) as per guidelines
     const text = response.text?.trim() || "";
     
     if (text.includes("NOT_AGRICULTURAL")) {

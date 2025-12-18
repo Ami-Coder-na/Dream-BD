@@ -24,7 +24,8 @@ export const AdminUsers = () => {
   const newUsers = 0; // In a real app, filter by date range
 
   const filteredUsers = users.filter((u: any) => {
-    const matchesSearch = u.name.toLowerCase().includes(userSearch.toLowerCase()) || u.email.toLowerCase().includes(userSearch.toLowerCase());
+    const matchesSearch = (u.name?.toLowerCase() || '').includes(userSearch.toLowerCase()) || 
+                          (u.email?.toLowerCase() || '').includes(userSearch.toLowerCase());
     const matchesRole = userRoleFilter === 'All' || u.role === userRoleFilter;
     return matchesSearch && matchesRole;
   });
@@ -48,11 +49,15 @@ export const AdminUsers = () => {
 
   const handleSuspendUser = (id: string) => {
     const user = users.find((u: any) => u.id === id);
-    const action = user?.status === 'Active' ? 'Suspended' : 'Active';
-    const actionLabel = user?.status === 'Active' ? 'suspend' : 'activate';
+    if (!user) return;
+    
+    const action = user.status === 'Active' ? 'Suspended' : 'Active';
+    const actionLabel = user.status === 'Active' ? 'suspend' : 'activate';
     
     if(confirm(`Are you sure you want to ${actionLabel} this user?`)) {
-      updateUserStatus(id, action);
+      if (typeof updateUserStatus === 'function') {
+        updateUserStatus(id, action);
+      }
     }
   };
 
@@ -166,7 +171,7 @@ export const AdminUsers = () => {
                                 <img src={selectedUser.avatar} alt={selectedUser.name} className="w-full h-full object-cover" />
                             ) : (
                                 <div className="w-full h-full rounded-full bg-gray-100 flex items-center justify-center text-3xl font-bold text-gray-500">
-                                    {selectedUser.name.charAt(0)}
+                                    {(selectedUser.name || 'U').charAt(0)}
                                 </div>
                             )}
                         </div>
@@ -408,7 +413,7 @@ export const AdminUsers = () => {
                             {user.avatar ? (
                                 <img src={user.avatar} alt={user.name} className="w-full h-full object-cover" />
                             ) : (
-                                user.name.charAt(0)
+                                (user.name || 'U').charAt(0)
                             )}
                           </div>
                           <div>

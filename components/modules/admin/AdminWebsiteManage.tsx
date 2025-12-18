@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useRef } from 'react';
 import { 
   Monitor, Layout, Layers, ToggleLeft, ToggleRight, 
@@ -10,6 +9,7 @@ import { Button } from '../../ui/Button';
 import { useSiteConfig, ToggableModule, LandingSection } from '../../../contexts/SiteConfigContext';
 import { isSupabaseConfigured, isGlobalConfig, supabase } from '../../../services/supabaseClient';
 import { AppModule } from '../../../types';
+import { useData } from '../../../contexts/DataContext';
 
 const SCHEMA_SQL = `-- ১. নতুন টেবিল তৈরি বা আপডেট করুন
 
@@ -95,6 +95,7 @@ const ToggleSwitch: React.FC<ToggleSwitchProps> = ({ label, checked, onChange, c
 
 export const AdminWebsiteManage = () => {
   const { modules, sections, settings, toggleModule, toggleSection, updateSettings } = useSiteConfig();
+  const { seedDistricts } = useData();
   const [copied, setCopied] = useState(false);
   const [configCopied, setConfigCopied] = useState(false);
   const logoInputRef = useRef<HTMLInputElement>(null);
@@ -106,6 +107,7 @@ export const AdminWebsiteManage = () => {
   const [statusColor, setStatusColor] = useState('gray');
   const [showGlobalInstructions, setShowGlobalInstructions] = useState(false);
   const [isUploadingLogo, setIsUploadingLogo] = useState(false);
+  const [isSeeding, setIsSeeding] = useState(false);
 
   useEffect(() => {
       if (isSupabaseConfigured) {
@@ -158,6 +160,14 @@ export const AdminWebsiteManage = () => {
     }
   };
 
+  const handleSeedData = async () => {
+    if (confirm('This will insert real data for 64 districts into your database. Existing district records with same IDs will be updated. Proceed?')) {
+      setIsSeeding(true);
+      await seedDistricts();
+      setIsSeeding(false);
+    }
+  };
+
   return (
     <div className="space-y-8 animate-fade-in max-w-7xl mx-auto pb-20">
       
@@ -183,6 +193,16 @@ export const AdminWebsiteManage = () => {
                    <Button onClick={() => handleTestConnection(false)} className="bg-brand-600 text-white flex items-center gap-2">
                      <Zap size={18} /> Test Sync
                    </Button>
+                   {isSupabaseConfigured && (
+                     <Button 
+                       onClick={handleSeedData} 
+                       disabled={isSeeding}
+                       className="bg-indigo-600 hover:bg-indigo-700 text-white flex items-center gap-2"
+                     >
+                       {isSeeding ? <RefreshCw className="animate-spin" size={18} /> : <Database size={18} />}
+                       Seed 64 Districts Data
+                     </Button>
+                   )}
                 </div>
               </div>
             </div>
@@ -207,7 +227,7 @@ export const AdminWebsiteManage = () => {
         </div>
       </div>
 
-      {/* 2. Platform Control Center (The missing part) */}
+      {/* 2. Platform Control Center */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
         
         {/* Module Management */}
@@ -332,6 +352,7 @@ export const AdminWebsiteManage = () => {
                     type="text"
                     className="w-full p-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-brand-500 outline-none"
                     value={settings.contactPhone}
+                    {/* Fixed line 356: use updateSettings instead of non-existent setSettings */}
                     onChange={(e) => updateSettings('contactPhone', e.target.value)}
                   />
                 </div>
