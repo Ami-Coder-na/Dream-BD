@@ -118,6 +118,7 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const [exchangeRates, setExchangeRates] = useState<any[]>([]);
   const [vocationalCourses, setVocationalCourses] = useState<any[]>([]);
   const [donors, setDonors] = useState<any[]>([]);
+  const [donorViewLogs, setDonorViewLogs] = useState<any[]>([]); // New State
   const [enrolledCourses, setEnrolledCourses] = useState<any[]>([]);
   const [messages, setMessages] = useState<any[]>([]);
   const [districts, setDistricts] = useState<any[]>([]);
@@ -150,7 +151,8 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       'postedby': 'postedBy', 'posteddate': 'postedDate', 'readtime': 'readTime',
       'sellertype': 'sellerType', 'nameen': 'nameEn', 'namebn': 'nameBn',
       'titlebn': 'titleBn', 'lastdonation': 'lastDonation', 'enrolleddate': 'enrolledDate', 'user_name': 'user',
-      'touristspots': 'touristSpots'
+      'touristspots': 'touristSpots',
+      'donor_name': 'donorName', 'donor_phone': 'donorPhone', 'viewer_name': 'viewerName', 'viewer_phone': 'viewerPhone', 'viewer_district': 'viewerDistrict'
     };
     Object.keys(fieldMap).forEach(dbKey => {
       if (dbKey in newItem) {
@@ -179,6 +181,7 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     setUsers(getLocal('db_users', MOCK_USERS));
     setMessages(getLocal('db_messages', []));
     setDistricts(getLocal('db_districts', INITIAL_DISTRICT_LIST));
+    setDonorViewLogs(getLocal('db_donor_logs', []));
     
     if (isSupabaseConfigured) {
       await Promise.all([
@@ -197,6 +200,7 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         fetchTable('exchange_rates', setExchangeRates),
         fetchTable('vocational_courses', setVocationalCourses),
         fetchTable('donors', setDonors),
+        fetchTable('donor_view_logs', setDonorViewLogs),
         fetchTable('enrolled_courses', setEnrolledCourses),
         fetchTable('districts', setDistricts, 'nameen', true)
       ]);
@@ -227,6 +231,8 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         } catch (err) {}
     }
   };
+
+  const addDonorViewLog = async (log: any) => await optimisticAdd('donor_view_logs', log, setDonorViewLogs, donorViewLogs);
 
   const addRequest = async (request: any) => {
     const { contentType, ...dbData } = request;
@@ -326,8 +332,8 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
   return (
     <DataContext.Provider value={{ 
-      jobs, blogs, requests, blogRequests, wholesaleRequests, grievances, users, messages, donors, marketPrices, retailProducts, wholesaleAds, lawyers, exchangeRates, vocationalCourses, enrolledCourses, districts,
-      addJob, updateJob, deleteJob, addBlog, updateBlog, deleteBlog, addRequest, handleRequestAction, addGrievance, updateGrievanceStatus, deleteGrievance, addUser, deleteUser, updateUserStatus, resetPassword, addMessage, markMessageRead, deleteMessage, updateMarketPrices, addRetailProduct, updateRetailProduct, deleteRetailProduct, addWholesaleAd, updateWholesaleAd, deleteWholesaleAd, addLawyer, deleteLawyer, addExchangeRate, deleteExchangeRate, addVocationalCourse, deleteVocationalCourse, enrollCourse, addDonor, updateDistrict, seedDistricts,
+      jobs, blogs, requests, blogRequests, wholesaleRequests, grievances, users, messages, donors, donorViewLogs, marketPrices, retailProducts, wholesaleAds, lawyers, exchangeRates, vocationalCourses, enrolledCourses, districts,
+      addJob, updateJob, deleteJob, addBlog, updateBlog, deleteBlog, addRequest, handleRequestAction, addGrievance, updateGrievanceStatus, deleteGrievance, addUser, deleteUser, updateUserStatus, resetPassword, addMessage, markMessageRead, deleteMessage, updateMarketPrices, addRetailProduct, updateRetailProduct, deleteRetailProduct, addWholesaleAd, updateWholesaleAd, deleteWholesaleAd, addLawyer, deleteLawyer, addExchangeRate, deleteExchangeRate, addVocationalCourse, deleteVocationalCourse, enrollCourse, addDonor, addDonorViewLog, updateDistrict, seedDistricts,
       totalVisitors, logVisit: () => {}, refreshData: fetchData
     }}>
       {children}
