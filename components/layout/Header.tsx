@@ -38,6 +38,9 @@ export const Header: React.FC<HeaderProps> = ({
   
   const { modules, settings } = useSiteConfig();
 
+  // Strict check to ensure Admin button only appears during local development
+  const isLocal = process.env.NODE_ENV === 'development';
+
   const allModules = [
     { id: AppModule.CRAFT, title: isBangla ? 'কারুশিল্প' : 'Crafts' },
     { id: AppModule.AGRI, title: isBangla ? 'কৃষি' : 'Agriculture' },
@@ -183,14 +186,16 @@ export const Header: React.FC<HeaderProps> = ({
                   </button>
                 )}
 
-                {/* Admin Quick Access - HIGHLIGHTED */}
-                <button 
-                  onClick={() => onModuleSelect(AppModule.ADMIN)} 
-                  className="flex items-center gap-2 text-sm font-bold text-white bg-orange-600 px-4 py-1.5 rounded-full hover:bg-orange-700 transition-all shadow-md shadow-orange-200"
-                >
-                  <Shield size={14} />
-                  {isBangla ? 'অ্যাডমিন' : 'Admin'}
-                </button>
+                {/* Admin Quick Access - LOCAL ONLY */}
+                {isLocal && (
+                  <button 
+                    onClick={() => onModuleSelect(AppModule.ADMIN)} 
+                    className="flex items-center gap-2 text-sm font-bold text-white bg-orange-600 px-4 py-1.5 rounded-full hover:bg-orange-700 transition-all shadow-md shadow-orange-200"
+                  >
+                    <Shield size={14} />
+                    {isBangla ? 'অ্যাডমিন' : 'Admin'}
+                  </button>
+                )}
             </div>
             
             {/* Actions */}
@@ -462,11 +467,13 @@ export const Header: React.FC<HeaderProps> = ({
                 </button>
               )}
 
-              {/* Mobile Admin Link */}
-              <button onClick={() => handleModuleClick(AppModule.ADMIN)} className="text-left font-bold text-gray-700 py-3 border-b border-gray-50 flex items-center gap-2">
-                <Shield size={18} />
-                {isBangla ? 'অ্যাডমিন প্যানেল' : 'Admin Panel'}
-              </button>
+              {/* Mobile Admin Link - LOCAL ONLY */}
+              {isLocal && (
+                <button onClick={() => handleModuleClick(AppModule.ADMIN)} className="text-left font-bold text-gray-700 py-3 border-b border-gray-50 flex items-center gap-2">
+                  <Shield size={18} />
+                  {isBangla ? 'অ্যাডমিন প্যানেল' : 'Admin Panel'}
+                </button>
+              )}
               
               <div className="flex gap-4 mt-2">
                 <Button onClick={toggleLanguage} variant="outline" size="sm" className="flex-1">
