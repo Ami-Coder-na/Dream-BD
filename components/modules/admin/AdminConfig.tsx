@@ -62,8 +62,13 @@ export const AdminConfig: React.FC<Props> = ({ isBangla }) => {
 
   const handleSaveDistrict = (e: React.FormEvent) => {
     e.preventDefault();
+    
+    // Generate an ID if it's a new district
+    const finalId = editingDistrict.id || editingDistrict.nameEn.toLowerCase().replace(/\s+/g, '');
+
     const updated = {
       ...editingDistrict,
+      id: finalId,
       upazilas: editingDistrict.upazilas_str.split(',').map((s: string) => s.trim()).filter(Boolean),
       touristSpots: editingDistrict.spots_str.split(',').map((s: string) => s.trim()).filter(Boolean),
       images: editingDistrict.images_str.split(',').map((s: string) => s.trim()).filter(Boolean)
@@ -74,12 +79,29 @@ export const AdminConfig: React.FC<Props> = ({ isBangla }) => {
     
     updateDistrict(updated);
     setEditingDistrict(null);
-    alert('District updated successfully!');
+    alert('District data saved successfully!');
   };
 
   const openModal = () => {
-    setConfigForm({});
-    setIsConfigModalOpen(true);
+    if (activeConfigTab === 'districts') {
+        // Initialize an empty district object for adding
+        setEditingDistrict({
+            id: '',
+            nameEn: '',
+            nameBn: '',
+            division: 'Dhaka',
+            population: '',
+            area: '',
+            description: '',
+            upazilas_str: '',
+            spots_str: '',
+            images_str: '',
+            education: { primary: 0, highSchool: 0, college: 0, university: 0 }
+        });
+    } else {
+        setConfigForm({});
+        setIsConfigModalOpen(true);
+    }
   };
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -144,7 +166,6 @@ export const AdminConfig: React.FC<Props> = ({ isBangla }) => {
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                     {filteredDistricts.map((d: any) => (
                         <div key={d.id} className="bg-white p-5 rounded-2xl border border-gray-100 shadow-sm hover:shadow-lg transition-all flex flex-col justify-between group overflow-hidden relative">
-                            {/* Visual Indicator of data completeness */}
                             <div className={`absolute top-0 left-0 h-1 transition-all ${d.description ? 'bg-green-500 w-full' : 'bg-red-300 w-1/4'}`}></div>
                             
                             <div>
@@ -265,7 +286,7 @@ export const AdminConfig: React.FC<Props> = ({ isBangla }) => {
     );
   };
 
-  const isEditable = ['agri', 'legal', 'expat', 'vocational'].includes(activeConfigTab);
+  const isEditable = ['districts', 'agri', 'legal', 'expat', 'vocational'].includes(activeConfigTab);
 
   return (
     <div className="space-y-6 animate-fade-in">
@@ -325,7 +346,7 @@ export const AdminConfig: React.FC<Props> = ({ isBangla }) => {
                           <MapPin size={24} />
                         </div>
                         <div>
-                            <h3 className="font-black text-3xl text-gray-900">Configure {editingDistrict.nameEn}</h3>
+                            <h3 className="font-black text-3xl text-gray-900">{editingDistrict.id ? 'Configure ' + editingDistrict.nameEn : 'Add New District'}</h3>
                             <p className="text-sm font-bold text-brand-600 uppercase tracking-widest">{editingDistrict.division} Division</p>
                         </div>
                     </div>
@@ -337,6 +358,23 @@ export const AdminConfig: React.FC<Props> = ({ isBangla }) => {
                     <div className="space-y-6">
                         <h4 className="text-lg font-bold text-gray-900 border-l-4 border-brand-500 pl-3">Basic Information</h4>
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                            <div className="space-y-2">
+                                <label className="block text-sm font-bold text-gray-700">District Name (English)</label>
+                                <input required className="w-full p-4 bg-gray-50 border border-gray-200 rounded-2xl focus:ring-4 focus:ring-brand-100 focus:border-brand-500 outline-none transition-all font-medium" value={editingDistrict.nameEn} onChange={e => setEditingDistrict({...editingDistrict, nameEn: e.target.value})} placeholder="e.g. Dhaka" />
+                            </div>
+                            <div className="space-y-2">
+                                <label className="block text-sm font-bold text-gray-700">District Name (Bangla)</label>
+                                <input required className="w-full p-4 bg-gray-50 border border-gray-200 rounded-2xl focus:ring-4 focus:ring-brand-100 focus:border-brand-500 outline-none transition-all font-medium" value={editingDistrict.nameBn} onChange={e => setEditingDistrict({...editingDistrict, nameBn: e.target.value})} placeholder="যেমন: ঢাকা" />
+                            </div>
+                        </div>
+
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+                            <div className="space-y-2">
+                                <label className="block text-sm font-bold text-gray-700 flex items-center gap-2"><Building2 size={16}/> Division</label>
+                                <select className="w-full p-4 bg-gray-50 border border-gray-200 rounded-2xl focus:ring-4 focus:ring-brand-100 focus:border-brand-500 outline-none transition-all font-medium" value={editingDistrict.division} onChange={e => setEditingDistrict({...editingDistrict, division: e.target.value})}>
+                                    <option>Dhaka</option><option>Chattogram</option><option>Rajshahi</option><option>Khulna</option><option>Sylhet</option><option>Barisal</option><option>Rangpur</option><option>Mymensingh</option>
+                                </select>
+                            </div>
                             <div className="space-y-2">
                                 <label className="block text-sm font-bold text-gray-700 flex items-center gap-2"><Users size={16}/> Total Population</label>
                                 <input required className="w-full p-4 bg-gray-50 border border-gray-200 rounded-2xl focus:ring-4 focus:ring-brand-100 focus:border-brand-500 outline-none transition-all font-medium" value={editingDistrict.population} onChange={e => setEditingDistrict({...editingDistrict, population: e.target.value})} placeholder="e.g. 2.5 Million" />
@@ -405,14 +443,14 @@ export const AdminConfig: React.FC<Props> = ({ isBangla }) => {
                 <div className="p-8 border-t border-gray-100 flex justify-end gap-4 bg-gray-50 sticky bottom-0 z-10 rounded-b-[2.5rem]">
                     <Button type="button" variant="outline" onClick={() => setEditingDistrict(null)} className="px-10 rounded-2xl bg-white hover:bg-gray-100 border-gray-300 h-14 font-bold text-gray-700">Cancel</Button>
                     <Button onClick={handleSaveDistrict} className="bg-brand-600 hover:bg-brand-700 text-white flex items-center gap-3 px-14 rounded-2xl font-black text-lg shadow-xl shadow-brand-200 h-14 transition-all hover:scale-105 active:scale-95">
-                        <Save size={22}/> Save Updates
+                        <Save size={22}/> {editingDistrict.id ? 'Save Updates' : 'Add District'}
                     </Button>
                 </div>
             </div>
         </div>
       )}
 
-      {/* Basic Config Modal (Existing Logic maintained) */}
+      {/* Basic Config Modal */}
       {isConfigModalOpen && (
         <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4 backdrop-blur-sm animate-fade-in">
             <div className="bg-white rounded-3xl shadow-2xl w-full max-w-md p-8">
@@ -445,6 +483,8 @@ export const AdminConfig: React.FC<Props> = ({ isBangla }) => {
                         </>
                     )}
                     
+                    {/* Add other specific tab fields here if needed */}
+
                     <div className="flex flex-col gap-3 mt-4 pt-4 border-t border-gray-100">
                         <Button type="submit" className="w-full bg-brand-600 hover:bg-brand-700 text-white font-bold py-3.5 rounded-xl shadow-lg shadow-brand-100">Save Item</Button>
                         <Button type="button" variant="outline" onClick={() => setIsConfigModalOpen(false)} className="w-full rounded-xl py-3 text-gray-500">Cancel</Button>
