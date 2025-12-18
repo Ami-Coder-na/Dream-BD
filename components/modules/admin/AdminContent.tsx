@@ -3,7 +3,7 @@ import React, { useState, useRef } from 'react';
 import { 
   Briefcase, FileText, Plus, Search, Eye, Edit3, Trash2, 
   Check, X, ArrowLeft, Save, 
-  MapPin, DollarSign, Calendar, Tag, User, Building2, Image as ImageIcon, Loader2, Upload, Truck, Phone, CheckCircle
+  MapPin, DollarSign, Calendar, Tag, User, Building2, Image as ImageIcon, Loader2, Upload, Truck, Phone
 } from 'lucide-react';
 import { Button } from '../../ui/Button';
 import { useData } from '../../../contexts/DataContext';
@@ -79,12 +79,6 @@ export const AdminContent = () => {
                     </div>
                 </div>
                 <div className="p-8">
-                    {selectedItem.status === 'Approved' && (
-                        <div className="text-center py-8 animate-fade-in">
-                            <CheckCircle size={40} className="text-green-600 mx-auto mb-2" />
-                            <p className="font-bold text-green-700">This item has been approved and is now live.</p>
-                        </div>
-                    )}
                     <div className="mb-6">{renderStatusBadge(selectedItem.status)}</div>
                     <h1 className="text-3xl font-bold text-gray-900 mb-6">{selectedItem.title || selectedItem.product}</h1>
                     <div className="flex flex-wrap items-center gap-6 text-sm text-gray-500 mb-8 border-b border-gray-100 pb-8">
