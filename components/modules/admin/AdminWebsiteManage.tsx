@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useRef } from 'react';
 import { 
   Monitor, Layout, Layers, ToggleLeft, ToggleRight, 
@@ -12,6 +13,13 @@ import { AppModule } from '../../../types';
 import { useData } from '../../../contexts/DataContext';
 
 const SCHEMA_SQL = `-- ১. নতুন টেবিল তৈরি বা আপডেট করুন
+
+-- অ্যাপ কনফিগারেশন টেবিল
+create table if not exists public.app_config (
+  key text primary key,
+  value jsonb not null,
+  updated_at timestamp with time zone default timezone('utc'::text, now()) not null
+);
 
 -- ৬৪ জেলার টেবিল
 create table if not exists public.districts (
@@ -61,11 +69,13 @@ create table if not exists public.wholesale_ads (
 );
 
 -- সিকিউরিটি পলিসি
+alter table public.app_config enable row level security;
 alter table public.districts enable row level security;
 alter table public.wholesale_requests enable row level security;
 alter table public.wholesale_ads enable row level security;
 
 do $$ begin
+  create policy "Public Access Config" on public.app_config for all using (true) with check (true);
   create policy "Public Access Districts" on public.districts for all using (true) with check (true);
   create policy "Public Access wholesale_requests" on public.wholesale_requests for all using (true) with check (true);
   create policy "Public Access wholesale_ads" on public.wholesale_ads for all using (true) with check (true);
@@ -97,8 +107,8 @@ export const AdminWebsiteManage = () => {
   const { modules, sections, settings, toggleModule, toggleSection, updateSettings } = useSiteConfig();
   const { seedDistricts } = useData();
   const [copied, setCopied] = useState(false);
-  const [configCopied, setConfigCopied] = useState(false);
   const logoInputRef = useRef<HTMLInputElement>(null);
+  const faviconInputRef = useRef<HTMLInputElement>(null);
 
   const [dbUrl, setDbUrl] = useState(localStorage.getItem('dream_sb_url') || '');
   const [dbKey, setDbKey] = useState(localStorage.getItem('dream_sb_key') || '');
@@ -107,6 +117,7 @@ export const AdminWebsiteManage = () => {
   const [statusColor, setStatusColor] = useState('gray');
   const [showGlobalInstructions, setShowGlobalInstructions] = useState(false);
   const [isUploadingLogo, setIsUploadingLogo] = useState(false);
+  const [isUploadingFavicon, setIsUploadingFavicon] = useState(false);
   const [isSeeding, setIsSeeding] = useState(false);
 
   useEffect(() => {
@@ -119,13 +130,6 @@ export const AdminWebsiteManage = () => {
     navigator.clipboard.writeText(SCHEMA_SQL);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
-  };
-
-  const handleCopyConfig = () => {
-    const code = `const HARDCODED_URL = '${dbUrl}';\nconst HARDCODED_KEY = '${dbKey}';`;
-    navigator.clipboard.writeText(code);
-    setConfigCopied(true);
-    setTimeout(() => setConfigCopied(false), 2000);
   };
 
   const handleSaveDbConfig = () => {
@@ -141,7 +145,7 @@ export const AdminWebsiteManage = () => {
   const handleTestConnection = async (silent = false) => {
       if(!silent) setTestResult('Testing Connection...');
       try {
-          const { count, error } = await supabase.from('requests').select('*', { count: 'exact', head: true });
+          const { count, error } = await supabase.from('app_config').select('*', { count: 'exact', head: true });
           if (error) { setTestResult(`Connection Failed: ${error.message}`); setStatusColor('red'); }
           else { setTestResult(`✅ Connected! Database is live.`); setStatusColor('green'); }
       } catch (err: any) { setTestResult(`Error: ${err.message}`); setStatusColor('red'); }
@@ -155,6 +159,19 @@ export const AdminWebsiteManage = () => {
       reader.onloadend = () => {
         updateSettings('websiteLogo', reader.result as string);
         setIsUploadingLogo(false);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const handleFaviconUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setIsUploadingFavicon(true);
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        updateSettings('websiteFavicon', reader.result as string);
+        setIsUploadingFavicon(false);
       };
       reader.readAsDataURL(file);
     }
@@ -322,16 +339,30 @@ export const AdminWebsiteManage = () => {
                     onChange={(e) => updateSettings('websiteTitle', e.target.value)}
                   />
                 </div>
-                <div>
-                  <label className="block text-sm font-bold text-gray-700 mb-2">Logo</label>
-                  <div className="flex items-center gap-4">
-                    <div className="w-16 h-16 rounded-xl border border-gray-200 bg-white flex items-center justify-center overflow-hidden">
-                      {settings.websiteLogo ? <img src={settings.websiteLogo} className="w-full h-full object-contain" /> : <ImageIcon className="text-gray-300" />}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-bold text-gray-700 mb-2">Logo</label>
+                    <div className="flex items-center gap-3">
+                      <div className="w-12 h-12 rounded-xl border border-gray-200 bg-white flex items-center justify-center overflow-hidden shrink-0">
+                        {settings.websiteLogo ? <img src={settings.websiteLogo} className="w-full h-full object-contain" /> : <ImageIcon className="text-gray-300" size={20} />}
+                      </div>
+                      <Button onClick={() => logoInputRef.current?.click()} variant="outline" size="sm" className="text-xs px-2 py-1">
+                        {isUploadingLogo ? '...' : 'Upload Logo'}
+                      </Button>
+                      <input type="file" ref={logoInputRef} className="hidden" accept="image/*" onChange={handleLogoUpload} />
                     </div>
-                    <Button onClick={() => logoInputRef.current?.click()} variant="outline" size="sm">
-                      {isUploadingLogo ? 'Uploading...' : 'Upload New Logo'}
-                    </Button>
-                    <input type="file" ref={logoInputRef} className="hidden" accept="image/*" onChange={handleLogoUpload} />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-bold text-gray-700 mb-2">Favicon</label>
+                    <div className="flex items-center gap-3">
+                      <div className="w-12 h-12 rounded-xl border border-gray-200 bg-white flex items-center justify-center overflow-hidden shrink-0">
+                        {settings.websiteFavicon ? <img src={settings.websiteFavicon} className="w-8 h-8 object-contain" /> : <ImageIcon className="text-gray-300" size={20} />}
+                      </div>
+                      <Button onClick={() => faviconInputRef.current?.click()} variant="outline" size="sm" className="text-xs px-2 py-1">
+                        {isUploadingFavicon ? '...' : 'Upload Favicon'}
+                      </Button>
+                      <input type="file" ref={faviconInputRef} className="hidden" accept="image/*" onChange={handleFaviconUpload} />
+                    </div>
                   </div>
                 </div>
               </div>
@@ -352,7 +383,6 @@ export const AdminWebsiteManage = () => {
                     type="text"
                     className="w-full p-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-brand-500 outline-none"
                     value={settings.contactPhone}
-                    {/* Fixed line 356: use updateSettings instead of non-existent setSettings */}
                     onChange={(e) => updateSettings('contactPhone', e.target.value)}
                   />
                 </div>

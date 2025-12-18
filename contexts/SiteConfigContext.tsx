@@ -1,3 +1,4 @@
+
 import React, { createContext, useState, useContext, ReactNode, useEffect } from 'react';
 import { AppModule } from '../types';
 import { supabase, isSupabaseConfigured } from '../services/supabaseClient';
@@ -17,6 +18,7 @@ interface SiteConfig {
     announcementActive: boolean;
     websiteTitle: string;
     websiteLogo: string; // Base64 or URL
+    websiteFavicon: string; // Base64 or URL
     contactEmail: string;
     contactPhone: string;
     address: string;
@@ -70,6 +72,7 @@ const defaultSettings = {
   announcementActive: true,
   websiteTitle: 'Dream BD',
   websiteLogo: '',
+  websiteFavicon: '',
   contactEmail: 'info@dreambd.gov.bd',
   contactPhone: '+880 1234 567890',
   address: 'ICT Tower, Agargaon, Dhaka-1207, Bangladesh'
@@ -149,6 +152,26 @@ export const SiteConfigProvider: React.FC<{ children: ReactNode }> = ({ children
       };
     }
   }, []);
+
+  // Update Website Title
+  useEffect(() => {
+    if (settings.websiteTitle) {
+      document.title = settings.websiteTitle;
+    }
+  }, [settings.websiteTitle]);
+
+  // Update Website Favicon
+  useEffect(() => {
+    if (settings.websiteFavicon) {
+      let link: HTMLLinkElement | null = document.querySelector("link[rel~='icon']");
+      if (!link) {
+        link = document.createElement('link');
+        link.rel = 'icon';
+        document.getElementsByTagName('head')[0].appendChild(link);
+      }
+      link.href = settings.websiteFavicon;
+    }
+  }, [settings.websiteFavicon]);
 
   // Persist changes to LocalStorage
   useEffect(() => {
