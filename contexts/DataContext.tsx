@@ -3,7 +3,84 @@ import React, { createContext, useState, useContext, useEffect, ReactNode } from
 import { supabase, isSupabaseConfigured } from '../services/supabaseClient';
 import { User, UserRole } from '../types';
 
-// Mock Data (Fallback)
+// Initial structure for 64 districts
+const INITIAL_DISTRICT_LIST = [
+  { id: 'dhaka', nameEn: 'Dhaka', nameBn: 'ঢাকা', division: 'Dhaka' },
+  { id: 'gazipur', nameEn: 'Gazipur', nameBn: 'গাজীপুর', division: 'Dhaka' },
+  { id: 'narayanganj', nameEn: 'Narayanganj', nameBn: 'নারায়ণগঞ্জ', division: 'Dhaka' },
+  { id: 'munshiganj', nameEn: 'Munshiganj', nameBn: 'মুন্সীগঞ্জ', division: 'Dhaka' },
+  { id: 'narsingdi', nameEn: 'Narsingdi', nameBn: 'নরসিংদী', division: 'Dhaka' },
+  { id: 'manikganj', nameEn: 'Manikganj', nameBn: 'মানিকগঞ্জ', division: 'Dhaka' },
+  { id: 'tangail', nameEn: 'Tangail', nameBn: 'টাঙ্গাইল', division: 'Dhaka' },
+  { id: 'kishoreganj', nameEn: 'Kishoreganj', nameBn: 'কিশোরগঞ্জ', division: 'Dhaka' },
+  { id: 'faridpur', nameEn: 'Faridpur', nameBn: 'ফরিদপুর', division: 'Dhaka' },
+  { id: 'gopalganj', nameEn: 'Gopalganj', nameBn: 'গোপালগঞ্জ', division: 'Dhaka' },
+  { id: 'madaripur', nameEn: 'Madaripur', nameBn: 'মাদারীপুর', division: 'Dhaka' },
+  { id: 'shariatpur', nameEn: 'Shariatpur', nameBn: 'শরীয়তপুর', division: 'Dhaka' },
+  { id: 'rajbari', nameEn: 'Rajbari', nameBn: 'রাজবাড়ী', division: 'Dhaka' },
+  { id: 'chattogram', nameEn: 'Chattogram', nameBn: 'চট্টগ্রাম', division: 'Chattogram' },
+  { id: 'coxsbazar', nameEn: "Cox's Bazar", nameBn: 'কক্সবাজার', division: 'Chattogram' },
+  { id: 'comilla', nameEn: 'Comilla', nameBn: 'কুমিল্লা', division: 'Chattogram' },
+  { id: 'brahmanbaria', nameEn: 'Brahmanbaria', nameBn: 'ব্রাহ্মণবাড়িয়া', division: 'Chattogram' },
+  { id: 'chandpur', nameEn: 'Chandpur', nameBn: 'চাঁদপুর', division: 'Chattogram' },
+  { id: 'noakhali', nameEn: 'Noakhali', nameBn: 'নোয়াখালী', division: 'Chattogram' },
+  { id: 'lakshmipur', nameEn: 'Lakshmipur', nameBn: 'লক্ষ্মীপুর', division: 'Chattogram' },
+  { id: 'feni', nameEn: 'Feni', nameBn: 'ফেনী', division: 'Chattogram' },
+  { id: 'khagrachari', nameEn: 'Khagrachari', nameBn: 'খাগড়াছড়ি', division: 'Chattogram' },
+  { id: 'rangamati', nameEn: 'Rangamati', nameBn: 'রাঙ্গামাটি', division: 'Chattogram' },
+  { id: 'bandarban', nameEn: 'Bandarban', nameBn: 'বান্দরবান', division: 'Chattogram' },
+  { id: 'sylhet', nameEn: 'Sylhet', nameBn: 'সিলেট', division: 'Sylhet' },
+  { id: 'moulvibazar', nameEn: 'Moulvibazar', nameBn: 'মৌলভীবাজার', division: 'Sylhet' },
+  { id: 'habiganj', nameEn: 'Habiganj', nameBn: 'হবিগঞ্জ', division: 'Sylhet' },
+  { id: 'sunamganj', nameEn: 'Sunamganj', nameBn: 'সুনামগঞ্জ', division: 'Sylhet' },
+  { id: 'khulna', nameEn: 'Khulna', nameBn: 'খুলনা', division: 'Khulna' },
+  { id: 'bagerhat', nameEn: 'Bagerhat', nameBn: 'বাগেরহাট', division: 'Khulna' },
+  { id: 'satkhira', nameEn: 'Satkhira', nameBn: 'সাতক্ষীরা', division: 'Khulna' },
+  { id: 'jessore', nameEn: 'Jessore', nameBn: 'যশোর', division: 'Khulna' },
+  { id: 'magura', nameEn: 'Magura', nameBn: 'মাগুরা', division: 'Khulna' },
+  { id: 'jhenaidah', nameEn: 'Jhenaidah', nameBn: 'ঝিনাইদহ', division: 'Khulna' },
+  { id: 'narail', nameEn: 'Narail', nameBn: 'নড়াইল', division: 'Khulna' },
+  { id: 'kushtia', nameEn: 'Kushtia', nameBn: 'কুষ্টিয়া', division: 'Khulna' },
+  { id: 'chuadanga', nameEn: 'Chuadanga', nameBn: 'চুয়াডাঙ্গা', division: 'Khulna' },
+  { id: 'meherpur', nameEn: 'Meherpur', nameBn: 'মেহেরপুর', division: 'Khulna' },
+  { id: 'rajshahi', nameEn: 'Rajshahi', nameBn: 'রাজশাহী', division: 'Rajshahi' },
+  { id: 'bogra', nameEn: 'Bogra', nameBn: 'বগুড়া', division: 'Rajshahi' },
+  { id: 'pabna', nameEn: 'Pabna', nameBn: 'পাবনা', division: 'Rajshahi' },
+  { id: 'sirajganj', nameEn: 'Sirajganj', nameBn: 'সিরাজগঞ্জ', division: 'Rajshahi' },
+  { id: 'natore', nameEn: 'Natore', nameBn: 'নাটোর', division: 'Rajshahi' },
+  { id: 'naogaon', nameEn: 'Naogaon', nameBn: 'নওগাঁ', division: 'Rajshahi' },
+  { id: 'chapainawabganj', nameEn: 'Chapainawabganj', nameBn: 'চাঁপাইনবাবগঞ্জ', division: 'Rajshahi' },
+  { id: 'joypurhat', nameEn: 'Joypurhat', nameBn: 'জয়পুরহাট', division: 'Rajshahi' },
+  { id: 'barisal', nameEn: 'Barisal', nameBn: 'বরিশাল', division: 'Barisal' },
+  { id: 'patuakhali', nameEn: 'Patuakhali', nameBn: 'পটুয়াখালী', division: 'Barisal' },
+  { id: 'bhola', nameEn: 'Bhola', nameBn: 'ভোলা', division: 'Barisal' },
+  { id: 'pirojpur', nameEn: 'Pirojpur', nameBn: 'পিরোজপুর', division: 'Barisal' },
+  { id: 'barguna', nameEn: 'Barguna', nameBn: 'বরগুনা', division: 'Barisal' },
+  { id: 'jhalokati', nameEn: 'Jhalokati', nameBn: 'ঝালকাঠি', division: 'Barisal' },
+  { id: 'rangpur', nameEn: 'Rangpur', nameBn: 'রংপুর', division: 'Rangpur' },
+  { id: 'dinajpur', nameEn: 'Dinajpur', nameBn: 'দিনাজপুর', division: 'Rangpur' },
+  { id: 'gaibandha', nameEn: 'Gaibandha', nameBn: 'গাইবান্ধা', division: 'Rangpur' },
+  { id: 'kurigram', nameEn: 'Kurigram', nameBn: 'কুড়িগ্রাম', division: 'Rangpur' },
+  { id: 'nilphamari', nameEn: 'Nilphamari', nameBn: 'নীলফামারী', division: 'Rangpur' },
+  { id: 'lalmonirhat', nameEn: 'Lalmonirhat', nameBn: 'লালমনিরহাট', division: 'Rangpur' },
+  { id: 'thakurgaon', nameEn: 'Thakurgaon', nameBn: 'ঠাকুরগাঁও', division: 'Rangpur' },
+  { id: 'panchagarh', nameEn: 'Panchagarh', nameBn: 'পঞ্চগড়', division: 'Rangpur' },
+  { id: 'mymensingh', nameEn: 'Mymensingh', nameBn: 'ময়মনসিংহ', division: 'Mymensingh' },
+  { id: 'netrokona', nameEn: 'Netrokona', nameBn: 'নেত্রকোনা', division: 'Mymensingh' },
+  { id: 'sherpur', nameEn: 'Sherpur', nameBn: 'শেরপুর', division: 'Mymensingh' },
+  { id: 'jamalpur', nameEn: 'Jamalpur', nameBn: 'জামালপুর', division: 'Mymensingh' }
+].map(d => ({
+  ...d,
+  population: 'N/A',
+  area: 'N/A',
+  description: '',
+  upazilas: [],
+  education: { primary: 0, highSchool: 0, college: 0, university: 0 },
+  hospitals: [],
+  touristSpots: [],
+  images: []
+}));
+
 const MOCK_JOBS = [
   { id: 1, title: 'Assistant Teacher', company: 'Dhaka Govt High School', type: 'Full Time', location: 'Dhaka', salary: '25k-35k', deadline: '2023-12-31', category: 'Government', description: 'Teaching position for Science subjects.', postedBy: 'Admin', postedDate: '10/24/2023', status: 'Active', views: 120, level: 'Entry' },
   { id: 2, title: 'Sales Executive', company: 'Pran RFL', type: 'Full Time', location: 'Chittagong', salary: '15k-20k', deadline: '2023-11-20', category: 'Private', description: 'Field sales executive needed.', postedBy: 'Admin', postedDate: '10/25/2023', status: 'Active', views: 85, level: 'Entry' }
@@ -38,6 +115,7 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const [donors, setDonors] = useState<any[]>([]);
   const [enrolledCourses, setEnrolledCourses] = useState<any[]>([]);
   const [messages, setMessages] = useState<any[]>([]);
+  const [districts, setDistricts] = useState<any[]>(INITIAL_DISTRICT_LIST);
   const [totalVisitors, setTotalVisitors] = useState<number>(1250);
 
   const getLocal = (key: string, defaultData: any[]) => {
@@ -66,7 +144,8 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     const fieldMap: Record<string, string> = {
       'postedby': 'postedBy', 'posteddate': 'postedDate', 'readtime': 'readTime',
       'sellertype': 'sellerType', 'nameen': 'nameEn', 'namebn': 'nameBn',
-      'titlebn': 'titleBn', 'lastdonation': 'lastDonation', 'enrolleddate': 'enrolledDate', 'user_name': 'user'
+      'titlebn': 'titleBn', 'lastdonation': 'lastDonation', 'enrolleddate': 'enrolledDate', 'user_name': 'user',
+      'touristspots': 'touristSpots'
     };
     Object.keys(fieldMap).forEach(dbKey => {
       if (dbKey in newItem) {
@@ -94,6 +173,7 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     setGrievances(getLocal('db_grievances', []));
     setUsers(getLocal('db_users', MOCK_USERS));
     setMessages(getLocal('db_messages', []));
+    setDistricts(getLocal('db_districts', INITIAL_DISTRICT_LIST));
     
     if (isSupabaseConfigured) {
       fetchTable('jobs', setJobs);
@@ -112,6 +192,7 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       fetchTable('vocational_courses', setVocationalCourses);
       fetchTable('donors', setDonors);
       fetchTable('enrolled_courses', setEnrolledCourses);
+      fetchTable('districts', setDistricts, 'nameen', true);
     }
   };
 
@@ -200,11 +281,21 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const deleteVocationalCourse = async (id: number) => { setVocationalCourses(vocationalCourses.filter(c => c.id !== id)); if (isSupabaseConfigured) await supabase.from('vocational_courses').delete().eq('id', id); };
   const enrollCourse = async (c: any) => await optimisticAdd('enrolled_courses', c, setEnrolledCourses, enrolledCourses);
   const addDonor = async (d: any) => await optimisticAdd('donors', d, setDonors, donors);
+  
+  const updateDistrict = async (d: any) => {
+    const newList = districts.map(item => item.id === d.id ? d : item);
+    setDistricts(newList);
+    setLocal('db_districts', newList);
+    if (isSupabaseConfigured) {
+        const payload = normalizeData(d);
+        await supabase.from('districts').upsert([payload], { onConflict: 'id' });
+    }
+  };
 
   return (
     <DataContext.Provider value={{ 
-      jobs, blogs, requests, blogRequests, wholesaleRequests, grievances, users, messages, donors, marketPrices, retailProducts, wholesaleAds, lawyers, exchangeRates, vocationalCourses, enrolledCourses,
-      addJob, updateJob, deleteJob, addBlog, updateBlog, deleteBlog, addRequest, handleRequestAction, addGrievance, updateGrievanceStatus, deleteGrievance, addUser, deleteUser, resetPassword, addMessage, markMessageRead, deleteMessage, updateMarketPrices, addRetailProduct, updateRetailProduct, deleteRetailProduct, addWholesaleAd, updateWholesaleAd, deleteWholesaleAd, addLawyer, deleteLawyer, addExchangeRate, deleteExchangeRate, addVocationalCourse, deleteVocationalCourse, enrollCourse, addDonor,
+      jobs, blogs, requests, blogRequests, wholesaleRequests, grievances, users, messages, donors, marketPrices, retailProducts, wholesaleAds, lawyers, exchangeRates, vocationalCourses, enrolledCourses, districts,
+      addJob, updateJob, deleteJob, addBlog, updateBlog, deleteBlog, addRequest, handleRequestAction, addGrievance, updateGrievanceStatus, deleteGrievance, addUser, deleteUser, resetPassword, addMessage, markMessageRead, deleteMessage, updateMarketPrices, addRetailProduct, updateRetailProduct, deleteRetailProduct, addWholesaleAd, updateWholesaleAd, deleteWholesaleAd, addLawyer, deleteLawyer, addExchangeRate, deleteExchangeRate, addVocationalCourse, deleteVocationalCourse, enrollCourse, addDonor, updateDistrict,
       totalVisitors, logVisit: () => {}, refreshData: fetchData
     }}>
       {children}
