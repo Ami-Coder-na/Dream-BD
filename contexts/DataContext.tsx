@@ -6,27 +6,26 @@ import { User, UserRole } from '../types';
 // Comprehensive Data for 64 Districts (Real Data Stubs)
 const INITIAL_DISTRICT_LIST = [
   // DHAKA DIVISION
-  { id: 'dhaka', nameEn: 'Dhaka', nameBn: 'ঢাকা', division: 'Dhaka', population: '14.7 Million', area: '1,463 km²', description: 'The capital city of Bangladesh, a historic hub of culture, heritage, and economy.', upazilas: ['Dhamrai', 'Dohar', 'Keraniganj', 'Nawabganj', 'Savar'], touristSpots: ['Lalbagh Fort', 'Ahsan Manzil', 'National Parliament', 'Shaheed Minar'], education: { primary: 1250, highSchool: 450, college: 85, university: 12 }, images: ['https://images.unsplash.com/photo-1619671603704-8b6567958611'] },
-  { id: 'gazipur', nameEn: 'Gazipur', nameBn: 'গাজীপুর', division: 'Dhaka', population: '3.4 Million', area: '1,806 km²', description: 'Industrial hub known for its forests and safari parks.', upazilas: ['Gazipur Sadar', 'Kaliakair', 'Kaliganj', 'Kapasia', 'Sreepur'], touristSpots: ['Bhawal National Park', 'Safari Park', 'Nuhash Polli'], education: { primary: 800, highSchool: 220, college: 40, university: 3 }, images: ['https://images.unsplash.com/photo-1596895111956-bf1cf0599ce5'] },
-  { id: 'narayanganj', nameEn: 'Narayanganj', nameBn: 'নারায়ণগঞ্জ', division: 'Dhaka', population: '2.9 Million', area: '684 km²', description: 'The "Dundee of the East", famous for river ports and textiles.', upazilas: ['Araihazar', 'Bandar', 'Narayanganj Sadar', 'Rupganj', 'Sonargaon'], touristSpots: ['Panam City', 'Sonargaon Folk Art Museum', 'Mary Anderson'], education: { primary: 600, highSchool: 150, college: 30, university: 1 } },
-  { id: 'chattogram', nameEn: 'Chattogram', nameBn: 'চট্টগ্রাম', division: 'Chattogram', population: '9.1 Million', area: '5,283 km²', description: 'The commercial capital and primary seaport of Bangladesh.', upazilas: ['Anwara', 'Banshkhali', 'Boalkhali', 'Chandanaish', 'Fatikchhari', 'Hathazari', 'Lohagara', 'Mirsharai', 'Patiya', 'Rangunia', 'Raozan', 'Sandwip', 'Satkania', 'Sitakunda'], touristSpots: ['Patenga Beach', 'Foy\'s Lake', 'Ethnological Museum', 'Guliakhali Beach'], images: ['https://images.unsplash.com/photo-1628189873998-25f00e95a947'] },
-  { id: 'sylhet', nameEn: 'Sylhet', nameBn: 'সিলেট', division: 'Sylhet', population: '3.9 Million', area: '3,452 km²', description: 'Land of tea gardens and sufi shrines.', upazilas: ['Sylhet Sadar', 'Balaganj', 'Beanibazar', 'Bishwanath', 'Companiganj', 'Fenchuganj', 'Golapganj', 'Gowainghat', 'Jaintiapur', 'Kanaighat', 'Zakiganj', 'Dakshin Surma'], touristSpots: ['Shahjalal Mazar', 'Jaflong', 'Ratargul'], images: ['https://images.unsplash.com/photo-1596895111956-bf1cf0599ce5'] },
-  { id: 'khulna', nameEn: 'Khulna', nameBn: 'খুলনা', division: 'Khulna', population: '2.6 Million', area: '4,394 km²', description: 'Industrial city and gateway to the Sundarbans.', upazilas: ['Batiaghata', 'Dacope', 'Dumuria', 'Dighalia', 'Koyra', 'Paikgachha', 'Phultala', 'Rupa', 'Terokhada'], touristSpots: ['Sundarbans', 'Rupsha Bridge'] },
-  { id: 'rajshahi', nameEn: 'Rajshahi', nameBn: 'রাজশাহী', division: 'Rajshahi', population: '2.9 Million', area: '2,407 km²', description: 'The Silk City and education hub of Bangladesh.', upazilas: ['Bagha', 'Bagmara', 'Charghat', 'Durgapur', 'Godagari', 'Mohanpur', 'Paba', 'Puthia', 'Tanore'], touristSpots: ['Varendra Museum', 'Puthia Temple', 'Padma Garden'] },
-  { id: 'barisal', nameEn: 'Barisal', nameBn: 'বরিশাল', division: 'Barisal', population: '2.5 Million', area: '2,785 km²', description: 'The Venice of Bengal, famous for rivers and guava.', upazilas: ['Agailjhara', 'Babuganj', 'Bakerganj', 'Banaripara', 'Gournadi', 'Hizla', 'Barisal Sadar', 'Mehendiganj', 'Muladi', 'Wazirপুর'], touristSpots: ['Durga Sagar', 'Guthia Mosque'] },
-  { id: 'rangpur', nameEn: 'Rangpur', nameBn: 'রংপুর', division: 'Rangpur', population: '3.1 Million', area: '2,307 km²', description: 'Historic northern district known for tobacco and Shataranji.', upazilas: ['Rangpur Sadar', 'Badarganj', 'Gangachara', 'Kaunia', 'Mithapukur', 'Pirgachha', 'Pirganj', 'Taraganj'], touristSpots: ['Tajhat Palace', 'Vinna Jogot'] },
-  { id: 'bogra', nameEn: 'Bogra', nameBn: 'বগুড়া', division: 'Rajshahi', population: '3.7 Million', area: '2,898 km²', description: 'Historic city known for Mahasthangarh and Curd (Doi).', upazilas: ['Bogra Sadar', 'Adamdighi', 'Dhunat', 'Dhupchanchia', 'Gabtali', 'Kahaloo', 'Nandigram', 'Sariakandi', 'Sherpur', 'Shibganj', 'Sonatola'], touristSpots: ['Mahasthangarh', 'Behular Bashor Ghar'] },
-  { id: 'coxsbazar', nameEn: "Cox's Bazar", nameBn: 'কক্সবাজার', division: 'Chattogram', population: '2.8 Million', area: '2,492 km²', description: 'Home to the longest natural sandy sea beach in the world.', upazilas: ['Coxs Bazar Sadar', 'Chakaria', 'Kutubdia', 'Maheshkhali', 'Ramu', 'Teknaf', 'Ukhia', 'Pekua'], touristSpots: ['Inani Beach', 'Himchari', 'Saint Martin\'s Island', 'Radiant Fish World'] },
-  { id: 'comilla', nameEn: 'Comilla', nameBn: 'কুমিল্লা', division: 'Chattogram', population: '6.2 Million', area: '3,087 km²', description: 'Historic city known for Mainamati ruins and Rasmalai.', upazilas: ['Comilla Sadar', 'Barura', 'Chandina', 'Daudkandi', 'Debidwar', 'Homna', 'Laksam', 'Muradnagar', 'Nangalkot', 'Titas', 'Monohargonj'], touristSpots: ['Shalban Vihara', 'Mainamati Ruins', 'Dharmasagar Dighi'] },
-  { id: 'feni', nameEn: 'Feni', nameBn: 'ফেনী', division: 'Chattogram', population: '1.6 Million', area: '928 km²', description: 'Gateway to Chattogram, known for buffalo ghee.', upazilas: ['Feni Sadar', 'Chhagalnaiya', 'Daganbhuiyan', 'Parshuram', 'Fulgazi', 'Sonagazi'], touristSpots: ['Muhuri Project', 'Bijoy Singh Dighi'] },
-  { id: 'brahmanbaria', nameEn: 'Brahmanbaria', nameBn: 'ব্রাহ্মণবাড়িয়া', division: 'Chattogram', population: '3.3 Million', area: '1,927 km²', description: 'Cultural hub, birthplace of many poets and musicians.', upazilas: ['Brahmanbaria Sadar', 'Ashuganj', 'Bancharampur', 'Kasba', 'Nabinagar', 'Nasirnagar', 'Sarail'], touristSpots: ['Arifil Mosque', 'Titas Gas Field'] },
-  { id: 'chandpur', nameEn: 'Chandpur', nameBn: 'চাঁদপুর', division: 'Chattogram', population: '2.6 Million', area: '1,704 km²', description: 'The Hilsa capital of Bangladesh.', upazilas: ['Chandpur Sadar', 'Faridganj', 'Haimchar', 'Haziganj', 'Kachua', 'Matlab Dakshin', 'Matlab Uttar', 'Shahrasti'], touristSpots: ['Mohona (Padma-Meghna)', 'Rokto Dhara'] },
-  { id: 'natore', nameEn: 'Natore', nameBn: 'নাটোর', division: 'Rajshahi', population: '1.8 Million', area: '1,896 km²', description: 'Known for Kachagolla and royal palaces.', upazilas: ['Natore Sadar', 'Bagatipara', 'Baraigram', 'Gurudaspur', 'Lalpur', 'Singra'], touristSpots: ['Natore Rajbari', 'Uttara Gonobhaban'] },
-  { id: 'dinajpur', nameEn: 'Dinajpur', nameBn: 'দিনাজপুর', division: 'Rangpur', population: '3.3 Million', area: '3,438 km²', description: 'Known for rice, lychees, and Kantajew Temple.', upazilas: ['Dinajpur Sadar', 'Birampur', 'Birganj', 'Biral', 'Bochaganj', 'Chirirbandar', 'Phulbari', 'Ghoraghat', 'Hakimpur', 'Kaharole', 'Khansama', 'Nawabganj', 'Parbatipur'], touristSpots: ['Kantajew Temple', 'Ramsagar'] },
-  { id: 'mymensingh', nameEn: 'Mymensingh', nameBn: 'ময়মনসিংহ', division: 'Mymensingh', population: '5.8 Million', area: '4,363 km²', description: 'Educational city known for agricultural university.', upazilas: ['Mymensingh Sadar', 'Bhaluka', 'Dhobaura', 'Fulbaria', 'Gaffargaon', 'Gauripur', 'Haluaghat', 'Ishwarganj', 'Muktagacha', 'Nandail', 'Phulpur', 'Trishal', 'Tara Khanda'], touristSpots: ['Shashi Lodge', 'Muktigacha Zamindar Bari'] },
-  { id: 'netrokona', nameEn: 'Netrokona', nameBn: 'নেত্রকোনা', division: 'Mymensingh', population: '2.5 Million', area: '2,810 km²', description: 'Known for Birishiri and its diverse hills.', upazilas: ['Netrokona Sadar', 'Atpara', 'Barhatta', 'Durgapur', 'Khaliajuri', 'Kalmakanda', 'Kendua', 'Madan', 'Mohanganj', 'Purbadhala'], touristSpots: ['Birishiri China Matir Pahar'] },
-  { id: 'tangail', nameEn: 'Tangail', nameBn: 'টাঙ্গাইল', division: 'Dhaka', population: '3.6 Million', area: '3,414 km²', description: 'Famous for its unique Handloom Saree (Tangail Saree) and sweets.', upazilas: ['Tangail Sadar', 'Basail', 'Bhuapur', 'Delduar', 'Gopalpur', 'Kalihati', 'Madhupur', 'Mirzapur', 'Nagarpur', 'Sakhipur'], touristSpots: ['Mohera Jamindar Bari', 'Atiya Mosque', 'Madhupur National Park'] }
-  // Note: Full 64 district list would continue here...
+  { id: 'dhaka', nameen: 'Dhaka', namebn: 'ঢাকা', division: 'Dhaka', population: '14.7 Million', area: '1,463 km²', description: 'The capital city of Bangladesh, a historic hub of culture, heritage, and economy.', upazilas: ['Dhamrai', 'Dohar', 'Keraniganj', 'Nawabganj', 'Savar'], touristspots: ['Lalbagh Fort', 'Ahsan Manzil', 'National Parliament', 'Shaheed Minar'], education: { primary: 1250, highSchool: 450, college: 85, university: 12 }, images: ['https://images.unsplash.com/photo-1619671603704-8b6567958611'] },
+  { id: 'gazipur', nameen: 'Gazipur', namebn: 'গাজীপুর', division: 'Dhaka', population: '3.4 Million', area: '1,806 km²', description: 'Industrial hub known for its forests and safari parks.', upazilas: ['Gazipur Sadar', 'Kaliakair', 'Kaliganj', 'Kapasia', 'Sreepur'], touristspots: ['Bhawal National Park', 'Safari Park', 'Nuhash Polli'], education: { primary: 800, highSchool: 220, college: 40, university: 3 }, images: ['https://images.unsplash.com/photo-1596895111956-bf1cf0599ce5'] },
+  { id: 'narayanganj', nameen: 'Narayanganj', namebn: 'নারায়ণগঞ্জ', division: 'Dhaka', population: '2.9 Million', area: '684 km²', description: 'The "Dundee of the East", famous for river ports and textiles.', upazilas: ['Araihazar', 'Bandar', 'Narayanganj Sadar', 'Rupganj', 'Sonargaon'], touristspots: ['Panam City', 'Sonargaon Folk Art Museum', 'Mary Anderson'], education: { primary: 600, highSchool: 150, college: 30, university: 1 } },
+  { id: 'chattogram', nameen: 'Chattogram', namebn: 'চট্টগ্রাম', division: 'Chattogram', population: '9.1 Million', area: '5,283 km²', description: 'The commercial capital and primary seaport of Bangladesh.', upazilas: ['Anwara', 'Banshkhali', 'Boalkhali', 'Chandanaish', 'Fatikchhari', 'Hathazari', 'Lohagara', 'Mirsharai', 'Patiya', 'Rangunia', 'Raozan', 'Sandwip', 'Satkania', 'Sitakunda'], touristspots: ['Patenga Beach', 'Foy\'s Lake', 'Ethnological Museum', 'Guliakhali Beach'], images: ['https://images.unsplash.com/photo-1628189873998-25f00e95a947'] },
+  { id: 'sylhet', nameen: 'Sylhet', namebn: 'সিলেট', division: 'Sylhet', population: '3.9 Million', area: '3,452 km²', description: 'Land of tea gardens and sufi shrines.', upazilas: ['Sylhet Sadar', 'Balaganj', 'Beanibazar', 'Bishwanath', 'Companiganj', 'Fenchuganj', 'Golapganj', 'Gowainghat', 'Jaintiapur', 'Kanaighat', 'Zakiganj', 'Dakshin Surma'], touristspots: ['Shahjalal Mazar', 'Jaflong', 'Ratargul'], images: ['https://images.unsplash.com/photo-1596895111956-bf1cf0599ce5'] },
+  { id: 'khulna', nameen: 'Khulna', namebn: 'খুলনা', division: 'Khulna', population: '2.6 Million', area: '4,394 km²', description: 'Industrial city and gateway to the Sundarbans.', upazilas: ['Batiaghata', 'Dacope', 'Dumuria', 'Dighalia', 'Koyra', 'Paikgachha', 'Phultala', 'Rupa', 'Terokhada'], touristspots: ['Sundarbans', 'Rupsha Bridge'] },
+  { id: 'rajshahi', nameen: 'Rajshahi', namebn: 'রাজশাহী', division: 'Rajshahi', population: '2.9 Million', area: '2,407 km²', description: 'The Silk City and education hub of Bangladesh.', upazilas: ['Bagha', 'Bagmara', 'Charghat', 'Durgapur', 'Godagari', 'Mohanpur', 'Paba', 'Puthia', 'Tanore'], touristspots: ['Varendra Museum', 'Puthia Temple', 'Padma Garden'] },
+  { id: 'barisal', nameen: 'Barisal', namebn: 'বরিশাল', division: 'Barisal', population: '2.5 Million', area: '2,785 km²', description: 'The Venice of Bengal, famous for rivers and guava.', upazilas: ['Agailjhara', 'Babuganj', 'Bakerganj', 'Banaripara', 'Gournadi', 'Hizla', 'Barisal Sadar', 'Mehendiganj', 'Muladi', 'Wazirপুর'], touristspots: ['Durga Sagar', 'Guthia Mosque'] },
+  { id: 'rangpur', nameen: 'Rangpur', namebn: 'রংপুর', division: 'Rangpur', population: '3.1 Million', area: '2,307 km²', description: 'Historic northern district known for tobacco and Shataranji.', upazilas: ['Rangpur Sadar', 'Badarganj', 'Gangachara', 'Kaunia', 'Mithapukur', 'Pirgachha', 'Pirganj', 'Taraganj'], touristspots: ['Tajhat Palace', 'Vinna Jogot'] },
+  { id: 'bogra', nameen: 'Bogra', namebn: 'বগুড়া', division: 'Rajshahi', population: '3.7 Million', area: '2,898 km²', description: 'Historic city known for Mahasthangarh and Curd (Doi).', upazilas: ['Bogra Sadar', 'Adamdighi', 'Dhunat', 'Dhupchanchia', 'Gabtali', 'Kahaloo', 'Nandigram', 'Sariakandi', 'Sherpur', 'Shibganj', 'Sonatola'], touristspots: ['Mahasthangarh', 'Behular Bashor Ghar'] },
+  { id: 'coxsbazar', nameen: "Cox's Bazar", namebn: 'কক্সবাজার', division: 'Chattogram', population: '2.8 Million', area: '2,492 km²', description: 'Home to the longest natural sandy sea beach in the world.', upazilas: ['Coxs Bazar Sadar', 'Chakaria', 'Kutubdia', 'Maheshkhali', 'Ramu', 'Teknaf', 'Ukhia', 'Pekua'], touristspots: ['Inani Beach', 'Himchari', 'Saint Martin\'s Island', 'Radiant Fish World'] },
+  { id: 'comilla', nameen: 'Comilla', namebn: 'কুমিল্লা', division: 'Chattogram', population: '6.2 Million', area: '3,087 km²', description: 'Historic city known for Mainamati ruins and Rasmalai.', upazilas: ['Comilla Sadar', 'Barura', 'Chandina', 'Daudkandi', 'Debidwar', 'Homna', 'Laksam', 'Muradnagar', 'Nangalkot', 'Titas', 'Monohargonj'], touristspots: ['Shalban Vihara', 'Mainamati Ruins', 'Dharmasagar Dighi'] },
+  { id: 'feni', nameen: 'Feni', namebn: 'ফেনী', division: 'Chattogram', population: '1.6 Million', area: '928 km²', description: 'Gateway to Chattogram, known for buffalo ghee.', upazilas: ['Feni Sadar', 'Chhagalnaiya', 'Daganbhuiyan', 'Parshuram', 'Fulgazi', 'Sonagazi'], touristspots: ['Muhuri Project', 'Bijoy Singh Dighi'] },
+  { id: 'brahmanbaria', nameen: 'Brahmanbaria', namebn: 'ব্রাহ্মণবাড়িয়া', division: 'Chattogram', population: '3.3 Million', area: '1,927 km²', description: 'Cultural hub, birthplace of many poets and musicians.', upazilas: ['Brahmanbaria Sadar', 'Ashuganj', 'Bancharampur', 'Kasba', 'Nabinagar', 'Nasirnagar', 'Sarail'], touristspots: ['Arifil Mosque', 'Titas Gas Field'] },
+  { id: 'chandpur', nameen: 'Chandpur', namebn: 'চাঁদপুর', division: 'Chattogram', population: '2.6 Million', area: '1,704 km²', description: 'The Hilsa capital of Bangladesh.', upazilas: ['Chandpur Sadar', 'Faridganj', 'Haimchar', 'Haziganj', 'Kachua', 'Matlab Dakshin', 'Matlab Uttar', 'Shahrasti'], touristspots: ['Mohona (Padma-Meghna)', 'Rokto Dhara'] },
+  { id: 'natore', nameen: 'Natore', namebn: 'নাটোর', division: 'Rajshahi', population: '1.8 Million', area: '1,896 km²', description: 'Known for Kachagolla and royal palaces.', upazilas: ['Natore Sadar', 'Bagatipara', 'Baraigram', 'Gurudaspur', 'Lalpur', 'Singra'], touristspots: ['Natore Rajbari', 'Uttara Gonobhaban'] },
+  { id: 'dinajpur', nameen: 'Dinajpur', namebn: 'দিনাজপুর', division: 'Rangpur', population: '3.3 Million', area: '3,438 km²', description: 'Known for rice, lychees, and Kantajew Temple.', upazilas: ['Dinajpur Sadar', 'Birampur', 'Birganj', 'Biral', 'Bochaganj', 'Chirirbandar', 'Phulbari', 'Ghoraghat', 'Hakimpur', 'Kaharole', 'Khansama', 'Nawabganj', 'Parbatipur'], touristspots: ['Kantajew Temple', 'Ramsagar'] },
+  { id: 'mymensingh', nameen: 'Mymensingh', namebn: 'ময়মনসিংহ', division: 'Mymensingh', population: '5.8 Million', area: '4,363 km²', description: 'Educational city known for agricultural university.', upazilas: ['Mymensingh Sadar', 'Bhaluka', 'Dhobaura', 'Fulbaria', 'Gaffargaon', 'Gauripur', 'Haluaghat', 'Ishwarganj', 'Muktagacha', 'Nandail', 'Phulpur', 'Trishal', 'Tara Khanda'], touristspots: ['Shashi Lodge', 'Muktigacha Zamindar Bari'] },
+  { id: 'netrokona', nameen: 'Netrokona', namebn: 'নেত্রকোনা', division: 'Mymensingh', population: '2.5 Million', area: '2,810 km²', description: 'Known for Birishiri and its diverse hills.', upazilas: ['Netrokona Sadar', 'Atpara', 'Barhatta', 'Durgapur', 'Khaliajuri', 'Kalmakanda', 'Kendua', 'Madan', 'Mohanganj', 'Purbadhala'], touristspots: ['Birishiri China Matir Pahar'] },
+  { id: 'tangail', nameen: 'Tangail', namebn: 'টাঙ্গাইল', division: 'Dhaka', population: '3.6 Million', area: '3,414 km²', description: 'Famous for its unique Handloom Saree (Tangail Saree) and sweets.', upazilas: ['Tangail Sadar', 'Basail', 'Bhuapur', 'Delduar', 'Gopalpur', 'Kalihati', 'Madhupur', 'Mirzapur', 'Nagarpur', 'Sakhipur'], touristspots: ['Mohera Jamindar Bari', 'Atiya Mosque', 'Madhupur National Park'] }
 ];
 
 const MOCK_JOBS = [
@@ -108,8 +107,7 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     if (!isSupabaseConfigured) return;
     try {
         const { data, error } = await supabase.from(table).select('*').order(orderBy, { ascending });
-        // FIXED: Robust checking to ensure we don't clear list with an empty one if not intentional
-        if (!error && data && data.length > 0) setter(data.map(mapFromDb));
+        if (!error && data) setter(data.map(mapFromDb));
     } catch(e) {}
   };
 
@@ -125,23 +123,25 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     setDistricts(getLocal('db_districts', INITIAL_DISTRICT_LIST));
     
     if (isSupabaseConfigured) {
-      fetchTable('jobs', setJobs);
-      fetchTable('blogs', setBlogs);
-      fetchTable('requests', setRequests);
-      fetchTable('blog_requests', setBlogRequests);
-      fetchTable('wholesale_requests', setWholesaleRequests);
-      fetchTable('grievances', setGrievances);
-      fetchTable('users', setUsers);
-      fetchTable('contact_messages', setMessages);
-      fetchTable('market_prices', setMarketPrices);
-      fetchTable('retail_products', setRetailProducts);
-      fetchTable('wholesale_ads', setWholesaleAds);
-      fetchTable('lawyers', setLawyers);
-      fetchTable('exchange_rates', setExchangeRates);
-      fetchTable('vocational_courses', setVocationalCourses);
-      fetchTable('donors', setDonors);
-      fetchTable('enrolled_courses', setEnrolledCourses);
-      fetchTable('districts', setDistricts, 'nameen', true);
+      await Promise.all([
+        fetchTable('jobs', setJobs),
+        fetchTable('blogs', setBlogs),
+        fetchTable('requests', setRequests),
+        fetchTable('blog_requests', setBlogRequests),
+        fetchTable('wholesale_requests', setWholesaleRequests),
+        fetchTable('grievances', setGrievances),
+        fetchTable('users', setUsers),
+        fetchTable('contact_messages', setMessages),
+        fetchTable('market_prices', setMarketPrices),
+        fetchTable('retail_products', setRetailProducts),
+        fetchTable('wholesale_ads', setWholesaleAds),
+        fetchTable('lawyers', setLawyers),
+        fetchTable('exchange_rates', setExchangeRates),
+        fetchTable('vocational_courses', setVocationalCourses),
+        fetchTable('donors', setDonors),
+        fetchTable('enrolled_courses', setEnrolledCourses),
+        fetchTable('districts', setDistricts, 'nameen', true)
+      ]);
     }
   };
 
@@ -256,7 +256,7 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       const { error } = await supabase.from('districts').upsert(payload, { onConflict: 'id' });
       if (error) throw error;
       alert("64 Districts Data seeded successfully to your Supabase!");
-      fetchTable('districts', setDistricts, 'nameen', true);
+      await fetchTable('districts', setDistricts, 'nameen', true);
     } catch (err: any) {
       console.error(err);
       alert("Error seeding: " + err.message);

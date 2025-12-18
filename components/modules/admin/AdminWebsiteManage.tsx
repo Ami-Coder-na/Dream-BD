@@ -68,7 +68,7 @@ create table if not exists public.wholesale_ads (
   created_at timestamp with time zone default timezone('utc'::text, now()) not null
 );
 
--- সিকিউরিটি পলিসি
+-- সিকিউরিটি পলিসি (RLS)
 alter table public.app_config enable row level security;
 alter table public.districts enable row level security;
 alter table public.wholesale_requests enable row level security;
@@ -107,6 +107,7 @@ export const AdminWebsiteManage = () => {
   const { modules, sections, settings, toggleModule, toggleSection, updateSettings } = useSiteConfig();
   const { seedDistricts } = useData();
   const [copied, setCopied] = useState(false);
+  const [configCopied, setConfigCopied] = useState(false);
   const logoInputRef = useRef<HTMLInputElement>(null);
   const faviconInputRef = useRef<HTMLInputElement>(null);
 
@@ -132,6 +133,13 @@ export const AdminWebsiteManage = () => {
     setTimeout(() => setCopied(false), 2000);
   };
 
+  const handleCopyConfig = () => {
+    const code = `const HARDCODED_URL = '${dbUrl}';\nconst HARDCODED_KEY = '${dbKey}';`;
+    navigator.clipboard.writeText(code);
+    setConfigCopied(true);
+    setTimeout(() => setConfigCopied(false), 2000);
+  };
+
   const handleSaveDbConfig = () => {
     setIsSaving(true);
     let finalUrl = dbUrl.trim();
@@ -145,9 +153,16 @@ export const AdminWebsiteManage = () => {
   const handleTestConnection = async (silent = false) => {
       if(!silent) setTestResult('Testing Connection...');
       try {
-          const { count, error } = await supabase.from('app_config').select('*', { count: 'exact', head: true });
-          if (error) { setTestResult(`Connection Failed: ${error.message}`); setStatusColor('red'); }
-          else { setTestResult(`✅ Connected! Database is live.`); setStatusColor('green'); }
+          // Testing with app_config table which should exist after running SQL
+          const { error } = await supabase.from('app_config').select('*', { count: 'exact', head: true });
+          if (error && error.code !== 'PGRST116') { // PGRST116 means empty table but exists
+              setTestResult(`Connection Failed: ${error.message}`); 
+              setStatusColor('red'); 
+          }
+          else { 
+              setTestResult(`✅ Connected! Database is live.`); 
+              setStatusColor('green'); 
+          }
       } catch (err: any) { setTestResult(`Error: ${err.message}`); setStatusColor('red'); }
   };
 
@@ -180,8 +195,11 @@ export const AdminWebsiteManage = () => {
   const handleSeedData = async () => {
     if (confirm('This will insert real data for 64 districts into your database. Existing district records with same IDs will be updated. Proceed?')) {
       setIsSeeding(true);
-      await seedDistricts();
-      setIsSeeding(false);
+      try {
+        await seedDistricts();
+      } finally {
+        setIsSeeding(false);
+      }
     }
   };
 
@@ -238,6 +256,11 @@ export const AdminWebsiteManage = () => {
                 </div>
                 <div className="bg-black/50 rounded-xl p-4 font-mono text-sm text-emerald-400 overflow-x-auto break-all">
                   {`SUPABASE_URL: ${dbUrl || 'PROJECT_URL'}\nSUPABASE_ANON_KEY: ${dbKey || 'ANON_KEY'}`}
+                </div>
+                <div className="mt-4 flex gap-2">
+                  <button onClick={handleCopyConfig} className="bg-emerald-600 hover:bg-emerald-700 px-4 py-2 rounded text-xs font-bold flex items-center gap-2 transition-all">
+                    {configCopied ? <Check size={14}/> : <Copy size={14}/>} {configCopied ? 'Copied' : 'Copy Config Code'}
+                  </button>
                 </div>
             </div>
           )}
