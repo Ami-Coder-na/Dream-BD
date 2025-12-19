@@ -16,7 +16,6 @@ const getLocal = (key: string, fallback: any) => {
 
 const normalizeLog = (log: any) => {
   if (!log) return null;
-  // Map database fields (lowercase) to component fields (camelCase) if necessary
   return {
     id: log.id || Date.now() + Math.random(),
     donorName: log.donorname || log.donorName || 'Unknown',
@@ -50,15 +49,20 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const [totalVisitors, setTotalVisitors] = useState<number>(() => parseInt(localStorage.getItem('total_visitors') || '1250'));
 
   const fetchData = async () => {
-    // Load local cache first for speed and offline support
     setJobs(getLocal('db_jobs', []));
     setBlogs(getLocal('db_blogs', []));
+    setRequests(getLocal('db_requests', []));
+    setBlogRequests(getLocal('db_blog_requests', []));
+    setWholesaleRequests(getLocal('db_wholesale_requests', []));
     setDistricts(getLocal('db_districts', []));
     setDonorViewLogs(getLocal('db_donor_view_logs', []));
     setDonors(getLocal('db_donors', [
         { id: 1, name: 'Ariful Islam', phone: '01711223344', district: 'Dhaka', group: 'O+', lastDonation: '3 months ago' },
         { id: 2, name: 'Sumi Akter', phone: '01811223344', district: 'Chittagong', group: 'A+', lastDonation: '1 month ago' }
     ]));
+    setGrievances(getLocal('db_grievances', []));
+    setMessages(getLocal('db_contact_messages', []));
+    setWholesaleAds(getLocal('db_wholesale_ads', []));
     
     if (!isSupabaseConfigured) return;
 
@@ -102,17 +106,16 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   }, []);
 
   const addDonorViewLog = async (log: any) => {
-    // Map to database column names (all lowercase)
+    const timestamp = new Date().toISOString();
     const dbLog = {
       donorname: log.donorName,
       donorphone: log.donorPhone,
       viewername: log.viewerName,
       viewerphone: log.viewerPhone,
       viewerdistrict: log.viewerDistrict,
-      created_at: new Date().toISOString()
+      created_at: timestamp
     };
 
-    // Immediate state update for UI responsiveness
     const newLogEntry = normalizeLog(dbLog);
     setDonorViewLogs(prev => {
         const updated = [newLogEntry, ...prev];
@@ -123,8 +126,6 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     if (isSupabaseConfigured) {
       try {
         await supabase.from('donor_view_logs').insert([dbLog]);
-        // Silently refresh data to ensure consistency
-        fetchData();
       } catch (e) {
         console.error("Failed to log donor view to DB", e);
       }
@@ -141,54 +142,76 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
   const addJob = async (job: any) => {
     if (isSupabaseConfigured) {
-      await supabase.from('jobs').insert([{ ...job, status: 'Active', postedDate: new Date().toLocaleDateString() }]);
+      await supabase.from('jobs').insert([{ ...job, status: 'Active', posteddate: new Date().toLocaleDateString() }]);
     }
-    fetchData();
+    await fetchData();
   };
 
   const updateJob = async (job: any) => {
     if (isSupabaseConfigured) {
       await supabase.from('jobs').update(job).eq('id', job.id);
     }
-    fetchData();
+    await fetchData();
   };
 
   const deleteJob = async (id: number) => {
     if (isSupabaseConfigured) {
       await supabase.from('jobs').delete().eq('id', id);
     }
-    fetchData();
+    await fetchData();
   };
 
   const addBlog = async (blog: any) => {
     if (isSupabaseConfigured) {
-      await supabase.from('blogs').insert([{ ...blog, status: 'Active', postedDate: new Date().toLocaleDateString() }]);
+      await supabase.from('blogs').insert([{ ...blog, status: 'Active', posteddate: new Date().toLocaleDateString() }]);
     }
-    fetchData();
+    await fetchData();
   };
 
   const updateBlog = async (blog: any) => {
     if (isSupabaseConfigured) {
       await supabase.from('blogs').update(blog).eq('id', blog.id);
     }
-    fetchData();
+    await fetchData();
   };
 
   const deleteBlog = async (id: number) => {
     if (isSupabaseConfigured) {
       await supabase.from('blogs').delete().eq('id', id);
     }
-    fetchData();
+    await fetchData();
   };
 
   const addRequest = async (request: any) => {
+    const type = request.contenttype;
+    const table = type === 'job' ? 'requests' : 
+                  type === 'blog' ? 'blog_requests' : 
+                  'wholesale_requests';
+    
+    const enrichedRequest = { 
+      ...request, 
+      status: 'Pending', 
+      id: Date.now() + Math.floor(Math.random() * 1000) 
+    };
+
+    const storageKey = `db_${table}`;
+    const currentLocal = getLocal(storageKey, []);
+    const updatedLocal = [enrichedRequest, ...currentLocal];
+    localStorage.setItem(storageKey, JSON.stringify(updatedLocal));
+
+    if (type === 'job') setRequests(updatedLocal);
+    else if (type === 'blog') setBlogRequests(updatedLocal);
+    else setWholesaleRequests(updatedLocal);
+
     if (isSupabaseConfigured) {
-      const table = request.contentType === 'job' ? 'requests' : 
-                    request.contentType === 'blog' ? 'blog_requests' : 
-                    'wholesale_requests';
-      await supabase.from(table).insert([request]);
+      try {
+        await supabase.from(table).insert([request]);
+      } catch (e) {
+        console.error(`Failed to push ${table} to DB`, e);
+      }
     }
-    fetchData();
+    
+    await fetchData();
   };
 
   const handleRequestAction = async (item: any, action: 'approve' | 'reject', type: string) => {
@@ -196,132 +219,133 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       const reqTable = type === 'job' ? 'requests' : type === 'blog' ? 'blog_requests' : 'wholesale_requests';
       if (action === 'approve') {
         const targetTable = type === 'job' ? 'jobs' : type === 'blog' ? 'blogs' : 'wholesale_ads';
-        await supabase.from(targetTable).insert([{ ...item, status: 'Active', id: undefined }]);
+        const { id, contenttype, contentType, ...dataToInsert } = item;
+        await supabase.from(targetTable).insert([{ ...dataToInsert, status: 'Active' }]);
       }
       await supabase.from(reqTable).delete().eq('id', item.id);
     }
-    fetchData();
+    await fetchData();
   };
 
   const addGrievance = async (grievance: any) => {
     if (isSupabaseConfigured) {
       await supabase.from('grievances').insert([{ ...grievance, status: 'Pending', date: new Date().toLocaleDateString() }]);
     }
-    fetchData();
+    await fetchData();
   };
 
   const updateGrievanceStatus = async (id: number, status: string) => {
     if (isSupabaseConfigured) {
       await supabase.from('grievances').update({ status }).eq('id', id);
     }
-    fetchData();
+    await fetchData();
   };
 
   const deleteGrievance = async (id: number) => {
     if (isSupabaseConfigured) {
       await supabase.from('grievances').delete().eq('id', id);
     }
-    fetchData();
+    await fetchData();
   };
 
   const addMessage = async (message: any) => {
     if (isSupabaseConfigured) {
       await supabase.from('contact_messages').insert([{ ...message, status: 'Unread', created_at: new Date().toISOString() }]);
     }
-    fetchData();
+    await fetchData();
   };
 
   const markMessageRead = async (id: number) => {
     if (isSupabaseConfigured) {
       await supabase.from('contact_messages').update({ status: 'Read' }).eq('id', id);
     }
-    fetchData();
+    await fetchData();
   };
 
   const deleteMessage = async (id: number) => {
     if (isSupabaseConfigured) {
       await supabase.from('contact_messages').delete().eq('id', id);
     }
-    fetchData();
+    await fetchData();
   };
 
   const addUser = async (user: any) => {
     if (isSupabaseConfigured) await supabase.from('users').insert([user]);
-    fetchData();
+    await fetchData();
   };
 
   const updateUserStatus = async (id: string, status: string) => {
     if (isSupabaseConfigured) await supabase.from('users').update({ status }).eq('id', id);
-    fetchData();
+    await fetchData();
   };
 
   const deleteUser = async (id: string) => {
     if (isSupabaseConfigured) await supabase.from('users').delete().eq('id', id);
-    fetchData();
+    await fetchData();
   };
 
   const updateMarketPrices = (prices: any[]) => setMarketPrices(prices);
 
   const updateWholesaleAd = async (ad: any) => {
     if (isSupabaseConfigured) await supabase.from('wholesale_ads').update(ad).eq('id', ad.id);
-    fetchData();
+    await fetchData();
   };
 
   const deleteWholesaleAd = async (id: number) => {
     if (isSupabaseConfigured) await supabase.from('wholesale_ads').delete().eq('id', id);
-    fetchData();
+    await fetchData();
   };
 
   const addRetailProduct = async (prod: any) => {
     if (isSupabaseConfigured) await supabase.from('retail_products').insert([prod]);
-    fetchData();
+    await fetchData();
   };
 
   const updateRetailProduct = async (prod: any) => {
     if (isSupabaseConfigured) await supabase.from('retail_products').update(prod).eq('id', prod.id);
-    fetchData();
+    await fetchData();
   };
 
   const deleteRetailProduct = async (id: number) => {
     if (isSupabaseConfigured) await supabase.from('retail_products').delete().eq('id', id);
-    fetchData();
+    await fetchData();
   };
 
   const enrollCourse = (course: any) => setEnrolledCourses(prev => [...prev, course]);
 
   const updateDistrict = async (district: any) => {
     if (isSupabaseConfigured) await supabase.from('districts').upsert(district);
-    fetchData();
+    await fetchData();
   };
 
   const addLawyer = async (lawyer: any) => {
     if (isSupabaseConfigured) await supabase.from('lawyers').insert([lawyer]);
-    fetchData();
+    await fetchData();
   };
 
   const deleteLawyer = async (id: number) => {
     if (isSupabaseConfigured) await supabase.from('lawyers').delete().eq('id', id);
-    fetchData();
+    await fetchData();
   };
 
   const addExchangeRate = async (rate: any) => {
     if (isSupabaseConfigured) await supabase.from('exchange_rates').insert([rate]);
-    fetchData();
+    await fetchData();
   };
 
   const deleteExchangeRate = async (id: number) => {
     if (isSupabaseConfigured) await supabase.from('exchange_rates').delete().eq('id', id);
-    fetchData();
+    await fetchData();
   };
 
   const addVocationalCourse = async (course: any) => {
     if (isSupabaseConfigured) await supabase.from('vocational_courses').insert([course]);
-    fetchData();
+    await fetchData();
   };
 
   const deleteVocationalCourse = async (id: number) => {
     if (isSupabaseConfigured) await supabase.from('vocational_courses').delete().eq('id', id);
-    fetchData();
+    await fetchData();
   };
 
   return (

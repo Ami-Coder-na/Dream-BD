@@ -5,7 +5,7 @@ import {
   Navigation, Recycle, Home, Fish, Hammer, MapPin, 
   Plus, Trash2, Filter, X, Edit3, Scale, Plane, Wrench,
   AlertCircle, Users, Building2, Camera, Info, CheckCircle, Save, ChevronRight,
-  Image as ImageIcon, HeartPulse, PlusCircle, Phone
+  Image as ImageIcon, HeartPulse, PlusCircle, Phone, DollarSign, Clock, Tag
 } from 'lucide-react';
 import { Button } from '../../ui/Button';
 import { useData } from '../../../contexts/DataContext';
@@ -125,7 +125,7 @@ export const AdminConfig: React.FC<Props> = ({ isBangla }) => {
     }
   };
 
-  const handleDeleteItem = (id: number) => {
+  const handleDeleteItem = (id: any) => {
       if(!confirm('Delete this item?')) return;
       if (activeConfigTab === 'agri') updateMarketPrices(marketPrices.filter((p: any) => p.id !== id));
       else if (activeConfigTab === 'legal') deleteLawyer(id);
@@ -138,17 +138,23 @@ export const AdminConfig: React.FC<Props> = ({ isBangla }) => {
     try {
         if (activeConfigTab === 'agri') {
             const todayPrice = bnToEn(configForm.today);
-            const newItem = { ...configForm, id: Date.now(), today: todayPrice, yesterday: todayPrice, trend: 'stable' };
+            const newItem = { 
+              ...configForm, 
+              id: Date.now(), 
+              today: todayPrice, 
+              yesterday: configForm.yesterday ? bnToEn(configForm.yesterday) : todayPrice, 
+              trend: 'stable' 
+            };
             updateMarketPrices([...marketPrices, newItem]);
-            alert("Market Price Added!");
         } else if (activeConfigTab === 'legal') {
-            addLawyer({ ...configForm });
+            addLawyer({ ...configForm, id: Date.now() });
         } else if (activeConfigTab === 'expat') {
-            addExchangeRate({ ...configForm, rate: bnToEn(configForm.rate), trend: 'stable' });
+            addExchangeRate({ ...configForm, id: Date.now(), rate: bnToEn(configForm.rate), trend: 'stable' });
         } else if (activeConfigTab === 'vocational') {
-            addVocationalCourse({ ...configForm, fee: bnToEn(configForm.fee), image: 'https://placehold.co/600x400' });
+            addVocationalCourse({ ...configForm, id: Date.now(), fee: bnToEn(configForm.fee), image: 'https://images.unsplash.com/photo-1581091226825-a6a2a5aee158' });
         }
         setIsConfigModalOpen(false);
+        setConfigForm({});
     } catch (err: any) { alert(err.message); }
   };
 
@@ -200,25 +206,107 @@ export const AdminConfig: React.FC<Props> = ({ isBangla }) => {
         );
     }
 
+    const dataMap: any = {
+      agri: marketPrices,
+      legal: lawyers,
+      expat: exchangeRates,
+      vocational: vocationalCourses
+    };
+
+    const currentData = dataMap[activeConfigTab] || [];
+
     return (
         <div className="overflow-x-auto rounded-xl border border-gray-100">
             <table className="w-full text-sm text-left border-collapse">
                 <thead className="bg-gray-50 text-gray-500 font-semibold uppercase text-xs tracking-wider">
                     <tr>
-                        <th className="p-4 border-b border-gray-100">Entry Details</th>
+                        <th className="p-4 border-b border-gray-100">Item Details</th>
+                        <th className="p-4 border-b border-gray-100">Metrics/Category</th>
                         <th className="p-4 border-b border-gray-100 text-right">Action</th>
                     </tr>
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-50">
-                    <tr className="hover:bg-gray-50/50 transition-colors">
-                        <td className="p-10 text-center text-gray-400" colSpan={2}>
-                           Click "Add New Entry" to populate this module.
+                    {currentData.length > 0 ? currentData.map((item: any) => (
+                      <tr key={item.id} className="hover:bg-gray-50/50 transition-colors">
+                        <td className="p-4">
+                           <div className="font-bold text-gray-900">
+                             {item.nameEn || item.titleEn || item.currency || item.name}
+                           </div>
+                           <div className="text-xs text-gray-500">
+                             {item.nameBn || item.titleBn || item.specialty || 'Entry System ID: #' + item.id}
+                           </div>
                         </td>
-                    </tr>
+                        <td className="p-4">
+                           <span className="bg-gray-100 px-2 py-1 rounded text-xs font-bold text-gray-600">
+                             {item.today ? `৳ ${item.today} / ${item.unit}` : 
+                              item.rate ? `Rate: ৳ ${item.rate}` :
+                              item.fee ? `Fee: ৳ ${item.fee}` :
+                              item.location || item.category || 'N/A'}
+                           </span>
+                        </td>
+                        <td className="p-4 text-right">
+                           <button onClick={() => handleDeleteItem(item.id)} className="p-2 text-gray-400 hover:text-red-500 transition-colors">
+                              <Trash2 size={16} />
+                           </button>
+                        </td>
+                      </tr>
+                    )) : (
+                      <tr>
+                        <td className="p-10 text-center text-gray-400" colSpan={3}>
+                           No data entries for {activeConfigTab}. Click "Add New Entry" to populate.
+                        </td>
+                      </tr>
+                    )}
                 </tbody>
             </table>
         </div>
     );
+  };
+
+  const renderModalForm = () => {
+    switch (activeConfigTab) {
+      case 'agri':
+        return (
+          <>
+            <div><label className="block text-xs font-bold text-gray-500 uppercase mb-1">Item Name (EN)</label><input required className="w-full p-3 bg-gray-50 border rounded-xl" value={configForm.nameEn || ''} onChange={e => setConfigForm({...configForm, nameEn: e.target.value})} placeholder="e.g. Rice" /></div>
+            <div><label className="block text-xs font-bold text-gray-500 uppercase mb-1">Item Name (BN)</label><input required className="w-full p-3 bg-gray-50 border rounded-xl" value={configForm.nameBn || ''} onChange={e => setConfigForm({...configForm, nameBn: e.target.value})} placeholder="যেমন: চাল" /></div>
+            <div className="grid grid-cols-2 gap-4">
+              <div><label className="block text-xs font-bold text-gray-500 uppercase mb-1">Price Today (৳)</label><input required type="number" className="w-full p-3 bg-gray-50 border rounded-xl" value={configForm.today || ''} onChange={e => setConfigForm({...configForm, today: e.target.value})} /></div>
+              <div><label className="block text-xs font-bold text-gray-500 uppercase mb-1">Unit</label><input required className="w-full p-3 bg-gray-50 border rounded-xl" value={configForm.unit || ''} onChange={e => setConfigForm({...configForm, unit: e.target.value})} placeholder="kg/pc/mon" /></div>
+            </div>
+          </>
+        );
+      case 'legal':
+        return (
+          <>
+            <div><label className="block text-xs font-bold text-gray-500 uppercase mb-1">Lawyer Name</label><input required className="w-full p-3 bg-gray-50 border rounded-xl" value={configForm.name || ''} onChange={e => setConfigForm({...configForm, name: e.target.value})} /></div>
+            <div><label className="block text-xs font-bold text-gray-500 uppercase mb-1">Specialty</label><input required className="w-full p-3 bg-gray-50 border rounded-xl" value={configForm.specialty || ''} onChange={e => setConfigForm({...configForm, specialty: e.target.value})} /></div>
+            <div><label className="block text-xs font-bold text-gray-500 uppercase mb-1">Location</label><input required className="w-full p-3 bg-gray-50 border rounded-xl" value={configForm.location || ''} onChange={e => setConfigForm({...configForm, location: e.target.value})} /></div>
+            <div><label className="block text-xs font-bold text-gray-500 uppercase mb-1">Phone</label><input required className="w-full p-3 bg-gray-50 border rounded-xl" value={configForm.phone || ''} onChange={e => setConfigForm({...configForm, phone: e.target.value})} /></div>
+          </>
+        );
+      case 'expat':
+        return (
+          <>
+            <div><label className="block text-xs font-bold text-gray-500 uppercase mb-1">Currency Code</label><input required className="w-full p-3 bg-gray-50 border rounded-xl" value={configForm.currency || ''} onChange={e => setConfigForm({...configForm, currency: e.target.value})} placeholder="USD / SAR / MYR" /></div>
+            <div><label className="block text-xs font-bold text-gray-500 uppercase mb-1">Exchange Rate (to ৳)</label><input required type="number" step="0.01" className="w-full p-3 bg-gray-50 border rounded-xl" value={configForm.rate || ''} onChange={e => setConfigForm({...configForm, rate: e.target.value})} /></div>
+          </>
+        );
+      case 'vocational':
+        return (
+          <>
+            <div><label className="block text-xs font-bold text-gray-500 uppercase mb-1">Course Title (EN)</label><input required className="w-full p-3 bg-gray-50 border rounded-xl" value={configForm.titleEn || ''} onChange={e => setConfigForm({...configForm, titleEn: e.target.value})} /></div>
+            <div><label className="block text-xs font-bold text-gray-500 uppercase mb-1">Course Title (BN)</label><input required className="w-full p-3 bg-gray-50 border rounded-xl" value={configForm.titleBn || ''} onChange={e => setConfigForm({...configForm, titleBn: e.target.value})} /></div>
+            <div className="grid grid-cols-2 gap-4">
+              <div><label className="block text-xs font-bold text-gray-500 uppercase mb-1">Category</label><input required className="w-full p-3 bg-gray-50 border rounded-xl" value={configForm.category || ''} onChange={e => setConfigForm({...configForm, category: e.target.value})} /></div>
+              <div><label className="block text-xs font-bold text-gray-500 uppercase mb-1">Duration</label><input required className="w-full p-3 bg-gray-50 border rounded-xl" value={configForm.duration || ''} onChange={e => setConfigForm({...configForm, duration: e.target.value})} placeholder="4 Weeks" /></div>
+            </div>
+            <div><label className="block text-xs font-bold text-gray-500 uppercase mb-1">Course Fee (৳)</label><input required type="number" className="w-full p-3 bg-gray-50 border rounded-xl" value={configForm.fee || ''} onChange={e => setConfigForm({...configForm, fee: e.target.value})} /></div>
+          </>
+        );
+      default:
+        return <p className="text-sm text-gray-400">Configuration for this module is coming soon.</p>;
+    }
   };
 
   const isEditable = ['districts', 'agri', 'legal', 'expat', 'vocational'].includes(activeConfigTab);
@@ -424,13 +512,14 @@ export const AdminConfig: React.FC<Props> = ({ isBangla }) => {
 
       {isConfigModalOpen && (
         <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4 backdrop-blur-sm animate-fade-in">
-            <div className="bg-white rounded-3xl shadow-2xl w-full max-w-md p-8">
-                <div className="flex justify-between items-center mb-6">
+            <div className="bg-white rounded-3xl shadow-2xl w-full max-w-lg overflow-hidden">
+                <div className="p-6 border-b border-gray-100 flex justify-between items-center bg-gray-50">
                     <h3 className="font-extrabold text-2xl text-gray-900">Add New Entry</h3>
-                    <button onClick={() => setIsConfigModalOpen(false)} className="p-2 hover:bg-gray-100 rounded-full transition-colors"><X size={20} className="text-gray-400"/></button>
+                    <button onClick={() => setIsConfigModalOpen(false)} className="p-2 hover:bg-gray-200 rounded-full transition-colors"><X size={20} className="text-gray-400"/></button>
                 </div>
-                <form onSubmit={handleSubmit} className="space-y-5">
-                    <Button type="submit" className="w-full bg-brand-600 text-white font-bold py-3.5 rounded-xl">Save Item</Button>
+                <form onSubmit={handleSubmit} className="p-8 space-y-5">
+                    {renderModalForm()}
+                    <Button type="submit" className="w-full bg-brand-600 text-white font-bold py-3.5 rounded-xl shadow-lg shadow-brand-100 mt-4">Save Item</Button>
                 </form>
             </div>
         </div>

@@ -1,4 +1,3 @@
-
 import React, { useState, useRef, useMemo } from 'react';
 import { 
   Briefcase, FileText, Plus, Search, Eye, Edit3, Trash2, 
@@ -35,7 +34,6 @@ export const AdminContent = () => {
   const [jobForm, setJobForm] = useState<any>(INITIAL_JOB);
   const [blogForm, setBlogForm] = useState<any>(INITIAL_BLOG);
 
-  // --- FILTERING LOGIC (SAFE) ---
   const filteredJobs = useMemo(() => {
     const searchLower = contentSearch.toLowerCase();
     return jobs.filter((job: any) => {
@@ -145,7 +143,7 @@ export const AdminContent = () => {
     }`}>{status}</span>
   );
 
-  if (view === 'create_job' || view === 'edit_job') {
+  if ((view === 'create_job' || view === 'edit_job')) {
     return (
         <div className="max-w-3xl mx-auto animate-fade-in">
             <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
@@ -199,7 +197,8 @@ export const AdminContent = () => {
 
   if (view === 'details' && selectedItem) {
       const isPending = selectedItem.status === 'Pending';
-      const type = selectedItem.product ? 'wholesale' : (selectedItem.author ? 'blog' : 'job');
+      // Use the contentType stored in item if available, else re-derive carefully
+      const type = selectedItem.contentType || (selectedItem.product ? 'wholesale' : (selectedItem.author ? 'blog' : 'job'));
 
       return (
         <div className="space-y-6 animate-fade-in max-w-5xl mx-auto">
@@ -223,7 +222,7 @@ export const AdminContent = () => {
                         {selectedItem.type && <div className="flex items-center gap-2"><Clock size={16} /><span>{selectedItem.type}</span></div>}
                     </div>
                     {selectedItem.content || selectedItem.description ? (
-                      <div className="text-gray-700 leading-relaxed whitespace-pre-wrap">{selectedItem.content || selectedItem.description}</div>
+                      <div className="text-gray-700 leading-relaxed whitespace-pre-wrap prose prose-sm max-w-none">{selectedItem.content || selectedItem.description}</div>
                     ) : (
                       <div className="bg-gray-50 p-6 rounded-2xl grid grid-cols-1 md:grid-cols-2 gap-6 border border-gray-100 shadow-inner"><div className="space-y-1"><p className="text-xs font-bold text-gray-400 uppercase">Quantity</p><p className="text-xl font-bold text-gray-900">{selectedItem.quantity}</p></div><div className="space-y-1"><p className="text-xs font-bold text-gray-400 uppercase">Asking Price</p><p className="text-xl font-bold text-orange-600">{selectedItem.price}</p></div><div className="space-y-1"><p className="text-xs font-bold text-gray-400 uppercase">Seller Type</p><p className="text-lg font-medium text-gray-800">{selectedItem.sellertype || selectedItem.sellerType}</p></div><div className="space-y-1"><p className="text-xs font-bold text-gray-400 uppercase">Contact Number</p><p className="text-lg font-bold text-blue-600 underline">{selectedItem.phone || 'N/A'}</p></div></div>
                     )}
