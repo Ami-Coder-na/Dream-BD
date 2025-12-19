@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Droplets, Search, Clock, MapPin, User, Phone, Filter, Trash2, ShieldCheck } from 'lucide-react';
 import { useData } from '../../../contexts/DataContext';
@@ -7,7 +6,16 @@ export const AdminBloodLogs = () => {
   const { donorViewLogs } = useData();
   const [searchQuery, setSearchQuery] = useState('');
 
-  const filteredLogs = donorViewLogs.filter((log: any) => {
+  const formatTimestamp = (ts: any) => {
+    try {
+      const date = new Date(ts);
+      return isNaN(date.getTime()) ? 'Invalid Date' : date.toLocaleString();
+    } catch (e) {
+      return 'N/A';
+    }
+  };
+
+  const filteredLogs = (donorViewLogs || []).filter((log: any) => {
     const searchLower = searchQuery.toLowerCase();
     return (log.donorName?.toLowerCase() || '').includes(searchLower) ||
            (log.viewerName?.toLowerCase() || '').includes(searchLower) ||
@@ -23,7 +31,7 @@ export const AdminBloodLogs = () => {
           </div>
           <div>
             <h2 className="text-2xl font-bold text-gray-900">Blood Access Logs</h2>
-            <p className="text-gray-500 text-sm">{donorViewLogs.length} total views recorded</p>
+            <p className="text-gray-500 text-sm">{(donorViewLogs || []).length} total views recorded</p>
           </div>
         </div>
         
@@ -52,12 +60,12 @@ export const AdminBloodLogs = () => {
             </thead>
             <tbody className="divide-y divide-gray-50">
               {filteredLogs.length > 0 ? (
-                filteredLogs.map((log: any) => (
-                  <tr key={log.id} className="hover:bg-gray-50/50 transition-colors">
+                filteredLogs.map((log: any, idx: number) => (
+                  <tr key={log.id || idx} className="hover:bg-gray-50/50 transition-colors">
                     <td className="p-4 text-xs text-gray-500">
                       <div className="flex items-center gap-1">
                         <Clock size={12} />
-                        {new Date(log.created_at).toLocaleString()}
+                        {formatTimestamp(log.created_at)}
                       </div>
                     </td>
                     <td className="p-4">

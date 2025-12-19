@@ -1,4 +1,3 @@
-
 import React, { createContext, useState, useContext, useEffect, ReactNode } from 'react';
 import { supabase, isSupabaseConfigured } from '../services/supabaseClient';
 import { User, UserRole } from '../types';
@@ -8,11 +7,25 @@ const DataContext = createContext<any>(null);
 const getLocal = (key: string, fallback: any) => {
   if (typeof window === 'undefined') return fallback;
   const saved = localStorage.getItem(key);
-  return saved ? JSON.parse(saved) : fallback;
+  try {
+    return saved ? JSON.parse(saved) : fallback;
+  } catch (e) {
+    return fallback;
+  }
 };
 
-const mapFromDb = (item: any) => {
-  return item;
+const normalizeLog = (log: any) => {
+  if (!log) return null;
+  // Map database fields (lowercase) to component fields (camelCase) if necessary
+  return {
+    id: log.id || Date.now() + Math.random(),
+    donorName: log.donorname || log.donorName || 'Unknown',
+    donorPhone: log.donorphone || log.donorPhone || 'N/A',
+    viewerName: log.viewername || log.viewerName || 'Anonymous',
+    viewerPhone: log.viewerphone || log.viewerPhone || 'N/A',
+    viewerDistrict: log.viewerdistrict || log.viewerDistrict || 'Unknown',
+    created_at: log.created_at || log.createdat || new Date().toISOString()
+  };
 };
 
 export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
@@ -34,23 +47,33 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const [messages, setMessages] = useState<any[]>([]);
   const [districts, setDistricts] = useState<any[]>([]);
   const [donorViewLogs, setDonorViewLogs] = useState<any[]>([]);
-  const [totalVisitors, setTotalVisitors] = useState<number>(1250);
+  const [totalVisitors, setTotalVisitors] = useState<number>(() => parseInt(localStorage.getItem('total_visitors') || '1250'));
 
   const fetchData = async () => {
+    // Load local cache first for speed and offline support
     setJobs(getLocal('db_jobs', []));
     setBlogs(getLocal('db_blogs', []));
     setDistricts(getLocal('db_districts', []));
+    setDonorViewLogs(getLocal('db_donor_view_logs', []));
+    setDonors(getLocal('db_donors', [
+        { id: 1, name: 'Ariful Islam', phone: '01711223344', district: 'Dhaka', group: 'O+', lastDonation: '3 months ago' },
+        { id: 2, name: 'Sumi Akter', phone: '01811223344', district: 'Chittagong', group: 'A+', lastDonation: '1 month ago' }
+    ]));
     
     if (!isSupabaseConfigured) return;
 
     try {
-      const loadTable = async (name: string, setter: any) => {
+      const loadTable = async (name: string, setter: any, normalizer?: any) => {
         try {
-          const { data, error } = await supabase.from(name).select('*');
+          const { data, error } = await supabase.from(name).select('*').order('created_at', { ascending: false });
           if (error) throw error;
-          if (data) setter(data.map(mapFromDb));
+          if (data) {
+            const normalizedData = normalizer ? data.map(normalizer).filter(Boolean) : data;
+            setter(normalizedData);
+            localStorage.setItem(`db_${name}`, JSON.stringify(normalizedData));
+          }
         } catch (e: any) {
-          console.warn(`Could not sync ${name}:`, e.message);
+          console.warn(`Sync failed for ${name}:`, e.message);
         }
       };
 
@@ -67,7 +90,7 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         loadTable('wholesale_ads', setWholesaleAds),
         loadTable('donors', setDonors),
         loadTable('districts', setDistricts),
-        loadTable('donor_view_logs', setDonorViewLogs)
+        loadTable('donor_view_logs', setDonorViewLogs, normalizeLog)
       ]);
     } catch (globalErr: any) {
       console.error("Database connection failed.", globalErr.message);
@@ -76,17 +99,46 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
   useEffect(() => {
     fetchData();
-    if (isSupabaseConfigured) {
-        try {
-            const channel = supabase.channel('realtime_data')
-            .on('postgres_changes', { event: '*', schema: 'public' }, () => fetchData())
-            .subscribe();
-            return () => { supabase.removeChannel(channel); };
-        } catch(e) {}
-    }
   }, []);
 
-  // --- JOB CRUD ---
+  const addDonorViewLog = async (log: any) => {
+    // Map to database column names (all lowercase)
+    const dbLog = {
+      donorname: log.donorName,
+      donorphone: log.donorPhone,
+      viewername: log.viewerName,
+      viewerphone: log.viewerPhone,
+      viewerdistrict: log.viewerDistrict,
+      created_at: new Date().toISOString()
+    };
+
+    // Immediate state update for UI responsiveness
+    const newLogEntry = normalizeLog(dbLog);
+    setDonorViewLogs(prev => {
+        const updated = [newLogEntry, ...prev];
+        localStorage.setItem('db_donor_view_logs', JSON.stringify(updated));
+        return updated;
+    });
+
+    if (isSupabaseConfigured) {
+      try {
+        await supabase.from('donor_view_logs').insert([dbLog]);
+        // Silently refresh data to ensure consistency
+        fetchData();
+      } catch (e) {
+        console.error("Failed to log donor view to DB", e);
+      }
+    }
+  };
+
+  const logVisit = () => {
+    setTotalVisitors(prev => {
+        const newVal = prev + 1;
+        localStorage.setItem('total_visitors', newVal.toString());
+        return newVal;
+    });
+  };
+
   const addJob = async (job: any) => {
     if (isSupabaseConfigured) {
       await supabase.from('jobs').insert([{ ...job, status: 'Active', postedDate: new Date().toLocaleDateString() }]);
@@ -108,7 +160,6 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     fetchData();
   };
 
-  // --- BLOG CRUD ---
   const addBlog = async (blog: any) => {
     if (isSupabaseConfigured) {
       await supabase.from('blogs').insert([{ ...blog, status: 'Active', postedDate: new Date().toLocaleDateString() }]);
@@ -130,7 +181,6 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     fetchData();
   };
 
-  // --- REQUEST HANDLING ---
   const addRequest = async (request: any) => {
     if (isSupabaseConfigured) {
       const table = request.contentType === 'job' ? 'requests' : 
@@ -153,7 +203,6 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     fetchData();
   };
 
-  // --- GRIEVANCE CRUD ---
   const addGrievance = async (grievance: any) => {
     if (isSupabaseConfigured) {
       await supabase.from('grievances').insert([{ ...grievance, status: 'Pending', date: new Date().toLocaleDateString() }]);
@@ -175,7 +224,6 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     fetchData();
   };
 
-  // --- MESSAGES CRUD ---
   const addMessage = async (message: any) => {
     if (isSupabaseConfigured) {
       await supabase.from('contact_messages').insert([{ ...message, status: 'Unread', created_at: new Date().toISOString() }]);
@@ -197,7 +245,6 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     fetchData();
   };
 
-  // --- USER CRUD ---
   const addUser = async (user: any) => {
     if (isSupabaseConfigured) await supabase.from('users').insert([user]);
     fetchData();
@@ -213,7 +260,6 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     fetchData();
   };
 
-  // --- MARKET & ADS ---
   const updateMarketPrices = (prices: any[]) => setMarketPrices(prices);
 
   const updateWholesaleAd = async (ad: any) => {
@@ -241,16 +287,10 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     fetchData();
   };
 
-  // --- MISC ---
   const enrollCourse = (course: any) => setEnrolledCourses(prev => [...prev, course]);
 
   const updateDistrict = async (district: any) => {
     if (isSupabaseConfigured) await supabase.from('districts').upsert(district);
-    fetchData();
-  };
-
-  const addDonorViewLog = async (log: any) => {
-    if (isSupabaseConfigured) await supabase.from('donor_view_logs').insert([log]);
     fetchData();
   };
 
@@ -291,7 +331,7 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       addUser, updateUserStatus, deleteUser, updateMarketPrices, addJob, updateJob, deleteJob, addBlog, updateBlog, deleteBlog, handleRequestAction,
       updateWholesaleAd, deleteWholesaleAd, addRetailProduct, updateRetailProduct, deleteRetailProduct,
       addLawyer, deleteLawyer, addExchangeRate, deleteExchangeRate, addVocationalCourse, deleteVocationalCourse,
-      totalVisitors, logVisit: () => {}, refreshData: fetchData
+      totalVisitors, logVisit, refreshData: fetchData
     }}>
       {children}
     </DataContext.Provider>

@@ -50,7 +50,7 @@ export const JobModule: React.FC<Props> = ({ isBangla, user, onLogin }) => {
       deadline: ''
   });
 
-  // Memoized Filtering Logic (SAFE)
+  // Memoized Filtering Logic
   const filteredJobs = useMemo(() => {
     const term = searchTerm.toLowerCase();
     return jobs.filter((job: any) => {
@@ -102,9 +102,8 @@ export const JobModule: React.FC<Props> = ({ isBangla, user, onLogin }) => {
 
   const handlePostSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    // Create the request object
     const request = {
-        contentType: 'job',
+        contenttype: 'job', // Standardized lowercase
         title: newJobData.title,
         company: newJobData.company,
         description: newJobData.description,
@@ -112,9 +111,9 @@ export const JobModule: React.FC<Props> = ({ isBangla, user, onLogin }) => {
         salary: newJobData.salary,
         type: newJobData.type,
         deadline: newJobData.deadline,
-        postedBy: user ? user.name : 'Guest', // Use real user name
-        category: 'Private', // Default for user submission
-        level: 'Entry' // Default
+        postedby: user ? user.name : 'Guest', // Standardized lowercase
+        category: 'Private',
+        level: 'Entry'
     };
     
     addRequest(request);
@@ -146,8 +145,6 @@ export const JobModule: React.FC<Props> = ({ isBangla, user, onLogin }) => {
   return (
     <div className="bg-gray-50 min-h-screen py-8 lg:py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-7xl mx-auto">
-        
-        {/* Header Section */}
         <div className="text-center mb-10">
           <h1 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
             {isBangla ? 'আপনার স্বপ্নের চাকরি খুঁজুন' : 'Find Your Dream Job'}
@@ -157,46 +154,27 @@ export const JobModule: React.FC<Props> = ({ isBangla, user, onLogin }) => {
               ? 'সরকারি, বেসরকারি, স্বায়ত্বশাসিত এবং এনজিও - সব ধরনের চাকরির বিশাল সমাহার।' 
               : 'Government, Private, Autonomous, and NGO - A vast collection of all types of jobs.'}
           </p>
-          
           <div className="flex justify-center">
-            <Button 
-              onClick={handlePostClick}
-              className="bg-brand-600 hover:bg-brand-700 text-white shadow-lg shadow-brand-600/20 rounded-full px-8 py-3 flex items-center gap-2 text-lg font-bold"
-            >
+            <Button onClick={handlePostClick} className="bg-brand-600 hover:bg-brand-700 text-white shadow-lg shadow-brand-600/20 rounded-full px-8 py-3 flex items-center gap-2 text-lg font-bold">
               <PlusCircle size={20} />
               {isBangla ? 'চাকরির পোস্ট দিন' : 'Create Job Post'}
             </Button>
           </div>
         </div>
-
-        {/* Mobile Filter Toggle */}
         <div className="lg:hidden mb-4">
-          <Button 
-            variant="outline" 
-            className="w-full flex justify-between items-center bg-white border-gray-200"
-            onClick={() => setShowMobileFilters(!showMobileFilters)}
-          >
+          <Button variant="outline" className="w-full flex justify-between items-center bg-white border-gray-200" onClick={() => setShowMobileFilters(!showMobileFilters)}>
             <span className="flex items-center gap-2"><Filter size={18}/> {isBangla ? 'ফিল্টার' : 'Filters'}</span>
             <ChevronDown size={18} className={`transform transition-transform ${showMobileFilters ? 'rotate-180' : ''}`} />
           </Button>
         </div>
-
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-8 items-start">
-          
-          {/* Sidebar Filters */}
           <aside className={`lg:block ${showMobileFilters ? 'block' : 'hidden'} lg:sticky lg:top-24 space-y-6 bg-white p-6 rounded-2xl shadow-sm border border-gray-100`}>
             <div className="flex justify-between items-center mb-4">
-              <h3 className="font-bold text-gray-900 flex items-center gap-2">
-                <Filter size={20} /> {isBangla ? 'ফিল্টার করুন' : 'Filter By'}
-              </h3>
+              <h3 className="font-bold text-gray-900 flex items-center gap-2"><Filter size={20} /> {isBangla ? 'ফিল্টার করুন' : 'Filter By'}</h3>
               {(selectedCategories.length > 0 || selectedTypes.length > 0 || selectedLevels.length > 0) && (
-                <button onClick={clearFilters} className="text-xs text-red-500 font-medium hover:underline flex items-center gap-1">
-                  <RefreshCw size={12} /> {isBangla ? 'রিসেট' : 'Reset'}
-                </button>
+                <button onClick={clearFilters} className="text-xs text-red-500 font-medium hover:underline flex items-center gap-1"><RefreshCw size={12} /> {isBangla ? 'রিসেট' : 'Reset'}</button>
               )}
             </div>
-
-            {/* Filters UI */}
             <div>
               <h4 className="text-sm font-bold text-gray-700 mb-3 uppercase tracking-wider">{isBangla ? 'প্রতিষ্ঠানের ধরন' : 'Job Category'}</h4>
               <div className="space-y-2">
@@ -205,136 +183,39 @@ export const JobModule: React.FC<Props> = ({ isBangla, user, onLogin }) => {
                     <div className={`w-5 h-5 rounded border flex items-center justify-center transition-colors ${selectedCategories.includes(cat.val as JobCategory) ? 'bg-brand-600 border-brand-600' : 'border-gray-300 group-hover:border-brand-400'}`}>
                       {selectedCategories.includes(cat.val as JobCategory) && <CheckCircle size={12} className="text-white" />}
                     </div>
-                    <input 
-                      type="checkbox" 
-                      className="hidden"
-                      checked={selectedCategories.includes(cat.val as JobCategory)}
-                      onChange={() => toggleFilter(cat.val as JobCategory, selectedCategories, setSelectedCategories)}
-                    />
+                    <input type="checkbox" className="hidden" checked={selectedCategories.includes(cat.val as JobCategory)} onChange={() => toggleFilter(cat.val as JobCategory, selectedCategories, setSelectedCategories)} />
                     <span className={`text-sm ${selectedCategories.includes(cat.val as JobCategory) ? 'text-brand-700 font-medium' : 'text-gray-600'}`}>{cat.label}</span>
                   </label>
                 ))}
               </div>
             </div>
-
-            <div className="border-t border-gray-100"></div>
-
-            <div>
-              <h4 className="text-sm font-bold text-gray-700 mb-3 uppercase tracking-wider">{isBangla ? 'কাজের ধরন' : 'Job Type'}</h4>
-              <div className="space-y-2">
-                {[
-                  { val: 'Full Time', label: isBangla ? 'ফুল টাইম' : 'Full Time' },
-                  { val: 'Part Time', label: isBangla ? 'পার্ট টাইম' : 'Part Time' },
-                  { val: 'Contract', label: isBangla ? 'চুক্তিভিত্তিক' : 'Contractual' },
-                  { val: 'Remote', label: isBangla ? 'রিমোট / বাসা থেকে' : 'Remote' }
-                ].map((type) => (
-                  <label key={type.val} className="flex items-center gap-3 cursor-pointer group">
-                    <div className={`w-5 h-5 rounded border flex items-center justify-center transition-colors ${selectedTypes.includes(type.val as JobType) ? 'bg-brand-600 border-brand-600' : 'border-gray-300 group-hover:border-brand-400'}`}>
-                      {selectedTypes.includes(type.val as JobType) && <CheckCircle size={12} className="text-white" />}
-                    </div>
-                    <input 
-                      type="checkbox" 
-                      className="hidden"
-                      checked={selectedTypes.includes(type.val as JobType)}
-                      onChange={() => toggleFilter(type.val as JobType, selectedTypes, setSelectedTypes)}
-                    />
-                    <span className={`text-sm ${selectedTypes.includes(type.val as JobType) ? 'text-brand-700 font-medium' : 'text-gray-600'}`}>{type.label}</span>
-                  </label>
-                ))}
-              </div>
-            </div>
-
-            <div className="border-t border-gray-100"></div>
-
-            <div>
-              <h4 className="text-sm font-bold text-gray-700 mb-3 uppercase tracking-wider">{isBangla ? 'অভিজ্ঞতা' : 'Experience Level'}</h4>
-              <div className="space-y-2">
-                {[
-                  { val: 'Entry', label: isBangla ? 'এন্ট্রি লেভেল' : 'Entry Level' },
-                  { val: 'Mid', label: isBangla ? 'মিড লেভেল' : 'Mid Level' },
-                  { val: 'Senior', label: isBangla ? 'সিনিয়র' : 'Senior Level' }
-                ].map((lvl) => (
-                  <label key={lvl.val} className="flex items-center gap-3 cursor-pointer group">
-                    <div className={`w-5 h-5 rounded border flex items-center justify-center transition-colors ${selectedLevels.includes(lvl.val as JobLevel) ? 'bg-brand-600 border-brand-600' : 'border-gray-300 group-hover:border-brand-400'}`}>
-                      {selectedLevels.includes(lvl.val as JobLevel) && <CheckCircle size={12} className="text-white" />}
-                    </div>
-                    <input 
-                      type="checkbox" 
-                      className="hidden"
-                      checked={selectedLevels.includes(lvl.val as JobLevel)}
-                      onChange={() => toggleFilter(lvl.val as JobLevel, selectedLevels, setSelectedLevels)}
-                    />
-                    <span className={`text-sm ${selectedLevels.includes(lvl.val as JobLevel) ? 'text-brand-700 font-medium' : 'text-gray-600'}`}>{lvl.label}</span>
-                  </label>
-                ))}
-              </div>
-            </div>
           </aside>
-
-          {/* Main Content */}
           <main className="lg:col-span-3 space-y-6">
-            
             <div className="bg-white p-2 rounded-2xl shadow-sm border border-gray-200 flex items-center focus-within:ring-2 focus-within:ring-brand-500/20 transition-all">
               <Search className="text-gray-400 ml-4" size={20} />
-              <input 
-                type="text" 
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                placeholder={isBangla ? 'পদের নাম, কোম্পানি বা স্থান খুঁজুন...' : 'Search by title, company, or location...'}
-                className="w-full px-4 py-3 bg-transparent border-none outline-none text-gray-800 placeholder-gray-400"
-              />
-              <Button className="rounded-xl px-6 m-1">
-                {isBangla ? 'খুঁজুন' : 'Search'}
-              </Button>
+              <input type="text" value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} placeholder={isBangla ? 'পদের নাম, কোম্পানি বা স্থান খুঁজুন...' : 'Search by title, company, or location...'} className="w-full px-4 py-3 bg-transparent border-none outline-none text-gray-800 placeholder-gray-400" />
+              <Button className="rounded-xl px-6 m-1">{isBangla ? 'খুঁজুন' : 'Search'}</Button>
             </div>
-
-            <p className="text-sm text-gray-500 font-medium">
-              {isBangla 
-                ? `${filteredJobs.length} টি চাকরি পাওয়া গেছে` 
-                : `Showing ${filteredJobs.length} jobs`}
-            </p>
-
+            <p className="text-sm text-gray-500 font-medium">{isBangla ? `${filteredJobs.length} টি চাকরি পাওয়া গেছে` : `Showing ${filteredJobs.length} jobs`}</p>
             <div className="space-y-4">
               {filteredJobs.length > 0 ? (
                 filteredJobs.map((job: any) => (
-                  <div 
-                    key={job.id} 
-                    onClick={() => setSelectedJob(job)}
-                    className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 hover:shadow-lg hover:border-brand-200 transition-all cursor-pointer group relative overflow-hidden"
-                  >
+                  <div key={job.id} onClick={() => setSelectedJob(job)} className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 hover:shadow-lg hover:border-brand-200 transition-all cursor-pointer group relative overflow-hidden">
                     <div className={`absolute top-0 right-0 px-4 py-1 text-xs font-bold rounded-bl-xl border-l border-b ${getCategoryColor(job.category)}`}>
                       {isBangla ? categoryLabels[job.category]?.bn || job.category : categoryLabels[job.category]?.en || job.category}
                     </div>
-
                     <div className="flex flex-col md:flex-row gap-5 items-start">
-                      <div className="w-14 h-14 bg-gray-50 rounded-xl flex items-center justify-center text-gray-600 border border-gray-100 shrink-0 group-hover:bg-brand-50 group-hover:text-brand-600 transition-colors">
-                        <Building2 size={28} />
-                      </div>
+                      <div className="w-14 h-14 bg-gray-50 rounded-xl flex items-center justify-center text-gray-600 border border-gray-100 shrink-0 group-hover:bg-brand-50 group-hover:text-brand-600 transition-colors"><Building2 size={28} /></div>
                       <div className="flex-1">
                         <h3 className="font-bold text-xl text-gray-900 group-hover:text-brand-700 transition-colors mb-1">{job.title}</h3>
                         <p className="text-gray-600 font-medium mb-3">{job.company}</p>
-                        
                         <div className="flex flex-wrap gap-3 text-sm text-gray-500">
-                          <span className="flex items-center gap-1 bg-gray-50 px-2 py-1 rounded border border-gray-100">
-                            <MapPin size={14} className="text-red-400" />
-                            {job.location}
-                          </span>
-                          <span className="flex items-center gap-1 bg-gray-50 px-2 py-1 rounded border border-gray-100">
-                            <Clock size={14} className="text-blue-400" />
-                            {job.type}
-                          </span>
-                          <span className="flex items-center gap-1 bg-gray-50 px-2 py-1 rounded border border-gray-100">
-                            <DollarSign size={14} className="text-green-500" />
-                            {job.salary}
-                          </span>
+                          <span className="flex items-center gap-1 bg-gray-50 px-2 py-1 rounded border border-gray-100"><MapPin size={14} className="text-red-400" /> {job.location}</span>
+                          <span className="flex items-center gap-1 bg-gray-50 px-2 py-1 rounded border border-gray-100"><Clock size={14} className="text-blue-400" /> {job.type}</span>
+                          <span className="flex items-center gap-1 bg-gray-50 px-2 py-1 rounded border border-gray-100"><DollarSign size={14} className="text-green-500" /> {job.salary}</span>
                         </div>
                       </div>
-                      <div className="flex flex-col items-end justify-between self-stretch pt-2">
-                         <div className="hidden md:block"></div>
-                         <Button variant="outline" className="w-full md:w-auto text-xs h-9">
-                           {isBangla ? 'বিস্তারিত' : 'Details'}
-                         </Button>
-                      </div>
+                      <Button variant="outline" className="w-full md:w-auto text-xs h-9">{isBangla ? 'বিস্তারিত' : 'Details'}</Button>
                     </div>
                   </div>
                 ))
@@ -342,152 +223,38 @@ export const JobModule: React.FC<Props> = ({ isBangla, user, onLogin }) => {
                 <div className="text-center py-20 bg-white rounded-2xl border border-dashed border-gray-200">
                   <Briefcase size={48} className="mx-auto text-gray-300 mb-4" />
                   <h3 className="text-lg font-bold text-gray-900">{isBangla ? 'কোন চাকরি পাওয়া যায়নি' : 'No jobs found'}</h3>
-                  <p className="text-gray-500 text-sm mt-1">{isBangla ? 'ফিল্টার পরিবর্তন করে আবার চেষ্টা করুন' : 'Try adjusting your search or filters'}</p>
-                  <Button variant="outline" onClick={clearFilters} className="mt-4">
-                    {isBangla ? 'ফিল্টার মুছুন' : 'Clear Filters'}
-                  </Button>
+                  <Button variant="outline" onClick={clearFilters} className="mt-4">{isBangla ? 'ফিল্টার মুছুন' : 'Clear Filters'}</Button>
                 </div>
               )}
             </div>
           </main>
         </div>
       </div>
-
-      {/* Post Job Modal */}
       {showPostModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fade-in" onClick={() => setShowPostModal(false)}>
           <div className="bg-white w-full max-w-2xl rounded-2xl shadow-2xl overflow-hidden transform transition-all" onClick={e => e.stopPropagation()}>
             <div className="p-6 border-b border-gray-100 flex justify-between items-center bg-gradient-to-r from-brand-50 to-white">
-              <div>
-                <h2 className="text-xl font-bold text-gray-900 flex items-center gap-2">
-                  <div className="p-2 bg-brand-100 rounded-lg text-brand-600">
-                    <PlusCircle size={20} />
-                  </div>
-                  {isBangla ? 'নতুন চাকরির পোস্ট' : 'Create New Job Post'}
-                </h2>
-                <p className="text-sm text-gray-500 mt-1 ml-11">
-                  {isBangla ? 'আপনার প্রতিষ্ঠানের জন্য সেরা কর্মী খুঁজুন' : 'Find the best talent for your company'}
-                </p>
-              </div>
+              <div><h2 className="text-xl font-bold text-gray-900 flex items-center gap-2"><div className="p-2 bg-brand-100 rounded-lg text-brand-600"><PlusCircle size={20} /></div>{isBangla ? 'নতুন চাকরির পোস্ট' : 'Create New Job Post'}</h2></div>
               <button onClick={() => setShowPostModal(false)} className="p-2 hover:bg-white rounded-full text-gray-400 hover:text-red-500 transition-colors shadow-sm"><X size={20} /></button>
             </div>
-
             <div className="p-8 max-h-[80vh] overflow-y-auto">
               {postSubmitted ? (
-                <div className="text-center py-12 flex flex-col items-center animate-fade-in-up">
-                  <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mb-6 text-green-600 shadow-lg shadow-green-100">
-                    <CheckCircle size={40} className="animate-bounce" />
-                  </div>
-                  <h3 className="text-2xl font-bold text-gray-900 mb-3">{isBangla ? 'জমা দেওয়া সফল হয়েছে!' : 'Submission Successful!'}</h3>
-                  <p className="text-gray-500 mb-8 max-w-sm mx-auto leading-relaxed">
-                    {isBangla ? 'আপনার বিজ্ঞপ্তিটি রিভিউয়ের জন্য পাঠানো হয়েছে।' : 'Your job post has been sent for review.'}
-                  </p>
-                  <Button onClick={() => setShowPostModal(false)}>{isBangla ? 'বন্ধ করুন' : 'Close'}</Button>
-                </div>
+                <div className="text-center py-12 flex flex-col items-center animate-fade-in-up"><div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mb-6 text-green-600 shadow-lg shadow-green-100"><CheckCircle size={40} className="animate-bounce" /></div><h3 className="text-2xl font-bold text-gray-900 mb-3">{isBangla ? 'জমা দেওয়া সফল হয়েছে!' : 'Submission Successful!'}</h3><Button onClick={() => setShowPostModal(false)}>{isBangla ? 'বন্ধ করুন' : 'Close'}</Button></div>
               ) : (
                 <form onSubmit={handlePostSubmit} className="space-y-6">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div className="space-y-2">
-                      <label className="text-sm font-semibold text-gray-700">{isBangla ? 'পদের নাম' : 'Job Title'} *</label>
-                      <input type="text" required className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-gray-900 transition-all text-sm" value={newJobData.title} onChange={e => setNewJobData({...newJobData, title: e.target.value})} placeholder="e.g. Manager" />
-                    </div>
-                    <div className="space-y-2">
-                      <label className="text-sm font-semibold text-gray-700">{isBangla ? 'প্রতিষ্ঠান' : 'Company'} *</label>
-                      <input type="text" required className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-gray-900 transition-all text-sm" value={newJobData.company} onChange={e => setNewJobData({...newJobData, company: e.target.value})} placeholder="Company Name" />
-                    </div>
+                    <div className="space-y-2"><label className="text-sm font-semibold text-gray-700">{isBangla ? 'পদের নাম' : 'Job Title'} *</label><input type="text" required className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-gray-900 transition-all text-sm" value={newJobData.title} onChange={e => setNewJobData({...newJobData, title: e.target.value})} placeholder="e.g. Manager" /></div>
+                    <div className="space-y-2"><label className="text-sm font-semibold text-gray-700">{isBangla ? 'প্রতিষ্ঠান' : 'Company'} *</label><input type="text" required className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-gray-900 transition-all text-sm" value={newJobData.company} onChange={e => setNewJobData({...newJobData, company: e.target.value})} placeholder="Company Name" /></div>
                   </div>
-                  
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div className="space-y-2">
-                        <label className="text-sm font-semibold text-gray-700">{isBangla ? 'কাজের ধরন' : 'Job Type'} *</label>
-                        <select 
-                            className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-gray-900 transition-all text-sm appearance-none cursor-pointer"
-                            value={newJobData.type}
-                            onChange={(e) => setNewJobData({...newJobData, type: e.target.value})}
-                        >
-                            <option value="Full Time">Full Time</option>
-                            <option value="Part Time">Part Time</option>
-                            <option value="Contract">Contract</option>
-                            <option value="Remote">Remote</option>
-                        </select>
-                    </div>
-                    <div className="space-y-2">
-                      <label className="text-sm font-semibold text-gray-700">{isBangla ? 'অবস্থান' : 'Location'} *</label>
-                      <input type="text" required className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-gray-900 transition-all text-sm" value={newJobData.location} onChange={e => setNewJobData({...newJobData, location: e.target.value})} placeholder="e.g. Dhaka" />
-                    </div>
+                    <div className="space-y-2"><label className="text-sm font-semibold text-gray-700">{isBangla ? 'কাজের ধরন' : 'Job Type'} *</label><select className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-gray-900 transition-all text-sm appearance-none cursor-pointer" value={newJobData.type} onChange={(e) => setNewJobData({...newJobData, type: e.target.value})}><option value="Full Time">Full Time</option><option value="Part Time">Part Time</option><option value="Contract">Contract</option><option value="Remote">Remote</option></select></div>
+                    <div className="space-y-2"><label className="text-sm font-semibold text-gray-700">{isBangla ? 'অবস্থান' : 'Location'} *</label><input type="text" required className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-gray-900 transition-all text-sm" value={newJobData.location} onChange={e => setNewJobData({...newJobData, location: e.target.value})} placeholder="e.g. Dhaka" /></div>
                   </div>
-
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div className="space-y-2">
-                      <label className="text-sm font-semibold text-gray-700">{isBangla ? 'বেতন' : 'Salary Range'} (Optional)</label>
-                      <input type="text" className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-gray-900 transition-all text-sm" value={newJobData.salary} onChange={e => setNewJobData({...newJobData, salary: e.target.value})} placeholder="e.g. 20k-30k" />
-                    </div>
-                    <div className="space-y-2">
-                      <label className="text-sm font-semibold text-gray-700">{isBangla ? 'আবেদনের শেষ তারিখ' : 'Deadline'} *</label>
-                      <input type="date" required className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-gray-900 transition-all text-sm text-gray-600" value={newJobData.deadline} onChange={e => setNewJobData({...newJobData, deadline: e.target.value})} />
-                    </div>
-                  </div>
-
-                  <div className="space-y-2">
-                    <label className="text-sm font-semibold text-gray-700">{isBangla ? 'বিবরণ' : 'Description'} *</label>
-                    <textarea required rows={5} className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-gray-900 transition-all text-sm resize-none" value={newJobData.description} onChange={e => setNewJobData({...newJobData, description: e.target.value})} placeholder="Job details..."></textarea>
-                  </div>
-                  
-                  <div className="flex justify-end pt-2">
-                    <Button type="submit" className="w-full bg-brand-600 hover:bg-brand-700 shadow-lg shadow-brand-500/30 py-3 rounded-xl font-bold">{isBangla ? 'জমা দিন' : 'Submit Job Post'}</Button>
-                  </div>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6"><div className="space-y-2"><label className="text-sm font-semibold text-gray-700">{isBangla ? 'বেতন' : 'Salary Range'} (Optional)</label><input type="text" className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-gray-900 transition-all text-sm" value={newJobData.salary} onChange={e => setNewJobData({...newJobData, salary: e.target.value})} placeholder="e.g. 20k-30k" /></div><div className="space-y-2"><label className="text-sm font-semibold text-gray-700">{isBangla ? 'আবেদনের শেষ তারিখ' : 'Deadline'} *</label><input type="date" required className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-gray-900 transition-all text-sm text-gray-600" value={newJobData.deadline} onChange={e => setNewJobData({...newJobData, deadline: e.target.value})} /></div></div>
+                  <div className="space-y-2"><label className="text-sm font-semibold text-gray-700">{isBangla ? 'বিবরণ' : 'Description'} *</label><textarea required rows={5} className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-gray-900 transition-all text-sm resize-none" value={newJobData.description} onChange={e => setNewJobData({...newJobData, description: e.target.value})} placeholder="Job details..."></textarea></div>
+                  <div className="flex justify-end pt-2"><Button type="submit" className="w-full bg-brand-600 hover:bg-brand-700 shadow-lg shadow-brand-500/30 py-3 rounded-xl font-bold">{isBangla ? 'জমা দিন' : 'Submit Job Post'}</Button></div>
                 </form>
               )}
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Job Details Modal */}
-      {selectedJob && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center px-4 bg-black/60 backdrop-blur-sm animate-fade-in">
-          <div className="bg-white w-full max-w-2xl rounded-2xl shadow-2xl overflow-hidden animate-fade-in-up max-h-[90vh] flex flex-col">
-            <div className="p-6 border-b border-gray-100 flex justify-between items-start sticky top-0 bg-white z-10">
-              <div className="flex gap-4">
-                 <div className="w-16 h-16 bg-brand-50 rounded-xl flex items-center justify-center text-brand-600 border border-brand-100">
-                    <Building2 size={32} />
-                 </div>
-                 <div>
-                   <h2 className="text-2xl font-bold text-gray-900">{selectedJob.title}</h2>
-                   <p className="text-gray-600 font-medium text-lg">{selectedJob.company}</p>
-                 </div>
-              </div>
-              <button onClick={() => setSelectedJob(null)} className="p-2 hover:bg-gray-100 rounded-full text-gray-500"><X size={24} /></button>
-            </div>
-            <div className="p-8 overflow-y-auto">
-               <div className="space-y-6">
-                  <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-                    <div className="bg-gray-50 p-3 rounded-xl border border-gray-100">
-                       <span className="block text-xs font-bold text-gray-400 uppercase mb-1">{isBangla ? 'বেতন' : 'Salary'}</span>
-                       <span className="font-bold text-gray-900 text-sm">{selectedJob.salary}</span>
-                    </div>
-                    <div className="bg-gray-50 p-3 rounded-xl border border-gray-100">
-                       <span className="block text-xs font-bold text-gray-400 uppercase mb-1">{isBangla ? 'ধরন' : 'Type'}</span>
-                       <span className="font-bold text-gray-900 text-sm">{selectedJob.type}</span>
-                    </div>
-                  </div>
-                  <div>
-                    <h3 className="text-lg font-bold text-gray-900 mb-2">{isBangla ? 'বিবরণ' : 'Description'}</h3>
-                    <p className="text-gray-600 leading-relaxed">{selectedJob.description}</p>
-                  </div>
-                  {selectedJob.responsibilities && (
-                    <div>
-                      <h3 className="text-lg font-bold text-gray-900 mb-2">{isBangla ? 'দায়িত্বসমূহ' : 'Responsibilities'}</h3>
-                      <ul className="list-disc pl-5 space-y-1 text-gray-600">
-                        {selectedJob.responsibilities.map((res: string, i: number) => <li key={i}>{res}</li>)}
-                      </ul>
-                    </div>
-                  )}
-               </div>
-            </div>
-            <div className="p-6 border-t border-gray-100 bg-gray-50 flex justify-end gap-3 sticky bottom-0">
-               <Button variant="outline" onClick={() => setSelectedJob(null)}>{isBangla ? 'বন্ধ করুন' : 'Close'}</Button>
-               <Button onClick={handleApplyClick}>{isBangla ? 'আবেদন করুন' : 'Apply Now'}</Button>
             </div>
           </div>
         </div>

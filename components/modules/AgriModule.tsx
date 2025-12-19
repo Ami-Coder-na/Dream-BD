@@ -293,6 +293,168 @@ export const AgriModule: React.FC<Props> = ({ isBangla, user, onLogin }) => {
     </div>
   );
 
+  const renderCalculator = () => (
+    <div className="animate-fade-in space-y-8">
+      <div className="bg-white rounded-[2.5rem] shadow-xl border border-gray-100 overflow-hidden">
+        <div className="grid grid-cols-1 lg:grid-cols-2">
+          {/* Inputs Section */}
+          <div className="p-8 md:p-12 border-r border-gray-100">
+            <h3 className="text-2xl font-bold text-gray-900 mb-8 flex items-center gap-3">
+              <Calculator size={32} className="text-green-600" />
+              {isBangla ? 'সার ও বীজ ক্যালকুলেটর' : 'Fertilizer & Seed Calculator'}
+            </h3>
+            
+            <div className="space-y-6">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                <div>
+                  <label className="block text-sm font-bold text-gray-700 mb-2">{isBangla ? 'জমির পরিমাণ' : 'Land Size'}</label>
+                  <input 
+                    type="number" 
+                    value={landSize}
+                    onChange={(e) => setLandSize(e.target.value)}
+                    placeholder="0.00"
+                    className="w-full p-4 bg-gray-50 border border-gray-200 rounded-2xl focus:ring-2 focus:ring-green-500/20 outline-none font-bold text-lg"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-bold text-gray-700 mb-2">{isBangla ? 'একক' : 'Unit'}</label>
+                  <select 
+                    value={unit}
+                    onChange={(e) => setUnit(e.target.value)}
+                    className="w-full p-4 bg-gray-50 border border-gray-200 rounded-2xl focus:ring-2 focus:ring-green-500/20 outline-none font-bold cursor-pointer appearance-none"
+                  >
+                    <option value="decimal">{isBangla ? 'শতাংশ (Decimal)' : 'Decimal'}</option>
+                    <option value="katha">{isBangla ? 'কাঠা' : 'Katha'}</option>
+                    <option value="bigha">{isBangla ? 'বিঘা (৩৩ শতাংশ)' : 'Bigha (33 Dec)'}</option>
+                  </select>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                <div>
+                  <label className="block text-sm font-bold text-gray-700 mb-2">{isBangla ? 'ফসলের ধরন' : 'Crop Type'}</label>
+                  <select 
+                    value={cropType}
+                    onChange={(e) => setCropType(e.target.value)}
+                    className="w-full p-4 bg-gray-50 border border-gray-200 rounded-2xl focus:ring-2 focus:ring-green-500/20 outline-none font-bold cursor-pointer appearance-none"
+                  >
+                    <option value="Rice">{isBangla ? 'ধান' : 'Rice'}</option>
+                    <option value="Wheat">{isBangla ? 'গম' : 'Wheat'}</option>
+                    <option value="Potato">{isBangla ? 'আলু' : 'Potato'}</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-sm font-bold text-gray-700 mb-2">{isBangla ? 'বীজের জাত' : 'Seed Variety'}</label>
+                  <select 
+                    value={seedVariety}
+                    onChange={(e) => setSeedVariety(e.target.value)}
+                    className="w-full p-4 bg-gray-50 border border-gray-200 rounded-2xl focus:ring-2 focus:ring-green-500/20 outline-none font-bold cursor-pointer appearance-none"
+                  >
+                    <option value="HYV">{isBangla ? 'উফশী (HYV)' : 'HYV'}</option>
+                    <option value="Hybrid">{isBangla ? 'হাইব্রিড' : 'Hybrid'}</option>
+                  </select>
+                </div>
+              </div>
+
+              <Button 
+                onClick={handleCalculate}
+                className="w-full py-5 bg-green-600 hover:bg-green-700 text-white font-black text-xl rounded-2xl shadow-xl shadow-green-200 transition-all hover:scale-[1.02] active:scale-95"
+              >
+                {isBangla ? 'হিসাব করুন' : 'Calculate Now'}
+              </Button>
+            </div>
+          </div>
+
+          {/* Results Section */}
+          <div className="bg-gray-50 p-8 md:p-12">
+            {calculatedResult ? (
+              <div className="space-y-8 animate-fade-in-up">
+                <div>
+                  <h4 className="text-gray-500 font-bold uppercase text-xs tracking-widest mb-4">
+                    {isBangla ? 'প্রয়োজনীয় সারের পরিমাণ (কেজি)' : 'Required Fertilizer (KG)'}
+                  </h4>
+                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
+                    {[
+                      { label: isBangla ? 'ইউরিয়া' : 'Urea', value: calculatedResult.urea, color: 'bg-white text-blue-600 border-blue-100' },
+                      { label: isBangla ? 'টিএসপি' : 'TSP', value: calculatedResult.tsp, color: 'bg-white text-orange-600 border-orange-100' },
+                      { label: isBangla ? 'এমওপি' : 'MOP', value: calculatedResult.mop, color: 'bg-white text-red-600 border-red-100' },
+                      { label: isBangla ? 'জিপসাম' : 'Gypsum', value: calculatedResult.gypsum, color: 'bg-white text-emerald-600 border-emerald-100' },
+                      { label: isBangla ? 'জিংক' : 'Zinc', value: calculatedResult.zinc, color: 'bg-white text-purple-600 border-purple-100' },
+                    ].map((item, i) => (
+                      <div key={i} className={`p-4 rounded-2xl border shadow-sm ${item.color}`}>
+                        <p className="text-[10px] font-black uppercase opacity-60 mb-1">{item.label}</p>
+                        <p className="text-2xl font-black">{item.value}</p>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="bg-white p-6 rounded-3xl shadow-sm border border-gray-100 flex items-center justify-between">
+                   <div className="flex items-center gap-4">
+                      <div className="w-14 h-14 bg-green-100 rounded-2xl flex items-center justify-center text-green-600">
+                        <CircleDollarSign size={32} />
+                      </div>
+                      <div>
+                        <p className="text-xs font-bold text-gray-400 uppercase">{isBangla ? 'মোট আনুমানিক খরচ' : 'Est. Total Cost'}</p>
+                        <p className="text-3xl font-black text-gray-900">৳ {calculatedResult.cost.toLocaleString()}</p>
+                      </div>
+                   </div>
+                   <div className="text-right hidden sm:block">
+                      <p className="text-xs font-bold text-gray-400 uppercase">{isBangla ? 'প্রয়োজনীয় বীজ' : 'Required Seed'}</p>
+                      <p className="text-xl font-black text-green-700">{calculatedResult.seed} KG</p>
+                   </div>
+                </div>
+
+                <div>
+                   <h4 className="text-gray-500 font-bold uppercase text-xs tracking-widest mb-4 flex items-center gap-2">
+                     <CalendarClock size={16} />
+                     {isBangla ? 'সার প্রয়োগের সময়সূচী' : 'Fertilizer Application Schedule'}
+                   </h4>
+                   <div className="space-y-3">
+                      {calculatedResult.schedule.map((step, i) => (
+                        <div key={i} className="bg-white p-4 rounded-2xl border border-gray-100 flex gap-4">
+                           <div className="w-8 h-8 rounded-full bg-green-50 text-green-600 flex items-center justify-center font-bold text-sm shrink-0 mt-1">
+                              {i + 1}
+                           </div>
+                           <div>
+                              <h5 className="font-bold text-gray-900">{isBangla ? step.stageBn : step.stageEn}</h5>
+                              <p className="text-sm text-gray-500 mt-1">{isBangla ? step.detailBn : step.detailEn}</p>
+                              <div className="flex flex-wrap gap-2 mt-2">
+                                 {step.fertilizers.map((f, fi) => (
+                                   <span key={fi} className="text-[10px] font-bold px-2 py-0.5 bg-gray-100 rounded-md text-gray-600">{f}</span>
+                                 ))}
+                              </div>
+                           </div>
+                        </div>
+                      ))}
+                   </div>
+                </div>
+              </div>
+            ) : (
+              <div className="h-full flex flex-col items-center justify-center text-center opacity-40 py-20 lg:py-0">
+                <div className="w-24 h-24 bg-gray-200 rounded-full flex items-center justify-center mb-6">
+                  <Calculator size={48} className="text-gray-400" />
+                </div>
+                <h4 className="text-xl font-bold text-gray-900 mb-2">{isBangla ? 'কোন হিসাব পাওয়া যায়নি' : 'No Calculation Found'}</h4>
+                <p className="text-gray-600 max-w-xs">{isBangla ? 'বামে তথ্য পূরণ করে ক্যালকুলেট বাটনে ক্লিক করুন।' : 'Fill out the form on the left to see the required fertilizer amounts.'}</p>
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+      
+      {/* Disclaimer */}
+      <div className="bg-amber-50 border border-amber-100 p-4 rounded-2xl flex items-start gap-3">
+         <Info className="text-amber-600 shrink-0 mt-0.5" size={18} />
+         <p className="text-xs text-amber-800 leading-relaxed">
+            {isBangla 
+              ? 'দ্রষ্টব্য: এই ক্যালকুলেটরটি কৃষি গবেষণা প্রতিষ্ঠান (BARI/BRRI) এর সাধারণ গাইডলাইনের ওপর ভিত্তি করে তৈরি। মাটির গুণাগুণ ভেদে সার ও বীজের পরিমাণ কম-বেশি হতে পারে। সঠিক পরামর্শের জন্য স্থানীয় কৃষি কর্মকর্তার সহায়তা নিন।'
+              : 'Note: This calculator is based on general guidelines from BARI/BRRI. Actual requirements may vary based on soil quality. Consult your local agriculture officer for precise advice.'}
+         </p>
+      </div>
+    </div>
+  );
+
   const renderCommunity = () => (
     <div className="space-y-6 animate-fade-in pb-16">
       <div className="flex justify-between items-center gap-4 bg-green-50 p-8 rounded-[2rem] border border-green-100 mb-8">
@@ -388,7 +550,7 @@ export const AgriModule: React.FC<Props> = ({ isBangla, user, onLogin }) => {
             </div>
         </div>
         {activeTab === 'overview' && renderOverview()}
-        {activeTab === 'calculator' && <div className="p-10 bg-white rounded-3xl border text-center font-bold text-gray-400">Calculator Content Loaded...</div>}
+        {activeTab === 'calculator' && renderCalculator()}
         {activeTab === 'community' && renderCommunity()}
       </div>
     </div>
