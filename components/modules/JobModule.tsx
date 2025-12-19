@@ -50,14 +50,14 @@ export const JobModule: React.FC<Props> = ({ isBangla, user, onLogin }) => {
       deadline: ''
   });
 
-  // Memoized Filtering Logic
+  // Memoized Filtering Logic (SAFE)
   const filteredJobs = useMemo(() => {
+    const term = searchTerm.toLowerCase();
     return jobs.filter((job: any) => {
-      const term = searchTerm.toLowerCase();
       const matchesSearch = 
-        job.title.toLowerCase().includes(term) ||
-        job.company.toLowerCase().includes(term) ||
-        job.location.toLowerCase().includes(term);
+        (job.title?.toLowerCase() || '').includes(term) ||
+        (job.company?.toLowerCase() || '').includes(term) ||
+        (job.location?.toLowerCase() || '').includes(term);
 
       const matchesCategory = selectedCategories.length === 0 || selectedCategories.includes(job.category);
       const matchesType = selectedTypes.length === 0 || selectedTypes.includes(job.type);
@@ -353,7 +353,7 @@ export const JobModule: React.FC<Props> = ({ isBangla, user, onLogin }) => {
         </div>
       </div>
 
-      {/* Post Job Modal - Updated to match Admin Form */}
+      {/* Post Job Modal */}
       {showPostModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fade-in" onClick={() => setShowPostModal(false)}>
           <div className="bg-white w-full max-w-2xl rounded-2xl shadow-2xl overflow-hidden transform transition-all" onClick={e => e.stopPropagation()}>

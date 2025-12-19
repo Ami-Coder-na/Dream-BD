@@ -15,9 +15,10 @@ export const AdminMessages = () => {
 
   const filteredMessages = messages.filter((m: any) => {
     const matchesFilter = filter === 'All' || m.status === filter;
-    const matchesSearch = m.name?.toLowerCase().includes(searchQuery.toLowerCase()) || 
-                          m.email?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                          m.message?.toLowerCase().includes(searchQuery.toLowerCase());
+    const searchLower = searchQuery.toLowerCase();
+    const matchesSearch = (m.name?.toLowerCase() || '').includes(searchLower) || 
+                          (m.email?.toLowerCase() || '').includes(searchLower) ||
+                          (m.message?.toLowerCase() || '').includes(searchLower);
     return matchesFilter && matchesSearch;
   });
 
@@ -145,7 +146,7 @@ export const AdminMessages = () => {
               <div className="p-8 flex-1">
                 <div className="flex items-center gap-4 mb-8">
                   <div className="w-16 h-16 bg-indigo-100 rounded-full flex items-center justify-center text-indigo-600 text-2xl font-bold">
-                    {selectedMessage.name.charAt(0)}
+                    {selectedMessage.name?.charAt(0) || 'U'}
                   </div>
                   <div>
                     <h3 className="text-2xl font-bold text-gray-900">{selectedMessage.name}</h3>

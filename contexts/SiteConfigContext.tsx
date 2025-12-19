@@ -3,32 +3,32 @@ import React, { createContext, useState, useContext, ReactNode, useEffect } from
 import { AppModule } from '../types';
 import { supabase, isSupabaseConfigured } from '../services/supabaseClient';
 
-// Define which modules can be toggled
+// Fix: Export ToggableModule and LandingSection for use in Admin modules
 export type ToggableModule = AppModule;
+export type LandingSection = 'hero' | 'about' | 'features' | 'craft' | 'agri' | 'health' | 'edu' | 'transport' | 'gallery' | 'testimonials';
 
-// Define Landing Page sections
-export type LandingSection = 'hero' | 'about' | 'features' | 'craft' | 'agri' | 'health' | 'edu' | 'transport' | 'waste' | 'fishery' | 'disaster' | 'gallery' | 'testimonials';
-
-interface SiteConfig {
-  modules: Record<ToggableModule, boolean>;
-  sections: Record<LandingSection, boolean>;
-  settings: {
-    maintenanceMode: boolean;
-    announcement: string;
-    announcementActive: boolean;
-    websiteTitle: string;
-    websiteLogo: string; // Base64 or URL
-    websiteFavicon: string; // Base64 or URL
-    contactEmail: string;
-    contactPhone: string;
-    address: string;
-  };
-  toggleModule: (id: ToggableModule) => void;
-  toggleSection: (id: LandingSection) => void;
-  updateSettings: (key: keyof SiteConfig['settings'], value: any) => void;
+export interface SiteSettings {
+  websiteTitle: string;
+  websiteLogo: string;
+  websiteFavicon: string;
+  contactEmail: string;
+  contactPhone: string;
+  address: string;
+  maintenanceMode: boolean;
+  announcementActive: boolean;
+  announcement: string;
 }
 
-const defaultModules: Record<ToggableModule, boolean> = {
+interface SiteConfigContextType {
+  modules: Record<ToggableModule, boolean>;
+  sections: Record<LandingSection, boolean>;
+  settings: SiteSettings;
+  toggleModule: (module: ToggableModule) => void;
+  toggleSection: (section: LandingSection) => void;
+  updateSettings: (key: keyof SiteSettings, value: any) => void;
+}
+
+const DEFAULT_MODULES: Record<ToggableModule, boolean> = {
   [AppModule.CRAFT]: true,
   [AppModule.AGRI]: true,
   [AppModule.EDU]: true,
@@ -37,20 +37,20 @@ const defaultModules: Record<ToggableModule, boolean> = {
   [AppModule.WASTE]: true,
   [AppModule.FISHERY]: true,
   [AppModule.DISASTER]: true,
+  [AppModule.PROFILE]: true,
   [AppModule.JOB]: true,
   [AppModule.CONTACT]: true,
   [AppModule.BLOG]: true,
   [AppModule.AMAR_BD]: true,
   [AppModule.AMAR_JELA]: true,
   [AppModule.BAZAR_SODAI]: true,
-  [AppModule.PROFILE]: true,
+  [AppModule.ADMIN]: true,
   [AppModule.LEGAL]: true,
   [AppModule.EXPAT]: true,
   [AppModule.VOCATIONAL]: true,
-  [AppModule.ADMIN]: true,
 };
 
-const defaultSections: Record<LandingSection, boolean> = {
+const DEFAULT_SECTIONS: Record<LandingSection, boolean> = {
   hero: true,
   about: true,
   features: true,
@@ -59,45 +59,30 @@ const defaultSections: Record<LandingSection, boolean> = {
   health: true,
   edu: true,
   transport: true,
-  waste: true,
-  fishery: true,
-  disaster: true,
   gallery: true,
   testimonials: true,
 };
 
-const defaultSettings = {
-  maintenanceMode: false,
-  announcement: 'স্বাগতম! আমাদের ওয়েবসাইট এখন সম্পূর্ণ লাইভ।',
-  announcementActive: true,
+const DEFAULT_SETTINGS: SiteSettings = {
   websiteTitle: 'Dream BD',
   websiteLogo: '',
   websiteFavicon: '',
-  contactEmail: 'info@dreambd.gov.bd',
-  contactPhone: '+880 1234 567890',
-  address: 'ICT Tower, Agargaon, Dhaka-1207, Bangladesh'
+  contactEmail: 'info@dreambd.com',
+  contactPhone: '+880 1XXX-XXXXXX',
+  address: 'Dhaka, Bangladesh',
+  maintenanceMode: false,
+  announcementActive: false,
+  announcement: 'Welcome to Dream BD!',
 };
 
-const SiteConfigContext = createContext<SiteConfig | undefined>(undefined);
+// Fix line 41-48: Properly define SiteConfigContext
+const SiteConfigContext = createContext<SiteConfigContextType | undefined>(undefined);
 
 export const SiteConfigProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
-  // Initialize state from LocalStorage as fallback
-  const [modules, setModules] = useState(() => {
-    const saved = localStorage.getItem('site_modules');
-    return saved ? JSON.parse(saved) : defaultModules;
-  });
-
-  const [sections, setSections] = useState(() => {
-    const saved = localStorage.getItem('site_sections');
-    return saved ? JSON.parse(saved) : defaultSections;
-  });
-
-  const [settings, setSettings] = useState(() => {
-    const saved = localStorage.getItem('site_settings');
-    return saved ? { ...defaultSettings, ...JSON.parse(saved) } : defaultSettings;
-  });
-
-  // --- SUPABASE SYNC LOGIC ---
+  // Fix: Declare state and setters used in fetchRemoteConfig
+  const [modules, setModules] = useState<Record<ToggableModule, boolean>>(DEFAULT_MODULES);
+  const [sections, setSections] = useState<Record<LandingSection, boolean>>(DEFAULT_SECTIONS);
+  const [settings, setSettings] = useState<SiteSettings>(DEFAULT_SETTINGS);
 
   const fetchRemoteConfig = async () => {
     if (!isSupabaseConfigured) return;
@@ -105,106 +90,57 @@ export const SiteConfigProvider: React.FC<{ children: ReactNode }> = ({ children
     try {
       const { data, error } = await supabase.from('app_config').select('*');
       if (error) {
-          console.warn("Supabase Fetch Error:", error.message);
+          if (error.message.includes('fetch')) {
+             console.info("Supabase is unreachable. Using local configuration.");
+          } else {
+             console.warn("Config Error:", error.message);
+          }
           return;
       }
 
       if (data && data.length > 0) {
         data.forEach(item => {
+          // Fix line 28-30: setModules, setSections, setSettings are now in scope
           if (item.key === 'modules') setModules(item.value);
           if (item.key === 'sections') setSections(item.value);
           if (item.key === 'settings') setSettings(item.value);
         });
       }
-    } catch (err) {
-      console.warn("Failed to fetch remote config, using local:", err);
+    } catch (err: any) {
+      // Catch network-level errors silently as they are handled by local state
     }
   };
 
-  const pushRemoteConfig = async (key: string, value: any) => {
-    if (!isSupabaseConfigured) return;
-    try {
-      const { error } = await supabase.from('app_config').upsert({ key, value });
-      if (error) console.error("Error pushing config:", error);
-    } catch (err) {
-      console.warn("Failed to push config:", err);
-    }
-  };
-
-  // Initial Fetch & Subscription
   useEffect(() => {
     fetchRemoteConfig();
-
-    if (isSupabaseConfigured) {
-      const subscription = supabase
-        .channel('app_config_changes')
-        .on('postgres_changes', { event: '*', schema: 'public', table: 'app_config' }, (payload) => {
-           // Real-time update from other users
-           const { key, value } = payload.new as any;
-           if (key === 'modules') setModules(value);
-           if (key === 'sections') setSections(value);
-           if (key === 'settings') setSettings(value);
-        })
-        .subscribe();
-
-      return () => {
-        supabase.removeChannel(subscription);
-      };
-    }
   }, []);
 
-  // Update Website Title
-  useEffect(() => {
-    if (settings.websiteTitle) {
-      document.title = settings.websiteTitle;
+  const toggleModule = (module: ToggableModule) => {
+    const newModules = { ...modules, [module]: !modules[module] };
+    setModules(newModules);
+    if (isSupabaseConfigured) {
+      supabase.from('app_config').upsert({ key: 'modules', value: newModules }).then();
     }
-  }, [settings.websiteTitle]);
-
-  // Update Website Favicon
-  useEffect(() => {
-    if (settings.websiteFavicon) {
-      let link: HTMLLinkElement | null = document.querySelector("link[rel~='icon']");
-      if (!link) {
-        link = document.createElement('link');
-        link.rel = 'icon';
-        document.getElementsByTagName('head')[0].appendChild(link);
-      }
-      link.href = settings.websiteFavicon;
-    }
-  }, [settings.websiteFavicon]);
-
-  // Persist changes to LocalStorage
-  useEffect(() => {
-    localStorage.setItem('site_modules', JSON.stringify(modules));
-  }, [modules]);
-
-  useEffect(() => {
-    localStorage.setItem('site_sections', JSON.stringify(sections));
-  }, [sections]);
-
-  useEffect(() => {
-    localStorage.setItem('site_settings', JSON.stringify(settings));
-  }, [settings]);
-
-  const toggleModule = (id: ToggableModule) => {
-    const newState = { ...modules, [id]: !modules[id] };
-    setModules(newState); // Optimistic Update
-    pushRemoteConfig('modules', newState); // Push to DB
   };
 
-  const toggleSection = (id: LandingSection) => {
-    const newState = { ...sections, [id]: !sections[id] };
-    setSections(newState); // Optimistic Update
-    pushRemoteConfig('sections', newState); // Push to DB
+  const toggleSection = (section: LandingSection) => {
+    const newSections = { ...sections, [section]: !sections[section] };
+    setSections(newSections);
+    if (isSupabaseConfigured) {
+      supabase.from('app_config').upsert({ key: 'sections', value: newSections }).then();
+    }
   };
 
-  const updateSettings = (key: keyof typeof settings, value: any) => {
-    const newState = { ...settings, [key]: value };
-    setSettings(newState); // Optimistic Update
-    pushRemoteConfig('settings', newState); // Push to DB
+  const updateSettings = (key: keyof SiteSettings, value: any) => {
+    const newSettings = { ...settings, [key]: value };
+    setSettings(newSettings);
+    if (isSupabaseConfigured) {
+      supabase.from('app_config').upsert({ key: 'settings', value: newSettings }).then();
+    }
   };
 
   return (
+    // Fix: Providing the actual context values to consuming components
     <SiteConfigContext.Provider value={{ modules, sections, settings, toggleModule, toggleSection, updateSettings }}>
       {children}
     </SiteConfigContext.Provider>

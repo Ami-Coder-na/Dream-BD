@@ -44,8 +44,9 @@ export const AdminConfig: React.FC<Props> = ({ isBangla }) => {
   const [editingDistrict, setEditingDistrict] = useState<any>(null);
   
   const filteredDistricts = useMemo(() => {
+    const searchLower = (districtSearch || '').toLowerCase();
     return districts.filter((d: any) => 
-      (d.nameEn || '').toLowerCase().includes(districtSearch.toLowerCase()) ||
+      (d.nameEn || '').toLowerCase().includes(searchLower) ||
       (d.nameBn || '').includes(districtSearch)
     );
   }, [districts, districtSearch]);
@@ -80,8 +81,9 @@ export const AdminConfig: React.FC<Props> = ({ isBangla }) => {
   const handleSaveDistrict = (e: React.FormEvent) => {
     e.preventDefault();
     
-    // Generate an ID if it's a new district
-    const finalId = editingDistrict.id || editingDistrict.nameEn.toLowerCase().replace(/\s+/g, '');
+    // Generate an ID if it's a new district safely
+    const safeNameEn = (editingDistrict.nameEn || 'unnamed');
+    const finalId = editingDistrict.id || safeNameEn.toLowerCase().replace(/\s+/g, '');
 
     const updated = {
       ...editingDistrict,
@@ -89,7 +91,7 @@ export const AdminConfig: React.FC<Props> = ({ isBangla }) => {
       upazilas: (editingDistrict.upazilas_str || '').split(',').map((s: string) => s.trim()).filter(Boolean),
       touristSpots: (editingDistrict.spots_str || '').split(',').map((s: string) => s.trim()).filter(Boolean),
       images: (editingDistrict.images_str || '').split(',').map((s: string) => s.trim()).filter(Boolean),
-      hospitals: editingDistrict.hospitals.filter((h: any) => h.name.trim() !== '')
+      hospitals: editingDistrict.hospitals.filter((h: any) => h.name && h.name.trim() !== '')
     };
     
     delete updated.upazilas_str;
@@ -198,7 +200,6 @@ export const AdminConfig: React.FC<Props> = ({ isBangla }) => {
         );
     }
 
-    // Default table for other tabs (Agri, Legal, etc.)
     return (
         <div className="overflow-x-auto rounded-xl border border-gray-100">
             <table className="w-full text-sm text-left border-collapse">
@@ -269,7 +270,6 @@ export const AdminConfig: React.FC<Props> = ({ isBangla }) => {
         </div>
       </div>
 
-      {/* --- DISTRICT EDITOR MODAL --- */}
       {editingDistrict && (
         <div className="fixed inset-0 bg-black/70 z-50 flex items-center justify-center p-4 backdrop-blur-md animate-fade-in overflow-y-auto">
             <div className="bg-white rounded-[2.5rem] shadow-2xl w-full max-w-5xl my-8 relative flex flex-col max-h-[90vh]">
@@ -287,7 +287,6 @@ export const AdminConfig: React.FC<Props> = ({ isBangla }) => {
                 </div>
                 
                 <form onSubmit={handleSaveDistrict} className="p-8 space-y-10 overflow-y-auto flex-1 custom-scrollbar">
-                    {/* Basic Info Section */}
                     <div className="space-y-6">
                         <h4 className="text-lg font-bold text-gray-900 border-l-4 border-brand-500 pl-3">Basic Information</h4>
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
@@ -322,7 +321,6 @@ export const AdminConfig: React.FC<Props> = ({ isBangla }) => {
                         </div>
                     </div>
 
-                    {/* Hospital & Emergency Section - NEW */}
                     <div className="space-y-6">
                         <div className="flex justify-between items-center border-l-4 border-red-500 pl-3">
                             <h4 className="text-lg font-bold text-gray-900">Hospital & Emergency Services</h4>
@@ -366,16 +364,9 @@ export const AdminConfig: React.FC<Props> = ({ isBangla }) => {
                                     </div>
                                 </div>
                             ))}
-                            {editingDistrict.hospitals.length === 0 && (
-                                <div className="text-center py-10 bg-gray-50 rounded-2xl border border-dashed border-gray-200 text-gray-400">
-                                    <Stethoscope size={32} className="mx-auto mb-2 opacity-30" />
-                                    <p className="text-sm italic">No hospitals added yet. Click "Add Hospital" above.</p>
-                                </div>
-                            )}
                         </div>
                     </div>
 
-                    {/* Geographical Info */}
                     <div className="space-y-6">
                         <h4 className="text-lg font-bold text-gray-900 border-l-4 border-indigo-500 pl-3">Administration & Tourism</h4>
                         <div className="grid grid-cols-1 gap-8">
@@ -390,7 +381,6 @@ export const AdminConfig: React.FC<Props> = ({ isBangla }) => {
                         </div>
                     </div>
 
-                    {/* Statistics Section */}
                     <div className="space-y-6">
                         <h4 className="text-lg font-bold text-gray-900 border-l-4 border-blue-500 pl-3">Education Statistics</h4>
                         <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
@@ -413,7 +403,6 @@ export const AdminConfig: React.FC<Props> = ({ isBangla }) => {
                         </div>
                     </div>
 
-                    {/* Media Section */}
                     <div className="space-y-6">
                         <h4 className="text-lg font-bold text-gray-900 border-l-4 border-pink-500 pl-3">Media Gallery</h4>
                         <div className="space-y-2">
@@ -433,7 +422,6 @@ export const AdminConfig: React.FC<Props> = ({ isBangla }) => {
         </div>
       )}
 
-      {/* Basic Config Modal */}
       {isConfigModalOpen && (
         <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4 backdrop-blur-sm animate-fade-in">
             <div className="bg-white rounded-3xl shadow-2xl w-full max-w-md p-8">
@@ -442,7 +430,6 @@ export const AdminConfig: React.FC<Props> = ({ isBangla }) => {
                     <button onClick={() => setIsConfigModalOpen(false)} className="p-2 hover:bg-gray-100 rounded-full transition-colors"><X size={20} className="text-gray-400"/></button>
                 </div>
                 <form onSubmit={handleSubmit} className="space-y-5">
-                    {/* ... other tab fields (agri, etc.) remain standard ... */}
                     <Button type="submit" className="w-full bg-brand-600 text-white font-bold py-3.5 rounded-xl">Save Item</Button>
                 </form>
             </div>

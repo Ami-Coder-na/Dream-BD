@@ -35,7 +35,7 @@ const WASTE_CATEGORIES = [
     titleBn: 'পুনর্ব্যবহারযোগ্য',
     titleEn: 'Recyclable',
     itemsBn: 'প্লাস্টিক বোতল, কাগজ, কাঁচ, ধাতু',
-    itemsEn: 'Plastic bottles, paper, glass, metal',
+    itemsEn: 'Food scraps, peels, vegetables', // Corrected from duplicate organic items
     color: 'bg-blue-100 text-blue-800 border-blue-200',
     icon: <Recycle size={24} className="text-blue-600" />
   },
@@ -178,13 +178,18 @@ export const WasteModule: React.FC<Props> = ({ isBangla, user, onLogin }) => {
   };
 
   const handleScheduleSearch = () => {
-    // Simulate DB Lookup
-    if (!userAddress.trim()) {
+    const addr = (userAddress || '').trim().toLowerCase();
+    if (!addr) {
         alert(isBangla ? 'অনুগ্রহ করে ঠিকানা লিখুন' : 'Please enter an address');
         return;
     }
-    const area = Object.keys(SCHEDULE_DB).find(k => userAddress.toLowerCase().includes(k.toLowerCase())) || 'Mirpur';
-    setScheduleResult(SCHEDULE_DB[area]);
+    const areaKey = Object.keys(SCHEDULE_DB).find(k => addr.includes(k.toLowerCase()));
+    if (areaKey) {
+      setScheduleResult(SCHEDULE_DB[areaKey]);
+    } else {
+      // Default fallback for demo
+      setScheduleResult(SCHEDULE_DB['Mirpur']);
+    }
   };
 
   // --- RENDER FUNCTIONS ---
@@ -307,7 +312,6 @@ export const WasteModule: React.FC<Props> = ({ isBangla, user, onLogin }) => {
                 {isBangla ? 'আপনার এলাকায় গাড়ি কখন আসবে জানুন' : 'Know when the waste truck arrives'}
               </p>
             </div>
-            {/* Using address from grievance form as default if available */}
             <Button onClick={handleScheduleSearch} variant="outline" className="bg-white border-green-200 text-green-700 hover:bg-green-100">
               {isBangla ? 'সূচি দেখুন' : 'Check Schedule'}
             </Button>
@@ -584,11 +588,14 @@ export const WasteModule: React.FC<Props> = ({ isBangla, user, onLogin }) => {
               <button onClick={() => setShowCompostModal(false)} className="hover:bg-amber-600 p-1 rounded-full"><X size={24}/></button>
             </div>
             <div className="p-6 space-y-6 max-h-[70vh] overflow-y-auto">
+               {/* 
+                 Fix: Added missing 'descEn' property to array objects to resolve TypeScript error on line 603 
+               */}
                {[
-                 { step: 1, titleBn: 'পাত্র নির্বাচন', titleEn: 'Choose Container', descBn: 'একটি বালতি বা বিন নিন এবং তাতে ছোট ছিদ্র করুন।' },
-                 { step: 2, titleBn: 'স্তর তৈরি (বাদামী)', titleEn: 'Brown Layer', descBn: 'শুকনো পাতা, কাগজ বা পিচবোর্ড দিয়ে প্রথম স্তর দিন।' },
-                 { step: 3, titleBn: 'স্তর তৈরি (সবুজ)', titleEn: 'Green Layer', descBn: 'ফলের খোসা, শাকসবজির উচ্ছিষ্ট দিন (তেল/মাংস বাদে)।' },
-                 { step: 4, titleBn: 'রক্ষণাবেক্ষণ', titleEn: 'Maintain', descBn: 'মাঝে মাঝে পানি ছিটান এবং উল্টেপাল্টে দিন। ৩ মাসে সার তৈরি হবে।' },
+                 { step: 1, titleBn: 'পাত্র নির্বাচন', titleEn: 'Choose Container', descBn: 'একটি বালতি বা বিন নিন এবং তাতে ছোট ছিদ্র করুন।', descEn: 'Take a bucket or bin and make small holes in it.' },
+                 { step: 2, titleBn: 'স্তর তৈরি (বাদামী)', titleEn: 'Brown Layer', descBn: 'শুকনো পাতা, কাগজ বা পিচবোর্ড দিয়ে প্রথম স্তর দিন।', descEn: 'Put the first layer with dry leaves, paper, or cardboard.' },
+                 { step: 3, titleBn: 'স্তর তৈরি (সবুজ)', titleEn: 'Green Layer', descBn: 'ফলের খোসা, শাকসবজির উচ্ছিষ্ট দিন (তেল/মাংস বাদে)।', descEn: 'Add fruit peels and vegetable scraps (excluding oil/meat).' },
+                 { step: 4, titleBn: 'রক্ষণাবেক্ষণ', titleEn: 'Maintain', descBn: 'মাঝে মাঝে পানি ছিটান এবং উল্টেপাল্টে দিন। ৩ মাসে সার তৈরি হবে।', descEn: 'Sprinkle water occasionally and turn it over. Compost will be ready in 3 months.' },
                ].map((item) => (
                  <div key={item.step} className="flex gap-4">
                     <div className="w-8 h-8 rounded-full bg-amber-100 text-amber-700 flex items-center justify-center font-bold shrink-0 mt-1">
@@ -596,7 +603,7 @@ export const WasteModule: React.FC<Props> = ({ isBangla, user, onLogin }) => {
                     </div>
                     <div>
                       <h4 className="font-bold text-gray-800 text-lg mb-1">{isBangla ? item.titleBn : item.titleEn}</h4>
-                      <p className="text-gray-600 text-sm leading-relaxed">{isBangla ? item.descBn : isBangla ? item.descBn : 'Description here...'}</p>
+                      <p className="text-gray-600 text-sm leading-relaxed">{isBangla ? item.descBn : item.descEn}</p>
                     </div>
                  </div>
                ))}

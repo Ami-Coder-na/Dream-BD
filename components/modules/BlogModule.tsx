@@ -92,10 +92,11 @@ export const BlogModule: React.FC<Props> = ({ isBangla, user, onLogin }) => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
-  const filteredPosts = blogs.filter((post: any) => 
-    post.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    post.category.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  const filteredPosts = blogs.filter((post: any) => {
+    const searchLower = searchQuery.toLowerCase();
+    return (post.title?.toLowerCase() || '').includes(searchLower) ||
+           (post.category?.toLowerCase() || '').includes(searchLower);
+  });
 
   const categories = [
     { id: 'Agriculture', bn: 'কৃষি', en: 'Agriculture' },
@@ -180,10 +181,10 @@ export const BlogModule: React.FC<Props> = ({ isBangla, user, onLogin }) => {
                 </div>
               </div>
 
-              {/* HTML Content Render (Supports both text and HTML from RSS) */}
+              {/* HTML Content Render */}
               <div 
                 className="prose prose-lg prose-emerald max-w-none text-gray-700 leading-relaxed"
-                dangerouslySetInnerHTML={{ __html: selectedPost.content }}
+                dangerouslySetInnerHTML={{ __html: selectedPost.content || '' }}
               />
 
               {/* Tags/Footer */}
@@ -323,7 +324,7 @@ export const BlogModule: React.FC<Props> = ({ isBangla, user, onLogin }) => {
                     {post.title}
                   </h3>
                   
-                  <div className="text-gray-600 text-sm line-clamp-3 mb-6 flex-1 leading-relaxed" dangerouslySetInnerHTML={{ __html: post.excerpt }} />
+                  <div className="text-gray-600 text-sm line-clamp-3 mb-6 flex-1 leading-relaxed" dangerouslySetInnerHTML={{ __html: post.excerpt || '' }} />
                   
                   <div className="pt-4 border-t border-gray-50 flex items-center justify-between">
                     <button className="flex items-center text-emerald-600 font-bold text-sm hover:gap-2 transition-all group/btn">

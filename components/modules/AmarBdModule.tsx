@@ -80,7 +80,6 @@ const DISTRICT_BRANDING = {
   ]
 };
 
-// Static data moved outside component to prevent reallocation on re-renders
 const tourismData: DivisionData[] = [
   {
     id: 'dhaka',
@@ -204,7 +203,6 @@ const tourismData: DivisionData[] = [
   }
 ];
 
-// Colors for tree nodes
 const divisionColors: Record<string, string> = {
   dhaka: 'bg-green-600 border-green-600 text-white',
   chattogram: 'bg-teal-600 border-teal-600 text-white',
@@ -252,15 +250,10 @@ export const AmarBdModule: React.FC<Props> = ({ isBangla, onModuleSelect }) => {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedDistrictForDetails, setSelectedDistrictForDetails] = useState<{ district: DistrictData, divisionName: string } | null>(null);
   const [treeOpenDivision, setTreeOpenDivision] = useState<string | null>(null);
-  
-  // State for Branding Tree
   const [brandingDivision, setBrandingDivision] = useState<string>('dhaka');
-
-  // State for Calendar
   const [calendarView, setCalendarView] = useState<'monthly' | 'yearly'>('monthly');
   const [currentDate, setCurrentDate] = useState(new Date());
 
-  // Optimized filtering with useMemo
   const filteredList = useMemo(() => {
     let districts: { district: DistrictData, divisionName: string, divisionId: string }[] = [];
     
@@ -275,15 +268,14 @@ export const AmarBdModule: React.FC<Props> = ({ isBangla, onModuleSelect }) => {
     if (searchQuery) {
       const lowerQuery = searchQuery.toLowerCase();
       districts = districts.filter(d => 
-        d.district.nameEn.toLowerCase().includes(lowerQuery) ||
-        d.district.nameBn.includes(searchQuery)
+        (d.district?.nameEn || '').toLowerCase().includes(lowerQuery) ||
+        (d.district?.nameBn || '').includes(searchQuery)
       );
     }
 
     return districts;
   }, [activeDivision, searchQuery, isBangla]);
 
-  // Helper to get icon for branding type
   const getBrandingIcon = (type: string) => {
     switch(type) {
       case 'food': return <Utensils size={14} className="text-orange-500" />;
@@ -311,7 +303,6 @@ export const AmarBdModule: React.FC<Props> = ({ isBangla, onModuleSelect }) => {
           </div>
 
           <div className="flex flex-col lg:flex-row gap-8">
-            {/* Left Controller: Division List */}
             <div className="w-full lg:w-1/4 bg-white rounded-2xl shadow-sm border border-gray-100 p-2 h-fit">
               <p className="text-xs font-bold text-gray-400 uppercase p-3">{isBangla ? 'বিভাগ নির্বাচন করুন' : 'Select Division'}</p>
               <div className="space-y-1">
@@ -332,23 +323,19 @@ export const AmarBdModule: React.FC<Props> = ({ isBangla, onModuleSelect }) => {
               </div>
             </div>
 
-            {/* Right Canvas: The Tree Visualization */}
             <div className="w-full lg:w-3/4 min-h-[500px] flex items-center">
                <div className="relative w-full">
-                  {/* Root Node: Division */}
                   <div className="absolute left-0 top-1/2 -translate-y-1/2 z-20 hidden md:block">
                      <div className="w-24 h-24 rounded-full bg-emerald-600 border-4 border-white shadow-xl flex items-center justify-center text-center text-white p-2 animate-pulse">
                         <span className="font-bold text-sm leading-tight">
-                          {isBangla ? divInfo?.nameBn.replace(' বিভাগ', '') : divInfo?.nameEn.replace(' Division', '')}
+                          {isBangla ? divInfo?.nameBn.replace(' বিভাগ', '') : (divInfo?.nameEn || '').replace(' Division', '')}
                         </span>
                      </div>
                   </div>
 
-                  {/* Connectors & Nodes Container */}
                   <div className="md:pl-32 grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-6">
                      {districts.map((item, index) => (
                        <div key={index} className="relative group perspective-1000">
-                          {/* SVG Connector Line (Desktop Only) */}
                           <svg className="absolute top-1/2 -left-32 w-32 h-20 -translate-y-1/2 hidden md:block pointer-events-none z-0" style={{ overflow: 'visible' }}>
                              <path 
                                d="M0,0 C60,0 40,0 120,0" 
@@ -360,7 +347,6 @@ export const AmarBdModule: React.FC<Props> = ({ isBangla, onModuleSelect }) => {
                              <circle cx="120" cy="0" r="3" fill="#10b981" />
                           </svg>
 
-                          {/* District Node Card */}
                           <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-100 hover:shadow-lg hover:border-emerald-200 transition-all duration-300 relative z-10 flex items-center gap-4 transform hover:-translate-y-1">
                              <div className={`w-12 h-12 rounded-full flex items-center justify-center shrink-0 ${
                                item.type === 'food' ? 'bg-orange-50' : 
@@ -401,12 +387,8 @@ export const AmarBdModule: React.FC<Props> = ({ isBangla, onModuleSelect }) => {
     setCurrentDate(new Date(newDate));
   };
 
-  // Helper to approximate Bangla Month
   const getBanglaMonthName = (engMonthIndex: number) => {
-    // English Month 0 (Jan) -> Poush/Magh. Mid-Jan is start of Magh.
-    // Simplified: Jan -> Poush-Magh
-    // This is a rough visualization, not precise date converter
-    const index = (engMonthIndex + 8) % 12; // Shifts roughly to match Bangla calendar start (Boishakh is ~April)
+    const index = (engMonthIndex + 8) % 12; 
     return isBangla ? BANGLA_MONTHS[index].bn : BANGLA_MONTHS[index].en;
   };
 
@@ -416,24 +398,14 @@ export const AmarBdModule: React.FC<Props> = ({ isBangla, onModuleSelect }) => {
     const days = [];
     const today = new Date();
 
-    // Empty cells for previous month
     for (let i = 0; i < firstDay; i++) {
       days.push(<div key={`empty-${i}`} className="h-14 sm:h-20 bg-gray-50/50 border border-gray-100"></div>);
     }
 
-    // Days
     for (let i = 1; i <= daysInMonth; i++) {
       const isToday = i === today.getDate() && currentDate.getMonth() === today.getMonth() && currentDate.getFullYear() === today.getFullYear();
-      const currentMonthIndex = currentDate.getMonth(); // 0-11
-      
-      // Check for holiday (simplified checking)
-      // Note: GOVT_HOLIDAYS use abbreviated dates like "21 Feb". 
-      // We need to map `currentMonthIndex` to a string like "Feb".
+      const currentMonthIndex = currentDate.getMonth(); 
       const monthNamesShort = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
-      const dateString = `${i < 10 ? '0' + i : i} ${monthNamesShort[currentMonthIndex]}`;
-      const holiday = GOVT_HOLIDAYS.find(h => h.date.startsWith(`${i} `) && h.month === currentMonthIndex);
-      
-      // Also check specific date strings in array
       const specificHoliday = GOVT_HOLIDAYS.find(h => h.date === `${i} ${monthNamesShort[currentMonthIndex]}`);
 
       days.push(
@@ -444,7 +416,6 @@ export const AmarBdModule: React.FC<Props> = ({ isBangla, onModuleSelect }) => {
           {specificHoliday && (
             <div className="absolute bottom-1 left-1 right-1">
               <div className="h-1.5 w-full bg-red-400 rounded-full"></div>
-              {/* Tooltip */}
               <div className="absolute z-50 bottom-full left-1/2 -translate-x-1/2 mb-2 w-max max-w-[150px] p-2 bg-gray-800 text-white text-xs rounded shadow-lg opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
                 {isBangla ? specificHoliday.nameBn : specificHoliday.nameEn}
               </div>
@@ -456,7 +427,6 @@ export const AmarBdModule: React.FC<Props> = ({ isBangla, onModuleSelect }) => {
 
     return (
       <div className="bg-white rounded-2xl shadow-lg border border-gray-100 overflow-hidden">
-        {/* Calendar Header */}
         <div className="p-4 bg-gradient-to-r from-red-600 to-red-500 text-white flex justify-between items-center">
           <button onClick={() => changeMonth(-1)} className="p-2 hover:bg-white/20 rounded-full"><ChevronLeft size={20}/></button>
           <div className="text-center">
@@ -470,7 +440,6 @@ export const AmarBdModule: React.FC<Props> = ({ isBangla, onModuleSelect }) => {
           <button onClick={() => changeMonth(1)} className="p-2 hover:bg-white/20 rounded-full"><ChevronRight size={20}/></button>
         </div>
 
-        {/* Days Header */}
         <div className="grid grid-cols-7 text-center bg-gray-50 border-b border-gray-100">
           {(isBangla ? ['রবি', 'সোম', 'মঙ্গল', 'বুধ', 'বৃহঃ', 'শুক্র', 'শনি'] : ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']).map((d, i) => (
             <div key={i} className={`py-2 text-xs font-bold uppercase ${i === 5 || i === 6 ? 'text-red-500' : 'text-gray-500'}`}>
@@ -478,8 +447,6 @@ export const AmarBdModule: React.FC<Props> = ({ isBangla, onModuleSelect }) => {
             </div>
           ))}
         </div>
-
-        {/* Calendar Grid */}
         <div className="grid grid-cols-7 bg-white">
           {days}
         </div>
@@ -560,12 +527,9 @@ export const AmarBdModule: React.FC<Props> = ({ isBangla, onModuleSelect }) => {
                 </div>
 
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
-                    {/* Left: Main Calendar View */}
                     <div className="lg:col-span-2">
                         {calendarView === 'monthly' ? renderMonthlyCalendar() : renderYearlyView()}
                     </div>
-
-                    {/* Right: Upcoming Holidays / Info */}
                     <div className="lg:col-span-1">
                         <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
                             <h3 className="font-bold text-gray-900 mb-4 flex items-center gap-2 border-b border-gray-100 pb-3">
@@ -573,7 +537,7 @@ export const AmarBdModule: React.FC<Props> = ({ isBangla, onModuleSelect }) => {
                                 {isBangla ? 'আসন্ন ছুটি' : 'Upcoming Holidays'}
                             </h3>
                             <div className="space-y-4">
-                                {GOVT_HOLIDAYS.slice(0, 4).map((h, i) => ( // Showing first few for demo
+                                {GOVT_HOLIDAYS.slice(0, 4).map((h, i) => (
                                   <div key={i} className="flex items-center gap-3 p-3 hover:bg-gray-50 rounded-xl transition-colors cursor-default">
                                      <div className="bg-red-50 text-red-600 w-12 h-12 flex flex-col items-center justify-center rounded-lg border border-red-100 shrink-0">
                                         <span className="text-lg font-bold leading-none">{h.date.split(' ')[0]}</span>
@@ -607,24 +571,12 @@ export const AmarBdModule: React.FC<Props> = ({ isBangla, onModuleSelect }) => {
 
   return (
     <div className="bg-white min-h-screen animate-fade-in">
-      {/* Hero Section */}
       <div className="relative h-[500px] overflow-hidden">
         <div className="absolute inset-0">
           <img 
             src={getOptimizedImageUrl('https://images.unsplash.com/photo-1548013146-72479768bada', 1280)}
-            srcSet={`${getOptimizedImageUrl('https://images.unsplash.com/photo-1548013146-72479768bada', 640)} 640w,
-                    ${getOptimizedImageUrl('https://images.unsplash.com/photo-1548013146-72479768bada', 1024)} 1024w,
-                    ${getOptimizedImageUrl('https://images.unsplash.com/photo-1548013146-72479768bada', 1280)} 1280w`}
-            sizes="100vw"
             alt="Bangladesh Landscape" 
             className="w-full h-full object-cover"
-            loading="eager"
-            fetchPriority="high"
-            width="1280"
-            height="500"
-            onError={(e) => {
-              e.currentTarget.src = "https://placehold.co/1280x500/22c55e/ffffff?text=Beautiful+Bangladesh";
-            }}
           />
           <div className="absolute inset-0 bg-black/50"></div>
           <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/20 to-black/60"></div>
@@ -644,7 +596,6 @@ export const AmarBdModule: React.FC<Props> = ({ isBangla, onModuleSelect }) => {
         </div>
       </div>
 
-      {/* Quick Stats */}
       <div className="bg-green-50 py-12">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
@@ -668,13 +619,9 @@ export const AmarBdModule: React.FC<Props> = ({ isBangla, onModuleSelect }) => {
         </div>
       </div>
 
-      {/* NEW SECTION: District Branding Tree */}
       {renderBrandingTree()}
-
-      {/* NEW SECTION: Calendar & Holidays */}
       {renderCalendarSection()}
 
-      {/* Administrative Tree */}
       <div className="py-20 bg-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
@@ -690,7 +637,6 @@ export const AmarBdModule: React.FC<Props> = ({ isBangla, onModuleSelect }) => {
           </div>
 
           <div className="max-w-5xl mx-auto">
-            {/* Root Node: Bangladesh */}
             <div className="flex flex-col items-center relative z-10">
               <div className="w-24 h-24 rounded-full bg-green-600 border-4 border-white shadow-xl flex flex-col items-center justify-center text-white z-20 hover:scale-110 transition-transform cursor-pointer">
                 <span className="text-xs font-bold opacity-80">{isBangla ? 'দেশ' : 'Country'}</span>
@@ -753,7 +699,6 @@ export const AmarBdModule: React.FC<Props> = ({ isBangla, onModuleSelect }) => {
         </div>
       </div>
 
-      {/* 64 Districts Tourism Section - Sticky controls */}
       <div id="districts" className="py-20 bg-gray-50/50 scroll-mt-20">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-12">
@@ -769,7 +714,6 @@ export const AmarBdModule: React.FC<Props> = ({ isBangla, onModuleSelect }) => {
 
           <div className="sticky top-24 z-30 mb-12">
             <div className="bg-white rounded-2xl shadow-lg p-4 border border-gray-100 flex flex-col md:flex-row gap-4 items-center justify-between">
-              {/* Division Filter Tabs */}
               <div className="flex overflow-x-auto gap-2 w-full md:w-auto pb-2 md:pb-0 hide-scrollbar">
                  <button
                    onClick={() => setActiveDivision('All')}
@@ -788,7 +732,6 @@ export const AmarBdModule: React.FC<Props> = ({ isBangla, onModuleSelect }) => {
                  ))}
               </div>
 
-              {/* Search Box */}
               <div className="relative w-full md:w-72 shrink-0">
                 <Search className="absolute left-3 top-3 text-gray-400" size={18} />
                 <input 
@@ -802,7 +745,6 @@ export const AmarBdModule: React.FC<Props> = ({ isBangla, onModuleSelect }) => {
             </div>
           </div>
 
-          {/* Districts Grid */}
           {filteredList.length > 0 ? (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {filteredList.map((item, idx) => (
@@ -831,18 +773,13 @@ export const AmarBdModule: React.FC<Props> = ({ isBangla, onModuleSelect }) => {
                       {isBangla ? 'জনপ্রিয় স্থানসমূহ' : 'Popular Spots'}
                     </p>
                     <ul className="space-y-2">
-                      {item.district.spots.slice(0, 3).map((spot, sIdx) => (
+                      {(item.district?.spots || []).slice(0, 3).map((spot, sIdx) => (
                         <li key={sIdx} className="flex items-start gap-2 text-sm text-gray-600">
                           <span className="w-1.5 h-1.5 rounded-full bg-green-400 mt-1.5 shrink-0"></span>
                           <span className="line-clamp-1">{spot}</span>
                         </li>
                       ))}
                     </ul>
-                    {item.district.spots.length > 3 && (
-                      <p className="text-xs text-green-600 font-medium mt-3 pl-3.5">
-                        +{item.district.spots.length - 3} {isBangla ? 'আরও' : 'more'}
-                      </p>
-                    )}
                   </div>
 
                   <div className="mt-5 pt-4 border-t border-gray-50 flex justify-end">
@@ -865,7 +802,6 @@ export const AmarBdModule: React.FC<Props> = ({ isBangla, onModuleSelect }) => {
         </div>
       </div>
 
-      {/* District Details Modal */}
       {selectedDistrictForDetails && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fade-in" onClick={() => setSelectedDistrictForDetails(null)}>
           <div className="bg-white w-full max-w-xl rounded-2xl shadow-2xl overflow-hidden animate-fade-in-up" onClick={e => e.stopPropagation()}>
@@ -893,7 +829,7 @@ export const AmarBdModule: React.FC<Props> = ({ isBangla, onModuleSelect }) => {
               </h3>
               
               <div className="space-y-3">
-                {selectedDistrictForDetails.district.spots.map((spot, idx) => (
+                {(selectedDistrictForDetails.district?.spots || []).map((spot, idx) => (
                   <div key={idx} className="flex items-center gap-3 p-3 rounded-xl hover:bg-gray-50 border border-transparent hover:border-gray-200 transition-all cursor-pointer group">
                     <span className="w-8 h-8 rounded-full bg-green-100 text-green-700 flex items-center justify-center font-bold text-sm">
                       {idx + 1}
@@ -908,11 +844,6 @@ export const AmarBdModule: React.FC<Props> = ({ isBangla, onModuleSelect }) => {
               <Button variant="outline" onClick={() => setSelectedDistrictForDetails(null)}>
                 {isBangla ? 'বন্ধ করুন' : 'Close'}
               </Button>
-              {onModuleSelect && (
-                <Button onClick={() => onModuleSelect(AppModule.AMAR_JELA)}>
-                  {isBangla ? 'জেলার বিস্তারিত দেখুন' : 'View District Details'}
-                </Button>
-              )}
             </div>
           </div>
         </div>
