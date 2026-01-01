@@ -1,11 +1,10 @@
-
 import React, { useState, useMemo } from 'react';
 import { 
   Database, Search, Sprout, Stethoscope, BookOpen, 
   Navigation, Recycle, Home, Fish, Hammer, MapPin, 
   Plus, Trash2, Filter, X, Edit3, Scale, Plane, Wrench,
   AlertCircle, Users, Building2, Camera, Info, CheckCircle, Save, ChevronRight,
-  Image as ImageIcon, HeartPulse, PlusCircle, Phone, DollarSign, Clock, Tag
+  Image as ImageIcon, HeartPulse, PlusCircle, Phone, DollarSign, Clock, Tag, Waves
 } from 'lucide-react';
 import { Button } from '../../ui/Button';
 import { useData } from '../../../contexts/DataContext';
@@ -32,7 +31,7 @@ export const AdminConfig: React.FC<Props> = ({ isBangla }) => {
     lawyers, addLawyer, deleteLawyer, 
     exchangeRates, addExchangeRate, deleteExchangeRate,
     vocationalCourses, addVocationalCourse, deleteVocationalCourse,
-    districts, updateDistrict
+    districts, updateDistrict, deleteDistrict
   } = useData();
 
   const [activeConfigTab, setActiveConfigTab] = useState<ConfigTab>('districts');
@@ -46,8 +45,8 @@ export const AdminConfig: React.FC<Props> = ({ isBangla }) => {
   const filteredDistricts = useMemo(() => {
     const searchLower = (districtSearch || '').toLowerCase();
     return districts.filter((d: any) => 
-      (d.nameEn || '').toLowerCase().includes(searchLower) ||
-      (d.nameBn || '').includes(districtSearch)
+      (d.nameEn || d.nameen || '').toLowerCase().includes(searchLower) ||
+      (d.nameBn || d.namebn || '').includes(districtSearch)
     );
   }, [districts, districtSearch]);
 
@@ -82,7 +81,7 @@ export const AdminConfig: React.FC<Props> = ({ isBangla }) => {
     e.preventDefault();
     
     // Generate an ID if it's a new district safely
-    const safeNameEn = (editingDistrict.nameEn || 'unnamed');
+    const safeNameEn = (editingDistrict.nameEn || editingDistrict.nameen || 'unnamed');
     const finalId = editingDistrict.id || safeNameEn.toLowerCase().replace(/\s+/g, '');
 
     const updated = {
@@ -126,11 +125,13 @@ export const AdminConfig: React.FC<Props> = ({ isBangla }) => {
   };
 
   const handleDeleteItem = (id: any) => {
-      if(!confirm('Delete this item?')) return;
+      if(!confirm('Delete this item permanently?')) return;
       if (activeConfigTab === 'agri') updateMarketPrices(marketPrices.filter((p: any) => p.id !== id));
       else if (activeConfigTab === 'legal') deleteLawyer(id);
       else if (activeConfigTab === 'vocational') deleteVocationalCourse(id);
       else if (activeConfigTab === 'expat') deleteExchangeRate(id);
+      else if (activeConfigTab === 'districts') deleteDistrict(id);
+      // Handlers for other modules can be added here as needed
   };
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -185,7 +186,7 @@ export const AdminConfig: React.FC<Props> = ({ isBangla }) => {
                             <div>
                                 <div className="flex justify-between items-start mb-4">
                                   <div>
-                                      <h4 className="font-black text-xl text-gray-900">{isBangla ? d.nameBn : d.nameEn}</h4>
+                                      <h4 className="font-black text-xl text-gray-900">{isBangla ? (d.nameBn || d.namebn) : (d.nameEn || d.nameen)}</h4>
                                       <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mt-1">{d.division} Division</p>
                                   </div>
                                   <div className="bg-brand-50 text-brand-700 p-2 rounded-lg"><MapPin size={20} /></div>
@@ -196,9 +197,18 @@ export const AdminConfig: React.FC<Props> = ({ isBangla }) => {
                                     <p className="text-sm text-gray-600 flex justify-between"><span>Hospitals:</span> <span className="font-bold text-red-600">{Array.isArray(d.hospitals) ? d.hospitals.length : 0}</span></p>
                                 </div>
                             </div>
-                            <Button onClick={() => handleEditDistrict(d)} className="w-full bg-gray-900 hover:bg-brand-600 text-white flex items-center justify-center gap-2 py-2.5 rounded-xl font-bold transition-all shadow-md group-hover:scale-[1.02]">
-                                <Edit3 size={16}/> Edit District Data
-                            </Button>
+                            <div className="flex gap-2">
+                                <Button onClick={() => handleEditDistrict(d)} className="flex-1 bg-gray-900 hover:bg-brand-600 text-white flex items-center justify-center gap-2 py-2.5 rounded-xl font-bold transition-all shadow-md group-hover:scale-[1.02]">
+                                    <Edit3 size={16}/> Edit District Data
+                                </Button>
+                                <button 
+                                    onClick={() => handleDeleteItem(d.id)} 
+                                    className="p-2.5 bg-red-50 text-red-600 rounded-xl hover:bg-red-600 hover:text-white transition-all border border-red-100 shadow-sm"
+                                    title="Delete District"
+                                >
+                                    <Trash2 size={20} />
+                                </button>
+                            </div>
                         </div>
                     ))}
                 </div>
@@ -263,267 +273,126 @@ export const AdminConfig: React.FC<Props> = ({ isBangla }) => {
     );
   };
 
-  const renderModalForm = () => {
-    switch (activeConfigTab) {
-      case 'agri':
-        return (
-          <>
-            <div><label className="block text-xs font-bold text-gray-500 uppercase mb-1">Item Name (EN)</label><input required className="w-full p-3 bg-gray-50 border rounded-xl" value={configForm.nameEn || ''} onChange={e => setConfigForm({...configForm, nameEn: e.target.value})} placeholder="e.g. Rice" /></div>
-            <div><label className="block text-xs font-bold text-gray-500 uppercase mb-1">Item Name (BN)</label><input required className="w-full p-3 bg-gray-50 border rounded-xl" value={configForm.nameBn || ''} onChange={e => setConfigForm({...configForm, nameBn: e.target.value})} placeholder="যেমন: চাল" /></div>
-            <div className="grid grid-cols-2 gap-4">
-              <div><label className="block text-xs font-bold text-gray-500 uppercase mb-1">Price Today (৳)</label><input required type="number" className="w-full p-3 bg-gray-50 border rounded-xl" value={configForm.today || ''} onChange={e => setConfigForm({...configForm, today: e.target.value})} /></div>
-              <div><label className="block text-xs font-bold text-gray-500 uppercase mb-1">Unit</label><input required className="w-full p-3 bg-gray-50 border rounded-xl" value={configForm.unit || ''} onChange={e => setConfigForm({...configForm, unit: e.target.value})} placeholder="kg/pc/mon" /></div>
-            </div>
-          </>
-        );
-      case 'legal':
-        return (
-          <>
-            <div><label className="block text-xs font-bold text-gray-500 uppercase mb-1">Lawyer Name</label><input required className="w-full p-3 bg-gray-50 border rounded-xl" value={configForm.name || ''} onChange={e => setConfigForm({...configForm, name: e.target.value})} /></div>
-            <div><label className="block text-xs font-bold text-gray-500 uppercase mb-1">Specialty</label><input required className="w-full p-3 bg-gray-50 border rounded-xl" value={configForm.specialty || ''} onChange={e => setConfigForm({...configForm, specialty: e.target.value})} /></div>
-            <div><label className="block text-xs font-bold text-gray-500 uppercase mb-1">Location</label><input required className="w-full p-3 bg-gray-50 border rounded-xl" value={configForm.location || ''} onChange={e => setConfigForm({...configForm, location: e.target.value})} /></div>
-            <div><label className="block text-xs font-bold text-gray-500 uppercase mb-1">Phone</label><input required className="w-full p-3 bg-gray-50 border rounded-xl" value={configForm.phone || ''} onChange={e => setConfigForm({...configForm, phone: e.target.value})} /></div>
-          </>
-        );
-      case 'expat':
-        return (
-          <>
-            <div><label className="block text-xs font-bold text-gray-500 uppercase mb-1">Currency Code</label><input required className="w-full p-3 bg-gray-50 border rounded-xl" value={configForm.currency || ''} onChange={e => setConfigForm({...configForm, currency: e.target.value})} placeholder="USD / SAR / MYR" /></div>
-            <div><label className="block text-xs font-bold text-gray-500 uppercase mb-1">Exchange Rate (to ৳)</label><input required type="number" step="0.01" className="w-full p-3 bg-gray-50 border rounded-xl" value={configForm.rate || ''} onChange={e => setConfigForm({...configForm, rate: e.target.value})} /></div>
-          </>
-        );
-      case 'vocational':
-        return (
-          <>
-            <div><label className="block text-xs font-bold text-gray-500 uppercase mb-1">Course Title (EN)</label><input required className="w-full p-3 bg-gray-50 border rounded-xl" value={configForm.titleEn || ''} onChange={e => setConfigForm({...configForm, titleEn: e.target.value})} /></div>
-            <div><label className="block text-xs font-bold text-gray-500 uppercase mb-1">Course Title (BN)</label><input required className="w-full p-3 bg-gray-50 border rounded-xl" value={configForm.titleBn || ''} onChange={e => setConfigForm({...configForm, titleBn: e.target.value})} /></div>
-            <div className="grid grid-cols-2 gap-4">
-              <div><label className="block text-xs font-bold text-gray-500 uppercase mb-1">Category</label><input required className="w-full p-3 bg-gray-50 border rounded-xl" value={configForm.category || ''} onChange={e => setConfigForm({...configForm, category: e.target.value})} /></div>
-              <div><label className="block text-xs font-bold text-gray-500 uppercase mb-1">Duration</label><input required className="w-full p-3 bg-gray-50 border rounded-xl" value={configForm.duration || ''} onChange={e => setConfigForm({...configForm, duration: e.target.value})} placeholder="4 Weeks" /></div>
-            </div>
-            <div><label className="block text-xs font-bold text-gray-500 uppercase mb-1">Course Fee (৳)</label><input required type="number" className="w-full p-3 bg-gray-50 border rounded-xl" value={configForm.fee || ''} onChange={e => setConfigForm({...configForm, fee: e.target.value})} /></div>
-          </>
-        );
-      default:
-        return <p className="text-sm text-gray-400">Configuration for this module is coming soon.</p>;
-    }
-  };
-
-  const isEditable = ['districts', 'agri', 'legal', 'expat', 'vocational'].includes(activeConfigTab);
-
   return (
     <div className="space-y-6 animate-fade-in">
-      <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
-        <div className="flex flex-col gap-6 mb-8">
-          <div className="flex justify-between items-center">
-            <h3 className="text-2xl font-black text-gray-900 flex items-center gap-2">
-              <Database className="text-brand-600" size={28} /> Module Configuration
-            </h3>
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+          <div className="flex items-center gap-3">
+            <div className="p-3 bg-brand-50 rounded-xl text-brand-600">
+              <Database size={28} />
+            </div>
+            <div>
+              <h2 className="text-2xl font-bold text-gray-900">Module Configuration</h2>
+              <p className="text-gray-500 text-sm">Fine-tune data and settings for specific modules</p>
+            </div>
           </div>
-          
-          <div className="flex gap-2 overflow-x-auto pb-4 hide-scrollbar border-b border-gray-50">
-            {[
-              { id: 'districts', label: '64 Districts', icon: <MapPin size={16}/> },
-              { id: 'agri', label: 'Agriculture', icon: <Sprout size={16}/> },
-              { id: 'legal', label: 'Legal Aid', icon: <Scale size={16}/> },
-              { id: 'expat', label: 'Expat', icon: <Plane size={16}/> },
-              { id: 'vocational', label: 'Vocational', icon: <Wrench size={16}/> },
-              { id: 'health', label: 'Health', icon: <Stethoscope size={16}/> },
-              { id: 'edu', label: 'Education', icon: <BookOpen size={16}/> },
-              { id: 'transport', label: 'Transport', icon: <Navigation size={16}/> },
-            ].map(tab => (
-              <button
-                key={tab.id}
-                onClick={() => setActiveConfigTab(tab.id as ConfigTab)}
-                className={`flex items-center gap-2 px-6 py-2.5 rounded-full text-sm font-bold transition-all whitespace-nowrap border ${
-                  activeConfigTab === tab.id 
-                    ? 'bg-brand-600 text-white border-brand-600 shadow-md scale-105' 
-                    : 'bg-white text-gray-600 border-gray-200 hover:bg-gray-50'
-                }`}
-              >
-                {tab.icon} <span>{tab.label}</span>
-              </button>
-            ))}
-          </div>
+          <Button onClick={openModal} className="bg-gray-900 hover:bg-black text-white px-6">
+            <Plus size={18} className="mr-2" /> Add New Entry
+          </Button>
         </div>
 
-        <div className="min-h-[400px]">
-            <div className="flex justify-between items-center p-4 mb-4 bg-gray-50 rounded-xl border border-gray-100">
-               <h4 className="font-bold text-gray-800 text-lg capitalize">{activeConfigTab === 'districts' ? 'District Database' : activeConfigTab + ' Central Data'}</h4>
-               {isEditable && (
-                 <Button onClick={openModal} size="sm" className="bg-brand-600 text-white px-6">Add New Entry</Button>
-               )}
+        <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+          <div className="p-2 border-b border-gray-50 bg-gray-50/50">
+            <div className="flex overflow-x-auto gap-1 no-scrollbar">
+              {[
+                { id: 'districts', label: '64 Districts', icon: <MapPin size={16}/> },
+                { id: 'agri', label: 'Agriculture', icon: <Sprout size={16}/> },
+                { id: 'legal', label: 'Legal Aid', icon: <Scale size={16}/> },
+                { id: 'expat', label: 'Expat', icon: <Plane size={16}/> },
+                { id: 'vocational', label: 'Vocational', icon: <Wrench size={16}/> },
+                { id: 'health', label: 'Health', icon: <Building2 size={16}/> },
+                { id: 'edu', label: 'Education', icon: <BookOpen size={16}/> },
+                { id: 'transport', label: 'Transport', icon: <Navigation size={16}/> },
+                { id: 'disaster', label: 'Disaster', icon: <Waves size={16}/> },
+                { id: 'fishery', label: 'Fishery', icon: <Fish size={16}/> },
+                { id: 'craft', label: 'Craft', icon: <Hammer size={16}/> },
+                { id: 'waste', label: 'Waste', icon: <Recycle size={16}/> },
+              ].map(tab => (
+                <button
+                  key={tab.id}
+                  onClick={() => setActiveConfigTab(tab.id as any)}
+                  className={`flex items-center gap-2 px-6 py-2.5 rounded-xl text-sm font-bold transition-all whitespace-nowrap ${
+                    activeConfigTab === tab.id ? 'bg-brand-600 text-white shadow-sm' : 'text-gray-500 hover:bg-gray-100'
+                  }`}
+                >
+                  {tab.icon} {tab.label}
+                </button>
+              ))}
             </div>
+          </div>
+
+          <div className="p-6">
             {renderTable()}
+          </div>
         </div>
-      </div>
 
-      {editingDistrict && (
-        <div className="fixed inset-0 bg-black/70 z-50 flex items-center justify-center p-4 backdrop-blur-md animate-fade-in overflow-y-auto">
-            <div className="bg-white rounded-[2.5rem] shadow-2xl w-full max-w-5xl my-8 relative flex flex-col max-h-[90vh]">
-                <div className="p-8 border-b border-gray-100 flex justify-between items-center bg-gray-50 sticky top-0 z-10 rounded-t-[2.5rem]">
-                    <div className="flex items-center gap-4">
-                        <div className="p-3 bg-brand-600 text-white rounded-2xl shadow-lg shadow-brand-200">
-                          <MapPin size={24} />
-                        </div>
-                        <div>
-                            <h3 className="font-black text-3xl text-gray-900">{editingDistrict.id ? 'Configure ' + editingDistrict.nameEn : 'Add New District'}</h3>
-                            <p className="text-sm font-bold text-brand-600 uppercase tracking-widest">{editingDistrict.division} Division</p>
-                        </div>
-                    </div>
-                    <button onClick={() => setEditingDistrict(null)} className="p-2 hover:bg-gray-200 rounded-full transition-colors"><X size={24}/></button>
-                </div>
-                
-                <form onSubmit={handleSaveDistrict} className="p-8 space-y-10 overflow-y-auto flex-1 custom-scrollbar">
-                    <div className="space-y-6">
-                        <h4 className="text-lg font-bold text-gray-900 border-l-4 border-brand-500 pl-3">Basic Information</h4>
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                            <div className="space-y-2">
-                                <label className="block text-sm font-bold text-gray-700">District Name (English)</label>
-                                <input required className="w-full p-4 bg-gray-50 border border-gray-200 rounded-2xl focus:ring-4 focus:ring-brand-100 focus:border-brand-500 outline-none transition-all font-medium" value={editingDistrict.nameEn} onChange={e => setEditingDistrict({...editingDistrict, nameEn: e.target.value})} placeholder="e.g. Dhaka" />
-                            </div>
-                            <div className="space-y-2">
-                                <label className="block text-sm font-bold text-gray-700">District Name (Bangla)</label>
-                                <input required className="w-full p-4 bg-gray-50 border border-gray-200 rounded-2xl focus:ring-4 focus:ring-brand-100 focus:border-brand-500 outline-none transition-all font-medium" value={editingDistrict.nameBn} onChange={e => setEditingDistrict({...editingDistrict, nameBn: e.target.value})} placeholder="যেমন: ঢাকা" />
-                            </div>
-                        </div>
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-                            <div className="space-y-2">
-                                <label className="block text-sm font-bold text-gray-700 flex items-center gap-2"><Building2 size={16}/> Division</label>
-                                <select className="w-full p-4 bg-gray-50 border border-gray-200 rounded-2xl focus:ring-4 focus:ring-brand-100 focus:border-brand-500 outline-none transition-all font-medium" value={editingDistrict.division} onChange={e => setEditingDistrict({...editingDistrict, division: e.target.value})}>
-                                    <option>Dhaka</option><option>Chattogram</option><option>Rajshahi</option><option>Khulna</option><option>Sylhet</option><option>Barisal</option><option>Rangpur</option><option>Mymensingh</option>
-                                </select>
-                            </div>
-                            <div className="space-y-2">
-                                <label className="block text-sm font-bold text-gray-700 flex items-center gap-2"><Users size={16}/> Total Population</label>
-                                <input required className="w-full p-4 bg-gray-50 border border-gray-200 rounded-2xl focus:ring-4 focus:ring-brand-100 focus:border-brand-500 outline-none transition-all font-medium" value={editingDistrict.population} onChange={e => setEditingDistrict({...editingDistrict, population: e.target.value})} placeholder="e.g. 2.5 Million" />
-                            </div>
-                            <div className="space-y-2">
-                                <label className="block text-sm font-bold text-gray-700 flex items-center gap-2"><MapPin size={16}/> Total Area</label>
-                                <input required className="w-full p-4 bg-gray-50 border border-gray-200 rounded-2xl focus:ring-4 focus:ring-brand-100 focus:border-brand-500 outline-none transition-all font-medium" value={editingDistrict.area} onChange={e => setEditingDistrict({...editingDistrict, area: e.target.value})} placeholder="e.g. 2,000 km²" />
-                            </div>
-                        </div>
-                        <div className="space-y-2">
-                            <label className="block text-sm font-bold text-gray-700 flex items-center gap-2"><Info size={16}/> About District (Brief History/Intro)</label>
-                            <textarea rows={4} className="w-full p-5 bg-gray-50 border border-gray-200 rounded-2xl focus:ring-4 focus:ring-brand-100 focus:border-brand-500 outline-none resize-none transition-all leading-relaxed" value={editingDistrict.description} onChange={e => setEditingDistrict({...editingDistrict, description: e.target.value})} placeholder="Write a short description about this district's history, economy, and culture..."></textarea>
-                        </div>
+        {/* District Detail Editor Modal (Special Overlay) */}
+        {editingDistrict && (
+            <div className="fixed inset-0 z-[60] bg-black/60 flex items-center justify-center p-4 backdrop-blur-sm animate-fade-in">
+                <div className="bg-white rounded-2xl shadow-2xl w-full max-w-4xl max-h-[90vh] overflow-hidden flex flex-col" onClick={e => e.stopPropagation()}>
+                    <div className="p-6 border-b border-gray-100 flex justify-between items-center bg-gray-50">
+                        <h3 className="text-xl font-bold text-gray-900 flex items-center gap-2">
+                           <Edit3 className="text-brand-600" size={24} /> {editingDistrict.id ? 'Edit District: ' + (isBangla ? editingDistrict.nameBn : editingDistrict.nameEn) : 'Add New District'}
+                        </h3>
+                        <button onClick={() => setEditingDistrict(null)} className="p-2 hover:bg-red-50 text-gray-400 hover:text-red-500 rounded-full transition-colors"><X size={24}/></button>
                     </div>
 
-                    <div className="space-y-6">
-                        <div className="flex justify-between items-center border-l-4 border-red-500 pl-3">
-                            <h4 className="text-lg font-bold text-gray-900">Hospital & Emergency Services</h4>
-                            <Button type="button" onClick={handleAddHospital} size="sm" className="bg-red-50 text-red-600 border border-red-200 hover:bg-red-100 flex items-center gap-2 font-bold px-4">
-                                <PlusCircle size={16} /> Add Hospital
-                            </Button>
+                    <form onSubmit={handleSaveDistrict} className="flex-1 overflow-y-auto p-8 custom-scrollbar">
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+                            <div><label className="block text-xs font-bold text-gray-500 uppercase mb-2">Name (EN)</label><input required className="w-full p-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-brand-500 outline-none" value={editingDistrict.nameEn || editingDistrict.nameen || ''} onChange={e => setEditingDistrict({...editingDistrict, nameEn: e.target.value})} /></div>
+                            <div><label className="block text-xs font-bold text-gray-500 uppercase mb-2">Name (BN)</label><input required className="w-full p-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-brand-500 outline-none" value={editingDistrict.nameBn || editingDistrict.namebn || ''} onChange={e => setEditingDistrict({...editingDistrict, nameBn: e.target.value})} /></div>
+                            <div><label className="block text-xs font-bold text-gray-500 uppercase mb-2">Division</label><select className="w-full p-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-brand-500 outline-none" value={editingDistrict.division} onChange={e => setEditingDistrict({...editingDistrict, division: e.target.value})}><option>Dhaka</option><option>Chattogram</option><option>Sylhet</option><option>Khulna</option><option>Rajshahi</option><option>Barisal</option><option>Rangpur</option><option>Mymensingh</option></select></div>
                         </div>
-                        
-                        <div className="space-y-4">
-                            {editingDistrict.hospitals.map((hospital: any, index: number) => (
-                                <div key={index} className="bg-gray-50 p-6 rounded-[2rem] border border-gray-200 relative animate-fade-in">
-                                    <button 
-                                      type="button" 
-                                      onClick={() => handleRemoveHospital(index)}
-                                      className="absolute top-4 right-4 text-gray-400 hover:text-red-500 transition-colors"
-                                    >
-                                      <Trash2 size={18} />
-                                    </button>
-                                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                                        <div className="space-y-1">
-                                            <label className="block text-xs font-bold text-gray-500 uppercase tracking-widest ml-1">Hospital Name</label>
-                                            <div className="relative">
-                                                <HeartPulse className="absolute left-3 top-3 text-red-400" size={16} />
-                                                <input required className="w-full pl-10 pr-4 py-2.5 bg-white border border-gray-200 rounded-xl focus:ring-2 focus:ring-red-100 outline-none text-sm font-medium" value={hospital.name} onChange={e => handleHospitalChange(index, 'name', e.target.value)} placeholder="e.g. City General Hospital" />
-                                            </div>
-                                        </div>
-                                        <div className="space-y-1">
-                                            <label className="block text-xs font-bold text-gray-500 uppercase tracking-widest ml-1">Address</label>
-                                            <div className="relative">
-                                                <MapPin className="absolute left-3 top-3 text-gray-400" size={16} />
-                                                <input required className="w-full pl-10 pr-4 py-2.5 bg-white border border-gray-200 rounded-xl focus:ring-2 focus:ring-red-100 outline-none text-sm font-medium" value={hospital.address} onChange={e => handleHospitalChange(index, 'address', e.target.value)} placeholder="Full address..." />
-                                            </div>
-                                        </div>
-                                        <div className="space-y-1">
-                                            <label className="block text-xs font-bold text-gray-500 uppercase tracking-widest ml-1">Contact/Phone</label>
-                                            <div className="relative">
-                                                <Phone className="absolute left-3 top-3 text-gray-400" size={16} />
-                                                <input required className="w-full pl-10 pr-4 py-2.5 bg-white border border-gray-200 rounded-xl focus:ring-2 focus:ring-red-100 outline-none text-sm font-medium" value={hospital.phone} onChange={e => handleHospitalChange(index, 'phone', e.target.value)} placeholder="017..." />
-                                            </div>
-                                        </div>
-                                    </div>
+
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+                            <div><label className="block text-xs font-bold text-gray-500 uppercase mb-2">Population (e.g. 9.1M)</label><input className="w-full p-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-brand-500 outline-none" value={editingDistrict.population} onChange={e => setEditingDistrict({...editingDistrict, population: e.target.value})} /></div>
+                            <div><label className="block text-xs font-bold text-gray-500 uppercase mb-2">Area (e.g. 1463 km²)</label><input className="w-full p-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-brand-500 outline-none" value={editingDistrict.area} onChange={e => setEditingDistrict({...editingDistrict, area: e.target.value})} /></div>
+                        </div>
+
+                        <div className="mb-8"><label className="block text-xs font-bold text-gray-500 uppercase mb-2">Short Description</label><textarea rows={3} className="w-full p-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-brand-500 outline-none resize-none" value={editingDistrict.description} onChange={e => setEditingDistrict({...editingDistrict, description: e.target.value})} /></div>
+
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
+                            <div className="bg-blue-50/50 p-6 rounded-2xl border border-blue-100">
+                                <h4 className="text-sm font-bold text-blue-800 mb-4 flex items-center gap-2"><BookOpen size={16}/> Education Stats</h4>
+                                <div className="grid grid-cols-2 gap-4">
+                                    <div><label className="block text-[10px] font-bold text-blue-400 mb-1 uppercase">Primary</label><input type="number" className="w-full p-2 rounded-lg border border-blue-200" value={editingDistrict.education.primary} onChange={e => setEditingDistrict({...editingDistrict, education: {...editingDistrict.education, primary: parseInt(e.target.value)}})} /></div>
+                                    <div><label className="block text-[10px] font-bold text-blue-400 mb-1 uppercase">High School</label><input type="number" className="w-full p-2 rounded-lg border border-blue-200" value={editingDistrict.education.highSchool} onChange={e => setEditingDistrict({...editingDistrict, education: {...editingDistrict.education, highSchool: parseInt(e.target.value)}})} /></div>
+                                    <div><label className="block text-[10px] font-bold text-blue-400 mb-1 uppercase">College</label><input type="number" className="w-full p-2 rounded-lg border border-blue-200" value={editingDistrict.education.college} onChange={e => setEditingDistrict({...editingDistrict, education: {...editingDistrict.education, college: parseInt(e.target.value)}})} /></div>
+                                    <div><label className="block text-[10px] font-bold text-blue-400 mb-1 uppercase">University</label><input type="number" className="w-full p-2 rounded-lg border border-blue-200" value={editingDistrict.education.university} onChange={e => setEditingDistrict({...editingDistrict, education: {...editingDistrict.education, university: parseInt(e.target.value)}})} /></div>
                                 </div>
-                            ))}
-                        </div>
-                    </div>
+                            </div>
 
-                    <div className="space-y-6">
-                        <h4 className="text-lg font-bold text-gray-900 border-l-4 border-indigo-500 pl-3">Administration & Tourism</h4>
-                        <div className="grid grid-cols-1 gap-8">
-                            <div className="space-y-2">
-                                <label className="block text-sm font-bold text-gray-700 flex items-center gap-2"><Navigation size={16}/> Upazilas (Separate by Commas)</label>
-                                <textarea rows={3} className="w-full p-4 bg-gray-50 border border-gray-200 rounded-2xl focus:ring-4 focus:ring-indigo-100 focus:border-indigo-500 outline-none resize-none transition-all text-sm font-medium" value={editingDistrict.upazilas_str} onChange={e => setEditingDistrict({...editingDistrict, upazilas_str: e.target.value})} placeholder="e.g. Savar, Dhamrai, Dohar..."></textarea>
-                            </div>
-                            <div className="space-y-2">
-                                <label className="block text-sm font-bold text-gray-700 flex items-center gap-2"><Camera size={16}/> Famous Tourist Spots (Separate by Commas)</label>
-                                <textarea rows={3} className="w-full p-4 bg-gray-50 border border-gray-200 rounded-2xl focus:ring-4 focus:ring-orange-100 focus:border-orange-500 outline-none resize-none transition-all text-sm font-medium" value={editingDistrict.spots_str} onChange={e => setEditingDistrict({...editingDistrict, spots_str: e.target.value})} placeholder="e.g. National Parliament, Lalbagh Fort..."></textarea>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div className="space-y-6">
-                        <h4 className="text-lg font-bold text-gray-900 border-l-4 border-blue-500 pl-3">Education Statistics</h4>
-                        <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
-                            <div className="space-y-2">
-                                <label className="block text-xs font-bold text-gray-500 uppercase tracking-widest">Primary Schools</label>
-                                <input type="number" className="w-full p-4 bg-gray-50 border border-gray-200 rounded-2xl focus:ring-4 focus:ring-blue-100 outline-none font-black text-blue-600 text-center text-xl" value={editingDistrict.education.primary} onChange={e => setEditingDistrict({...editingDistrict, education: {...editingDistrict.education, primary: parseInt(e.target.value) || 0}})} />
-                            </div>
-                            <div className="space-y-2">
-                                <label className="block text-xs font-bold text-gray-500 uppercase tracking-widest">High Schools</label>
-                                <input type="number" className="w-full p-4 bg-gray-50 border border-gray-200 rounded-2xl focus:ring-4 focus:ring-blue-100 outline-none font-black text-blue-600 text-center text-xl" value={editingDistrict.education.highSchool} onChange={e => setEditingDistrict({...editingDistrict, education: {...editingDistrict.education, highSchool: parseInt(e.target.value) || 0}})} />
-                            </div>
-                            <div className="space-y-2">
-                                <label className="block text-xs font-bold text-gray-500 uppercase tracking-widest">Colleges</label>
-                                <input type="number" className="w-full p-4 bg-gray-50 border border-gray-200 rounded-2xl focus:ring-4 focus:ring-blue-100 outline-none font-black text-blue-600 text-center text-xl" value={editingDistrict.education.college} onChange={e => setEditingDistrict({...editingDistrict, education: {...editingDistrict.education, college: parseInt(e.target.value) || 0}})} />
-                            </div>
-                            <div className="space-y-2">
-                                <label className="block text-xs font-bold text-gray-500 uppercase tracking-widest">Universities</label>
-                                <input type="number" className="w-full p-4 bg-gray-50 border border-gray-200 rounded-2xl focus:ring-4 focus:ring-blue-100 outline-none font-black text-blue-600 text-center text-xl" value={editingDistrict.education.university} onChange={e => setEditingDistrict({...editingDistrict, education: {...editingDistrict.education, university: parseInt(e.target.value) || 0}})} />
+                            <div className="bg-teal-50/50 p-6 rounded-2xl border border-teal-100">
+                                <div className="flex justify-between items-center mb-4">
+                                    <h4 className="text-sm font-bold text-teal-800 flex items-center gap-2"><HeartPulse size={16}/> Hospitals</h4>
+                                    <button type="button" onClick={handleAddHospital} className="text-xs font-bold text-teal-600 bg-white px-2 py-1 rounded shadow-sm hover:bg-teal-50 transition-all">+ Add New</button>
+                                </div>
+                                <div className="space-y-3 max-h-[200px] overflow-y-auto pr-2 custom-scrollbar">
+                                    {editingDistrict.hospitals.map((h: any, idx: number) => (
+                                        <div key={idx} className="p-3 bg-white rounded-xl border border-teal-100 relative group">
+                                            <button type="button" onClick={() => handleRemoveHospital(idx)} className="absolute -top-2 -right-2 w-6 h-6 bg-red-500 text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center"><X size={14}/></button>
+                                            <input placeholder="Hospital Name" className="w-full mb-1 text-sm font-bold outline-none border-b border-gray-100 focus:border-teal-500" value={h.name} onChange={e => handleHospitalChange(idx, 'name', e.target.value)} />
+                                            <input placeholder="Phone" className="w-full text-xs outline-none" value={h.phone} onChange={e => handleHospitalChange(idx, 'phone', e.target.value)} />
+                                        </div>
+                                    ))}
+                                    {editingDistrict.hospitals.length === 0 && <p className="text-center text-teal-300 text-xs py-10 italic">No hospitals added.</p>}
+                                </div>
                             </div>
                         </div>
-                    </div>
 
-                    <div className="space-y-6">
-                        <h4 className="text-lg font-bold text-gray-900 border-l-4 border-pink-500 pl-3">Media Gallery</h4>
-                        <div className="space-y-2">
-                            <label className="block text-sm font-bold text-gray-700 flex items-center gap-2"><ImageIcon size={16}/> Image URLs (Separate by Commas)</label>
-                            <textarea rows={2} className="w-full p-4 bg-gray-50 border border-gray-200 rounded-2xl focus:ring-4 focus:ring-pink-100 focus:border-pink-500 outline-none resize-none transition-all text-xs font-mono text-gray-500" value={editingDistrict.images_str} onChange={e => setEditingDistrict({...editingDistrict, images_str: e.target.value})} placeholder="https://images.unsplash.com/..."></textarea>
+                        <div className="space-y-6">
+                            <div><label className="block text-xs font-bold text-gray-500 uppercase mb-2">Upazilas (Comma separated)</label><textarea rows={2} className="w-full p-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-brand-500 outline-none resize-none" placeholder="Upazila 1, Upazila 2, ..." value={editingDistrict.upazilas_str} onChange={e => setEditingDistrict({...editingDistrict, upazilas_str: e.target.value})} /></div>
+                            <div><label className="block text-xs font-bold text-gray-500 uppercase mb-2">Tourist Spots (Comma separated)</label><textarea rows={2} className="w-full p-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-brand-500 outline-none resize-none" placeholder="Lalbagh Fort, Ahsan Manzil, ..." value={editingDistrict.spots_str} onChange={e => setEditingDistrict({...editingDistrict, spots_str: e.target.value})} /></div>
+                            <div><label className="block text-xs font-bold text-gray-500 uppercase mb-2">Image URLs (Comma separated)</label><textarea rows={2} className="w-full p-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-brand-500 outline-none resize-none" placeholder="https://..., https://..." value={editingDistrict.images_str} onChange={e => setEditingDistrict({...editingDistrict, images_str: e.target.value})} /></div>
                         </div>
-                    </div>
-                </form>
 
-                <div className="p-8 border-t border-gray-100 flex justify-end gap-4 bg-gray-50 sticky bottom-0 z-10 rounded-b-[2.5rem]">
-                    <Button type="button" variant="outline" onClick={() => setEditingDistrict(null)} className="px-10 rounded-2xl bg-white hover:bg-gray-100 border-gray-300 h-14 font-bold text-gray-700">Cancel</Button>
-                    <Button onClick={handleSaveDistrict} className="bg-brand-600 hover:bg-brand-700 text-white flex items-center gap-3 px-14 rounded-2xl font-black text-lg shadow-xl shadow-brand-200 h-14 transition-all hover:scale-105 active:scale-95">
-                        <Save size={22}/> {editingDistrict.id ? 'Save Updates' : 'Add District'}
-                    </Button>
+                        <div className="mt-10 pt-6 border-t border-gray-100 flex gap-4">
+                            <Button type="button" variant="outline" onClick={() => setEditingDistrict(null)} className="flex-1 py-3">Cancel</Button>
+                            <Button type="submit" className="flex-[2] bg-brand-600 hover:bg-brand-700 text-white font-bold py-3 shadow-lg shadow-brand-100 flex items-center justify-center gap-2"><Save size={18}/> Save District Data</Button>
+                        </div>
+                    </form>
                 </div>
             </div>
-        </div>
-      )}
-
-      {isConfigModalOpen && (
-        <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4 backdrop-blur-sm animate-fade-in">
-            <div className="bg-white rounded-3xl shadow-2xl w-full max-w-lg overflow-hidden">
-                <div className="p-6 border-b border-gray-100 flex justify-between items-center bg-gray-50">
-                    <h3 className="font-extrabold text-2xl text-gray-900">Add New Entry</h3>
-                    <button onClick={() => setIsConfigModalOpen(false)} className="p-2 hover:bg-gray-200 rounded-full transition-colors"><X size={20} className="text-gray-400"/></button>
-                </div>
-                <form onSubmit={handleSubmit} className="p-8 space-y-5">
-                    {renderModalForm()}
-                    <Button type="submit" className="w-full bg-brand-600 text-white font-bold py-3.5 rounded-xl shadow-lg shadow-brand-100 mt-4">Save Item</Button>
-                </form>
-            </div>
-        </div>
-      )}
+        )}
     </div>
   );
 };

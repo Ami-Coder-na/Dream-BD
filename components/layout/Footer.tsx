@@ -20,9 +20,9 @@ export const Footer: React.FC<FooterProps> = ({ isBangla, toggleLanguage, onNavi
           <div>
             <div className="flex items-center gap-3 mb-6 cursor-pointer" onClick={onNavigateHome}>
               {settings.websiteLogo ? (
-                <img src={settings.websiteLogo} alt="Logo" className="h-8 w-auto object-contain" />
+                <img src={settings.websiteLogo} alt="Logo" className="h-12 w-auto object-contain" />
               ) : (
-                <div className="w-8 h-8 bg-brand-500 rounded-lg flex items-center justify-center text-white font-bold">
+                <div className="w-12 h-12 bg-brand-500 rounded-lg flex items-center justify-center text-white font-bold text-xl">
                   {settings.websiteTitle.charAt(0) || 'D'}
                 </div>
               )}

@@ -1,4 +1,3 @@
-
 import React, { useState, useRef } from 'react';
 import { Search, Calendar, User, ArrowRight, Tag, PenTool, X, CheckCircle, Image as ImageIcon, ArrowLeft, Share2, Clock, Printer, Facebook, Linkedin, Twitter, ExternalLink, Upload, RefreshCw } from 'lucide-react';
 import { Button } from '../ui/Button';
@@ -57,15 +56,15 @@ export const BlogModule: React.FC<Props> = ({ isBangla, user, onLogin }) => {
     const excerpt = newBlogData.content.substring(0, 100) + '...';
 
     const request = {
-        contenttype: 'blog', // Standardized lowercase
+        contenttype: 'blog', 
         title: newBlogData.title,
         category: newBlogData.category,
         content: newBlogData.content,
         author: user ? user.name : 'User', 
         date: new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
-        posteddate: new Date().toLocaleDateString(), // Standardized lowercase
+        posteddate: new Date().toLocaleDateString(), 
         image: newBlogData.image, 
-        readtime: readTime, // Standardized lowercase
+        readtime: readTime, 
         excerpt: excerpt
     };
     
@@ -143,7 +142,7 @@ export const BlogModule: React.FC<Props> = ({ isBangla, user, onLogin }) => {
     <div className="bg-gray-50 min-h-screen py-12 px-4 sm:px-6 lg:px-8 animate-fade-in">
       <div className="max-w-7xl mx-auto space-y-12">
         <div className="flex flex-col md:flex-row justify-between items-center gap-6 bg-white p-8 rounded-3xl shadow-sm border border-gray-100">
-          <div className="max-w-2xl"><span className="inline-block py-1 px-3 rounded-full bg-emerald-50 text-emerald-600 text-xs font-bold tracking-wider uppercase mb-3">{isBangla ? 'ব্লগ ও খবর' : 'Blog & News'}</span><h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-2">{isBangla ? 'ড্রিম বিডি ব্লগ' : 'Dream BD Blog'}</h2></div>
+          <div className="max-w-2xl"><span className="inline-block py-1 px-3 rounded-full bg-emerald-50 text-emerald-600 text-xs font-bold tracking-wider uppercase mb-3">{isBangla ? 'ব্লগ ও খবর' : 'Blog & News'}</span><h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-2">{isBangla ? 'সোনালী দেশ ব্লগ' : 'Shonali Desh Blog'}</h2></div>
           <div className="flex flex-col sm:flex-row gap-4 w-full md:w-auto">
              <div className="relative w-full sm:w-64"><Search className="absolute left-4 top-3.5 text-gray-400" size={20} /><input type="text" value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} placeholder={isBangla ? 'ব্লগ খুঁজুন...' : 'Search articles...'} className="w-full pl-12 pr-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-emerald-500/20 outline-none bg-gray-50 focus:bg-white" /></div>
              <Button onClick={handlePostClick} className="bg-emerald-600 hover:bg-emerald-700 text-white shadow-lg flex items-center justify-center gap-2 px-6 py-3 rounded-xl"><PenTool size={18} />{isBangla ? 'ব্লগ লিখুন' : 'Write Blog'}</Button>

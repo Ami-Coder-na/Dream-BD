@@ -18,6 +18,7 @@ export const AdminBloodLogs = () => {
 
   // Safe access helper for both snake_case (DB) and camelCase (App)
   const getVal = (obj: any, keys: string[]) => {
+    if (!obj) return '';
     for (const key of keys) {
       if (obj[key] !== undefined && obj[key] !== null) return obj[key];
     }
@@ -25,12 +26,13 @@ export const AdminBloodLogs = () => {
   };
 
   const filteredLogs = (donorViewLogs || []).filter((log: any) => {
+    if (!log) return false;
     const searchLower = searchQuery.toLowerCase();
     
-    const dName = getVal(log, ['donorName', 'donorname']).toLowerCase();
-    const vName = getVal(log, ['viewerName', 'viewername']).toLowerCase();
-    const vPhone = getVal(log, ['viewerPhone', 'viewerphone']);
-    const dPhone = getVal(log, ['donorPhone', 'donorphone']);
+    const dName = getVal(log, ['donorName', 'donorname']).toString().toLowerCase();
+    const vName = getVal(log, ['viewerName', 'viewername']).toString().toLowerCase();
+    const vPhone = getVal(log, ['viewerPhone', 'viewerphone']).toString();
+    const dPhone = getVal(log, ['donorPhone', 'donorphone']).toString();
 
     return dName.includes(searchLower) ||
            vName.includes(searchLower) ||

@@ -1,4 +1,3 @@
-
 import React, { useState, useMemo } from 'react';
 import { 
   ShoppingBasket, TrendingUp, Truck, Search, Filter, 
@@ -132,8 +131,15 @@ export const BazarSodaiModule: React.FC<Props> = ({ isBangla, user, onLogin }) =
             ) : (
               <form onSubmit={handleAdSubmit} className="space-y-4">
                 <input required className="w-full p-3 bg-gray-50 border rounded-xl" placeholder={isBangla ? 'পণ্যের নাম' : 'Product Name'} value={adForm.product} onChange={e => setAdForm({...adForm, product: e.target.value})} />
-                <div className="grid grid-cols-2 gap-4"><input required className="w-full p-3 bg-gray-50 border rounded-xl" placeholder={isBangla ? 'পরিমাণ' : 'Quantity'} value={adForm.quantity} onChange={e => setAdForm({...adForm, quantity: e.target.value})} /><input required className="w-full p-3 bg-gray-50 border rounded-xl" placeholder={isBangla ? 'দাম' : 'Price'} value={adForm.price} onChange={e => setAdForm({...adForm, price: e.target.value})} /></div>
+                <div className="grid grid-cols-2 gap-4">
+                  <input required className="w-full p-3 bg-gray-50 border rounded-xl" placeholder={isBangla ? 'পরিমাণ' : 'Quantity'} value={adForm.quantity} onChange={e => setAdForm({...adForm, quantity: e.target.value})} />
+                  <input required className="w-full p-3 bg-gray-50 border rounded-xl" placeholder={isBangla ? 'দাম' : 'Price'} value={adForm.price} onChange={e => setAdForm({...adForm, price: e.target.value})} />
+                </div>
                 <input required className="w-full p-3 bg-gray-50 border rounded-xl" placeholder={isBangla ? 'স্থান/জেলা' : 'Location'} value={adForm.location} onChange={e => setAdForm({...adForm, location: e.target.value})} />
+                <div className="grid grid-cols-2 gap-4">
+                  <input required className="w-full p-3 bg-gray-50 border rounded-xl" placeholder={isBangla ? 'আপনার নাম' : 'Your Name'} value={adForm.name} onChange={e => setAdForm({...adForm, name: e.target.value})} />
+                  <input required className="w-full p-3 bg-gray-50 border rounded-xl" placeholder={isBangla ? 'ফোন নম্বর' : 'Phone Number'} value={adForm.phone} onChange={e => setAdForm({...adForm, phone: e.target.value})} />
+                </div>
                 <Button type="submit" disabled={isSubmitting} className="w-full bg-orange-600">{isSubmitting ? '...' : (isBangla ? 'জমা দিন' : 'Submit')}</Button>
               </form>
             )}

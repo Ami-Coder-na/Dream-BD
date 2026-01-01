@@ -1,4 +1,3 @@
-
 import React, { createContext, useState, useContext, ReactNode, useEffect } from 'react';
 import { AppModule } from '../types';
 import { supabase, isSupabaseConfigured } from '../services/supabaseClient';
@@ -64,15 +63,15 @@ const DEFAULT_SECTIONS: Record<LandingSection, boolean> = {
 };
 
 const DEFAULT_SETTINGS: SiteSettings = {
-  websiteTitle: 'Dream BD',
+  websiteTitle: 'Shonali Desh',
   websiteLogo: '',
   websiteFavicon: '',
-  contactEmail: 'info@dreambd.com',
+  contactEmail: 'info@shonalidesh.com',
   contactPhone: '+880 1XXX-XXXXXX',
   address: 'Dhaka, Bangladesh',
   maintenanceMode: false,
   announcementActive: false,
-  announcement: 'Welcome to Dream BD!',
+  announcement: 'Welcome to Shonali Desh!',
 };
 
 // Fix line 41-48: Properly define SiteConfigContext
@@ -100,14 +99,12 @@ export const SiteConfigProvider: React.FC<{ children: ReactNode }> = ({ children
 
       if (data && data.length > 0) {
         data.forEach(item => {
-          // Fix line 28-30: setModules, setSections, setSettings are now in scope
           if (item.key === 'modules') setModules(item.value);
           if (item.key === 'sections') setSections(item.value);
           if (item.key === 'settings') setSettings(item.value);
         });
       }
     } catch (err: any) {
-      // Catch network-level errors silently as they are handled by local state
     }
   };
 
@@ -140,7 +137,6 @@ export const SiteConfigProvider: React.FC<{ children: ReactNode }> = ({ children
   };
 
   return (
-    // Fix: Providing the actual context values to consuming components
     <SiteConfigContext.Provider value={{ modules, sections, settings, toggleModule, toggleSection, updateSettings }}>
       {children}
     </SiteConfigContext.Provider>

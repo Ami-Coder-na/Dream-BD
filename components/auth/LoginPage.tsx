@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Mail, Lock, ArrowLeft, Eye, EyeOff, CheckCircle, Sparkles, AlertCircle, KeyRound, ArrowRight } from 'lucide-react';
 import { Button } from '../ui/Button';
@@ -49,14 +48,11 @@ export const LoginPage: React.FC<LoginPageProps> = ({
 
     // Simulate API delay
     setTimeout(() => {
-      // 1. Check against registered users in Context
+      // Check against registered users in Context
       const registeredUser = users.find((u: any) => 
         u.email.toLowerCase() === trimmedEmail.toLowerCase() && 
         u.password === trimmedPassword
       );
-
-      // 2. Check against demo hardcoded credentials (Fallback)
-      const isDemo = trimmedEmail === 'demo@dreambd.com' && trimmedPassword === '123456';
 
       if (registeredUser) {
         if (registeredUser.status === 'Suspended') {
@@ -64,14 +60,6 @@ export const LoginPage: React.FC<LoginPageProps> = ({
         } else {
             onLoginSuccess(registeredUser);
         }
-      } else if (isDemo) {
-        onLoginSuccess({
-          id: 'u_demo',
-          name: 'Rahim Uddin',
-          role: 'Citizen',
-          avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&q=80&w=150',
-          email: 'demo@dreambd.com'
-        });
       } else {
         const emailExists = users.some((u: any) => u.email.toLowerCase() === trimmedEmail.toLowerCase());
         
@@ -99,9 +87,6 @@ export const LoginPage: React.FC<LoginPageProps> = ({
         if (userExists) {
             setResetStatus('success'); // In this flow, success means found
             setCurrentView('set_new_password'); // Move to next step immediately
-        } else if (trimmedEmail === 'demo@dreambd.com') {
-             setResetStatus('error');
-             setResetMessage(isBangla ? 'ডেমো অ্যাকাউন্টের পাসওয়ার্ড পরিবর্তন করা যাবে না।' : 'Cannot reset demo account password.');
         } else {
             setResetStatus('error');
             setResetMessage(isBangla 
@@ -139,12 +124,6 @@ export const LoginPage: React.FC<LoginPageProps> = ({
               setResetMessage('');
           }, 2000);
       }, 1000);
-  };
-
-  const fillDemoCredentials = () => {
-    setEmail('demo@dreambd.com');
-    setPassword('123456');
-    setError('');
   };
 
   // --- RENDER: SET NEW PASSWORD VIEW ---
@@ -395,38 +374,6 @@ export const LoginPage: React.FC<LoginPageProps> = ({
               </Button>
             </div>
           </form>
-
-          <div className="mt-8">
-            <div className="relative">
-              <div className="absolute inset-0 flex items-center">
-                <div className="w-full border-t border-gray-200" />
-              </div>
-              <div className="relative flex justify-center text-sm">
-                <span className="px-3 bg-white text-gray-500 font-medium">
-                  {isBangla ? 'সহজ এক্সেস' : 'Quick Access'}
-                </span>
-              </div>
-            </div>
-
-            <div className="mt-6">
-              <button
-                onClick={fillDemoCredentials}
-                className="w-full flex items-center justify-center px-4 py-3 border border-brand-200 rounded-xl shadow-sm bg-brand-50/50 text-sm font-medium text-brand-700 hover:bg-brand-50 hover:border-brand-300 transition-all duration-200 group"
-              >
-                <Sparkles size={18} className="mr-2 text-brand-600 group-hover:text-brand-700" />
-                {isBangla ? 'ডেমো ক্রেডেনশিয়াল ব্যবহার করুন' : 'Use Demo Credentials'}
-              </button>
-              <div className="mt-3 text-center">
-                 <span className="inline-block px-2 py-1 bg-gray-100 rounded text-xs text-gray-500 font-mono">
-                   demo@dreambd.com
-                 </span>
-                 <span className="mx-2 text-gray-300">|</span>
-                 <span className="inline-block px-2 py-1 bg-gray-100 rounded text-xs text-gray-500 font-mono">
-                   123456
-                 </span>
-              </div>
-            </div>
-          </div>
           
           <div className="mt-8 text-center border-t border-gray-100 pt-6">
             <p className="text-sm text-gray-600">

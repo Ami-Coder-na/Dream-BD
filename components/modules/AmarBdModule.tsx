@@ -1,4 +1,3 @@
-
 import React, { useState, useMemo } from 'react';
 import { MapPin, ArrowRight, Search, Info, ChevronRight, X, Users, BookOpen, HeartPulse, Camera, Building2, Map, ChevronDown, Gem, Utensils, Shirt, Coffee, Leaf, Droplets, Gift, Calendar, ChevronLeft, List } from 'lucide-react';
 import { Button } from '../ui/Button';
@@ -214,19 +213,20 @@ const divisionColors: Record<string, string> = {
   mymensingh: 'bg-purple-600 border-purple-600 text-white',
 };
 
-// --- HOLIDAY DATA (Comprehensive) ---
+// --- HOLIDAY DATA (Updated for 2026) ---
 const GOVT_HOLIDAYS = [
   { month: 1, date: '21 Feb', nameBn: 'শহীদ দিবস ও আন্তর্জাতিক মাতৃভাষা দিবস', nameEn: 'Shaheed Day & Int. Mother Language Day', type: 'National' },
   { month: 2, date: '17 Mar', nameBn: 'জাতির পিতার জন্মবার্ষিকী', nameEn: 'Birth Anniversary of Father of the Nation', type: 'National' },
   { month: 2, date: '26 Mar', nameBn: 'স্বাধীনতা ও জাতীয় দিবস', nameEn: 'Independence & National Day', type: 'National' },
+  { month: 2, date: '20-22 Mar', nameBn: 'ঈদুল ফিতর (সম্ভাব্য)', nameEn: 'Eid-ul-Fitr (Expected)', type: 'Religious' },
   { month: 3, date: '14 Apr', nameBn: 'পহেলা বৈশাখ (বাংলা নববর্ষ)', nameEn: 'Pohela Boishakh (Bangla New Year)', type: 'Cultural' },
   { month: 4, date: '01 May', nameBn: 'মে দিবস', nameEn: 'May Day', type: 'International' },
-  { month: 4, date: 'Subject to Moon', nameBn: 'বুদ্ধ পূর্ণিমা', nameEn: 'Buddha Purnima', type: 'Religious' },
-  { month: 5, date: 'Subject to Moon', nameBn: 'ঈদুল আযহা', nameEn: 'Eid-ul-Azha', type: 'Religious' },
+  { month: 4, date: '27-29 May', nameBn: 'ঈদুল আযহা (সম্ভাব্য)', nameEn: 'Eid-ul-Azha (Expected)', type: 'Religious' },
+  { month: 4, date: 'May', nameBn: 'বুদ্ধ পূর্ণিমা', nameEn: 'Buddha Purnima', type: 'Religious' },
   { month: 7, date: '15 Aug', nameBn: 'জাতীয় শোক দিবস', nameEn: 'National Mourning Day', type: 'National' },
-  { month: 7, date: 'Subject to Moon', nameBn: 'জন্মাষ্টমী', nameEn: 'Janmashtami', type: 'Religious' },
-  { month: 8, date: 'Subject to Moon', nameBn: 'ঈদে মিলাদুন্নবী (সা.)', nameEn: 'Eid-e-Miladunnabi', type: 'Religious' },
-  { month: 9, date: 'Subject to Moon', nameBn: 'দুর্গাপূজা (বিজয়া দশমী)', nameEn: 'Durga Puja (Bijaya Dashami)', type: 'Religious' },
+  { month: 7, date: 'Aug', nameBn: 'জন্মাষ্টমী', nameEn: 'Janmashtami', type: 'Religious' },
+  { month: 8, date: 'Sep', nameBn: 'ঈদে মিলাদুন্নবী (সা.)', nameEn: 'Eid-e-Miladunnabi', type: 'Religious' },
+  { month: 9, date: 'Oct', nameBn: 'দুর্গাপূজা (বিজয়া দশমী)', nameEn: 'Durga Puja (Bijaya Dashami)', type: 'Religious' },
   { month: 11, date: '16 Dec', nameBn: 'বিজয় দিবস', nameEn: 'Victory Day', type: 'National' },
   { month: 11, date: '25 Dec', nameBn: 'বড়দিন', nameEn: 'Christmas Day', type: 'Religious' },
 ];
@@ -352,7 +352,8 @@ export const AmarBdModule: React.FC<Props> = ({ isBangla, onModuleSelect }) => {
                                item.type === 'food' ? 'bg-orange-50' : 
                                item.type === 'cloth' ? 'bg-purple-50' : 
                                item.type === 'nature' ? 'bg-green-50' : 
-                               item.type === 'fruit' ? 'bg-pink-50' : 'bg-blue-50'
+                               item.type === 'fruit' ? 'bg-pink-50' : 
+                               item.type === 'fruit' ? 'bg-blue-50' : 'bg-blue-50'
                              }`}>
                                 {getBrandingIcon(item.type)}
                              </div>
@@ -406,7 +407,7 @@ export const AmarBdModule: React.FC<Props> = ({ isBangla, onModuleSelect }) => {
       const isToday = i === today.getDate() && currentDate.getMonth() === today.getMonth() && currentDate.getFullYear() === today.getFullYear();
       const currentMonthIndex = currentDate.getMonth(); 
       const monthNamesShort = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
-      const specificHoliday = GOVT_HOLIDAYS.find(h => h.date === `${i} ${monthNamesShort[currentMonthIndex]}`);
+      const specificHoliday = GOVT_HOLIDAYS.find(h => h.date === `${i} ${monthNamesShort[currentMonthIndex]}` || h.date.startsWith(`${i} `) && h.month === currentMonthIndex);
 
       days.push(
         <div key={i} className={`h-14 sm:h-20 border border-gray-100 p-1 sm:p-2 relative group hover:bg-gray-50 transition-colors ${isToday ? 'bg-blue-50' : ''}`}>
@@ -458,7 +459,7 @@ export const AmarBdModule: React.FC<Props> = ({ isBangla, onModuleSelect }) => {
     return (
       <div className="bg-white rounded-2xl shadow-lg border border-gray-100 p-6 max-h-[600px] overflow-y-auto custom-scrollbar">
         <h3 className="text-xl font-bold text-gray-900 mb-6 border-b border-gray-100 pb-4">
-          {isBangla ? '২০২৪-২৫ সালের ছুটির তালিকা' : 'Holiday List 2024-25'}
+          {isBangla ? '২০২৪-২৬ সালের ছুটির তালিকা' : 'Holiday List 2024-26'}
         </h3>
         <div className="space-y-6">
           {ENGLISH_MONTHS.map((month, mIdx) => {
@@ -505,7 +506,7 @@ export const AmarBdModule: React.FC<Props> = ({ isBangla, onModuleSelect }) => {
                         {isBangla ? 'ক্যালেন্ডার ও ছুটির তালিকা' : 'Calendar & Holidays'}
                     </h2>
                     <p className="text-gray-500">
-                        {isBangla ? 'সরকারি, ধর্মীয় এবং ঐচ্ছিক ছুটির সম্পূর্ণ তালিকা।' : 'Complete list of Government, Religious, and Optional holidays.'}
+                        {isBangla ? '২০২৬ সালের সরকারি, ধর্মীয় এবং ঐচ্ছিক ছুটির সম্পূর্ণ তালিকা।' : 'Complete list of 2026 Government, Religious, and Optional holidays.'}
                     </p>
                 </div>
 

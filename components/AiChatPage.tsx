@@ -1,4 +1,3 @@
-
 import React, { useState, useRef, useEffect } from 'react';
 import { Send, Bot, ArrowLeft, Loader2, User as UserIcon, Sparkles, Paperclip, X as XIcon, Image as ImageIcon, Mic, ThumbsUp, ThumbsDown, MessageSquare, Clock, Plus, Menu, Trash2 } from 'lucide-react';
 import { generateAssistantResponse } from '../services/geminiService';
@@ -21,15 +20,15 @@ export const AiChatPage: React.FC<AiChatPageProps> = ({ onBack, isBangla }) => {
     id: 'init',
     role: 'model',
     text: isBangla 
-      ? 'স্বাগতম! আমি ড্রিম বিডি এআই। কৃষি, স্বাস্থ্য, শিক্ষা বা অন্য যেকোনো বিষয়ে আমি আপনাকে কীভাবে সাহায্য করতে পারি? আপনি ছবি বা অডিও পাঠাতে পারেন।' 
-      : 'Welcome! I am Dream BD AI. How can I assist you today? You can also share images or audio for analysis.',
+      ? 'স্বাগতম! আমি সোনালী দেশ এআই। কৃষি, স্বাস্থ্য, শিক্ষা বা অন্য যেকোনো বিষয়ে আমি আপনাকে কীভাবে সাহায্য করতে পারি? আপনি ছবি বা অডিও পাঠাতে পারেন।' 
+      : 'Welcome! I am Shonali Desh AI. How can I assist you today? You can also share images or audio for analysis.',
     timestamp: new Date()
   };
 
   // Initialize sessions from LocalStorage or use Mock Data
   const [sessions, setSessions] = useState<ChatSession[]>(() => {
     try {
-      const saved = localStorage.getItem('dream_bd_chat_sessions');
+      const saved = localStorage.getItem('shonali_desh_chat_sessions');
       if (saved) {
         const parsed = JSON.parse(saved);
         // Revive Date objects from strings
@@ -45,7 +44,6 @@ export const AiChatPage: React.FC<AiChatPageProps> = ({ onBack, isBangla }) => {
       console.error('Failed to load chat history:', error);
     }
 
-    // Default Mock Data if no history
     return [
       { 
         id: '1', 
@@ -56,16 +54,6 @@ export const AiChatPage: React.FC<AiChatPageProps> = ({ onBack, isBangla }) => {
           { id: 'm1-1', role: 'user', text: 'How to cure blast disease?', timestamp: new Date(Date.now() - 86400000) },
           { id: 'm1-2', role: 'model', text: 'Use Tricyclazole to control blast disease.', timestamp: new Date(Date.now() - 86390000) }
         ]
-      },
-      { 
-        id: '2', 
-        title: 'Doctor Appointment', 
-        date: 'Yesterday', 
-        preview: 'Schedule for Dr. Rahim...',
-        messages: [
-          { id: 'm2-1', role: 'user', text: 'I need an appointment with Dr. Rahim', timestamp: new Date(Date.now() - 172800000) },
-          { id: 'm2-2', role: 'model', text: 'Dr. Rahim sees patients from 5 PM to 8 PM.', timestamp: new Date(Date.now() - 172790000) }
-        ]
       }
     ];
   });
@@ -75,7 +63,7 @@ export const AiChatPage: React.FC<AiChatPageProps> = ({ onBack, isBangla }) => {
 
   // Persist sessions to LocalStorage whenever they change
   useEffect(() => {
-    localStorage.setItem('dream_bd_chat_sessions', JSON.stringify(sessions));
+    localStorage.setItem('shonali_desh_chat_sessions', JSON.stringify(sessions));
   }, [sessions]);
 
   const scrollToBottom = () => {
@@ -113,14 +101,14 @@ export const AiChatPage: React.FC<AiChatPageProps> = ({ onBack, isBangla }) => {
   };
 
   const handleSessionSelect = (session: ChatSession) => {
-    if (loading) return; // Prevent switching while generating
+    if (loading) return; 
     setActiveSessionId(session.id);
     setMessages(session.messages);
     setSidebarOpen(false);
   };
 
   const handleNewChat = () => {
-    if (loading) return; // Prevent switching while generating
+    if (loading) return; 
     setActiveSessionId(null);
     setMessages([defaultWelcomeMessage]);
     setSidebarOpen(false);
@@ -147,7 +135,6 @@ export const AiChatPage: React.FC<AiChatPageProps> = ({ onBack, isBangla }) => {
       timestamp: new Date()
     };
 
-    // Optimistically update UI
     const msgsAfterUser = [...messages, userMsg];
     setMessages(msgsAfterUser);
     
@@ -179,9 +166,6 @@ export const AiChatPage: React.FC<AiChatPageProps> = ({ onBack, isBangla }) => {
     setMessages(finalMessages);
     setLoading(false);
 
-    // Update or Create Session
-    const now = new Date();
-    
     if (activeSessionId) {
       setSessions(prev => prev.map(s => {
         if (s.id === activeSessionId) {
@@ -228,13 +212,10 @@ export const AiChatPage: React.FC<AiChatPageProps> = ({ onBack, isBangla }) => {
 
   return (
     <div className="flex h-screen bg-white overflow-hidden">
-      
-      {/* Sidebar Overlay for Mobile */}
       {sidebarOpen && (
         <div className="fixed inset-0 bg-black/50 z-20 md:hidden" onClick={() => setSidebarOpen(false)} />
       )}
 
-      {/* Sidebar - History */}
       <aside className={`fixed md:relative z-30 w-72 h-full bg-gray-50 border-r border-gray-200 transform transition-transform duration-300 ${sidebarOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'} flex flex-col`}>
         <div className="p-4 border-b border-gray-200 flex justify-between items-center">
           <h2 className="font-bold text-gray-700 flex items-center gap-2">
@@ -264,7 +245,6 @@ export const AiChatPage: React.FC<AiChatPageProps> = ({ onBack, isBangla }) => {
             </p>
           )}
           
-          {/* Recent Sessions */}
           {sessions.length > 0 && (
             <div>
               <p className="px-2 text-xs font-semibold text-gray-400 uppercase mb-2 mt-2">{isBangla ? 'সাম্প্রতিক' : 'Recent'}</p>
@@ -297,7 +277,6 @@ export const AiChatPage: React.FC<AiChatPageProps> = ({ onBack, isBangla }) => {
           )}
         </div>
         
-        {/* User Mini Profile */}
         <div className="p-4 border-t border-gray-200 bg-gray-100">
            <div className="flex items-center gap-3">
              <div className="w-8 h-8 rounded-full bg-brand-200 flex items-center justify-center text-brand-700 font-bold">
@@ -311,9 +290,7 @@ export const AiChatPage: React.FC<AiChatPageProps> = ({ onBack, isBangla }) => {
         </div>
       </aside>
 
-      {/* Main Chat Area */}
       <main className="flex-1 flex flex-col h-full relative w-full">
-        {/* Header */}
         <header className="bg-white border-b border-gray-200 px-4 py-3 flex items-center justify-between shadow-sm z-10">
           <div className="flex items-center gap-3">
             <button 
@@ -335,7 +312,7 @@ export const AiChatPage: React.FC<AiChatPageProps> = ({ onBack, isBangla }) => {
               </div>
               <div>
                 <h1 className="font-bold text-gray-900 text-base flex items-center gap-2">
-                  {isBangla ? 'ড্রিম এআই' : 'Dream AI'} 
+                  {isBangla ? 'সোনালী এআই' : 'Shonali AI'} 
                   <Sparkles size={14} className="text-yellow-500" fill="currentColor" />
                 </h1>
                 <p className="text-xs text-gray-500">{isBangla ? 'আপনার স্মার্ট সহকারী' : 'Your Smart Assistant'}</p>
@@ -344,7 +321,6 @@ export const AiChatPage: React.FC<AiChatPageProps> = ({ onBack, isBangla }) => {
           </div>
         </header>
 
-        {/* Chat Messages */}
         <div className="flex-1 overflow-y-auto p-4 md:p-6 space-y-6 bg-white">
           <div className="max-w-3xl mx-auto space-y-6">
             {messages.map((msg) => (
@@ -352,7 +328,6 @@ export const AiChatPage: React.FC<AiChatPageProps> = ({ onBack, isBangla }) => {
                 key={msg.id}
                 className={`flex gap-4 ${msg.role === 'user' ? 'justify-end' : 'justify-start'} group`}
               >
-                {/* Bot Avatar */}
                 {msg.role === 'model' && (
                   <div className="w-8 h-8 rounded-full bg-brand-50 flex items-center justify-center shrink-0 border border-brand-100 mt-1">
                     <Sparkles size={14} className="text-brand-600" />
@@ -361,14 +336,12 @@ export const AiChatPage: React.FC<AiChatPageProps> = ({ onBack, isBangla }) => {
                 
                 <div className={`flex flex-col gap-1 max-w-[85%] md:max-w-[75%] ${msg.role === 'user' ? 'items-end' : 'items-start'}`}>
                   
-                  {/* Sender Name & Time */}
                   <div className={`flex items-center gap-2 text-[10px] text-gray-400 ${msg.role === 'user' ? 'flex-row-reverse' : 'flex-row'} mb-1`}>
-                    <span className="font-medium">{msg.role === 'user' ? (isBangla ? 'আপনি' : 'You') : 'Dream AI'}</span>
+                    <span className="font-medium">{msg.role === 'user' ? (isBangla ? 'আপনি' : 'You') : 'Shonali AI'}</span>
                     <span>•</span>
                     <span>{formatTime(msg.timestamp)}</span>
                   </div>
 
-                  {/* Attachment Display */}
                   {msg.attachment && (
                     <div className={`rounded-xl overflow-hidden border ${msg.role === 'user' ? 'border-brand-500' : 'border-gray-200'} mb-1 bg-gray-50`}>
                       {msg.attachment.type === 'image' ? (
@@ -382,7 +355,6 @@ export const AiChatPage: React.FC<AiChatPageProps> = ({ onBack, isBangla }) => {
                     </div>
                   )}
 
-                  {/* Text Message Bubble */}
                   {msg.text && (
                     <div
                       className={`rounded-2xl px-5 py-3 shadow-sm text-sm md:text-[15px] leading-relaxed whitespace-pre-wrap ${
@@ -395,7 +367,6 @@ export const AiChatPage: React.FC<AiChatPageProps> = ({ onBack, isBangla }) => {
                     </div>
                   )}
 
-                  {/* Feedback Actions for Bot Messages */}
                   {msg.role === 'model' && msg.id !== 'init' && (
                     <div className="flex items-center gap-3 mt-1 ml-1 opacity-0 group-hover:opacity-100 transition-opacity">
                       <button 
@@ -416,7 +387,6 @@ export const AiChatPage: React.FC<AiChatPageProps> = ({ onBack, isBangla }) => {
                   )}
                 </div>
 
-                {/* User Avatar */}
                 {msg.role === 'user' && (
                   <div className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center shrink-0 border border-gray-200 mt-1">
                     <UserIcon size={14} className="text-gray-500" />
@@ -432,7 +402,7 @@ export const AiChatPage: React.FC<AiChatPageProps> = ({ onBack, isBangla }) => {
                   </div>
                   <div className="bg-gray-50 border border-gray-100 p-4 rounded-2xl rounded-bl-none shadow-sm flex items-center gap-3">
                     <Loader2 size={18} className="animate-spin text-brand-600" />
-                    <span className="text-sm text-gray-500 font-medium">{isBangla ? 'উত্তর তৈরি হচ্ছে...' : 'Dream AI is thinking...'}</span>
+                    <span className="text-sm text-gray-500 font-medium">{isBangla ? 'উত্তর তৈরি হচ্ছে...' : 'Shonali AI is thinking...'}</span>
                   </div>
               </div>
             )}
@@ -440,10 +410,8 @@ export const AiChatPage: React.FC<AiChatPageProps> = ({ onBack, isBangla }) => {
           </div>
         </div>
 
-        {/* Input Area */}
         <div className="bg-white p-4 border-t border-gray-200">
           <div className="max-w-3xl mx-auto">
-            {/* File Preview */}
             {selectedFile && (
                <div className="mb-3 inline-flex bg-gray-50 border border-gray-200 rounded-lg p-2 items-center gap-3 animate-slide-up">
                  {selectedFile.type === 'image' ? (
@@ -514,7 +482,7 @@ export const AiChatPage: React.FC<AiChatPageProps> = ({ onBack, isBangla }) => {
             </div>
             
             <p className="text-center text-[10px] text-gray-400 mt-2">
-              Dream AI • {isBangla ? 'গুরুত্বপূর্ণ তথ্যের জন্য যাচাই করুন' : 'Verify important info'}
+              Shonali AI • {isBangla ? 'গুরুত্বপূর্ণ তথ্যের জন্য যাচাই করুন' : 'Verify important info'}
             </p>
           </div>
         </div>

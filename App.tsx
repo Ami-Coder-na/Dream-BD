@@ -1,4 +1,3 @@
-
 import React, { useState, Suspense, lazy, useEffect } from 'react';
 import { User, AppModule, Notification } from './types';
 import { GeminiAssistant } from './components/GeminiAssistant';
@@ -46,7 +45,7 @@ const LoadingFallback = () => (
       <div className="relative mb-8">
         <div className="absolute inset-0 bg-brand-100 rounded-full animate-ping opacity-25"></div>
         <div className="w-24 h-24 bg-gradient-to-br from-brand-600 to-brand-700 rounded-2xl shadow-xl flex items-center justify-center transform rotate-3 transition-transform hover:rotate-0 border-4 border-white">
-           <span className="text-5xl font-bold text-white">D</span>
+           <span className="text-5xl font-bold text-white">S</span>
         </div>
         <div className="absolute -bottom-2 -right-2 w-8 h-8 bg-red-600 rounded-full border-4 border-white shadow-sm flex items-center justify-center">
            <div className="w-2 h-2 bg-white rounded-full animate-bounce"></div>
@@ -54,7 +53,7 @@ const LoadingFallback = () => (
       </div>
 
       {/* Text & Loader */}
-      <h2 className="text-2xl font-bold text-gray-900 mb-3 tracking-tight">Dream BD</h2>
+      <h2 className="text-2xl font-bold text-gray-900 mb-3 tracking-tight">Shonali Desh</h2>
       <div className="flex items-center gap-3 bg-white/80 backdrop-blur-sm px-5 py-2 rounded-full border border-gray-100 shadow-sm">
         <Loader2 className="w-4 h-4 text-brand-600 animate-spin" />
         <span className="text-gray-600 font-medium text-sm">লোড হচ্ছে...</span>
@@ -64,12 +63,32 @@ const LoadingFallback = () => (
 );
 
 // Session Constants
-const SESSION_KEY = 'dream_bd_user_session';
+const SESSION_KEY = 'shonali_desh_user_session';
 const SESSION_DURATION = 12 * 60 * 60 * 1000; // 12 Hours
 
 const App: React.FC = () => {
   const { logVisit } = useData(); // Hook to track visits
+  const { settings } = useSiteConfig();
   
+  // Dynamic Favicon and Title Sync
+  useEffect(() => {
+    // Update Page Title
+    if (settings.websiteTitle) {
+      document.title = settings.websiteTitle;
+    }
+    
+    // Update Favicon dynamically
+    if (settings.websiteFavicon) {
+      let link: HTMLLinkElement | null = document.querySelector("link[rel~='icon']");
+      if (!link) {
+        link = document.createElement('link');
+        link.rel = 'icon';
+        document.getElementsByTagName('head')[0].appendChild(link);
+      }
+      link.href = settings.websiteFavicon;
+    }
+  }, [settings.websiteTitle, settings.websiteFavicon]);
+
   // Initialize user from LocalStorage with Expiry Check
   const [user, setUser] = useState<User | null>(() => {
     const savedSession = localStorage.getItem(SESSION_KEY);
@@ -96,8 +115,6 @@ const App: React.FC = () => {
   const [showAiChat, setShowAiChat] = useState(false);
   const [authView, setAuthView] = useState<'none' | 'login' | 'signup'>('none');
   
-  const { settings } = useSiteConfig();
-
   // Notification State
   const [notifications, setNotifications] = useState<Notification[]>([
     {
@@ -228,7 +245,7 @@ const App: React.FC = () => {
   };
 
   // --- MAINTENANCE MODE CHECK ---
-  // Allow admins to bypass maintenance
+  // If maintenance is on, only logged-in Admins can see the site.
   if (settings.maintenanceMode && activeModule !== AppModule.ADMIN && user?.role !== 'Admin') {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
@@ -242,16 +259,6 @@ const App: React.FC = () => {
                ? 'আমাদের ওয়েবসাইটটি বর্তমানে রক্ষণাবেক্ষণের কাজ চলছে। সাময়িক অসুবিধার জন্য আমরা দুঃখিত। অনুগ্রহ করে কিছুক্ষণ পর আবার চেষ্টা করুন।'
                : 'Our website is currently undergoing scheduled maintenance. We apologize for the inconvenience. Please check back soon.'}
            </p>
-           {/* Allow admin login backdoor during maintenance */}
-           <button 
-             onClick={() => {
-               setActiveModule(AppModule.ADMIN);
-               window.history.pushState({}, '', '/adminrm');
-             }} 
-             className="text-sm text-gray-400 hover:text-brand-600 underline"
-           >
-             {isBangla ? 'অ্যাডমিন লগইন' : 'Admin Login'}
-           </button>
         </div>
       </div>
     );

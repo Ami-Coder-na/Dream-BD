@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Menu, X, Globe, Bell, LogOut, ChevronDown, User as UserIcon, Heart, Map, ShoppingBasket, Check, Trash2, Info, AlertTriangle, CheckCircle, ShieldAlert, Shield } from 'lucide-react';
 import { Button } from '../ui/Button';
@@ -102,9 +101,9 @@ export const Header: React.FC<HeaderProps> = ({
               onClick={onNavigateHome}
             >
               {settings.websiteLogo ? (
-                <img src={settings.websiteLogo} alt="Logo" className="h-10 w-auto object-contain" />
+                <img src={settings.websiteLogo} alt="Logo" className="h-14 w-auto object-contain" />
               ) : (
-                <div className="w-10 h-10 bg-brand-600 rounded-xl flex items-center justify-center text-white font-bold text-xl shadow-lg">
+                <div className="w-14 h-14 bg-brand-600 rounded-xl flex items-center justify-center text-white font-bold text-2xl shadow-lg">
                   {settings.websiteTitle.charAt(0) || 'D'}
                 </div>
               )}

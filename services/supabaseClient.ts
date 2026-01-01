@@ -1,9 +1,6 @@
-
 import { createClient } from '@supabase/supabase-js';
 
 // --- GLOBAL CONFIGURATION ---
-// Standard Supabase keys are long JWT strings starting with 'eyJ'.
-// If your key starts with 'sb_', please double-check your Supabase dashboard (Project Settings > API).
 const HARDCODED_URL = 'https://zpsxpqurazjeqviwooky.supabase.co';
 const HARDCODED_KEY = 'sb_publishable_gqz_Uzt_JhlNsC59yHXuAQ_IzRiKc3F';
 
@@ -52,16 +49,14 @@ export const isGlobalConfig = !!(GLOBAL_URL && GLOBAL_KEY && GLOBAL_URL.includes
 const SUPABASE_URL = GLOBAL_URL || STORED_URL;
 const SUPABASE_ANON_KEY = GLOBAL_KEY || STORED_KEY;
 
-// Stricter configuration check
 const isConfigured = 
   SUPABASE_URL && 
   SUPABASE_URL.includes('http') &&
   SUPABASE_ANON_KEY && 
-  SUPABASE_ANON_KEY.length > 20; // Supabase keys are typically very long
+  SUPABASE_ANON_KEY.length > 20; 
 
 export const isSupabaseConfigured = !!isConfigured;
 
-// Standard Supabase initialization with safety wrapper
 const createSafeClient = () => {
   if (!isSupabaseConfigured) {
     return createClient('https://placeholder.supabase.co', 'placeholder-key');
@@ -70,7 +65,7 @@ const createSafeClient = () => {
   try {
     return createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
       auth: { persistSession: true, autoRefreshToken: true },
-      global: { headers: { 'x-application-name': 'dream-bd' } }
+      global: { headers: { 'x-application-name': 'shonali-desh' } }
     });
   } catch (e) {
     console.error("Supabase Init Error:", e);

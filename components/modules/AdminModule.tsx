@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { 
   LayoutDashboard, Users, Settings, Database, Activity, 
@@ -30,7 +29,7 @@ type AdminSection = 'overview' | 'website-manage' | 'users' | 'content' | 'inbox
 export const AdminModule: React.FC<Props> = ({ isBangla, onExit }) => {
   const { requests, totalVisitors, messages, donorViewLogs } = useData();
 
-  const SESSION_KEY = 'dream_admin_session';
+  const SESSION_KEY = 'shonali_admin_session';
   const SESSION_DURATION = 12 * 60 * 60 * 1000;
 
   const [isAuthenticated, setIsAuthenticated] = useState(() => {
@@ -67,12 +66,17 @@ export const AdminModule: React.FC<Props> = ({ isBangla, onExit }) => {
 
   const handleLogin = (e: React.FormEvent) => {
     e.preventDefault();
-    if ((email === 'admin@dreambd.com' && password === 'admin123') || (email === 'demo' && password === 'demo')) {
+    if ((email === 'admin@shonalidesh.com' && password === 'admin123') || (email === 'demo' && password === 'demo')) {
       setIsAuthenticated(true);
       localStorage.setItem(SESSION_KEY, JSON.stringify({ timestamp: Date.now() }));
     } else {
-      alert('Invalid Credentials. Try admin@dreambd.com / admin123');
+      alert('Invalid Credentials. Try admin@shonalidesh.com / admin123');
     }
+  };
+
+  const fillDemoCredentials = () => {
+    setEmail('admin@shonalidesh.com');
+    setPassword('admin123');
   };
 
   const handleLogout = () => {
@@ -81,15 +85,6 @@ export const AdminModule: React.FC<Props> = ({ isBangla, onExit }) => {
       setIsAuthenticated(false);
       onExit();
     }
-  };
-
-  const handleSystemRefresh = () => {
-    window.location.reload();
-  };
-
-  const fillDemoCredentials = () => {
-    setEmail('admin@dreambd.com');
-    setPassword('admin123');
   };
 
   const renderOverview = () => (
@@ -118,14 +113,13 @@ export const AdminModule: React.FC<Props> = ({ isBangla, onExit }) => {
          </div>
       )}
 
-      {/* Quick Action Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-6">
         <div className="bg-gradient-to-br from-purple-600 to-indigo-700 p-6 rounded-3xl text-white shadow-xl flex items-center justify-between group hover:scale-[1.02] transition-all cursor-pointer" onClick={() => setActiveSection('content')}>
             <div className="space-y-2">
                 <h3 className="text-2xl font-black">Manage Job Posts</h3>
                 <p className="text-indigo-100 text-sm">Add or approve jobs across Bangladesh</p>
                 <div className="pt-4 flex gap-2">
-                   <button className="bg-white/20 hover:bg-white/30 px-4 py-2 rounded-xl text-xs font-bold flex items-center gap-2 transition-all">
+                   <button onClick={(e) => { e.stopPropagation(); setActiveSection('content'); }} className="bg-white/20 hover:bg-white/30 px-4 py-2 rounded-xl text-xs font-bold flex items-center gap-2 transition-all">
                      <PlusCircle size={14} /> Add New Job
                    </button>
                 </div>
@@ -138,7 +132,7 @@ export const AdminModule: React.FC<Props> = ({ isBangla, onExit }) => {
                 <h3 className="text-2xl font-black">Admin Blogs</h3>
                 <p className="text-blue-100 text-sm">Write articles and news updates</p>
                 <div className="pt-4 flex gap-2">
-                   <button className="bg-white/20 hover:bg-white/30 px-4 py-2 rounded-xl text-xs font-bold flex items-center gap-2 transition-all">
+                   <button onClick={(e) => { e.stopPropagation(); setActiveSection('content'); }} className="bg-white/20 hover:bg-white/30 px-4 py-2 rounded-xl text-xs font-bold flex items-center gap-2 transition-all">
                      <FilePlus size={14} /> Write Blog
                    </button>
                 </div>
@@ -196,36 +190,6 @@ export const AdminModule: React.FC<Props> = ({ isBangla, onExit }) => {
             </div>
         </div>
       </div>
-
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <div className="lg:col-span-2 bg-white p-6 rounded-2xl border border-gray-100 shadow-sm min-h-[350px] flex flex-col">
-            <div className="flex justify-between items-center mb-8">
-                <h3 className="font-bold text-gray-800 text-lg border-l-4 border-gray-900 pl-3">Traffic Analytics</h3>
-                <button className="flex items-center gap-2 text-sm text-gray-500 bg-gray-50 px-3 py-1.5 rounded-lg hover:bg-gray-100 transition-colors">This Week <ChevronDown size={14} /></button>
-            </div>
-            <div className="flex-1 flex items-end justify-between gap-2 px-2 pb-2 h-40">
-                {[65, 40, 80, 55, 90, 70, 85].map((h, i) => (
-                    <div key={i} className="flex flex-col items-center gap-2 w-full group cursor-pointer">
-                        <div className="w-full bg-indigo-50 hover:bg-indigo-100 rounded-t-lg relative transition-all" style={{ height: `${h}%` }}></div>
-                        <span className="text-[10px] text-gray-400 font-medium">{['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'][i]}</span>
-                    </div>
-                ))}
-            </div>
-            <p className="text-center text-xs text-gray-400 mt-4">Visitor trends for the last 7 days</p>
-        </div>
-
-        <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm flex flex-col">
-            <h3 className="font-bold text-gray-800 text-lg mb-6 flex items-center gap-2"><div className="w-1 h-4 bg-gray-900 rounded-full"></div>User Roles</h3>
-            <div className="flex-1 flex flex-col items-center justify-center relative">
-                <div className="w-48 h-48 rounded-full relative bg-gray-100">
-                    <div className="absolute inset-4 bg-white rounded-full flex flex-col items-center justify-center">
-                        <span className="text-3xl font-bold text-gray-900">0</span>
-                        <span className="text-xs text-gray-400 uppercase tracking-widest">Total</span>
-                    </div>
-                </div>
-            </div>
-        </div>
-      </div>
     </div>
   );
 
@@ -237,14 +201,14 @@ export const AdminModule: React.FC<Props> = ({ isBangla, onExit }) => {
             <div className="w-20 h-20 bg-[#0f172a] rounded-full flex items-center justify-center mx-auto mb-6 shadow-xl ring-4 ring-gray-100">
               <Shield size={40} className="text-white" strokeWidth={1.5} />
             </div>
-            <h2 className="text-2xl font-bold text-gray-900 mb-2 tracking-tight">Admin Portal</h2>
+            <h2 className="text-2xl font-bold text-gray-900 mb-2 tracking-tight">Shonali Admin</h2>
             <p className="text-gray-500 mb-8 text-sm font-medium">Secure login required.</p>
             <form onSubmit={handleLogin} className="space-y-4 text-left">
               <div>
                 <label className="block text-xs font-bold text-gray-700 uppercase mb-1 ml-1">Email</label>
                 <div className="relative">
                   <Mail className="absolute left-3 top-3 text-gray-400" size={18} />
-                  <input type="text" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="admin@example.com" className="w-full pl-10 pr-4 py-3 bg-gray-50 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#0f172a]" required />
+                  <input type="text" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="admin@shonalidesh.com" className="w-full pl-10 pr-4 py-3 bg-gray-50 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#0f172a]" required />
                 </div>
               </div>
               <div>
@@ -271,7 +235,7 @@ export const AdminModule: React.FC<Props> = ({ isBangla, onExit }) => {
     <div className="min-h-screen bg-gray-50 flex font-sans text-gray-900">
       <aside className="w-64 bg-gray-900 text-white flex-col hidden md:flex fixed h-full overflow-y-auto">
         <div className="p-6 border-b border-gray-800">
-          <h2 className="text-xl font-bold flex items-center gap-2 tracking-tight"><Shield className="text-brand-500" /> Dream Admin</h2>
+          <h2 className="text-xl font-bold flex items-center gap-2 tracking-tight"><Shield className="text-brand-500" /> Shonali Admin</h2>
         </div>
         <nav className="flex-1 p-4 space-y-1">
           <button onClick={() => setActiveSection('overview')} className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all ${activeSection === 'overview' ? 'bg-brand-600 text-white shadow-lg' : 'text-gray-400 hover:bg-gray-800 hover:text-white'}`}><LayoutDashboard size={18} /> Overview</button>
@@ -296,35 +260,23 @@ export const AdminModule: React.FC<Props> = ({ isBangla, onExit }) => {
 
       <main className="flex-1 md:ml-64 p-4 md:p-8 overflow-y-auto">
         <div className="md:hidden flex justify-between items-center mb-6 bg-white p-4 rounded-xl shadow-sm">
-          <h2 className="font-bold text-gray-800">Dream Admin</h2>
+          <h2 className="font-bold text-gray-800">Shonali Admin</h2>
           <button onClick={handleLogout}><LogOut size={20} className="text-gray-600"/></button>
         </div>
 
-        <div className="mb-8 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-          <div>
-            <h1 className="text-3xl font-bold text-gray-900 capitalize">{activeSection.replace('-', ' ')}</h1>
-            <p className="text-gray-500 text-sm mt-1">Manage {activeSection.replace('-', ' ')} settings and data.</p>
-          </div>
-          <button 
-            onClick={handleSystemRefresh}
-            className="flex items-center gap-2 px-4 py-2 bg-white border border-gray-200 rounded-xl text-gray-600 hover:bg-gray-50 hover:text-brand-600 transition-all shadow-sm font-medium"
-          >
-            <RefreshCw size={18} />
-            Refresh System
-          </button>
+        <div className="max-w-7xl mx-auto">
+          {activeSection === 'overview' && renderOverview()}
+          {activeSection === 'website-manage' && <AdminWebsiteManage />}
+          {activeSection === 'users' && <AdminUsers />}
+          {activeSection === 'content' && <AdminContent />}
+          {activeSection === 'inbox' && <AdminMessages />}
+          {activeSection === 'blood-logs' && <AdminBloodLogs />}
+          {activeSection === 'module-config' && <AdminConfig isBangla={isBangla} />}
+          {activeSection === 'market' && <AdminMarket />}
+          {activeSection === 'grievance' && <AdminGrievance />}
+          {activeSection === 'emergency' && <AdminEmergency />}
+          {activeSection === 'settings' && <AdminProfile />}
         </div>
-
-        {activeSection === 'overview' && renderOverview()}
-        {activeSection === 'website-manage' && <AdminWebsiteManage />}
-        {activeSection === 'users' && <AdminUsers />}
-        {activeSection === 'content' && <AdminContent />}
-        {activeSection === 'inbox' && <AdminMessages />}
-        {activeSection === 'blood-logs' && <AdminBloodLogs />}
-        {activeSection === 'module-config' && <AdminConfig isBangla={isBangla} />}
-        {activeSection === 'market' && <AdminMarket />}
-        {activeSection === 'grievance' && <AdminGrievance />}
-        {activeSection === 'emergency' && <AdminEmergency />}
-        {activeSection === 'settings' && <AdminProfile />}
       </main>
     </div>
   );
