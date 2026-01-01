@@ -16,7 +16,7 @@ export const AdminBloodLogs = () => {
     }
   };
 
-  // Safe access helper for both snake_case (DB) and camelCase (App)
+  // Safe access helper for both snake_case (DB) and camelCase (App/Normalized)
   const getVal = (obj: any, keys: string[]) => {
     if (!obj) return '';
     for (const key of keys) {
@@ -29,10 +29,10 @@ export const AdminBloodLogs = () => {
     if (!log) return false;
     const searchLower = searchQuery.toLowerCase();
     
-    const dName = getVal(log, ['donorName', 'donorname']).toString().toLowerCase();
-    const vName = getVal(log, ['viewerName', 'viewername']).toString().toLowerCase();
-    const vPhone = getVal(log, ['viewerPhone', 'viewerphone']).toString();
-    const dPhone = getVal(log, ['donorPhone', 'donorphone']).toString();
+    const dName = getVal(log, ['donorName', 'donorname', 'donor_name']).toString().toLowerCase();
+    const vName = getVal(log, ['viewerName', 'viewername', 'viewer_name']).toString().toLowerCase();
+    const vPhone = getVal(log, ['viewerPhone', 'viewerphone', 'viewer_phone']).toString();
+    const dPhone = getVal(log, ['donorPhone', 'donorphone', 'donor_phone']).toString();
 
     return dName.includes(searchLower) ||
            vName.includes(searchLower) ||
@@ -85,29 +85,29 @@ export const AdminBloodLogs = () => {
                     <td className="p-5 text-xs text-gray-500">
                       <div className="flex items-center gap-2">
                         <Clock size={14} className="text-gray-400" />
-                        {formatTimestamp(getVal(log, ['created_at', 'createdat']))}
+                        {formatTimestamp(getVal(log, ['created_at', 'createdat', 'date']))}
                       </div>
                     </td>
                     <td className="p-5">
                       <div className="flex flex-col">
                         <span className="font-bold text-gray-900 text-sm flex items-center gap-2">
-                          <User size={14} className="text-blue-500" /> {getVal(log, ['viewerName', 'viewername']) || 'Anonymous'}
+                          <User size={14} className="text-blue-500" /> {getVal(log, ['viewerName', 'viewername', 'viewer_name']) || 'Anonymous'}
                         </span>
                         <span className="text-xs text-gray-500 mt-1 font-medium flex items-center gap-2">
-                          <Phone size={12} /> {getVal(log, ['viewerPhone', 'viewerphone']) || 'N/A'}
+                          <Phone size={12} /> {getVal(log, ['viewerPhone', 'viewerphone', 'viewer_phone']) || 'N/A'}
                         </span>
                         <span className="text-[10px] text-gray-400 mt-1 flex items-center gap-1">
-                          <MapPin size={10} /> {getVal(log, ['viewerDistrict', 'viewerdistrict']) || 'Unknown'}
+                          <MapPin size={10} /> {getVal(log, ['viewerDistrict', 'viewerdistrict', 'viewer_district']) || 'Unknown'}
                         </span>
                       </div>
                     </td>
                     <td className="p-5">
                       <div className="flex flex-col">
                         <span className="font-bold text-red-700 text-sm">
-                          {getVal(log, ['donorName', 'donorname'])}
+                          {getVal(log, ['donorName', 'donorname', 'donor_name'])}
                         </span>
                         <span className="text-xs text-gray-500 flex items-center gap-1 mt-1">
-                          <Phone size={12} /> {getVal(log, ['donorPhone', 'donorphone'])}
+                          <Phone size={12} /> {getVal(log, ['donorPhone', 'donorphone', 'donor_phone'])}
                         </span>
                       </div>
                     </td>

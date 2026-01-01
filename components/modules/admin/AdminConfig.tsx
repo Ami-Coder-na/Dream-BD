@@ -53,8 +53,11 @@ export const AdminConfig: React.FC<Props> = ({ isBangla }) => {
   const handleEditDistrict = (d: any) => {
     setEditingDistrict({
       ...d,
+      nameEn: d.nameEn || d.nameen || '',
+      nameBn: d.nameBn || d.namebn || '',
+      touristSpots: d.touristSpots || d.touristspots || [],
       upazilas_str: Array.isArray(d.upazilas) ? d.upazilas.join(', ') : '',
-      spots_str: Array.isArray(d.touristSpots) ? d.touristSpots.join(', ') : '',
+      spots_str: Array.isArray(d.touristSpots || d.touristspots) ? (d.touristSpots || d.touristspots).join(', ') : '',
       images_str: Array.isArray(d.images) ? d.images.join(', ') : '',
       education: d.education || { primary: 0, highSchool: 0, college: 0, university: 0 },
       hospitals: Array.isArray(d.hospitals) ? d.hospitals : []
@@ -131,7 +134,6 @@ export const AdminConfig: React.FC<Props> = ({ isBangla }) => {
       else if (activeConfigTab === 'vocational') deleteVocationalCourse(id);
       else if (activeConfigTab === 'expat') deleteExchangeRate(id);
       else if (activeConfigTab === 'districts') deleteDistrict(id);
-      // Handlers for other modules can be added here as needed
   };
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -325,7 +327,6 @@ export const AdminConfig: React.FC<Props> = ({ isBangla }) => {
           </div>
         </div>
 
-        {/* District Detail Editor Modal (Special Overlay) */}
         {editingDistrict && (
             <div className="fixed inset-0 z-[60] bg-black/60 flex items-center justify-center p-4 backdrop-blur-sm animate-fade-in">
                 <div className="bg-white rounded-2xl shadow-2xl w-full max-w-4xl max-h-[90vh] overflow-hidden flex flex-col" onClick={e => e.stopPropagation()}>
@@ -338,8 +339,8 @@ export const AdminConfig: React.FC<Props> = ({ isBangla }) => {
 
                     <form onSubmit={handleSaveDistrict} className="flex-1 overflow-y-auto p-8 custom-scrollbar">
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-                            <div><label className="block text-xs font-bold text-gray-500 uppercase mb-2">Name (EN)</label><input required className="w-full p-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-brand-500 outline-none" value={editingDistrict.nameEn || editingDistrict.nameen || ''} onChange={e => setEditingDistrict({...editingDistrict, nameEn: e.target.value})} /></div>
-                            <div><label className="block text-xs font-bold text-gray-500 uppercase mb-2">Name (BN)</label><input required className="w-full p-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-brand-500 outline-none" value={editingDistrict.nameBn || editingDistrict.namebn || ''} onChange={e => setEditingDistrict({...editingDistrict, nameBn: e.target.value})} /></div>
+                            <div><label className="block text-xs font-bold text-gray-500 uppercase mb-2">Name (EN)</label><input required className="w-full p-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-brand-500 outline-none" value={editingDistrict.nameEn} onChange={e => setEditingDistrict({...editingDistrict, nameEn: e.target.value})} /></div>
+                            <div><label className="block text-xs font-bold text-gray-500 uppercase mb-2">Name (BN)</label><input required className="w-full p-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-brand-500 outline-none" value={editingDistrict.nameBn} onChange={e => setEditingDistrict({...editingDistrict, nameBn: e.target.value})} /></div>
                             <div><label className="block text-xs font-bold text-gray-500 uppercase mb-2">Division</label><select className="w-full p-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-brand-500 outline-none" value={editingDistrict.division} onChange={e => setEditingDistrict({...editingDistrict, division: e.target.value})}><option>Dhaka</option><option>Chattogram</option><option>Sylhet</option><option>Khulna</option><option>Rajshahi</option><option>Barisal</option><option>Rangpur</option><option>Mymensingh</option></select></div>
                         </div>
 

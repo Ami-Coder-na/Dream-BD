@@ -14,16 +14,35 @@ const getLocal = (key: string, fallback: any) => {
   }
 };
 
+// Normalizers to handle casing differences between DB (snake/lower) and UI (camel)
 const normalizeLog = (log: any) => {
   if (!log) return null;
   return {
     id: log.id || Date.now() + Math.random(),
-    donorName: log.donorname || log.donorName || 'Unknown',
-    donorPhone: log.donorphone || log.donorPhone || 'N/A',
-    viewerName: log.viewername || log.viewerName || 'Anonymous',
-    viewerPhone: log.viewerphone || log.viewerPhone || 'N/A',
-    viewerDistrict: log.viewerdistrict || log.viewerDistrict || 'Unknown',
-    created_at: log.created_at || log.createdat || new Date().toISOString()
+    donorName: log.donorname || log.donorName || log.donor_name || 'Unknown',
+    donorPhone: log.donorphone || log.donorPhone || log.donor_phone || 'N/A',
+    viewerName: log.viewername || log.viewerName || log.viewer_name || 'Anonymous',
+    viewerPhone: log.viewerphone || log.viewerPhone || log.viewer_phone || 'N/A',
+    viewerDistrict: log.viewerdistrict || log.viewerDistrict || log.viewer_district || 'Unknown',
+    created_at: log.created_at || log.createdat || log.date || new Date().toISOString()
+  };
+};
+
+const normalizeDistrict = (d: any) => {
+  if (!d) return null;
+  return {
+    id: d.id,
+    nameEn: d.nameen || d.nameEn || '',
+    nameBn: d.namebn || d.nameBn || '',
+    division: d.division || '',
+    population: d.population || '',
+    area: d.area || '',
+    description: d.description || '',
+    upazilas: Array.isArray(d.upazilas) ? d.upazilas : [],
+    education: d.education || { primary: 0, highSchool: 0, college: 0, university: 0 },
+    hospitals: Array.isArray(d.hospitals) ? d.hospitals : [],
+    touristSpots: d.touristspots || d.touristSpots || [],
+    images: d.images || []
   };
 };
 
@@ -49,21 +68,20 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const [totalVisitors, setTotalVisitors] = useState<number>(() => parseInt(localStorage.getItem('total_visitors') || '1250'));
 
   const fetchData = async () => {
+    // Initial load from local storage
     setJobs(getLocal('db_jobs', []));
     setBlogs(getLocal('db_blogs', []));
     setRequests(getLocal('db_requests', []));
     setBlogRequests(getLocal('db_blog_requests', []));
     setWholesaleRequests(getLocal('db_wholesale_requests', []));
-    setDistricts(getLocal('db_districts', []));
-    setDonorViewLogs(getLocal('db_donor_view_logs', []));
-    setDonors(getLocal('db_donors', [
-        { id: 1, name: 'Ariful Islam', phone: '01711223344', district: 'Dhaka', group: 'O+', lastDonation: '3 months ago' },
-        { id: 2, name: 'Sumi Akter', phone: '01811223344', district: 'Chittagong', group: 'A+', lastDonation: '1 month ago' }
-    ]));
+    setDistricts(getLocal('db_districts', []).map(normalizeDistrict));
+    setDonorViewLogs(getLocal('db_donor_view_logs', []).map(normalizeLog).filter(Boolean));
+    setDonors(getLocal('db_donors', []));
     setGrievances(getLocal('db_grievances', []));
     setMessages(getLocal('db_contact_messages', []));
     setWholesaleAds(getLocal('db_wholesale_ads', []));
     setLawyers(getLocal('db_lawyers', []));
+    setMarketPrices(getLocal('db_market_prices', []));
     setExchangeRates(getLocal('db_exchange_rates', []));
     setVocationalCourses(getLocal('db_vocational_courses', []));
     
@@ -96,7 +114,7 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         loadTable('market_prices', setMarketPrices),
         loadTable('wholesale_ads', setWholesaleAds),
         loadTable('donors', setDonors),
-        loadTable('districts', setDistricts),
+        loadTable('districts', setDistricts, normalizeDistrict),
         loadTable('lawyers', setLawyers),
         loadTable('exchange_rates', setExchangeRates),
         loadTable('vocational_courses', setVocationalCourses),
@@ -110,6 +128,49 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   useEffect(() => {
     fetchData();
   }, []);
+
+  const updateMarketPrices = async (prices: any[]) => {
+    setMarketPrices(prices);
+    localStorage.setItem('db_market_prices', JSON.stringify(prices));
+    if (isSupabaseConfigured) {
+       // Typically we update only the changed row, but for simplicity we sync full state if needed or specific upsert
+       // Here we assume it's called with the updated list for UI state
+       try {
+         await supabase.from('market_prices').upsert(prices);
+       } catch(e) {}
+    }
+  };
+
+  const updateDistrict = async (district: any) => {
+    // Convert camelCase UI object back to snake_case/lowercase DB object
+    const dbDistrict = {
+      id: district.id,
+      nameen: district.nameEn,
+      namebn: district.nameBn,
+      division: district.division,
+      population: district.population,
+      area: district.area,
+      description: district.description,
+      upazilas: district.upazilas,
+      education: district.education,
+      hospitals: district.hospitals,
+      touristspots: district.touristSpots,
+      images: district.images
+    };
+
+    if (isSupabaseConfigured) {
+       await supabase.from('districts').upsert(dbDistrict);
+    }
+    
+    // Update local state and storage
+    const updatedNormalized = normalizeDistrict(dbDistrict);
+    setDistricts((prev: any[]) => {
+       const exists = prev.some(d => d.id === district.id);
+       const updatedList = exists ? prev.map(d => d.id === district.id ? updatedNormalized : d) : [updatedNormalized, ...prev];
+       localStorage.setItem('db_districts', JSON.stringify(updatedList));
+       return updatedList;
+    });
+  };
 
   const seedDistricts = async () => {
     if (!isSupabaseConfigured) return;
@@ -138,6 +199,8 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     };
 
     const newLogEntry = normalizeLog(dbLog);
+    if (!newLogEntry) return;
+
     setDonorViewLogs(prev => {
         const updated = [newLogEntry, ...prev];
         localStorage.setItem('db_donor_view_logs', JSON.stringify(updated));
@@ -307,11 +370,6 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     localStorage.setItem('db_users', JSON.stringify(local.filter((i: any) => i.id !== id)));
   };
 
-  const updateMarketPrices = (prices: any[]) => {
-    setMarketPrices(prices);
-    localStorage.setItem('db_market_prices', JSON.stringify(prices));
-  };
-
   const updateWholesaleAd = async (ad: any) => {
     if (isSupabaseConfigured) await supabase.from('wholesale_ads').update(ad).eq('id', ad.id);
     await fetchData();
@@ -343,25 +401,11 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
   const enrollCourse = (course: any) => setEnrolledCourses(prev => [...prev, course]);
 
-  const updateDistrict = async (district: any) => {
-    if (isSupabaseConfigured) await supabase.from('districts').upsert(district);
-    const local = getLocal('db_districts', []);
-    const exists = local.some((d: any) => d.id === district.id);
-    const updated = exists ? local.map((d: any) => d.id === district.id ? district : d) : [district, ...local];
-    localStorage.setItem('db_districts', JSON.stringify(updated));
-    setDistricts(updated);
-  };
-
   const deleteDistrict = async (id: string) => {
-    // 1. Update local state immediately
     setDistricts(prev => prev.filter((d: any) => d.id !== id));
-    
-    // 2. Update local storage immediately
     const local = getLocal('db_districts', []);
     const updatedLocal = local.filter((d: any) => d.id !== id);
     localStorage.setItem('db_districts', JSON.stringify(updatedLocal));
-
-    // 3. Update Supabase asynchronously
     if (isSupabaseConfigured) {
         try {
             await supabase.from('districts').delete().eq('id', id);

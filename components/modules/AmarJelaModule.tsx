@@ -27,10 +27,25 @@ export const AmarJelaModule: React.FC<Props> = ({ isBangla }) => {
   const [isTyping, setIsTyping] = useState(false);
   const resultRef = useRef<HTMLDivElement>(null);
 
+  // Helper to access properties safely from both camelCase and lowercase DB formats
+  const getDValue = (obj: any, keys: string[]) => {
+    if (!obj) return '';
+    for (const key of keys) {
+      if (obj[key] !== undefined && obj[key] !== null) return obj[key];
+    }
+    return '';
+  };
+
   const allDistricts = useMemo(() => {
     const list = [...(dbDistricts || [])];
     COMMON_DISTRICTS.forEach(fallback => {
-      const exists = list.some(d => (d.id === fallback.id) || (d.nameEn?.toLowerCase() === fallback.nameEn.toLowerCase()));
+      const exists = list.some(d => {
+        const dId = (d.id || '').toString().toLowerCase();
+        const fId = (fallback.id || '').toString().toLowerCase();
+        const dName = getDValue(d, ['nameEn', 'nameen']).toString().toLowerCase();
+        const fName = (fallback.nameEn || '').toLowerCase();
+        return dId === fId || (dName && dName === fName);
+      });
       if (!exists) list.push(fallback);
     });
     return list;
@@ -39,10 +54,11 @@ export const AmarJelaModule: React.FC<Props> = ({ isBangla }) => {
   useEffect(() => {
     const term = (searchTerm || '').trim().toLowerCase();
     if (term.length > 0 && isTyping) {
-      const filtered = allDistricts.filter((d: any) => 
-        (d.nameEn || d.nameen || '').toLowerCase().includes(term) || 
-        (d.nameBn || d.namebn || '').includes(searchTerm)
-      );
+      const filtered = allDistricts.filter((d: any) => {
+        const nameE = getDValue(d, ['nameEn', 'nameen']).toString().toLowerCase();
+        const nameB = getDValue(d, ['nameBn', 'namebn']).toString();
+        return nameE.includes(term) || nameB.includes(searchTerm);
+      });
       setSuggestions(filtered);
     } else {
       setSuggestions([]);
@@ -63,12 +79,11 @@ export const AmarJelaModule: React.FC<Props> = ({ isBangla }) => {
     const term = (overrideTerm || searchTerm || '').trim().toLowerCase();
     if (!term) return;
 
-    const match = allDistricts.find((d: any) => 
-      (d.nameEn || d.nameen || '').toLowerCase() === term || 
-      (d.nameBn || d.namebn || '') === term ||
-      (d.nameEn || d.nameen || '').toLowerCase().includes(term) ||
-      (d.nameBn || d.namebn || '').includes(term)
-    );
+    const match = allDistricts.find((d: any) => {
+      const nameE = getDValue(d, ['nameEn', 'nameen']).toString().toLowerCase();
+      const nameB = getDValue(d, ['nameBn', 'namebn']).toString();
+      return nameE === term || nameB === term || nameE.includes(term) || nameB.includes(term);
+    });
 
     if (match) {
       handleSelectDistrict(match);
@@ -91,7 +106,7 @@ export const AmarJelaModule: React.FC<Props> = ({ isBangla }) => {
 
   return (
     <div className="bg-white min-h-screen animate-fade-in pb-16 font-sans">
-      {/* 1. HEADER SECTION - Compact & Minimalist */}
+      {/* Header Section */}
       <div className="bg-[#0b6352] relative pt-10 pb-20 px-4 text-center">
         <div className="absolute inset-0 opacity-5 pointer-events-none" 
              style={{ backgroundImage: `url('https://www.transparenttextures.com/patterns/cubes.png')` }}>
@@ -132,7 +147,7 @@ export const AmarJelaModule: React.FC<Props> = ({ isBangla }) => {
                   >
                     <div>
                       <span className="font-bold text-gray-900 group-hover:text-[#0b6352]">
-                        {isBangla ? (dist.nameBn || dist.namebn) : (dist.nameEn || dist.nameen)}
+                        {isBangla ? getDValue(dist, ['nameBn', 'namebn']) : getDValue(dist, ['nameEn', 'nameen'])}
                       </span>
                     </div>
                     <ArrowRight className="text-emerald-200 group-hover:text-[#0b6352] transition-all" size={16} />
@@ -148,7 +163,6 @@ export const AmarJelaModule: React.FC<Props> = ({ isBangla }) => {
 
       <div className="max-w-6xl mx-auto px-4 -mt-12 relative z-20" ref={resultRef}>
         {!selectedDistrict ? (
-          /* SELECTION GRID - Smaller Buttons */
           <div className="bg-white rounded-[2rem] shadow-xl p-10 text-center border border-gray-100 max-w-3xl mx-auto">
              <div className="w-16 h-16 bg-[#e6f4f1] rounded-2xl flex items-center justify-center mx-auto mb-6 text-[#0b6352]">
                 <MapPin size={32} />
@@ -169,16 +183,15 @@ export const AmarJelaModule: React.FC<Props> = ({ isBangla }) => {
              </div>
           </div>
         ) : (
-          /* DISTRICT DETAILS VIEW - Minimalist */
           <div className="space-y-6 animate-fade-in-up">
             <div className="bg-white rounded-[2rem] shadow-xl p-6 md:p-10 border border-gray-100">
                <div className="flex flex-col md:flex-row justify-between items-start mb-8 gap-4">
                   <div className="flex-1">
                      <span className="inline-block px-3 py-1 rounded-full bg-[#e6f4f1] text-[#0b6352] text-[10px] font-black uppercase mb-2 border border-emerald-100 tracking-widest">
-                       {isBangla ? selectedDistrict.division + ' বিভাগ' : selectedDistrict.division + ' Division'}
+                       {selectedDistrict.division} {isBangla ? 'বিভাগ' : 'Division'}
                      </span>
                      <h2 className="text-4xl md:text-6xl font-black text-gray-900">
-                       {isBangla ? (selectedDistrict.nameBn || selectedDistrict.namebn) : (selectedDistrict.nameEn || selectedDistrict.nameen)}
+                       {isBangla ? getDValue(selectedDistrict, ['nameBn', 'namebn']) : getDValue(selectedDistrict, ['nameEn', 'nameen'])}
                      </h2>
                   </div>
 
@@ -202,7 +215,7 @@ export const AmarJelaModule: React.FC<Props> = ({ isBangla }) => {
                         <img 
                           src={getOptimizedImageUrl(selectedDistrict.images?.[0] || DEFAULT_IMG, 800)} 
                           onError={handleImageError}
-                          alt={selectedDistrict.nameEn} 
+                          alt="District" 
                           className="w-full h-full object-cover" 
                         />
                      </div>
@@ -285,13 +298,24 @@ export const AmarJelaModule: React.FC<Props> = ({ isBangla }) => {
                   </div>
                </div>
 
-               {/* Hospital */}
+               {/* Health */}
                <div className="bg-white rounded-[1.5rem] p-8 shadow-md border border-gray-100">
                   <h3 className="text-xl font-black text-gray-900 mb-6 flex items-center gap-2">
-                    <HeartPulse size={20} className="text-red-500" /> {isBangla ? 'হাসপাতাল' : 'Health'}
+                    <HeartPulse size={20} className="text-red-500" /> {isBangla ? 'স্বাস্থ্য তথ্য' : 'Health'}
                   </h3>
-                  <div className="h-24 border-2 border-dashed border-gray-100 rounded-xl flex items-center justify-center text-gray-300 text-sm font-bold">
-                    {isBangla ? 'শীঘ্রই তথ্য যুক্ত হবে' : 'Coming Soon'}
+                  <div className="space-y-3">
+                    {Array.isArray(selectedDistrict.hospitals) && selectedDistrict.hospitals.length > 0 ? (
+                      selectedDistrict.hospitals.slice(0, 2).map((h: any, i: number) => (
+                        <div key={i} className="bg-red-50/30 p-3 rounded-lg border border-red-50">
+                           <p className="font-bold text-gray-800 text-sm">{h.name}</p>
+                           <p className="text-xs text-red-600 font-bold">{h.phone}</p>
+                        </div>
+                      ))
+                    ) : (
+                      <div className="h-24 border-2 border-dashed border-gray-100 rounded-xl flex items-center justify-center text-gray-300 text-sm font-bold">
+                        {isBangla ? 'শীঘ্রই তথ্য যুক্ত হবে' : 'Coming Soon'}
+                      </div>
+                    )}
                   </div>
                </div>
 
@@ -301,7 +325,7 @@ export const AmarJelaModule: React.FC<Props> = ({ isBangla }) => {
                     <MapPin size={20} className="text-emerald-500" /> {isBangla ? 'উপজেলা সমূহ' : 'Upazilas'}
                   </h3>
                   <div className="flex flex-wrap gap-2">
-                     {(selectedDistrict.upazilas || ['Upazila List']).slice(0, 6).map((upz: string, i: number) => (
+                     {(selectedDistrict.upazilas || ['Upazila List']).slice(0, 8).map((upz: string, i: number) => (
                         <span key={i} className="px-3 py-1 bg-gray-50 border border-gray-100 rounded-lg text-xs font-bold text-gray-600">
                            {upz}
                         </span>
