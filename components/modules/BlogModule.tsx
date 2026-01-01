@@ -1,5 +1,5 @@
 import React, { useState, useRef } from 'react';
-import { Search, Calendar, User, ArrowRight, Tag, PenTool, X, CheckCircle, Image as ImageIcon, ArrowLeft, Share2, Clock, Printer, Facebook, Linkedin, Twitter, ExternalLink, Upload, RefreshCw } from 'lucide-react';
+import { Search, Calendar, User, ArrowRight, Tag, PenTool, X, CheckCircle, Image as ImageIcon, ArrowLeft, Share2, Clock, Printer, Facebook, Linkedin, Twitter, ExternalLink, Upload, RefreshCw, Link as LinkIcon, MessageCircle } from 'lucide-react';
 import { Button } from '../ui/Button';
 import { getOptimizedImageUrl } from '../utils/imageUtils';
 import { useData } from '../../contexts/DataContext';
@@ -16,6 +16,7 @@ export const BlogModule: React.FC<Props> = ({ isBangla, user, onLogin }) => {
   const [showPostModal, setShowPostModal] = useState(false);
   const [postSubmitted, setPostSubmitted] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
+  const [copyStatus, setCopyStatus] = useState<number | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   
   // New Blog State
@@ -73,6 +74,29 @@ export const BlogModule: React.FC<Props> = ({ isBangla, user, onLogin }) => {
     setNewBlogData({ title: '', category: '', content: '', image: null });
   };
 
+  const handleCopyLink = (e: React.MouseEvent, id: number) => {
+    e.stopPropagation();
+    const url = `${window.location.origin}/blog?id=${id}`;
+    navigator.clipboard.writeText(url);
+    setCopyStatus(id);
+    setTimeout(() => setCopyStatus(null), 2000);
+  };
+
+  const handleShare = (e: React.MouseEvent, platform: 'fb' | 'wa', post: any) => {
+    e.stopPropagation();
+    const url = encodeURIComponent(`${window.location.origin}/blog?id=${post.id}`);
+    const text = encodeURIComponent(post.title);
+    let shareUrl = '';
+
+    if (platform === 'fb') {
+      shareUrl = `https://www.facebook.com/sharer/sharer.php?u=${url}`;
+    } else if (platform === 'wa') {
+      shareUrl = `https://api.whatsapp.com/send?text=${text}%20${url}`;
+    }
+
+    window.open(shareUrl, '_blank', 'width=600,height=400');
+  };
+
   const handleReadMore = (post: any) => {
     if (post.isExternal && post.link) {
       window.open(post.link, '_blank');
@@ -111,8 +135,25 @@ export const BlogModule: React.FC<Props> = ({ isBangla, user, onLogin }) => {
               <ArrowLeft size={18} /> {isBangla ? 'ফিরে যান' : 'Back to News'}
             </button>
             <div className="flex gap-2">
-               <button className="p-2 bg-white rounded-full text-gray-500 hover:text-blue-600 transition-colors border border-gray-200 shadow-sm"><Facebook size={18} /></button>
-               <button className="p-2 bg-white rounded-full text-gray-500 hover:text-sky-500 transition-colors border border-gray-200 shadow-sm"><Twitter size={18} /></button>
+               <button 
+                onClick={(e) => handleShare(e, 'fb', selectedPost)}
+                className="p-2 bg-white rounded-full text-gray-500 hover:text-blue-600 transition-colors border border-gray-200 shadow-sm"
+               >
+                 <Facebook size={18} />
+               </button>
+               <button 
+                onClick={(e) => handleShare(e, 'wa', selectedPost)}
+                className="p-2 bg-white rounded-full text-gray-500 hover:text-green-600 transition-colors border border-gray-200 shadow-sm"
+               >
+                 <MessageCircle size={18} />
+               </button>
+               <button 
+                onClick={(e) => handleCopyLink(e, selectedPost.id)}
+                className={`p-2 rounded-full transition-all border shadow-sm flex items-center gap-2 px-3 ${copyStatus === selectedPost.id ? 'bg-emerald-600 text-white border-emerald-600' : 'bg-white text-gray-500 hover:text-emerald-600 border-gray-200'}`}
+               >
+                 {copyStatus === selectedPost.id ? <CheckCircle size={18}/> : <LinkIcon size={18} />}
+                 <span className="text-xs font-bold">{copyStatus === selectedPost.id ? (isBangla ? 'লিঙ্ক কপি হয়েছে' : 'Copied') : (isBangla ? 'লিঙ্ক কপি করুন' : 'Copy Link')}</span>
+               </button>
             </div>
           </div>
           <article className="bg-white rounded-3xl shadow-lg border border-gray-100 overflow-hidden">
@@ -154,8 +195,30 @@ export const BlogModule: React.FC<Props> = ({ isBangla, user, onLogin }) => {
             filteredPosts.map((post: any) => (
               <div key={post.id} onClick={() => handleReadMore(post)} className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden hover:shadow-xl hover:-translate-y-1 transition-all duration-300 group flex flex-col h-full cursor-pointer relative">
                 {post.isExternal && <div className="absolute top-4 right-4 z-10 bg-black/60 text-white p-1.5 rounded-full backdrop-blur-sm"><ExternalLink size={14} /></div>}
-                <div className="relative h-56 overflow-hidden"><img src={getOptimizedImageUrl(post.image, 600)} alt={post.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" loading="lazy" onError={(e) => { e.currentTarget.src = "https://placehold.co/400x300/f3f4f6/9ca3af?text=Article+Image"; }} /><span className="absolute top-4 left-4 bg-white/95 backdrop-blur-sm text-emerald-700 text-xs font-bold px-3 py-1.5 rounded-full flex items-center gap-1 shadow-sm"><Tag size={12} />{post.category}</span></div>
-                <div className="p-6 flex-1 flex flex-col"><div className="flex items-center gap-4 text-xs text-gray-500 mb-4 font-medium"><span className="flex items-center gap-1 bg-gray-50 px-2 py-1 rounded"><Calendar size={14} className="text-emerald-500" />{post.date}</span><span className="flex items-center gap-1 bg-gray-50 px-2 py-1 rounded"><User size={14} className="text-emerald-500" />{post.author}</span></div><h3 className="text-xl font-bold text-gray-900 mb-3 line-clamp-2 group-hover:text-emerald-600 transition-colors leading-snug">{post.title}</h3><div className="text-gray-600 text-sm line-clamp-3 mb-6 flex-1 leading-relaxed" dangerouslySetInnerHTML={{ __html: post.excerpt || '' }} /><div className="pt-4 border-t border-gray-50 flex items-center justify-between"><button className="flex items-center text-emerald-600 font-bold text-sm hover:gap-2 transition-all"> {isBangla ? 'আরও পড়ুন' : 'Read Article'}<ArrowRight size={16} className="ml-1" /></button></div></div>
+                <div className="relative h-56 overflow-hidden">
+                  <img src={getOptimizedImageUrl(post.image, 600)} alt={post.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" loading="lazy" onError={(e) => { e.currentTarget.src = "https://placehold.co/400x300/f3f4f6/9ca3af?text=Article+Image"; }} />
+                  <span className="absolute top-4 left-4 bg-white/95 backdrop-blur-sm text-emerald-700 text-xs font-bold px-3 py-1.5 rounded-full flex items-center gap-1 shadow-sm"><Tag size={12} />{post.category}</span>
+                </div>
+                <div className="p-6 flex-1 flex flex-col"><div className="flex items-center gap-4 text-xs text-gray-500 mb-4 font-medium"><span className="flex items-center gap-1 bg-gray-50 px-2 py-1 rounded"><Calendar size={14} className="text-emerald-500" />{post.date}</span><span className="flex items-center gap-1 bg-gray-50 px-2 py-1 rounded"><User size={14} className="text-emerald-500" />{post.author}</span></div><h3 className="text-xl font-bold text-gray-900 mb-3 line-clamp-2 group-hover:text-emerald-600 transition-colors leading-snug">{post.title}</h3><div className="text-gray-600 text-sm line-clamp-3 mb-6 flex-1 leading-relaxed" dangerouslySetInnerHTML={{ __html: post.excerpt || '' }} />
+                <div className="pt-4 border-t border-gray-50 flex items-center justify-between">
+                  <button className="flex items-center text-emerald-600 font-bold text-sm hover:gap-2 transition-all"> {isBangla ? 'আরও পড়ুন' : 'Read Article'}<ArrowRight size={16} className="ml-1" /></button>
+                  <div className="flex gap-2">
+                    <button 
+                      onClick={(e) => handleCopyLink(e, post.id)} 
+                      className={`p-2 rounded-full transition-colors ${copyStatus === post.id ? 'bg-emerald-100 text-emerald-600' : 'bg-gray-50 text-gray-400 hover:text-emerald-600'}`}
+                      title={isBangla ? 'লিঙ্ক কপি করুন' : 'Copy Link'}
+                    >
+                      {copyStatus === post.id ? <CheckCircle size={16}/> : <LinkIcon size={16} />}
+                    </button>
+                    <button 
+                      onClick={(e) => handleShare(e, 'fb', post)} 
+                      className="p-2 bg-gray-50 rounded-full text-gray-400 hover:text-blue-600 transition-colors"
+                      title="Share on Facebook"
+                    >
+                      <Facebook size={16} />
+                    </button>
+                  </div>
+                </div></div>
               </div>
             ))
           ) : (

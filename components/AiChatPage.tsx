@@ -1,3 +1,4 @@
+
 import React, { useState, useRef, useEffect } from 'react';
 import { Send, Bot, ArrowLeft, Loader2, User as UserIcon, Sparkles, Paperclip, X as XIcon, Image as ImageIcon, Mic, ThumbsUp, ThumbsDown, MessageSquare, Clock, Plus, Menu, Trash2 } from 'lucide-react';
 import { generateAssistantResponse } from '../services/geminiService';
@@ -20,15 +21,15 @@ export const AiChatPage: React.FC<AiChatPageProps> = ({ onBack, isBangla }) => {
     id: 'init',
     role: 'model',
     text: isBangla 
-      ? 'স্বাগতম! আমি সোনালী দেশ এআই। কৃষি, স্বাস্থ্য, শিক্ষা বা অন্য যেকোনো বিষয়ে আমি আপনাকে কীভাবে সাহায্য করতে পারি? আপনি ছবি বা অডিও পাঠাতে পারেন।' 
-      : 'Welcome! I am Shonali Desh AI. How can I assist you today? You can also share images or audio for analysis.',
+      ? 'স্বাগতম! আমি ডিজিটাল দেশ বিডি এআই। কৃষি, স্বাস্থ্য, শিক্ষা বা অন্য যেকোনো বিষয়ে আমি আপনাকে কীভাবে সাহায্য করতে পারি? আপনি ছবি বা অডিও পাঠাতে পারেন।' 
+      : 'Welcome! I am Digital Desh BD AI. How can I assist you today? You can also share images or audio for analysis.',
     timestamp: new Date()
   };
 
   // Initialize sessions from LocalStorage or use Mock Data
   const [sessions, setSessions] = useState<ChatSession[]>(() => {
     try {
-      const saved = localStorage.getItem('shonali_desh_chat_sessions');
+      const saved = localStorage.getItem('digital_desh_bd_chat_sessions');
       if (saved) {
         const parsed = JSON.parse(saved);
         // Revive Date objects from strings
@@ -63,7 +64,7 @@ export const AiChatPage: React.FC<AiChatPageProps> = ({ onBack, isBangla }) => {
 
   // Persist sessions to LocalStorage whenever they change
   useEffect(() => {
-    localStorage.setItem('shonali_desh_chat_sessions', JSON.stringify(sessions));
+    localStorage.setItem('digital_desh_bd_chat_sessions', JSON.stringify(sessions));
   }, [sessions]);
 
   const scrollToBottom = () => {
@@ -312,7 +313,7 @@ export const AiChatPage: React.FC<AiChatPageProps> = ({ onBack, isBangla }) => {
               </div>
               <div>
                 <h1 className="font-bold text-gray-900 text-base flex items-center gap-2">
-                  {isBangla ? 'সোনালী এআই' : 'Shonali AI'} 
+                  {isBangla ? 'ডিজিটাল এআই' : 'Digital AI'} 
                   <Sparkles size={14} className="text-yellow-500" fill="currentColor" />
                 </h1>
                 <p className="text-xs text-gray-500">{isBangla ? 'আপনার স্মার্ট সহকারী' : 'Your Smart Assistant'}</p>
@@ -337,7 +338,7 @@ export const AiChatPage: React.FC<AiChatPageProps> = ({ onBack, isBangla }) => {
                 <div className={`flex flex-col gap-1 max-w-[85%] md:max-w-[75%] ${msg.role === 'user' ? 'items-end' : 'items-start'}`}>
                   
                   <div className={`flex items-center gap-2 text-[10px] text-gray-400 ${msg.role === 'user' ? 'flex-row-reverse' : 'flex-row'} mb-1`}>
-                    <span className="font-medium">{msg.role === 'user' ? (isBangla ? 'আপনি' : 'You') : 'Shonali AI'}</span>
+                    <span className="font-medium">{msg.role === 'user' ? (isBangla ? 'আপনি' : 'You') : 'Digital AI'}</span>
                     <span>•</span>
                     <span>{formatTime(msg.timestamp)}</span>
                   </div>
@@ -388,7 +389,7 @@ export const AiChatPage: React.FC<AiChatPageProps> = ({ onBack, isBangla }) => {
                 </div>
 
                 {msg.role === 'user' && (
-                  <div className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center shrink-0 border border-gray-200 mt-1">
+                  <div className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center shrink-0 border border-brand-100 mt-1">
                     <UserIcon size={14} className="text-gray-500" />
                   </div>
                 )}
@@ -402,7 +403,7 @@ export const AiChatPage: React.FC<AiChatPageProps> = ({ onBack, isBangla }) => {
                   </div>
                   <div className="bg-gray-50 border border-gray-100 p-4 rounded-2xl rounded-bl-none shadow-sm flex items-center gap-3">
                     <Loader2 size={18} className="animate-spin text-brand-600" />
-                    <span className="text-sm text-gray-500 font-medium">{isBangla ? 'উত্তর তৈরি হচ্ছে...' : 'Shonali AI is thinking...'}</span>
+                    <span className="text-sm text-gray-500 font-medium">{isBangla ? 'উত্তর তৈরি হচ্ছে...' : 'Digital AI is thinking...'}</span>
                   </div>
               </div>
             )}
@@ -482,7 +483,7 @@ export const AiChatPage: React.FC<AiChatPageProps> = ({ onBack, isBangla }) => {
             </div>
             
             <p className="text-center text-[10px] text-gray-400 mt-2">
-              Shonali AI • {isBangla ? 'গুরুত্বপূর্ণ তথ্যের জন্য যাচাই করুন' : 'Verify important info'}
+              Digital AI • {isBangla ? 'গুরুত্বপূর্ণ তথ্যের জন্য যাচাই করুন' : 'Verify important info'}
             </p>
           </div>
         </div>

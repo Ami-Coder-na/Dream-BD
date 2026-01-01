@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { 
   LayoutDashboard, Users, Settings, Database, Activity, 
@@ -29,7 +30,7 @@ type AdminSection = 'overview' | 'website-manage' | 'users' | 'content' | 'inbox
 export const AdminModule: React.FC<Props> = ({ isBangla, onExit }) => {
   const { requests, totalVisitors, messages, donorViewLogs } = useData();
 
-  const SESSION_KEY = 'shonali_admin_session';
+  const SESSION_KEY = 'digital_desh_bd_admin_session';
   const SESSION_DURATION = 12 * 60 * 60 * 1000;
 
   const [isAuthenticated, setIsAuthenticated] = useState(() => {
@@ -66,16 +67,16 @@ export const AdminModule: React.FC<Props> = ({ isBangla, onExit }) => {
 
   const handleLogin = (e: React.FormEvent) => {
     e.preventDefault();
-    if ((email === 'admin@shonalidesh.com' && password === 'admin123') || (email === 'demo' && password === 'demo')) {
+    if ((email === 'admin@digitaldeshbd.com' && password === 'admin123') || (email === 'demo' && password === 'demo')) {
       setIsAuthenticated(true);
       localStorage.setItem(SESSION_KEY, JSON.stringify({ timestamp: Date.now() }));
     } else {
-      alert('Invalid Credentials. Try admin@shonalidesh.com / admin123');
+      alert('Invalid Credentials. Try admin@digitaldeshbd.com / admin123');
     }
   };
 
   const fillDemoCredentials = () => {
-    setEmail('admin@shonalidesh.com');
+    setEmail('admin@digitaldeshbd.com');
     setPassword('admin123');
   };
 
@@ -201,14 +202,14 @@ export const AdminModule: React.FC<Props> = ({ isBangla, onExit }) => {
             <div className="w-20 h-20 bg-[#0f172a] rounded-full flex items-center justify-center mx-auto mb-6 shadow-xl ring-4 ring-gray-100">
               <Shield size={40} className="text-white" strokeWidth={1.5} />
             </div>
-            <h2 className="text-2xl font-bold text-gray-900 mb-2 tracking-tight">Shonali Admin</h2>
+            <h2 className="text-2xl font-bold text-gray-900 mb-2 tracking-tight">Digital Admin</h2>
             <p className="text-gray-500 mb-8 text-sm font-medium">Secure login required.</p>
             <form onSubmit={handleLogin} className="space-y-4 text-left">
               <div>
                 <label className="block text-xs font-bold text-gray-700 uppercase mb-1 ml-1">Email</label>
                 <div className="relative">
                   <Mail className="absolute left-3 top-3 text-gray-400" size={18} />
-                  <input type="text" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="admin@shonalidesh.com" className="w-full pl-10 pr-4 py-3 bg-gray-50 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#0f172a]" required />
+                  <input type="text" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="admin@digitaldeshbd.com" className="w-full pl-10 pr-4 py-3 bg-gray-50 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#0f172a]" required />
                 </div>
               </div>
               <div>
@@ -235,7 +236,7 @@ export const AdminModule: React.FC<Props> = ({ isBangla, onExit }) => {
     <div className="min-h-screen bg-gray-50 flex font-sans text-gray-900">
       <aside className="w-64 bg-gray-900 text-white flex-col hidden md:flex fixed h-full overflow-y-auto">
         <div className="p-6 border-b border-gray-800">
-          <h2 className="text-xl font-bold flex items-center gap-2 tracking-tight"><Shield className="text-brand-500" /> Shonali Admin</h2>
+          <h2 className="text-xl font-bold flex items-center gap-2 tracking-tight"><Shield className="text-brand-500" /> Digital Admin</h2>
         </div>
         <nav className="flex-1 p-4 space-y-1">
           <button onClick={() => setActiveSection('overview')} className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all ${activeSection === 'overview' ? 'bg-brand-600 text-white shadow-lg' : 'text-gray-400 hover:bg-gray-800 hover:text-white'}`}><LayoutDashboard size={18} /> Overview</button>
@@ -260,7 +261,7 @@ export const AdminModule: React.FC<Props> = ({ isBangla, onExit }) => {
 
       <main className="flex-1 md:ml-64 p-4 md:p-8 overflow-y-auto">
         <div className="md:hidden flex justify-between items-center mb-6 bg-white p-4 rounded-xl shadow-sm">
-          <h2 className="font-bold text-gray-800">Shonali Admin</h2>
+          <h2 className="font-bold text-gray-800">Digital Admin</h2>
           <button onClick={handleLogout}><LogOut size={20} className="text-gray-600"/></button>
         </div>
 

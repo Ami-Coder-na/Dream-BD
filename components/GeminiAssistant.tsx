@@ -1,3 +1,4 @@
+
 import React, { useState, useRef, useEffect } from 'react';
 import { MessageCircle, X, Send, Bot, Loader2 } from 'lucide-react';
 import { generateAssistantResponse } from '../services/geminiService';
@@ -17,8 +18,8 @@ export const GeminiAssistant: React.FC<GeminiAssistantProps> = ({ currentModule,
       id: 'init',
       role: 'model',
       text: isBangla 
-        ? 'স্বাগতম! আমি সোনালী দেশ অ্যাসিস্ট্যান্ট। আমি আপনাকে কীভাবে সাহায্য করতে পারি?' 
-        : 'Welcome! I am Shonali Desh Assistant. How can I help you today?',
+        ? 'স্বাগতম! আমি ডিজিটাল দেশ বিডি অ্যাসিস্ট্যান্ট। আমি আপনাকে কীভাবে সাহায্য করতে পারি?' 
+        : 'Welcome! I am Digital Desh BD Assistant. How can I help you today?',
       timestamp: new Date()
     }
   ]);
@@ -87,7 +88,7 @@ export const GeminiAssistant: React.FC<GeminiAssistantProps> = ({ currentModule,
           <div className="bg-brand-600 p-4 flex justify-between items-center text-white">
             <div className="flex items-center gap-2">
               <Bot size={20} />
-              <h3 className="font-semibold">{isBangla ? 'সোনালী অ্যাসিস্ট্যান্ট' : 'Shonali Assistant'}</h3>
+              <h3 className="font-semibold">{isBangla ? 'ডিজিটাল অ্যাসিস্ট্যান্ট' : 'Digital Assistant'}</h3>
             </div>
             <button onClick={() => setIsOpen(false)} className="hover:bg-brand-700 p-1 rounded">
               <X size={20} />

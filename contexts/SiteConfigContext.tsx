@@ -1,3 +1,4 @@
+
 import React, { createContext, useState, useContext, ReactNode, useEffect } from 'react';
 import { AppModule } from '../types';
 import { supabase, isSupabaseConfigured } from '../services/supabaseClient';
@@ -63,15 +64,15 @@ const DEFAULT_SECTIONS: Record<LandingSection, boolean> = {
 };
 
 const DEFAULT_SETTINGS: SiteSettings = {
-  websiteTitle: 'Shonali Desh',
+  websiteTitle: 'Digital Desh BD',
   websiteLogo: '',
   websiteFavicon: '',
-  contactEmail: 'info@shonalidesh.com',
+  contactEmail: 'info@digitaldeshbd.com',
   contactPhone: '+880 1XXX-XXXXXX',
   address: 'Dhaka, Bangladesh',
   maintenanceMode: false,
   announcementActive: false,
-  announcement: 'Welcome to Shonali Desh!',
+  announcement: 'Welcome to Digital Desh BD!',
 };
 
 // Fix line 41-48: Properly define SiteConfigContext
