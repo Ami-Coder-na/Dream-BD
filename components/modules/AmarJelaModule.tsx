@@ -1,3 +1,4 @@
+
 import React, { useState, useRef, useEffect, useMemo } from 'react';
 import { Search, MapPin, Users, BookOpen, HeartPulse, Building2, Phone, Camera, ArrowRight, X, Info, Map as MapIcon, ChevronRight } from 'lucide-react';
 import { Button } from '../ui/Button';
@@ -7,17 +8,6 @@ import { useData } from '../../contexts/DataContext';
 interface Props {
   isBangla: boolean;
 }
-
-const COMMON_DISTRICTS = [
-  { id: 'dhaka', nameEn: 'Dhaka', nameBn: 'ঢাকা', division: 'Dhaka' },
-  { id: 'chattogram', nameEn: 'Chattogram', nameBn: 'চট্টগ্রাম', division: 'Chattogram' },
-  { id: 'sylhet', nameEn: 'Sylhet', nameBn: 'সিলেট', division: 'Sylhet' },
-  { id: 'khulna', nameEn: 'Khulna', nameBn: 'খুলনা', division: 'Khulna' },
-  { id: 'rajshahi', nameEn: 'Rajshahi', nameBn: 'রাজশাহী', division: 'Rajshahi' },
-  { id: 'barisal', nameEn: 'Barisal', nameBn: 'বরিশাল', division: 'Barisal' },
-  { id: 'rangpur', nameEn: 'Rangpur', nameBn: 'রংপুর', division: 'Rangpur' },
-  { id: 'bogra', nameEn: 'Bogra', nameBn: 'বগুড়া', division: 'Rajshahi' },
-];
 
 export const AmarJelaModule: React.FC<Props> = ({ isBangla }) => {
   const { districts: dbDistricts } = useData();
@@ -37,18 +27,7 @@ export const AmarJelaModule: React.FC<Props> = ({ isBangla }) => {
   };
 
   const allDistricts = useMemo(() => {
-    const list = [...(dbDistricts || [])];
-    COMMON_DISTRICTS.forEach(fallback => {
-      const exists = list.some(d => {
-        const dId = (d.id || '').toString().toLowerCase();
-        const fId = (fallback.id || '').toString().toLowerCase();
-        const dName = getDValue(d, ['nameEn', 'nameen']).toString().toLowerCase();
-        const fName = (fallback.nameEn || '').toLowerCase();
-        return dId === fId || (dName && dName === fName);
-      });
-      if (!exists) list.push(fallback);
-    });
-    return list;
+    return [...(dbDistricts || [])];
   }, [dbDistricts]);
 
   useEffect(() => {
@@ -171,15 +150,17 @@ export const AmarJelaModule: React.FC<Props> = ({ isBangla }) => {
                {isBangla ? 'জেলা নির্বাচন করুন' : 'Select District'}
              </h2>
              <div className="flex flex-wrap justify-center gap-2">
-               {COMMON_DISTRICTS.map(city => (
+               {allDistricts.length > 0 ? allDistricts.slice(0, 12).map((city, idx) => (
                  <button 
-                    key={city.id} 
-                    onClick={() => executeSearch(city.nameEn)} 
+                    key={city.id || idx} 
+                    onClick={() => executeSearch(getDValue(city, ['nameEn', 'nameen']))} 
                     className="px-5 py-2 rounded-full border border-gray-200 text-gray-600 hover:border-[#0b6352] hover:text-[#0b6352] hover:bg-emerald-50 transition-all text-sm font-bold"
                  >
-                   {isBangla ? city.nameBn : city.nameEn}
+                   {isBangla ? getDValue(city, ['nameBn', 'namebn']) : getDValue(city, ['nameEn', 'nameen'])}
                  </button>
-               ))}
+               )) : (
+                 <p className="text-gray-400 italic">{isBangla ? 'কোন জেলা ডাটাবেজে নেই।' : 'No districts found in database.'}</p>
+               )}
              </div>
           </div>
         ) : (
@@ -201,7 +182,7 @@ export const AmarJelaModule: React.FC<Props> = ({ isBangla }) => {
                      </div>
                      <div>
                         <p className="text-[10px] font-bold text-gray-400 uppercase leading-none mb-1">{isBangla ? 'জনসংখ্যা' : 'Population'}</p>
-                        <p className="text-xl font-black text-gray-800">{selectedDistrict.population || '9.1M'}</p>
+                        <p className="text-xl font-black text-gray-800">{selectedDistrict.population || 'N/A'}</p>
                      </div>
                      <button onClick={() => setSelectedDistrict(null)} className="ml-4 p-2 text-gray-300 hover:text-red-500 transition-all">
                        <X size={20} />
@@ -247,7 +228,7 @@ export const AmarJelaModule: React.FC<Props> = ({ isBangla }) => {
                            </div>
                            <div>
                               <p className="text-[10px] font-bold text-gray-400 uppercase mb-0.5">{isBangla ? 'আয়তন' : 'Area'}</p>
-                              <p className="text-lg font-black text-gray-900">{selectedDistrict.area || '5,283'} <span className="text-xs font-bold text-gray-400">km²</span></p>
+                              <p className="text-lg font-black text-gray-900">{selectedDistrict.area || 'N/A'} <span className="text-xs font-bold text-gray-400">km²</span></p>
                            </div>
                         </div>
 
@@ -257,7 +238,7 @@ export const AmarJelaModule: React.FC<Props> = ({ isBangla }) => {
                            </div>
                            <div>
                               <p className="text-[10px] font-bold text-gray-400 uppercase mb-0.5">{isBangla ? 'উপজেলা' : 'Upazila'}</p>
-                              <p className="text-lg font-black text-gray-900">{selectedDistrict.upazila_count || (selectedDistrict.upazilas?.length || '10')}</p>
+                              <p className="text-lg font-black text-gray-900">{selectedDistrict.upazila_count || (selectedDistrict.upazilas?.length || '0')}</p>
                            </div>
                         </div>
                      </div>
@@ -289,12 +270,14 @@ export const AmarJelaModule: React.FC<Props> = ({ isBangla }) => {
                     <Camera size={20} className="text-orange-500" /> {isBangla ? 'দর্শনীয় স্থান' : 'Tourism'}
                   </h3>
                   <div className="space-y-2">
-                     {(selectedDistrict.touristSpots || selectedDistrict.spots || ['Patenga Beach', 'Foy\'s Lake']).slice(0, 3).map((spot: string, idx: number) => (
+                     {(selectedDistrict.touristSpots || selectedDistrict.spots || []).length > 0 ? (selectedDistrict.touristSpots || selectedDistrict.spots).slice(0, 3).map((spot: string, idx: number) => (
                         <div key={idx} className="flex items-center gap-3">
                            <span className="w-6 h-6 bg-orange-50 text-orange-600 rounded flex items-center justify-center font-black text-xs shrink-0">{idx + 1}</span>
                            <p className="text-sm font-bold text-gray-700">{spot}</p>
                         </div>
-                     ))}
+                     )) : (
+                        <p className="text-gray-300 text-sm italic">{isBangla ? 'কোন তথ্য পাওয়া যায়নি' : 'No information found'}</p>
+                     )}
                   </div>
                </div>
 
@@ -325,11 +308,13 @@ export const AmarJelaModule: React.FC<Props> = ({ isBangla }) => {
                     <MapPin size={20} className="text-emerald-500" /> {isBangla ? 'উপজেলা সমূহ' : 'Upazilas'}
                   </h3>
                   <div className="flex flex-wrap gap-2">
-                     {(selectedDistrict.upazilas || ['Upazila List']).slice(0, 8).map((upz: string, i: number) => (
+                     {(selectedDistrict.upazilas || []).length > 0 ? (selectedDistrict.upazilas).slice(0, 8).map((upz: string, i: number) => (
                         <span key={i} className="px-3 py-1 bg-gray-50 border border-gray-100 rounded-lg text-xs font-bold text-gray-600">
                            {upz}
                         </span>
-                     ))}
+                     )) : (
+                       <p className="text-gray-300 text-sm italic">{isBangla ? 'কোন তথ্য পাওয়া যায়নি' : 'No information found'}</p>
+                     )}
                   </div>
                </div>
             </div>
