@@ -72,17 +72,12 @@ export const AdminModule: React.FC<Props> = ({ isBangla, onExit }) => {
 
   const handleLogin = (e: React.FormEvent) => {
     e.preventDefault();
-    if ((email === 'admin@digitaldeshbd.com' && password === 'admin123') || (email === 'demo' && password === 'demo')) {
+    if (email === 'digitaldeshbd@gmail.com' && password === 'rmadmin@#') {
       setIsAuthenticated(true);
       localStorage.setItem(SESSION_KEY, JSON.stringify({ timestamp: Date.now() }));
     } else {
-      alert('Invalid Credentials. Try admin@digitaldeshbd.com / admin123');
+      alert('Invalid Credentials.');
     }
-  };
-
-  const fillDemoCredentials = () => {
-    setEmail('admin@digitaldeshbd.com');
-    setPassword('admin123');
   };
 
   const handleLogout = () => {
@@ -355,7 +350,7 @@ export const AdminModule: React.FC<Props> = ({ isBangla, onExit }) => {
                 <label className="block text-xs font-bold text-gray-700 uppercase mb-1 ml-1">Email</label>
                 <div className="relative">
                   <Mail className="absolute left-3 top-3 text-gray-400" size={18} />
-                  <input type="text" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="admin@digitaldeshbd.com" className="w-full pl-10 pr-4 py-3 bg-gray-50 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#0f172a]" required />
+                  <input type="text" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="digitaldeshbd@gmail.com" className="w-full pl-10 pr-4 py-3 bg-gray-50 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#0f172a]" required />
                 </div>
               </div>
               <div>
@@ -368,10 +363,7 @@ export const AdminModule: React.FC<Props> = ({ isBangla, onExit }) => {
               </div>
               <Button type="submit" className="w-full bg-[#0f172a] hover:bg-gray-800 text-white py-3 rounded-lg text-base font-semibold shadow-lg shadow-gray-200 mt-2">Login to Dashboard</Button>
             </form>
-            <div className="mt-6 pt-6 border-t border-gray-100">
-              <button onClick={fillDemoCredentials} className="w-full py-2 bg-blue-50 hover:bg-blue-100 text-blue-700 rounded-lg text-sm font-medium flex items-center justify-center gap-2 transition-colors"><Sparkles size={16} /> Use Demo Credentials</button>
-            </div>
-            <button onClick={onExit} className="mt-6 text-xs text-gray-400 hover:text-gray-800 font-medium hover:underline transition-colors">Back to Home</button>
+            <button onClick={onExit} className="mt-6 text-xs text-gray-400 hover:text-gray-800 font-medium hover:underline transition-colors w-full text-center">Back to Home</button>
           </div>
         </div>
       </div>
