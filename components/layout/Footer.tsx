@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Globe, MapPin, Phone, Mail } from 'lucide-react';
 import { AppModule } from '../../types';
@@ -35,7 +36,7 @@ export const Footer: React.FC<FooterProps> = ({ isBangla, toggleLanguage, onNavi
             </p>
             <div className="flex gap-4">
               <a 
-                href="https://www.facebook.com/profile.php?id=61585689552078" 
+                href="https://www.facebook.com/profile.php?id=61586117421232" 
                 target="_blank" 
                 rel="noopener noreferrer" 
                 className="w-8 h-8 bg-gray-800 rounded-full flex items-center justify-center hover:bg-brand-600 cursor-pointer transition-colors text-inherit decoration-none"
