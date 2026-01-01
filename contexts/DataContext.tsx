@@ -84,6 +84,7 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     setMarketPrices(getLocal('db_market_prices', []));
     setExchangeRates(getLocal('db_exchange_rates', []));
     setVocationalCourses(getLocal('db_vocational_courses', []));
+    setUsers(getLocal('db_users', []));
     
     if (!isSupabaseConfigured) return;
 
@@ -129,12 +130,27 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     fetchData();
   }, []);
 
+  const updateUser = async (updatedUser: any) => {
+    // Update local state first
+    setUsers(prev => {
+      const updated = prev.map(u => u.id === updatedUser.id ? updatedUser : u);
+      localStorage.setItem('db_users', JSON.stringify(updated));
+      return updated;
+    });
+
+    if (isSupabaseConfigured) {
+      try {
+        await supabase.from('users').upsert(updatedUser);
+      } catch (e) {
+        console.error("Failed to sync user update to DB", e);
+      }
+    }
+  };
+
   const updateMarketPrices = async (prices: any[]) => {
     setMarketPrices(prices);
     localStorage.setItem('db_market_prices', JSON.stringify(prices));
     if (isSupabaseConfigured) {
-       // Typically we update only the changed row, but for simplicity we sync full state if needed or specific upsert
-       // Here we assume it's called with the updated list for UI state
        try {
          await supabase.from('market_prices').upsert(prices);
        } catch(e) {}
@@ -467,7 +483,7 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       addUser, updateUserStatus, deleteUser, updateMarketPrices, addJob, updateJob, deleteJob, addBlog, updateBlog, deleteBlog, handleRequestAction,
       updateWholesaleAd, deleteWholesaleAd, addRetailProduct, updateRetailProduct, deleteRetailProduct,
       addLawyer, deleteLawyer, addExchangeRate, deleteExchangeRate, addVocationalCourse, deleteVocationalCourse,
-      totalVisitors, logVisit, refreshData: fetchData
+      totalVisitors, logVisit, updateUser, refreshData: fetchData
     }}>
       {children}
     </DataContext.Provider>

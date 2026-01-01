@@ -67,7 +67,7 @@ const SESSION_KEY = 'shonali_desh_user_session';
 const SESSION_DURATION = 12 * 60 * 60 * 1000; // 12 Hours
 
 const App: React.FC = () => {
-  const { logVisit } = useData(); // Hook to track visits
+  const { logVisit, updateUser: syncUserGlobal } = useData(); // Hook to track visits
   const { settings } = useSiteConfig();
   
   // Dynamic Favicon and Title Sync
@@ -207,11 +207,16 @@ const App: React.FC = () => {
   };
 
   const handleUpdateUser = (updatedUser: User) => {
-    // Update LocalStorage to keep profile in sync
+    // 1. Sync globally so DataProvider state updates (Admin sees this)
+    syncUserGlobal(updatedUser);
+
+    // 2. Update LocalSession to keep profile in sync
     localStorage.setItem(SESSION_KEY, JSON.stringify({
       user: updatedUser,
       timestamp: Date.now() // Reset timer on active update
     }));
+
+    // 3. Update local UI state
     setUser(updatedUser);
   };
 

@@ -34,7 +34,14 @@ export const Footer: React.FC<FooterProps> = ({ isBangla, toggleLanguage, onNavi
                 : 'An integrated digital platform for a Smart Bangladesh.'}
             </p>
             <div className="flex gap-4">
-              <div className="w-8 h-8 bg-gray-800 rounded-full flex items-center justify-center hover:bg-brand-600 cursor-pointer transition-colors">f</div>
+              <a 
+                href="https://www.facebook.com/profile.php?id=61585689552078" 
+                target="_blank" 
+                rel="noopener noreferrer" 
+                className="w-8 h-8 bg-gray-800 rounded-full flex items-center justify-center hover:bg-brand-600 cursor-pointer transition-colors text-inherit decoration-none"
+              >
+                f
+              </a>
               <div className="w-8 h-8 bg-gray-800 rounded-full flex items-center justify-center hover:bg-brand-600 cursor-pointer transition-colors">t</div>
               <div className="w-8 h-8 bg-gray-800 rounded-full flex items-center justify-center hover:bg-brand-600 cursor-pointer transition-colors">in</div>
             </div>
