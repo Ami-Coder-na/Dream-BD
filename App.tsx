@@ -37,6 +37,7 @@ const AdminModule = lazy(() => import('./components/modules/AdminModule').then(m
 const AboutModule = lazy(() => import('./components/modules/AboutModule').then(module => ({ default: module.AboutModule })));
 const PrivacyModule = lazy(() => import('./components/modules/PrivacyModule').then(module => ({ default: module.PrivacyModule })));
 const TermsModule = lazy(() => import('./components/modules/TermsModule').then(module => ({ default: module.TermsModule })));
+const JanteChaiModule = lazy(() => import('./components/modules/JanteChaiModule').then(module => ({ default: module.JanteChaiModule })));
 
 const LoadingFallback = () => (
   <div className="min-h-screen flex flex-col items-center justify-center bg-white relative overflow-hidden">
@@ -85,6 +86,9 @@ const App: React.FC = () => {
   const [authView, setAuthView] = useState<'none' | 'login' | 'signup'>('none');
 
   useEffect(() => {
+    // Log the visit on initial mount
+    logVisit();
+
     window.scrollTo({ top: 0, behavior: 'instant' });
     
     // Support browser back button for admin route
@@ -98,7 +102,7 @@ const App: React.FC = () => {
 
     window.addEventListener('popstate', handlePopState);
     return () => window.removeEventListener('popstate', handlePopState);
-  }, [activeModule, authView, showAiChat]);
+  }, []);
 
   const handleLoginSuccess = (loggedInUser: User) => {
     localStorage.setItem(SESSION_KEY, JSON.stringify({ user: loggedInUser, timestamp: Date.now() }));
@@ -192,6 +196,7 @@ const App: React.FC = () => {
               case AppModule.ABOUT: return <AboutModule isBangla={isBangla} />;
               case AppModule.PRIVACY: return <PrivacyModule isBangla={isBangla} />;
               case AppModule.TERMS: return <TermsModule isBangla={isBangla} />;
+              case AppModule.JANTE_CHAI: return <JanteChaiModule isBangla={isBangla} />;
               case 'LANDING':
               default:
                 return (

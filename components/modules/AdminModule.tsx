@@ -1,10 +1,11 @@
+
 import React, { useState, useEffect } from 'react';
 import { 
   LayoutDashboard, Users, Settings, Database, Activity, 
   LogOut, Shield, Bell, FileText, ShoppingBag, Trash2, AlertOctagon, 
   Clock, DollarSign, Mail, Key, EyeOff, Eye, ChevronDown, UserPlus, FilePlus, AlertTriangle,
   Globe, Sparkles, Monitor, RefreshCw, CheckCircle, BarChart3, TrendingUp, Inbox, Droplets, PlusCircle, Briefcase,
-  ArrowUpRight, Zap, HeartPulse, Info, Gavel, HelpCircle
+  ArrowUpRight, Zap, HeartPulse, Info, Gavel, HelpCircle, Feather
 } from 'lucide-react';
 import { AdminUsers } from './admin/AdminUsers';
 import { AdminContent } from './admin/AdminContent';
@@ -20,6 +21,7 @@ import { AdminDiseases } from './admin/AdminDiseases';
 import { AdminAbout } from './admin/AdminAbout';
 import { AdminLegal } from './admin/AdminLegal';
 import { AdminFaqs } from './admin/AdminFaqs';
+import { AdminPoets } from './admin/AdminPoets';
 import { Button } from '../ui/Button';
 import { useData } from '../../contexts/DataContext';
 import { isSupabaseConfigured } from '../../services/supabaseClient';
@@ -29,10 +31,10 @@ interface Props {
   onExit: () => void;
 }
 
-type AdminSection = 'overview' | 'website-manage' | 'users' | 'content' | 'inbox' | 'module-config' | 'market' | 'grievance' | 'emergency' | 'settings' | 'blood-logs' | 'diseases' | 'about' | 'legal' | 'faqs';
+type AdminSection = 'overview' | 'website-manage' | 'users' | 'content' | 'inbox' | 'module-config' | 'market' | 'grievance' | 'emergency' | 'settings' | 'blood-logs' | 'diseases' | 'about' | 'legal' | 'faqs' | 'poets';
 
 export const AdminModule: React.FC<Props> = ({ isBangla, onExit }) => {
-  const { requests, totalVisitors, messages, donorViewLogs, users } = useData();
+  const { requests, totalVisitors, todayVisitors, messages, donorViewLogs, users } = useData();
 
   const SESSION_KEY = 'digital_desh_bd_admin_session';
   const SESSION_DURATION = 12 * 60 * 60 * 1000;
@@ -147,6 +149,17 @@ export const AdminModule: React.FC<Props> = ({ isBangla, onExit }) => {
             </div>
         </div>
 
+        <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm flex items-center justify-between group hover:shadow-md transition-all">
+            <div>
+                <p className="text-gray-500 text-xs font-bold uppercase tracking-wider">Today Visitors</p>
+                <h3 className="text-3xl font-bold text-gray-900 mt-2">{todayVisitors.toLocaleString()}</h3>
+                <p className="text-blue-500 text-xs font-bold mt-1 flex items-center gap-1"><Activity size={10} /> Live Tracking</p>
+            </div>
+            <div className="p-4 rounded-2xl bg-blue-50 text-blue-600 group-hover:bg-blue-100 transition-colors">
+                <Users size={24} />
+            </div>
+        </div>
+
         <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm flex items-center justify-between group hover:shadow-md transition-all cursor-pointer" onClick={() => setActiveSection('inbox')}>
             <div>
                 <p className="text-gray-500 text-xs font-bold uppercase tracking-wider">Unread Inbox</p>
@@ -157,17 +170,6 @@ export const AdminModule: React.FC<Props> = ({ isBangla, onExit }) => {
             </div>
             <div className={`p-4 rounded-2xl ${unreadMessagesCount > 0 ? 'bg-indigo-600 text-white shadow-lg' : 'bg-gray-50 text-gray-400'} transition-all`}>
                 <Inbox size={24} />
-            </div>
-        </div>
-
-        <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm flex items-center justify-between group hover:shadow-md transition-all cursor-pointer" onClick={() => setActiveSection('blood-logs')}>
-            <div>
-                <p className="text-gray-500 text-xs font-bold uppercase tracking-wider">Blood Access Logs</p>
-                <h3 className="text-3xl font-bold text-gray-900 mt-2">{donorViewLogs.length}</h3>
-                <p className="text-red-500 text-xs mt-1 font-bold">Number View Records</p>
-            </div>
-            <div className="p-4 rounded-2xl bg-red-50 text-red-600 group-hover:bg-red-100 transition-colors">
-                <Droplets size={24} />
             </div>
         </div>
 
@@ -240,6 +242,7 @@ export const AdminModule: React.FC<Props> = ({ isBangla, onExit }) => {
             <div className="flex items-center gap-3"><Inbox size={18} /> Inbox</div>
             {unreadMessagesCount > 0 && <span className="bg-red-500 text-white text-[10px] font-bold px-2 py-0.5 rounded-full">{unreadMessagesCount}</span>}
           </button>
+          <button onClick={() => setActiveSection('poets')} className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all ${activeSection === 'poets' ? 'bg-brand-600 text-white shadow-lg' : 'text-gray-400 hover:bg-gray-800 hover:text-white'}`}><Feather size={18} /> Poets & Writers</button>
           <button onClick={() => setActiveSection('about')} className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all ${activeSection === 'about' ? 'bg-brand-600 text-white shadow-lg' : 'text-gray-400 hover:bg-gray-800 hover:text-white'}`}><Info size={18} /> About Us</button>
           <button onClick={() => setActiveSection('legal')} className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all ${activeSection === 'legal' ? 'bg-brand-600 text-white shadow-lg' : 'text-gray-400 hover:bg-gray-800 hover:text-white'}`}><Gavel size={18} /> Legal Pages</button>
           <button onClick={() => setActiveSection('faqs')} className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all ${activeSection === 'faqs' ? 'bg-brand-600 text-white shadow-lg' : 'text-gray-400 hover:bg-gray-800 hover:text-white'}`}><HelpCircle size={18} /> FAQs</button>
@@ -277,6 +280,7 @@ export const AdminModule: React.FC<Props> = ({ isBangla, onExit }) => {
           {activeSection === 'grievance' && <AdminGrievance />}
           {activeSection === 'emergency' && <AdminEmergency />}
           {activeSection === 'settings' && <AdminProfile />}
+          {activeSection === 'poets' && <AdminPoets />}
         </div>
       </main>
     </div>

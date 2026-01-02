@@ -1,3 +1,4 @@
+
 import React, { createContext, useState, useContext, ReactNode, useEffect } from 'react';
 import { AppModule } from '../types';
 import { supabase, isSupabaseConfigured } from '../services/supabaseClient';
@@ -16,6 +17,7 @@ export interface SiteSettings {
   maintenanceMode: boolean;
   announcementActive: boolean;
   announcement: string;
+  galleryImages: string[];
 }
 
 interface SiteConfigContextType {
@@ -45,12 +47,12 @@ const DEFAULT_MODULES: Record<ToggableModule, boolean> = {
   [AppModule.BAZAR_SODAI]: true,
   [AppModule.ADMIN]: true,
   [AppModule.ABOUT]: true,
-  // Fix: Added missing properties to satisfy Record<AppModule, boolean>
   [AppModule.PRIVACY]: true,
   [AppModule.TERMS]: true,
   [AppModule.LEGAL]: true,
   [AppModule.EXPAT]: true,
   [AppModule.VOCATIONAL]: true,
+  [AppModule.JANTE_CHAI]: true,
 };
 
 const DEFAULT_SECTIONS: Record<LandingSection, boolean> = {
@@ -76,13 +78,17 @@ const DEFAULT_SETTINGS: SiteSettings = {
   maintenanceMode: false,
   announcementActive: false,
   announcement: 'Welcome to Digital Desh BD!',
+  galleryImages: [
+    'https://images.unsplash.com/photo-1596895111956-bf1cf0599ce5',
+    'https://images.unsplash.com/photo-1628189873998-25f00e95a947',
+    'https://images.unsplash.com/photo-1619671603704-8b6567958611',
+    'https://images.unsplash.com/photo-1548013146-72479768bada'
+  ]
 };
 
-// Fix line 41-48: Properly define SiteConfigContext
 const SiteConfigContext = createContext<SiteConfigContextType | undefined>(undefined);
 
 export const SiteConfigProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
-  // Fix: Declare state and setters used in fetchRemoteConfig
   const [modules, setModules] = useState<Record<ToggableModule, boolean>>(DEFAULT_MODULES);
   const [sections, setSections] = useState<Record<LandingSection, boolean>>(DEFAULT_SECTIONS);
   const [settings, setSettings] = useState<SiteSettings>(DEFAULT_SETTINGS);
@@ -92,24 +98,19 @@ export const SiteConfigProvider: React.FC<{ children: ReactNode }> = ({ children
     
     try {
       const { data, error } = await supabase.from('app_config').select('*');
-      if (error) {
-          if (error.message.includes('fetch')) {
-             console.info("Supabase is unreachable. Using local configuration.");
-          } else {
-             console.warn("Config Error:", error.message);
-          }
-          return;
-      }
+      if (error) return;
 
       if (data && data.length > 0) {
         data.forEach(item => {
           if (item.key === 'modules') setModules(item.value);
           if (item.key === 'sections') setSections(item.value);
-          if (item.key === 'settings') setSettings(item.value);
+          if (item.key === 'settings') {
+            // Merge existing settings with defaults to ensure new keys like galleryImages exist
+            setSettings({ ...DEFAULT_SETTINGS, ...item.value });
+          }
         });
       }
-    } catch (err: any) {
-    }
+    } catch (err: any) {}
   };
 
   useEffect(() => {

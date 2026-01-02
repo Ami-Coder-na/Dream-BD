@@ -64,6 +64,7 @@ export const Footer: React.FC<FooterProps> = ({ isBangla, toggleLanguage, onNavi
               <li onClick={() => onModuleSelect(AppModule.PRIVACY)} className="hover:text-brand-500 cursor-pointer">{isBangla ? 'গোপনীয়তা নীতি' : 'Privacy Policy'}</li>
               <li onClick={() => onModuleSelect(AppModule.TERMS)} className="hover:text-brand-500 cursor-pointer">{isBangla ? 'শর্তাবলী' : 'Terms of Use'}</li>
               <li onClick={() => onModuleSelect(AppModule.CONTACT)} className="hover:text-brand-500 cursor-pointer">FAQ</li>
+              <li onClick={() => onModuleSelect(AppModule.CONTACT)} className="hover:text-brand-500 cursor-pointer">{isBangla ? 'যোগাযোগ' : 'Contact'}</li>
             </ul>
           </div>
 

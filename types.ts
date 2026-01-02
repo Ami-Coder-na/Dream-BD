@@ -30,10 +30,10 @@ export enum AppModule {
   ABOUT = 'about',
   PRIVACY = 'privacy',
   TERMS = 'terms',
-  // New Modules
   LEGAL = 'legal',
   EXPAT = 'expat',
-  VOCATIONAL = 'vocational'
+  VOCATIONAL = 'vocational',
+  JANTE_CHAI = 'jante_chai'
 }
 
 export interface User {

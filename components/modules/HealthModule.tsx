@@ -4,7 +4,7 @@ import {
   HeartPulse, Calendar, Phone, MapPin, Star, UserPlus, 
   Thermometer, Activity, Baby, Utensils, AlertCircle, 
   Search, ChevronRight, Droplets, ShieldCheck, Stethoscope,
-  Info, Clock, ChevronDown, Check, Building2, X, Eye, CheckCircle, Heart, Siren, Pill
+  Info, Clock, ChevronDown, Check, Building2, X, Eye, CheckCircle, Heart, Siren, Pill, CreditCard, User, Fingerprint
 } from 'lucide-react';
 import { Button } from '../ui/Button';
 import { getOptimizedImageUrl } from '../utils/imageUtils';
@@ -39,12 +39,16 @@ export const HealthModule: React.FC<Props> = ({ isBangla }) => {
   const [activeTab, setActiveTab] = useState<Tab>('diseases');
   const [hospitalDistrict, setHospitalDistrict] = useState('Dhaka');
   const [pregnancyWeek, setPregnancyWeek] = useState(8);
-  const [activeModal, setActiveModal] = useState<'donate' | 'view_number' | null>(null);
+  const [activeModal, setActiveModal] = useState<'donate' | 'view_number' | 'health_card' | null>(null);
 
   // Blood View Flow State
   const [viewingDonor, setViewingDonor] = useState<any>(null);
   const [viewerInfo, setViewerInfo] = useState({ name: '', phone: '', district: 'Dhaka' });
   const [revealedNumber, setRevealedNumber] = useState<string | null>(null);
+
+  // Health Card State
+  const [cardRegistered, setCardRegistered] = useState(false);
+  const [cardInfo, setCardInfo] = useState({ name: '', phone: '', age: '', blood: 'A+' });
 
   const handleOpenViewNumber = (donor: any) => {
     setViewingDonor(donor);
@@ -65,6 +69,11 @@ export const HealthModule: React.FC<Props> = ({ isBangla }) => {
       created_at: new Date().toISOString()
     });
     setRevealedNumber(viewingDonor.phone);
+  };
+
+  const handleCardRegister = (e: React.FormEvent) => {
+    e.preventDefault();
+    setCardRegistered(true);
   };
 
   const renderDiseases = () => (
@@ -161,7 +170,7 @@ export const HealthModule: React.FC<Props> = ({ isBangla }) => {
             </div>
             <h4 className="font-bold text-gray-800 text-sm">{isBangla ? 'সরকারি স্কিম' : 'Govt Schemes'}</h4>
          </div>
-         <div className="bg-[#FFF7ED] p-8 rounded-2xl border border-orange-50 text-center hover:shadow-md transition-all group cursor-pointer">
+         <div onClick={() => setActiveModal('health_card')} className="bg-[#FFF7ED] p-8 rounded-2xl border border-orange-50 text-center hover:shadow-md transition-all group cursor-pointer">
             <div className="w-12 h-12 bg-white rounded-xl flex items-center justify-center mx-auto mb-4 text-orange-600 shadow-sm">
                <UserPlus size={24} />
             </div>
@@ -387,6 +396,88 @@ export const HealthModule: React.FC<Props> = ({ isBangla }) => {
           {activeTab === 'maternal' && renderMaternal()}
           {activeTab === 'lifestyle' && renderLifestyle()}
         </div>
+
+        {/* Health Card Modal */}
+        {activeModal === 'health_card' && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm animate-fade-in" onClick={() => setActiveModal(null)}>
+            <div className="bg-white w-full max-w-lg rounded-[2.5rem] shadow-2xl overflow-hidden animate-fade-in-up" onClick={e => e.stopPropagation()}>
+               <div className="bg-orange-500 p-6 flex justify-between items-center text-white">
+                  <h3 className="font-bold text-xl flex items-center gap-3"><CreditCard size={24}/> {isBangla ? 'ডিজিটাল হেলথ কার্ড' : 'Digital Health Card'}</h3>
+                  <button onClick={() => setActiveModal(null)} className="p-2 hover:bg-white/20 rounded-full transition-all"><X size={24}/></button>
+               </div>
+               <div className="p-8">
+                  {cardRegistered ? (
+                    <div className="animate-fade-in text-center">
+                       <div className="bg-gradient-to-br from-orange-400 to-red-500 p-8 rounded-3xl text-white shadow-xl relative overflow-hidden mb-8 text-left border-4 border-white ring-4 ring-orange-100">
+                          <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full -mr-10 -mt-10"></div>
+                          <div className="flex justify-between items-start mb-10">
+                             <div className="flex items-center gap-3">
+                                <div className="p-2 bg-white/20 rounded-lg"><Heart size={20} fill="currentColor" /></div>
+                                <span className="font-black tracking-tighter text-sm">HEALTH CARD</span>
+                             </div>
+                             <Fingerprint size={32} className="opacity-40" />
+                          </div>
+                          
+                          <div className="space-y-4">
+                             <h4 className="text-2xl font-black uppercase">{cardInfo.name || 'CITIZEN NAME'}</h4>
+                             <div className="flex gap-8">
+                                <div><p className="text-[10px] font-bold text-orange-100 uppercase mb-0.5">{isBangla ? 'রক্তের গ্রুপ' : 'BLOOD'}</p><p className="text-xl font-black">{cardInfo.blood}</p></div>
+                                <div><p className="text-[10px] font-bold text-orange-100 uppercase mb-0.5">{isBangla ? 'বয়স' : 'AGE'}</p><p className="text-xl font-black">{cardInfo.age} Y</p></div>
+                                <div><p className="text-[10px] font-bold text-orange-100 uppercase mb-0.5">ID</p><p className="text-xl font-black font-mono">#DX{Date.now().toString().slice(-4)}</p></div>
+                             </div>
+                          </div>
+                       </div>
+                       <Button onClick={() => window.print()} className="bg-gray-900 text-white w-full py-4 rounded-2xl shadow-lg">
+                         {isBangla ? 'ডাউনলোড ও প্রিন্ট' : 'Download & Print'}
+                       </Button>
+                    </div>
+                  ) : (
+                    <form onSubmit={handleCardRegister} className="space-y-5">
+                       <div className="bg-orange-50 p-4 rounded-2xl border border-orange-100 flex gap-3 mb-2">
+                          <Info size={24} className="text-orange-500 shrink-0" />
+                          <p className="text-xs text-orange-800 leading-relaxed">
+                            {isBangla ? 'আপনার ডিজিটাল হেলথ কার্ড তৈরি করতে নিচের তথ্যগুলো দিন। এটি আপনার চিকিৎসা সেবা গ্রহণকে আরও সহজ করবে।' : 'Provide the information below to create your digital health card. It will simplify your medical access.'}
+                          </p>
+                       </div>
+                       
+                       <div>
+                          <label className="block text-xs font-bold text-gray-500 uppercase ml-1 mb-1">{isBangla ? 'পূর্ণ নাম' : 'Full Name'}</label>
+                          <div className="relative">
+                             <User className="absolute left-3 top-3 text-gray-400" size={18} />
+                             <input required type="text" className="w-full pl-10 pr-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-orange-500 outline-none font-medium" value={cardInfo.name} onChange={e => setCardInfo({...cardInfo, name: e.target.value})} placeholder="Rahim Ahmed" />
+                          </div>
+                       </div>
+
+                       <div className="grid grid-cols-2 gap-4">
+                          <div>
+                             <label className="block text-xs font-bold text-gray-500 uppercase ml-1 mb-1">{isBangla ? 'বয়স' : 'Age'}</label>
+                             <input required type="number" className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-orange-500 outline-none font-medium" value={cardInfo.age} onChange={e => setCardInfo({...cardInfo, age: e.target.value})} placeholder="25" />
+                          </div>
+                          <div>
+                             <label className="block text-xs font-bold text-gray-500 uppercase ml-1 mb-1">{isBangla ? 'রক্তের গ্রুপ' : 'Blood Group'}</label>
+                             <select className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-orange-500 outline-none font-medium appearance-none cursor-pointer" value={cardInfo.blood} onChange={e => setCardInfo({...cardInfo, blood: e.target.value})}>
+                                {BLOOD_GROUPS.map(g => <option key={g} value={g}>{g}</option>)}
+                             </select>
+                          </div>
+                       </div>
+
+                       <div>
+                          <label className="block text-xs font-bold text-gray-500 uppercase ml-1 mb-1">{isBangla ? 'মোবাইল নম্বর' : 'Phone Number'}</label>
+                          <div className="relative">
+                             <Phone className="absolute left-3 top-3 text-gray-400" size={18} />
+                             <input required type="tel" className="w-full pl-10 pr-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-orange-500 outline-none font-medium" value={cardInfo.phone} onChange={e => setCardInfo({...cardInfo, phone: e.target.value})} placeholder="017..." />
+                          </div>
+                       </div>
+
+                       <Button type="submit" className="w-full bg-orange-600 hover:bg-orange-700 text-white font-bold py-4 rounded-xl shadow-lg shadow-orange-200 text-lg">
+                          {isBangla ? 'কার্ড তৈরি করুন' : 'Generate Card'}
+                       </Button>
+                    </form>
+                  )}
+               </div>
+            </div>
+          </div>
+        )}
 
         {activeModal === 'view_number' && viewingDonor && (
           <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm animate-fade-in" onClick={() => setActiveModal(null)}>

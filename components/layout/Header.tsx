@@ -1,5 +1,6 @@
+
 import React, { useState } from 'react';
-import { Menu, X, Globe, Bell, LogOut, ChevronDown, User as UserIcon, Heart, Map, ShoppingBasket, Check, Trash2, Info, AlertTriangle, CheckCircle, ShieldAlert, Shield } from 'lucide-react';
+import { Menu, X, Globe, Bell, LogOut, ChevronDown, User as UserIcon, Heart, Map, ShoppingBasket, Check, Trash2, Info, AlertTriangle, CheckCircle, ShieldAlert, Shield, HelpCircle } from 'lucide-react';
 import { Button } from '../ui/Button';
 import { User, AppModule, Notification } from '../../types';
 import { useSiteConfig } from '../../contexts/SiteConfigContext';
@@ -37,7 +38,6 @@ export const Header: React.FC<HeaderProps> = ({
   
   const { modules, settings } = useSiteConfig();
 
-  // Strict check to ensure Admin button only appears during local development
   const isLocal = process.env.NODE_ENV === 'development';
 
   const allModules = [
@@ -54,7 +54,6 @@ export const Header: React.FC<HeaderProps> = ({
     { id: AppModule.VOCATIONAL, title: isBangla ? 'কারিগরি' : 'Vocational' },
   ];
 
-  // Filter visible modules based on config
   const visibleModules = allModules.filter(m => modules[m.id]);
 
   const handleModuleClick = (moduleId: AppModule) => {
@@ -75,7 +74,7 @@ export const Header: React.FC<HeaderProps> = ({
 
   const formatTime = (date: Date) => {
     const now = new Date();
-    const diff = Math.floor((now.getTime() - new Date(date).getTime()) / 60000); // minutes
+    const diff = Math.floor((now.getTime() - new Date(date).getTime()) / 60000); 
     if (diff < 1) return 'Just now';
     if (diff < 60) return `${diff}m ago`;
     const hours = Math.floor(diff / 60);
@@ -85,7 +84,6 @@ export const Header: React.FC<HeaderProps> = ({
 
   return (
     <>
-      {/* Global Announcement Banner */}
       {settings.announcementActive && settings.announcement && (
         <div className="bg-orange-500 text-white text-center py-2 px-4 text-sm font-bold animate-fade-in relative z-[60]">
           {settings.announcement}
@@ -95,7 +93,6 @@ export const Header: React.FC<HeaderProps> = ({
       <nav className="sticky top-0 z-50 bg-white/90 backdrop-blur-md border-b border-gray-100">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-20">
-            {/* Logo */}
             <div 
               className="flex items-center gap-3 cursor-pointer" 
               onClick={onNavigateHome}
@@ -110,7 +107,6 @@ export const Header: React.FC<HeaderProps> = ({
               <span className="text-2xl font-bold text-gray-800 tracking-tight">{settings.websiteTitle}</span>
             </div>
 
-            {/* Desktop Menu */}
             <div className="hidden lg:flex items-center gap-6">
                 {modules[AppModule.AMAR_BD] && (
                   <button 
@@ -132,7 +128,6 @@ export const Header: React.FC<HeaderProps> = ({
                   </button>
                 )}
 
-                {/* Services Dropdown - Only if there are visible modules */}
                 {visibleModules.length > 0 && (
                   <div className="relative group">
                     <button 
@@ -179,13 +174,14 @@ export const Header: React.FC<HeaderProps> = ({
                   </button>
                 )}
 
-                {modules[AppModule.CONTACT] && (
-                  <button onClick={() => onModuleSelect(AppModule.CONTACT)} className="text-sm font-medium text-gray-600 hover:text-brand-600 transition-colors">
-                    {isBangla ? 'যোগাযোগ' : 'Contact'}
-                  </button>
-                )}
+                <button 
+                  onClick={() => onModuleSelect(AppModule.JANTE_CHAI)} 
+                  className="flex items-center gap-2 text-sm font-bold text-indigo-700 bg-indigo-50 px-3 py-1.5 rounded-full hover:bg-indigo-100 transition-colors"
+                >
+                  <HelpCircle size={14} />
+                  {isBangla ? 'জানতে চাই' : 'Jante Chai'}
+                </button>
 
-                {/* Admin Quick Access - LOCAL ONLY */}
                 {isLocal && (
                   <button 
                     onClick={() => onModuleSelect(AppModule.ADMIN)} 
@@ -197,7 +193,6 @@ export const Header: React.FC<HeaderProps> = ({
                 )}
             </div>
             
-            {/* Actions */}
             <div className="hidden lg:flex items-center gap-4">
               <div className="relative">
                 <button 
@@ -338,7 +333,6 @@ export const Header: React.FC<HeaderProps> = ({
               )}
             </div>
 
-            {/* Mobile Menu Button */}
             <div className="lg:hidden flex items-center gap-4">
               <button 
                   onClick={() => setShowNotifications(!showNotifications)}
@@ -357,7 +351,6 @@ export const Header: React.FC<HeaderProps> = ({
           </div>
         </div>
         
-        {/* Mobile Notifications Overlay */}
         {showNotifications && (
           <div className="lg:hidden absolute top-20 left-0 right-0 bg-white shadow-xl z-40 border-b border-gray-100 max-h-[60vh] overflow-y-auto">
               <div className="flex justify-between items-center p-4 bg-gray-50 sticky top-0">
@@ -390,7 +383,6 @@ export const Header: React.FC<HeaderProps> = ({
           </div>
         )}
 
-        {/* Mobile Menu Overlay */}
         {mobileMenuOpen && (
           <div className="lg:hidden absolute top-20 left-0 w-full bg-white border-b border-gray-100 p-4 flex flex-col gap-4 shadow-xl h-[calc(100vh-5rem)] overflow-y-auto">
               {user && (
@@ -402,6 +394,14 @@ export const Header: React.FC<HeaderProps> = ({
                   </div>
                 </div>
               )}
+
+              <button 
+                onClick={() => handleModuleClick(AppModule.JANTE_CHAI)} 
+                className="flex items-center gap-2 text-left font-bold text-indigo-700 bg-indigo-50 p-3 rounded-lg border border-indigo-100"
+              >
+                <HelpCircle size={16} />
+                {isBangla ? 'জানতে চাই' : 'Jante Chai'}
+              </button>
 
               {modules[AppModule.AMAR_BD] && (
                 <button 
@@ -460,13 +460,6 @@ export const Header: React.FC<HeaderProps> = ({
                 </button>
               )}
               
-              {modules[AppModule.CONTACT] && (
-                <button onClick={() => handleModuleClick(AppModule.CONTACT)} className="text-left font-medium text-gray-700 py-2 border-b border-gray-50">
-                  {isBangla ? 'যোগাযোগ' : 'Contact'}
-                </button>
-              )}
-
-              {/* Mobile Admin Link - LOCAL ONLY */}
               {isLocal && (
                 <button onClick={() => handleModuleClick(AppModule.ADMIN)} className="text-left font-bold text-gray-700 py-3 border-b border-gray-50 flex items-center gap-2">
                   <Shield size={18} />

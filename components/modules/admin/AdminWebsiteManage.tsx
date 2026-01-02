@@ -1,9 +1,10 @@
+
 import React, { useState, useEffect, useRef } from 'react';
 import { 
   Monitor, Layout, Layers, ToggleLeft, ToggleRight, 
   AlertTriangle, Megaphone, Power, CheckCircle, Smartphone, Database, Server, HardDrive, Copy, Check, Save, RefreshCw, Key,
   Globe, MapPin, Phone, Mail, Upload, X, Image as ImageIcon,
-  Zap, PlusCircle, RotateCcw, Wifi, WifiOff, Globe2, Lock, ShieldCheck, Terminal, AlertCircle, Info, Code, ArrowRight
+  Zap, PlusCircle, RotateCcw, Wifi, WifiOff, Globe2, Lock, ShieldCheck, Terminal, AlertCircle, Info, Code, ArrowRight, Loader2
 } from 'lucide-react';
 import { Button } from '../../ui/Button';
 import { useSiteConfig, ToggableModule, LandingSection } from '../../../contexts/SiteConfigContext';
@@ -232,6 +233,45 @@ GRANT ALL ON ALL TABLES IN SCHEMA public TO anon, authenticated;
 GRANT ALL ON ALL SEQUENCES IN SCHEMA public TO anon, authenticated;
 `;
 
+/**
+ * Image compression utility to save storage space
+ */
+const compressImage = (file: File): Promise<string> => {
+  return new Promise((resolve) => {
+    const reader = new FileReader();
+    reader.readAsDataURL(file);
+    reader.onload = (event) => {
+      const img = new Image();
+      img.src = event.target?.result as string;
+      img.onload = () => {
+        const canvas = document.createElement('canvas');
+        let width = img.width;
+        let height = img.height;
+        const MAX_WIDTH = 1200;
+        const MAX_HEIGHT = 1200;
+
+        if (width > height) {
+          if (width > MAX_WIDTH) {
+            height *= MAX_WIDTH / width;
+            width = MAX_WIDTH;
+          }
+        } else {
+          if (height > MAX_HEIGHT) {
+            width *= MAX_HEIGHT / height;
+            height = MAX_HEIGHT;
+          }
+        }
+        
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext('2d');
+        ctx?.drawImage(img, 0, 0, width, height);
+        resolve(canvas.toDataURL('image/jpeg', 0.6));
+      };
+    };
+  });
+};
+
 interface ToggleSwitchProps {
   label: string;
   checked: boolean;
@@ -258,6 +298,7 @@ export const AdminWebsiteManage = () => {
   const [configCopied, setConfigCopied] = useState(false);
   const logoInputRef = useRef<HTMLInputElement>(null);
   const faviconInputRef = useRef<HTMLInputElement>(null);
+  const galleryInputRefs = [useRef<HTMLInputElement>(null), useRef<HTMLInputElement>(null), useRef<HTMLInputElement>(null), useRef<HTMLInputElement>(null)];
 
   const [dbUrl, setDbUrl] = useState(localStorage.getItem('dream_sb_url') || '');
   const [dbKey, setDbKey] = useState(localStorage.getItem('dream_sb_key') || '');
@@ -268,6 +309,7 @@ export const AdminWebsiteManage = () => {
   const [isUploadingLogo, setIsUploadingLogo] = useState(false);
   const [isUploadingFavicon, setIsUploadingFavicon] = useState(false);
   const [isSeeding, setIsSeeding] = useState(false);
+  const [uploadingGalleryIdx, setUploadingGalleryIdx] = useState<number | null>(null);
 
   useEffect(() => {
       if (isSupabaseConfigured) {
@@ -336,6 +378,23 @@ export const AdminWebsiteManage = () => {
         setIsUploadingFavicon(false);
       };
       reader.readAsDataURL(file);
+    }
+  };
+
+  const handleGalleryUpload = async (e: React.ChangeEvent<HTMLInputElement>, index: number) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setUploadingGalleryIdx(index);
+      try {
+        const compressed = await compressImage(file);
+        const currentGallery = [...(settings.galleryImages || [])];
+        currentGallery[index] = compressed;
+        updateSettings('galleryImages', currentGallery);
+      } catch (err) {
+        console.error("Gallery upload failed", err);
+      } finally {
+        setUploadingGalleryIdx(null);
+      }
     }
   };
 
@@ -410,6 +469,7 @@ export const AdminWebsiteManage = () => {
           )}
         </div>
       </div>
+
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
         <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
           <div className="p-6 border-b border-gray-100 bg-gray-50 flex items-center gap-3">
@@ -445,6 +505,42 @@ export const AdminWebsiteManage = () => {
           </div>
         </div>
       </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-1 gap-8">
+        <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+          <div className="p-6 border-b border-gray-100 bg-gray-50 flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <ImageIcon className="text-teal-600" />
+              <h3 className="text-xl font-bold text-gray-900">Gallery Management (Beautiful Bangladesh)</h3>
+            </div>
+            <p className="text-xs text-gray-400 italic">4 custom images for the homepage gallery</p>
+          </div>
+          <div className="p-8 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+            {(settings.galleryImages || []).map((img, idx) => (
+              <div key={idx} className="space-y-3">
+                <div className="aspect-[4/3] rounded-2xl border-2 border-dashed border-gray-200 bg-gray-50 overflow-hidden relative group">
+                  <img src={img} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+                  <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                    <button 
+                      onClick={() => galleryInputRefs[idx].current?.click()}
+                      className="bg-white text-gray-900 px-4 py-2 rounded-xl font-bold text-sm shadow-xl flex items-center gap-2 hover:bg-teal-50"
+                    >
+                      {uploadingGalleryIdx === idx ? <Loader2 className="animate-spin" size={16} /> : <Upload size={16} />}
+                      {uploadingGalleryIdx === idx ? 'Processing' : 'Replace'}
+                    </button>
+                  </div>
+                  <span className="absolute top-2 left-2 bg-teal-600 text-white text-[10px] font-black px-2 py-1 rounded shadow-md uppercase tracking-widest">Slot {idx + 1}</span>
+                </div>
+                <p className="text-[10px] font-bold text-gray-400 uppercase text-center">
+                  {idx === 0 ? 'Tea Garden' : idx === 1 ? 'Riverine' : idx === 2 ? 'Parliament' : 'Sundarbans'}
+                </p>
+                <input type="file" ref={galleryInputRefs[idx]} className="hidden" accept="image/*" onChange={(e) => handleGalleryUpload(e, idx)} />
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         <div className="lg:col-span-1 space-y-8">
           <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-6">
@@ -552,6 +648,7 @@ export const AdminWebsiteManage = () => {
            </div>
         </div>
       </div>
+
       <div className="bg-slate-900 rounded-3xl shadow-2xl overflow-hidden border border-slate-800">
          <div className="p-8 border-b border-slate-800 flex flex-col md:flex-row justify-between items-center gap-6 bg-slate-950">
             <div className="flex items-center gap-4">

@@ -43,7 +43,7 @@ export const LandingPage: React.FC<Props> = ({
   onClearNotifications
 }) => {
   
-  const { sections, modules } = useSiteConfig();
+  const { sections, modules, settings } = useSiteConfig();
 
   // Rotating Headline State
   const [currentHeadlineIndex, setCurrentHeadlineIndex] = useState(0);
@@ -203,7 +203,7 @@ export const LandingPage: React.FC<Props> = ({
 
                {/* Step 2 */}
                <div className="bg-white p-8 rounded-2xl shadow-sm border border-gray-100 text-center hover:-translate-y-2 transition-transform duration-300">
-                  <div className="w-16 h-16 bg-brand-50 rounded-full flex items-center justify-center mx-auto mb-6 text-brand-600">
+                  <div className="w-16 h-16 bg-brand rounded-full flex items-center justify-center mx-auto mb-6 text-brand-600">
                     <LayoutGrid size={32} />
                   </div>
                   <h3 className="text-xl font-bold text-gray-900 mb-3">
@@ -561,7 +561,7 @@ export const LandingPage: React.FC<Props> = ({
                {/* Image 1: Tea Garden */}
                <div className="group relative h-72 rounded-2xl overflow-hidden cursor-pointer shadow-lg">
                  <img 
-                   src="https://images.unsplash.com/photo-1596895111956-bf1cf0599ce5" 
+                   src={settings.galleryImages?.[0] || "https://images.unsplash.com/photo-1596895111956-bf1cf0599ce5"} 
                    alt="Sylhet Tea Garden" 
                    className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" 
                  />
@@ -576,7 +576,7 @@ export const LandingPage: React.FC<Props> = ({
                {/* Image 2: Boats */}
                <div className="group relative h-72 rounded-2xl overflow-hidden cursor-pointer shadow-lg lg:col-span-2">
                  <img 
-                   src="https://images.unsplash.com/photo-1628189873998-25f00e95a947" 
+                   src={settings.galleryImages?.[1] || "https://images.unsplash.com/photo-1628189873998-25f00e95a947"} 
                    alt="Riverine Life" 
                    className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" 
                  />
@@ -591,7 +591,7 @@ export const LandingPage: React.FC<Props> = ({
                {/* Image 3: Heritage */}
                <div className="group relative h-72 rounded-2xl overflow-hidden cursor-pointer shadow-lg lg:col-span-2">
                  <img 
-                   src="https://images.unsplash.com/photo-1619671603704-8b6567958611" 
+                   src={settings.galleryImages?.[2] || "https://images.unsplash.com/photo-1619671603704-8b6567958611"} 
                    alt="Jatiyo Sangsad Bhaban" 
                    className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" 
                  />
@@ -606,7 +606,7 @@ export const LandingPage: React.FC<Props> = ({
                {/* Image 4: Sundarbans */}
                <div className="group relative h-72 rounded-2xl overflow-hidden cursor-pointer shadow-lg">
                  <img 
-                   src="https://images.unsplash.com/photo-1548013146-72479768bada" 
+                   src={settings.galleryImages?.[3] || "https://images.unsplash.com/photo-1548013146-72479768bada"} 
                    alt="Sundarbans" 
                    className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" 
                  />
