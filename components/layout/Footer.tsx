@@ -2,13 +2,14 @@
 import React from 'react';
 import { Globe, MapPin, Phone, Mail } from 'lucide-react';
 import { AppModule } from '../../types';
+import { useData } from '../../contexts/DataContext';
 import { useSiteConfig } from '../../contexts/SiteConfigContext';
 
 interface FooterProps {
   isBangla: boolean;
   toggleLanguage: () => void;
   onNavigateHome: () => void;
-  onModuleSelect?: (module: AppModule) => void;
+  onModuleSelect: (module: AppModule) => void;
 }
 
 export const Footer: React.FC<FooterProps> = ({ isBangla, toggleLanguage, onNavigateHome, onModuleSelect }) => {
@@ -52,17 +53,17 @@ export const Footer: React.FC<FooterProps> = ({ isBangla, toggleLanguage, onNavi
             <h4 className="text-white font-bold mb-6">{isBangla ? 'কুইক লিঙ্ক' : 'Quick Links'}</h4>
             <ul className="space-y-3 text-sm">
               <li onClick={onNavigateHome} className="hover:text-brand-500 cursor-pointer">{isBangla ? 'হোম' : 'Home'}</li>
-              <li className="hover:text-brand-500 cursor-pointer">{isBangla ? 'আমাদের সম্পর্কে' : 'About Us'}</li>
-              <li className="hover:text-brand-500 cursor-pointer">{isBangla ? 'সেবাসমূহ' : 'Services'}</li>
+              <li onClick={() => onModuleSelect(AppModule.ABOUT)} className="hover:text-brand-500 cursor-pointer">{isBangla ? 'আমাদের সম্পর্কে' : 'About Us'}</li>
+              <li onClick={() => onModuleSelect(AppModule.AMAR_BD)} className="hover:text-brand-500 cursor-pointer">{isBangla ? 'সেবাসমূহ' : 'Services'}</li>
             </ul>
           </div>
 
           <div>
             <h4 className="text-white font-bold mb-6">{isBangla ? 'লিগ্যাল' : 'Legal'}</h4>
             <ul className="space-y-3 text-sm">
-              <li className="hover:text-brand-500 cursor-pointer">{isBangla ? 'গোপনীয়তা নীতি' : 'Privacy Policy'}</li>
-              <li className="hover:text-brand-500 cursor-pointer">{isBangla ? 'শর্তাবলী' : 'Terms of Use'}</li>
-              <li className="hover:text-brand-500 cursor-pointer">FAQ</li>
+              <li onClick={() => onModuleSelect(AppModule.PRIVACY)} className="hover:text-brand-500 cursor-pointer">{isBangla ? 'গোপনীয়তা নীতি' : 'Privacy Policy'}</li>
+              <li onClick={() => onModuleSelect(AppModule.TERMS)} className="hover:text-brand-500 cursor-pointer">{isBangla ? 'শর্তাবলী' : 'Terms of Use'}</li>
+              <li onClick={() => onModuleSelect(AppModule.CONTACT)} className="hover:text-brand-500 cursor-pointer">FAQ</li>
             </ul>
           </div>
 

@@ -1,10 +1,12 @@
-import React, { useState, useMemo } from 'react';
+
+import React, { useState, useMemo, useRef } from 'react';
 import { 
   Database, Search, Sprout, Stethoscope, BookOpen, 
   Navigation, Recycle, Home, Fish, Hammer, MapPin, 
   Plus, Trash2, Filter, X, Edit3, Scale, Plane, Wrench,
   AlertCircle, Users, Building2, Camera, Info, CheckCircle, Save, ChevronRight,
-  Image as ImageIcon, HeartPulse, PlusCircle, Phone, DollarSign, Clock, Tag, Waves
+  Image as ImageIcon, HeartPulse, PlusCircle, Phone, DollarSign, Clock, Tag, Waves,
+  Upload, Loader2, Eye
 } from 'lucide-react';
 import { Button } from '../../ui/Button';
 import { useData } from '../../../contexts/DataContext';
@@ -25,6 +27,46 @@ const bnToEn = (str: any) => {
     return parseFloat(enStr) || parseFloat(s) || 0;
 };
 
+/**
+ * Image compression utility to save storage space
+ */
+const compressImage = (file: File): Promise<string> => {
+  return new Promise((resolve) => {
+    const reader = new FileReader();
+    reader.readAsDataURL(file);
+    reader.onload = (event) => {
+      const img = new Image();
+      img.src = event.target?.result as string;
+      img.onload = () => {
+        const canvas = document.createElement('canvas');
+        let width = img.width;
+        let height = img.height;
+        const MAX_WIDTH = 1200;
+        const MAX_HEIGHT = 1200;
+
+        if (width > height) {
+          if (width > MAX_WIDTH) {
+            height *= MAX_WIDTH / width;
+            width = MAX_WIDTH;
+          }
+        } else {
+          if (height > MAX_HEIGHT) {
+            width *= MAX_HEIGHT / height;
+            height = MAX_HEIGHT;
+          }
+        }
+        
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext('2d');
+        ctx?.drawImage(img, 0, 0, width, height);
+        // Use JPEG with 0.6 quality for aggressive but readable compression
+        resolve(canvas.toDataURL('image/jpeg', 0.6));
+      };
+    };
+  });
+};
+
 export const AdminConfig: React.FC<Props> = ({ isBangla }) => {
   const { 
     marketPrices, updateMarketPrices,
@@ -38,9 +80,12 @@ export const AdminConfig: React.FC<Props> = ({ isBangla }) => {
   const [isConfigModalOpen, setIsConfigModalOpen] = useState(false);
   const [configForm, setConfigForm] = useState<any>({});
   const [districtSearch, setDistrictSearch] = useState('');
+  const [isCompressing, setIsCompressing] = useState(false);
+  const imageInputRef = useRef<HTMLInputElement>(null);
 
   // --- DISTRICT EDITING LOGIC ---
   const [editingDistrict, setEditingDistrict] = useState<any>(null);
+  const [viewingDistrict, setViewingDistrict] = useState<any>(null);
   
   const filteredDistricts = useMemo(() => {
     const searchLower = (districtSearch || '').toLowerCase();
@@ -58,7 +103,7 @@ export const AdminConfig: React.FC<Props> = ({ isBangla }) => {
       touristSpots: d.touristSpots || d.touristspots || [],
       upazilas_str: Array.isArray(d.upazilas) ? d.upazilas.join(', ') : '',
       spots_str: Array.isArray(d.touristSpots || d.touristspots) ? (d.touristSpots || d.touristspots).join(', ') : '',
-      images_str: Array.isArray(d.images) ? d.images.join(', ') : '',
+      images: Array.isArray(d.images) ? d.images : [],
       education: d.education || { primary: 0, highSchool: 0, college: 0, university: 0 },
       hospitals: Array.isArray(d.hospitals) ? d.hospitals : []
     });
@@ -74,10 +119,39 @@ export const AdminConfig: React.FC<Props> = ({ isBangla }) => {
     setEditingDistrict({ ...editingDistrict, hospitals: newHospitals });
   };
 
-  const handleHospitalChange = (index: number, field: string, value: string) => {
+  const handleHospitalChange = (idx: number, field: string, value: string) => {
     const newHospitals = [...editingDistrict.hospitals];
-    newHospitals[index] = { ...newHospitals[index], [field]: value };
+    newHospitals[idx] = { ...newHospitals[idx], [field]: value };
     setEditingDistrict({ ...editingDistrict, hospitals: newHospitals });
+  };
+
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (!files || files.length === 0) return;
+    
+    setIsCompressing(true);
+    const newCompressedImages = [];
+    
+    for (let i = 0; i < files.length; i++) {
+      try {
+        const compressed = await compressImage(files[i]);
+        newCompressedImages.push(compressed);
+      } catch (err) {
+        console.error("Compression failed for file:", files[i].name);
+      }
+    }
+
+    setEditingDistrict({
+      ...editingDistrict,
+      images: [...(editingDistrict.images || []), ...newCompressedImages]
+    });
+    setIsCompressing(false);
+    if (imageInputRef.current) imageInputRef.current.value = '';
+  };
+
+  const handleRemoveImage = (index: number) => {
+    const updatedImages = editingDistrict.images.filter((_: any, i: number) => i !== index);
+    setEditingDistrict({ ...editingDistrict, images: updatedImages });
   };
 
   const handleSaveDistrict = (e: React.FormEvent) => {
@@ -92,13 +166,12 @@ export const AdminConfig: React.FC<Props> = ({ isBangla }) => {
       id: finalId,
       upazilas: (editingDistrict.upazilas_str || '').split(',').map((s: string) => s.trim()).filter(Boolean),
       touristSpots: (editingDistrict.spots_str || '').split(',').map((s: string) => s.trim()).filter(Boolean),
-      images: (editingDistrict.images_str || '').split(',').map((s: string) => s.trim()).filter(Boolean),
+      images: Array.isArray(editingDistrict.images) ? editingDistrict.images : [],
       hospitals: editingDistrict.hospitals.filter((h: any) => h.name && h.name.trim() !== '')
     };
     
     delete updated.upazilas_str;
     delete updated.spots_str;
-    delete updated.images_str;
     
     updateDistrict(updated);
     setEditingDistrict(null);
@@ -117,7 +190,7 @@ export const AdminConfig: React.FC<Props> = ({ isBangla }) => {
             description: '',
             upazilas_str: '',
             spots_str: '',
-            images_str: '',
+            images: [],
             education: { primary: 0, highSchool: 0, college: 0, university: 0 },
             hospitals: []
         });
@@ -203,6 +276,13 @@ export const AdminConfig: React.FC<Props> = ({ isBangla }) => {
                                 <Button onClick={() => handleEditDistrict(d)} className="flex-1 bg-gray-900 hover:bg-brand-600 text-white flex items-center justify-center gap-2 py-2.5 rounded-xl font-bold transition-all shadow-md group-hover:scale-[1.02]">
                                     <Edit3 size={16}/> Edit District Data
                                 </Button>
+                                <button 
+                                    onClick={() => setViewingDistrict(d)}
+                                    className="p-2.5 bg-blue-50 text-blue-600 rounded-xl hover:bg-blue-600 hover:text-white transition-all border border-blue-100 shadow-sm"
+                                    title="View District"
+                                >
+                                    <Eye size={20} />
+                                </button>
                                 <button 
                                     onClick={() => handleDeleteItem(d.id)} 
                                     className="p-2.5 bg-red-50 text-red-600 rounded-xl hover:bg-red-600 hover:text-white transition-all border border-red-100 shadow-sm"
@@ -327,6 +407,52 @@ export const AdminConfig: React.FC<Props> = ({ isBangla }) => {
           </div>
         </div>
 
+        {/* VIEW DISTRICT MODAL */}
+        {viewingDistrict && (
+          <div className="fixed inset-0 z-[60] bg-black/60 flex items-center justify-center p-4 backdrop-blur-sm animate-fade-in" onClick={() => setViewingDistrict(null)}>
+            <div className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-hidden flex flex-col" onClick={e => e.stopPropagation()}>
+               <div className="p-6 border-b border-gray-100 flex justify-between items-center bg-[#f0fdfa]">
+                 <div>
+                    <h3 className="text-xl font-bold text-gray-900">{isBangla ? (viewingDistrict.nameBn || viewingDistrict.namebn) : (viewingDistrict.nameEn || viewingDistrict.nameen)}</h3>
+                    <p className="text-xs font-bold text-emerald-600 uppercase tracking-widest">{viewingDistrict.division} Division</p>
+                 </div>
+                 <button onClick={() => setViewingDistrict(null)} className="p-2 hover:bg-white rounded-full text-gray-400 hover:text-red-500 transition-colors shadow-sm"><X size={24}/></button>
+               </div>
+               <div className="p-8 overflow-y-auto custom-scrollbar space-y-6">
+                  {viewingDistrict.images && viewingDistrict.images.length > 0 && (
+                    <div className="grid grid-cols-2 gap-2 mb-4">
+                      {viewingDistrict.images.map((img: string, i: number) => (
+                        <img key={i} src={img} className="w-full h-32 object-cover rounded-xl border border-gray-100" />
+                      ))}
+                    </div>
+                  )}
+                  <div className="bg-gray-50 p-4 rounded-xl">
+                    <h4 className="text-xs font-bold text-gray-400 uppercase mb-2">Description</h4>
+                    <p className="text-sm text-gray-700 leading-relaxed">{viewingDistrict.description || 'No description available.'}</p>
+                  </div>
+                  <div className="grid grid-cols-2 gap-4">
+                     <div className="p-4 border border-gray-100 rounded-xl"><p className="text-[10px] font-bold text-gray-400 uppercase mb-1">Population</p><p className="font-bold text-gray-900">{viewingDistrict.population || 'N/A'}</p></div>
+                     <div className="p-4 border border-gray-100 rounded-xl"><p className="text-[10px] font-bold text-gray-400 uppercase mb-1">Area</p><p className="font-bold text-gray-900">{viewingDistrict.area || 'N/A'}</p></div>
+                  </div>
+                  <div className="space-y-4">
+                    <div>
+                      <h4 className="text-sm font-bold text-gray-800 mb-2 flex items-center gap-2"><Building2 size={16} className="text-blue-500"/> Education Centers</h4>
+                      <div className="grid grid-cols-4 gap-2">
+                        <div className="p-2 bg-blue-50 text-center rounded-lg"><p className="text-xs font-bold text-blue-600">{viewingDistrict.education?.primary || 0}</p><p className="text-[8px] text-gray-500 uppercase">Pri</p></div>
+                        <div className="p-2 bg-blue-50 text-center rounded-lg"><p className="text-xs font-bold text-blue-600">{viewingDistrict.education?.highSchool || 0}</p><p className="text-[8px] text-gray-500 uppercase">High</p></div>
+                        <div className="p-2 bg-blue-50 text-center rounded-lg"><p className="text-xs font-bold text-blue-600">{viewingDistrict.education?.college || 0}</p><p className="text-[8px] text-gray-500 uppercase">Col</p></div>
+                        <div className="p-2 bg-blue-50 text-center rounded-lg"><p className="text-xs font-bold text-blue-600">{viewingDistrict.education?.university || 0}</p><p className="text-[8px] text-gray-500 uppercase">Uni</p></div>
+                      </div>
+                    </div>
+                  </div>
+               </div>
+               <div className="p-6 bg-gray-50 border-t border-gray-100 text-right">
+                  <Button onClick={() => setViewingDistrict(null)} className="bg-gray-900 text-white">Close Preview</Button>
+               </div>
+            </div>
+          </div>
+        )}
+
         {editingDistrict && (
             <div className="fixed inset-0 z-[60] bg-black/60 flex items-center justify-center p-4 backdrop-blur-sm animate-fade-in">
                 <div className="bg-white rounded-2xl shadow-2xl w-full max-w-4xl max-h-[90vh] overflow-hidden flex flex-col" onClick={e => e.stopPropagation()}>
@@ -355,10 +481,10 @@ export const AdminConfig: React.FC<Props> = ({ isBangla }) => {
                             <div className="bg-blue-50/50 p-6 rounded-2xl border border-blue-100">
                                 <h4 className="text-sm font-bold text-blue-800 mb-4 flex items-center gap-2"><BookOpen size={16}/> Education Stats</h4>
                                 <div className="grid grid-cols-2 gap-4">
-                                    <div><label className="block text-[10px] font-bold text-blue-400 mb-1 uppercase">Primary</label><input type="number" className="w-full p-2 rounded-lg border border-blue-200" value={editingDistrict.education.primary} onChange={e => setEditingDistrict({...editingDistrict, education: {...editingDistrict.education, primary: parseInt(e.target.value)}})} /></div>
-                                    <div><label className="block text-[10px] font-bold text-blue-400 mb-1 uppercase">High School</label><input type="number" className="w-full p-2 rounded-lg border border-blue-200" value={editingDistrict.education.highSchool} onChange={e => setEditingDistrict({...editingDistrict, education: {...editingDistrict.education, highSchool: parseInt(e.target.value)}})} /></div>
-                                    <div><label className="block text-[10px] font-bold text-blue-400 mb-1 uppercase">College</label><input type="number" className="w-full p-2 rounded-lg border border-blue-200" value={editingDistrict.education.college} onChange={e => setEditingDistrict({...editingDistrict, education: {...editingDistrict.education, college: parseInt(e.target.value)}})} /></div>
-                                    <div><label className="block text-[10px] font-bold text-blue-400 mb-1 uppercase">University</label><input type="number" className="w-full p-2 rounded-lg border border-blue-200" value={editingDistrict.education.university} onChange={e => setEditingDistrict({...editingDistrict, education: {...editingDistrict.education, university: parseInt(e.target.value)}})} /></div>
+                                    <div><label className="block text-[10px] font-bold text-blue-600 mb-1 uppercase">Primary</label><input type="number" className="w-full p-2 rounded-lg border border-blue-200 bg-white text-gray-900 focus:ring-2 focus:ring-blue-500 outline-none transition-all" value={editingDistrict.education.primary} onChange={e => setEditingDistrict({...editingDistrict, education: {...editingDistrict.education, primary: parseInt(e.target.value)}})} /></div>
+                                    <div><label className="block text-[10px] font-bold text-blue-600 mb-1 uppercase">High School</label><input type="number" className="w-full p-2 rounded-lg border border-blue-200 bg-white text-gray-900 focus:ring-2 focus:ring-blue-500 outline-none transition-all" value={editingDistrict.education.highSchool} onChange={e => setEditingDistrict({...editingDistrict, education: {...editingDistrict.education, highSchool: parseInt(e.target.value)}})} /></div>
+                                    <div><label className="block text-[10px] font-bold text-blue-600 mb-1 uppercase">College</label><input type="number" className="w-full p-2 rounded-lg border border-blue-200 bg-white text-gray-900 focus:ring-2 focus:ring-blue-500 outline-none transition-all" value={editingDistrict.education.college} onChange={e => setEditingDistrict({...editingDistrict, education: {...editingDistrict.education, college: parseInt(e.target.value)}})} /></div>
+                                    <div><label className="block text-[10px] font-bold text-blue-600 mb-1 uppercase">University</label><input type="number" className="w-full p-2 rounded-lg border border-blue-200 bg-white text-gray-900 focus:ring-2 focus:ring-blue-500 outline-none transition-all" value={editingDistrict.education.university} onChange={e => setEditingDistrict({...editingDistrict, education: {...editingDistrict.education, university: parseInt(e.target.value)}})} /></div>
                                 </div>
                             </div>
 
@@ -371,8 +497,8 @@ export const AdminConfig: React.FC<Props> = ({ isBangla }) => {
                                     {editingDistrict.hospitals.map((h: any, idx: number) => (
                                         <div key={idx} className="p-3 bg-white rounded-xl border border-teal-100 relative group">
                                             <button type="button" onClick={() => handleRemoveHospital(idx)} className="absolute -top-2 -right-2 w-6 h-6 bg-red-500 text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center"><X size={14}/></button>
-                                            <input placeholder="Hospital Name" className="w-full mb-1 text-sm font-bold outline-none border-b border-gray-100 focus:border-teal-500" value={h.name} onChange={e => handleHospitalChange(idx, 'name', e.target.value)} />
-                                            <input placeholder="Phone" className="w-full text-xs outline-none" value={h.phone} onChange={e => handleHospitalChange(idx, 'phone', e.target.value)} />
+                                            <input placeholder="Hospital Name" className="w-full mb-1 text-sm font-bold outline-none border-b border-gray-100 focus:border-teal-500 bg-transparent text-gray-900" value={h.name} onChange={e => handleHospitalChange(idx, 'name', e.target.value)} />
+                                            <input placeholder="Phone" className="w-full text-xs outline-none bg-transparent text-gray-600" value={h.phone} onChange={e => handleHospitalChange(idx, 'phone', e.target.value)} />
                                         </div>
                                     ))}
                                     {editingDistrict.hospitals.length === 0 && <p className="text-center text-teal-300 text-xs py-10 italic">No hospitals added.</p>}
@@ -383,7 +509,46 @@ export const AdminConfig: React.FC<Props> = ({ isBangla }) => {
                         <div className="space-y-6">
                             <div><label className="block text-xs font-bold text-gray-500 uppercase mb-2">Upazilas (Comma separated)</label><textarea rows={2} className="w-full p-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-brand-500 outline-none resize-none" placeholder="Upazila 1, Upazila 2, ..." value={editingDistrict.upazilas_str} onChange={e => setEditingDistrict({...editingDistrict, upazilas_str: e.target.value})} /></div>
                             <div><label className="block text-xs font-bold text-gray-500 uppercase mb-2">Tourist Spots (Comma separated)</label><textarea rows={2} className="w-full p-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-brand-500 outline-none resize-none" placeholder="Lalbagh Fort, Ahsan Manzil, ..." value={editingDistrict.spots_str} onChange={e => setEditingDistrict({...editingDistrict, spots_str: e.target.value})} /></div>
-                            <div><label className="block text-xs font-bold text-gray-500 uppercase mb-2">Image URLs (Comma separated)</label><textarea rows={2} className="w-full p-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-brand-500 outline-none resize-none" placeholder="https://..., https://..." value={editingDistrict.images_str} onChange={e => setEditingDistrict({...editingDistrict, images_str: e.target.value})} /></div>
+                            
+                            <div className="bg-gray-50 p-6 rounded-2xl border border-gray-200">
+                                <label className="block text-xs font-bold text-gray-500 uppercase mb-4 flex items-center gap-2">
+                                  <Camera size={16} /> District Photos (High Quality Compressed)
+                                </label>
+                                
+                                <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-5 gap-4 mb-4">
+                                    {editingDistrict.images.map((img: string, idx: number) => (
+                                      <div key={idx} className="relative aspect-square rounded-xl overflow-hidden shadow-sm group border border-gray-200 bg-white">
+                                        <img src={img} className="w-full h-full object-cover" />
+                                        <button 
+                                          type="button" 
+                                          onClick={() => handleRemoveImage(idx)}
+                                          className="absolute top-1 right-1 p-1 bg-red-600 text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
+                                        >
+                                          <X size={12} />
+                                        </button>
+                                      </div>
+                                    ))}
+                                    
+                                    <button 
+                                      type="button"
+                                      disabled={isCompressing}
+                                      onClick={() => imageInputRef.current?.click()}
+                                      className="aspect-square rounded-xl border-2 border-dashed border-gray-300 flex flex-col items-center justify-center text-gray-400 hover:border-brand-500 hover:text-brand-500 hover:bg-brand-50 transition-all"
+                                    >
+                                      {isCompressing ? <Loader2 className="animate-spin" /> : <Plus size={24} />}
+                                      <span className="text-[10px] font-bold mt-1 uppercase">{isCompressing ? '...' : 'Upload'}</span>
+                                    </button>
+                                </div>
+                                <input 
+                                  type="file" 
+                                  multiple 
+                                  accept="image/*" 
+                                  ref={imageInputRef} 
+                                  className="hidden" 
+                                  onChange={handleImageUpload} 
+                                />
+                                <p className="text-[10px] text-gray-400 italic">Images are automatically compressed to 60% quality & resized to save space.</p>
+                            </div>
                         </div>
 
                         <div className="mt-10 pt-6 border-t border-gray-100 flex gap-4">

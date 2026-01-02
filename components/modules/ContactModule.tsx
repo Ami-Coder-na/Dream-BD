@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Mail, Phone, MapPin, Send, Loader2 } from 'lucide-react';
 import { Button } from '../ui/Button';
@@ -10,7 +9,7 @@ interface Props {
 }
 
 export const ContactModule: React.FC<Props> = ({ isBangla }) => {
-  const { addMessage } = useData();
+  const { addMessage, faqs } = useData();
   const { settings } = useSiteConfig();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
@@ -183,24 +182,17 @@ export const ContactModule: React.FC<Props> = ({ isBangla }) => {
                   {isBangla ? 'সচরাচর জিজ্ঞাসা (FAQ)' : 'Quick FAQ'}
                 </h3>
                 <div className="space-y-4">
-                  <details className="group border border-gray-100 rounded-lg p-3 open:bg-gray-50">
-                    <summary className="cursor-pointer font-medium text-gray-700 hover:text-brand-600 list-none flex justify-between items-center">
-                      {isBangla ? 'কিভাবে একাউন্ট খুলব?' : 'How to create account?'}
-                      <span className="group-open:rotate-180 transition-transform text-gray-400">▼</span>
-                    </summary>
-                    <p className="mt-3 text-sm text-gray-500 leading-relaxed">
-                      {isBangla ? 'রেজিস্ট্রেশন বাটনে ক্লিক করে ফর্ম পূরণ করুন।' : 'Click Register and fill out the form.'}
-                    </p>
-                  </details>
-                  <details className="group border border-gray-100 rounded-lg p-3 open:bg-gray-50">
-                    <summary className="cursor-pointer font-medium text-gray-700 hover:text-brand-600 list-none flex justify-between items-center">
-                      {isBangla ? 'পাসওয়ার্ড ভুলে গেছি?' : 'Forgot Password?'}
-                      <span className="group-open:rotate-180 transition-transform text-gray-400">▼</span>
-                    </summary>
-                    <p className="mt-3 text-sm text-gray-500 leading-relaxed">
-                      {isBangla ? 'লগইন পেজে "পাসওয়ার্ড ভুলে গেছি" অপশন ব্যবহার করুন।' : 'Use the "Forgot Password" link on login page.'}
-                    </p>
-                  </details>
+                  {(faqs || []).map((faq: any) => (
+                    <details key={faq.id} className="group border border-gray-100 rounded-lg p-3 open:bg-gray-50">
+                      <summary className="cursor-pointer font-medium text-gray-700 hover:text-brand-600 list-none flex justify-between items-center">
+                        {isBangla ? faq.questionBn : faq.questionEn}
+                        <span className="group-open:rotate-180 transition-transform text-gray-400">▼</span>
+                      </summary>
+                      <p className="mt-3 text-sm text-gray-500 leading-relaxed">
+                        {isBangla ? faq.answerBn : faq.answerEn}
+                      </p>
+                    </details>
+                  ))}
                 </div>
              </div>
            </div>

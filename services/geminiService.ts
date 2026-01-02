@@ -1,3 +1,4 @@
+
 import { GoogleGenAI, GenerateContentResponse, Type } from "@google/genai";
 
 // Initialize client securely using obtained key exclusively from process.env.API_KEY as per guidelines.
@@ -11,7 +12,7 @@ export const generateAssistantResponse = async (
   attachment?: { mimeType: string; data: string }
 ): Promise<string> => {
   try {
-    const systemInstruction = `You are 'Shonali Assistant', an advanced AI for 'Shonali Desh'. 
+    const systemInstruction = `You are 'Mithu', an advanced AI for 'Digital Desh BD'. 
     Mission: To empower citizens of Bangladesh with accurate information.
     Current User Context: ${context}.
     Language: Support both Bangla and English based on user preference.`;

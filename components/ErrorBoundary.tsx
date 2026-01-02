@@ -9,35 +9,29 @@ interface ErrorBoundaryProps {
 
 interface ErrorBoundaryState {
   hasError: boolean;
-  error: Error | null;
+  error: any;
 }
 
 /**
  * ErrorBoundary component to catch rendering errors in the application.
  */
 export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
-  // Fix: Explicitly declare state and props to resolve TypeScript property existence errors
   public state: ErrorBoundaryState;
   public props: ErrorBoundaryProps;
 
-  // Use a constructor to ensure that 'props' and 'state' are correctly initialized and typed by inheritance
   constructor(props: ErrorBoundaryProps) {
     super(props);
-    // Fix line 22: Initializing state property
     this.state = {
       hasError: false,
       error: null
     };
-    // Fix inheritance visibility for props
     this.props = props;
   }
 
-  static getDerivedStateFromError(error: Error): ErrorBoundaryState {
-    // Update state so the next render will show the fallback UI.
+  static getDerivedStateFromError(error: any): ErrorBoundaryState {
     return { hasError: true, error };
   }
 
-  // Log error information for debugging
   componentDidCatch(error: Error, errorInfo: ErrorInfo) {
     console.error('Uncaught error:', error, errorInfo);
   }
@@ -51,7 +45,6 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
   };
 
   render(): ReactNode {
-    // Fix line 48: Access state properties from the instance via destructuring
     const { hasError, error } = this.state;
     
     if (hasError) {
@@ -69,9 +62,8 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
             <p className="text-gray-500 mb-6 text-sm">
               দুঃখিত, একটি অপ্রত্যাশিত সমস্যা দেখা দিয়েছে। অনুগ্রহ করে পেজটি রিলোড করুন।
               <br />
-              <span className="text-xs mt-2 block opacity-70">
-                {/* Fix line 64: Accessing error message from destructured state */}
-                Error: {error?.message || 'Unknown Error'}
+              <span className="text-xs mt-4 block p-3 bg-red-50 text-red-700 rounded-lg border border-red-100 break-words font-mono">
+                Error: {error?.message || (typeof error === 'object' ? JSON.stringify(error) : String(error))}
               </span>
             </p>
 
@@ -90,7 +82,6 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
       );
     }
 
-    // Fix line 84: Access props from the instance which are now correctly recognized by TypeScript
     return this.props.children;
   }
 }

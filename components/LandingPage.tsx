@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { 
   ShoppingBag, Sprout, BookOpen, HeartPulse, 
@@ -139,7 +140,7 @@ export const LandingPage: React.FC<Props> = ({
               >
                  <span className="absolute inset-0 w-full h-full bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000 ease-in-out"></span>
                  <Sparkles size={20} className="animate-pulse" />
-                {isBangla ? 'AI-এর সাথে কথা বলুন' : 'Talk With AI'} 
+                {isBangla ? 'Mithu - Ai' : 'Mithu - Ai'} 
               </Button>
 
               <Button onClick={() => scrollToSection('about')} variant="outline" size="lg" className="text-lg px-10 py-4 bg-white border-gray-300 hover:bg-gray-50 w-full sm:w-auto">

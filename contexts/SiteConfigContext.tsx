@@ -1,4 +1,3 @@
-
 import React, { createContext, useState, useContext, ReactNode, useEffect } from 'react';
 import { AppModule } from '../types';
 import { supabase, isSupabaseConfigured } from '../services/supabaseClient';
@@ -45,6 +44,10 @@ const DEFAULT_MODULES: Record<ToggableModule, boolean> = {
   [AppModule.AMAR_JELA]: true,
   [AppModule.BAZAR_SODAI]: true,
   [AppModule.ADMIN]: true,
+  [AppModule.ABOUT]: true,
+  // Fix: Added missing properties to satisfy Record<AppModule, boolean>
+  [AppModule.PRIVACY]: true,
+  [AppModule.TERMS]: true,
   [AppModule.LEGAL]: true,
   [AppModule.EXPAT]: true,
   [AppModule.VOCATIONAL]: true,

@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useRef } from 'react';
 import { 
   CloudRain, Sun, Sprout, TrendingUp, AlertTriangle, 
@@ -138,6 +139,41 @@ export const AgriModule: React.FC<Props> = ({ isBangla, user, onLogin }) => {
   const [showPostModal, setShowPostModal] = useState(false);
   const [commentInputs, setCommentInputs] = useState<Record<number, string>>({});
   
+  // Weather State
+  const [weather, setWeather] = useState({
+    city: isBangla ? 'রংপুর, বাংলাদেশ' : 'Rangpur, BD',
+    temp: 28,
+    condition: isBangla ? 'আংশিক মেঘলা' : 'Partly Cloudy'
+  });
+
+  useEffect(() => {
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(async (position) => {
+        const { latitude, longitude } = position.coords;
+        try {
+          // Get City Name (Reverse Geocoding)
+          const geoRes = await fetch(`https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${latitude}&lon=${longitude}`);
+          const geoData = await geoRes.json();
+          const city = geoData.address.city || geoData.address.town || geoData.address.village || geoData.address.state || "Unknown Location";
+          
+          // Get Current Weather (Open-Meteo)
+          const weatherRes = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${latitude}&longitude=${longitude}&current_weather=true`);
+          const weatherData = await weatherRes.json();
+          
+          setWeather({
+            city: `${city}, BD`,
+            temp: Math.round(weatherData.current_weather.temperature),
+            condition: isBangla ? 'পরিষ্কার আকাশ' : 'Clear Sky'
+          });
+        } catch (err) {
+          console.error("Failed to fetch dynamic weather data", err);
+        }
+      }, (err) => {
+        console.warn("Geolocation permission denied or error:", err.message);
+      });
+    }
+  }, [isBangla]);
+
   const [posts, setPosts] = useState<ForumPost[]>([
     { 
       id: 1, 
@@ -257,8 +293,8 @@ export const AgriModule: React.FC<Props> = ({ isBangla, user, onLogin }) => {
         <div className="relative z-10">
           <div className="flex justify-between items-start">
             <div className="space-y-4">
-              <div className="flex items-center gap-2 bg-white/20 backdrop-blur-md px-4 py-1.5 rounded-full w-fit"><MapPin size={16} /><span className="text-sm font-bold">Rangpur, BD</span></div>
-              <div className="flex flex-col"><h2 className="text-7xl font-bold tracking-tight">28°C</h2><p className="text-blue-50 font-medium text-2xl mt-1">{isBangla ? 'আংশিক মেঘলা' : 'Partly Cloudy'}</p></div>
+              <div className="flex items-center gap-2 bg-white/20 backdrop-blur-md px-4 py-1.5 rounded-full w-fit"><MapPin size={16} /><span className="text-sm font-bold">{weather.city}</span></div>
+              <div className="flex flex-col"><h2 className="text-7xl font-bold tracking-tight">{weather.temp}°C</h2><p className="text-blue-50 font-medium text-2xl mt-1">{weather.condition}</p></div>
             </div>
             <Sun size={96} className="text-yellow-300 animate-pulse" />
           </div>

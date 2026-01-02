@@ -21,8 +21,8 @@ export const AiChatPage: React.FC<AiChatPageProps> = ({ onBack, isBangla }) => {
     id: 'init',
     role: 'model',
     text: isBangla 
-      ? 'স্বাগতম! আমি ডিজিটাল দেশ বিডি এআই। কৃষি, স্বাস্থ্য, শিক্ষা বা অন্য যেকোনো বিষয়ে আমি আপনাকে কীভাবে সাহায্য করতে পারি? আপনি ছবি বা অডিও পাঠাতে পারেন।' 
-      : 'Welcome! I am Digital Desh BD AI. How can I assist you today? You can also share images or audio for analysis.',
+      ? 'স্বাগতম! আমি মিঠু। কৃষি, স্বাস্থ্য, শিক্ষা বা অন্য যেকোনো বিষয়ে আমি আপনাকে কীভাবে সাহায্য করতে পারি? আপনি ছবি বা অডিও পাঠাতে পারেন।' 
+      : 'Welcome! I am Mithu. How can I assist you today? You can also share images or audio for analysis.',
     timestamp: new Date()
   };
 
@@ -313,7 +313,7 @@ export const AiChatPage: React.FC<AiChatPageProps> = ({ onBack, isBangla }) => {
               </div>
               <div>
                 <h1 className="font-bold text-gray-900 text-base flex items-center gap-2">
-                  {isBangla ? 'ডিজিটাল এআই' : 'Digital AI'} 
+                  {isBangla ? 'মিঠু - এআই' : 'Mithu - AI'} 
                   <Sparkles size={14} className="text-yellow-500" fill="currentColor" />
                 </h1>
                 <p className="text-xs text-gray-500">{isBangla ? 'আপনার স্মার্ট সহকারী' : 'Your Smart Assistant'}</p>
@@ -338,7 +338,7 @@ export const AiChatPage: React.FC<AiChatPageProps> = ({ onBack, isBangla }) => {
                 <div className={`flex flex-col gap-1 max-w-[85%] md:max-w-[75%] ${msg.role === 'user' ? 'items-end' : 'items-start'}`}>
                   
                   <div className={`flex items-center gap-2 text-[10px] text-gray-400 ${msg.role === 'user' ? 'flex-row-reverse' : 'flex-row'} mb-1`}>
-                    <span className="font-medium">{msg.role === 'user' ? (isBangla ? 'আপনি' : 'You') : 'Digital AI'}</span>
+                    <span className="font-medium">{msg.role === 'user' ? (isBangla ? 'আপনি' : 'You') : (isBangla ? 'মিঠু - এআই' : 'Mithu - AI')}</span>
                     <span>•</span>
                     <span>{formatTime(msg.timestamp)}</span>
                   </div>
@@ -403,7 +403,7 @@ export const AiChatPage: React.FC<AiChatPageProps> = ({ onBack, isBangla }) => {
                   </div>
                   <div className="bg-gray-50 border border-gray-100 p-4 rounded-2xl rounded-bl-none shadow-sm flex items-center gap-3">
                     <Loader2 size={18} className="animate-spin text-brand-600" />
-                    <span className="text-sm text-gray-500 font-medium">{isBangla ? 'উত্তর তৈরি হচ্ছে...' : 'Digital AI is thinking...'}</span>
+                    <span className="text-sm text-gray-500 font-medium">{isBangla ? 'মিঠু চিন্তা করছে...' : 'Mithu is thinking...'}</span>
                   </div>
               </div>
             )}
@@ -462,7 +462,7 @@ export const AiChatPage: React.FC<AiChatPageProps> = ({ onBack, isBangla }) => {
                     handleSend();
                   }
                 }}
-                placeholder={isBangla ? 'এখানে লিখুন...' : 'Type your message...'}
+                placeholder={isBangla ? 'মিঠুকে কিছু জিজ্ঞাসা করুন...' : 'Ask Mithu something...'}
                 className="flex-1 bg-transparent border-none py-3 px-2 text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-0 resize-none max-h-32 text-sm md:text-base scrollbar-hide"
                 rows={1}
                 style={{ minHeight: '44px' }}
@@ -483,7 +483,7 @@ export const AiChatPage: React.FC<AiChatPageProps> = ({ onBack, isBangla }) => {
             </div>
             
             <p className="text-center text-[10px] text-gray-400 mt-2">
-              Digital AI • {isBangla ? 'গুরুত্বপূর্ণ তথ্যের জন্য যাচাই করুন' : 'Verify important info'}
+              Mithu - AI • {isBangla ? 'গুরুত্বপূর্ণ তথ্যের জন্য যাচাই করুন' : 'Verify important info'}
             </p>
           </div>
         </div>

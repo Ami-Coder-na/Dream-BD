@@ -18,8 +18,8 @@ export const GeminiAssistant: React.FC<GeminiAssistantProps> = ({ currentModule,
       id: 'init',
       role: 'model',
       text: isBangla 
-        ? 'স্বাগতম! আমি ডিজিটাল দেশ বিডি অ্যাসিস্ট্যান্ট। আমি আপনাকে কীভাবে সাহায্য করতে পারি?' 
-        : 'Welcome! I am Digital Desh BD Assistant. How can I help you today?',
+        ? 'স্বাগতম! আমি মিঠু - আপনার এআই সহকারী। আমি আপনাকে কীভাবে সাহায্য করতে পারি?' 
+        : 'Welcome! I am Mithu - your AI assistant. How can I help you today?',
       timestamp: new Date()
     }
   ]);
@@ -78,7 +78,7 @@ export const GeminiAssistant: React.FC<GeminiAssistantProps> = ({ currentModule,
           className="bg-brand-600 hover:bg-brand-700 text-white p-4 rounded-full shadow-lg transition-transform hover:scale-110 flex items-center gap-2"
         >
           <Bot size={24} />
-          <span className="font-semibold hidden md:inline">{isBangla ? 'সহায়তা' : 'Ask AI'}</span>
+          <span className="font-semibold hidden md:inline">{isBangla ? 'মিঠু - এআই' : 'Mithu - AI'}</span>
         </button>
       )}
 
@@ -88,7 +88,7 @@ export const GeminiAssistant: React.FC<GeminiAssistantProps> = ({ currentModule,
           <div className="bg-brand-600 p-4 flex justify-between items-center text-white">
             <div className="flex items-center gap-2">
               <Bot size={20} />
-              <h3 className="font-semibold">{isBangla ? 'ডিজিটাল অ্যাসিস্ট্যান্ট' : 'Digital Assistant'}</h3>
+              <h3 className="font-semibold">{isBangla ? 'মিঠু - এআই সহকারী' : 'Mithu - AI Assistant'}</h3>
             </div>
             <button onClick={() => setIsOpen(false)} className="hover:bg-brand-700 p-1 rounded">
               <X size={20} />

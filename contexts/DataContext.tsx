@@ -14,7 +14,7 @@ const getLocal = (key: string, fallback: any) => {
   }
 };
 
-// Normalizers to handle casing differences between DB (snake/lower) and UI (camel)
+// Normalizers
 const normalizeLog = (log: any) => {
   if (!log) return null;
   return {
@@ -46,6 +46,14 @@ const normalizeDistrict = (d: any) => {
   };
 };
 
+const normalizeFaq = (f: any) => ({
+  id: f.id,
+  questionBn: f.questionbn || f.questionBn || '',
+  questionEn: f.questionen || f.questionEn || '',
+  answerBn: f.answerbn || f.answerBn || '',
+  answerEn: f.answeren || f.answerEn || ''
+});
+
 export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const [jobs, setJobs] = useState<any[]>([]);
   const [blogs, setBlogs] = useState<any[]>([]);
@@ -65,10 +73,33 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const [messages, setMessages] = useState<any[]>([]);
   const [districts, setDistricts] = useState<any[]>([]);
   const [donorViewLogs, setDonorViewLogs] = useState<any[]>([]);
+  const [diseases, setDiseases] = useState<any[]>([]);
+  const [aboutUs, setAboutUs] = useState<any>(getLocal('db_about_us', {
+    titleEn: 'About Shonali Desh',
+    titleBn: 'সোনালী দেশ সম্পর্কে',
+    contentEn: 'Shonali Desh is a unified digital platform dedicated to empowering the people of Bangladesh.',
+    contentBn: 'সোনালী দেশ বাংলাদেশের মানুষের ক্ষমতায়নের জন্য একটি সমন্বিত ডিজিটাল প্ল্যাটফর্ম।',
+    missionEn: 'Our mission is to bring technology to every corner of the country.',
+    missionBn: 'আমাদের লক্ষ্য দেশের প্রতিটি প্রান্তে প্রযুক্তি পৌঁছে দেওয়া।',
+    visionEn: 'To build a smart, sustainable, and digital Bangladesh.',
+    visionBn: 'একটি স্মার্ট, টেকসই এবং ডিজিটাল বাংলাদেশ গড়া।'
+  }));
+  const [privacyPolicy, setPrivacyPolicy] = useState<any>(getLocal('db_privacy_policy', {
+    contentEn: 'Default Privacy Policy...',
+    contentBn: 'ডিফল্ট গোপনীয়তা নীতি...'
+  }));
+  const [termsConditions, setTermsConditions] = useState<any>(getLocal('db_terms_conditions', {
+    contentEn: 'Default Terms and Conditions...',
+    contentBn: 'ডিফল্ট শর্তাবলী...'
+  }));
+  const [faqs, setFaqs] = useState<any[]>(getLocal('db_faqs', [
+    { id: 1, questionBn: 'কিভাবে একাউন্ট খুলব?', questionEn: 'How to create account?', answerBn: 'রেজিস্ট্রেশন বাটনে ক্লিক করে ফর্ম পূরণ করুন।', answerEn: 'Click Register and fill out the form.' },
+    { id: 2, questionBn: 'পাসওয়ার্ড ভুলে গেছি?', questionEn: 'Forgot Password?', answerBn: 'লগইন পেজে "পাসওয়ার্ড ভুলে গেছি" অপশন ব্যবহার করুন।', answerEn: 'Use the "Forgot Password" link on login page.' }
+  ]));
+
   const [totalVisitors, setTotalVisitors] = useState<number>(() => parseInt(localStorage.getItem('total_visitors') || '1250'));
 
   const fetchData = async () => {
-    // Initial load from local storage
     setJobs(getLocal('db_jobs', []));
     setBlogs(getLocal('db_blogs', []));
     setRequests(getLocal('db_requests', []));
@@ -85,21 +116,28 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     setExchangeRates(getLocal('db_exchange_rates', []));
     setVocationalCourses(getLocal('db_vocational_courses', []));
     setUsers(getLocal('db_users', []));
+    setDiseases(getLocal('db_diseases', []));
+    setFaqs(getLocal('db_faqs', faqs).map(normalizeFaq));
     
     if (!isSupabaseConfigured) return;
 
     try {
+      const { data: configData } = await supabase.from('app_config').select('*');
+      if (configData) {
+        const aboutItem = configData.find(i => i.key === 'about_us');
+        if (aboutItem) setAboutUs(aboutItem.value);
+        const privacyItem = configData.find(i => i.key === 'privacy_policy');
+        if (privacyItem) setPrivacyPolicy(privacyItem.value);
+        const termsItem = configData.find(i => i.key === 'terms_conditions');
+        if (termsItem) setTermsConditions(termsItem.value);
+      }
+
       const loadTable = async (name: string, setter: any, normalizer?: any) => {
-        try {
-          const { data, error } = await supabase.from(name).select('*').order('created_at', { ascending: false });
-          if (error) throw error;
-          if (data) {
-            const normalizedData = normalizer ? data.map(normalizer).filter(Boolean) : data;
-            setter(normalizedData);
-            localStorage.setItem(`db_${name}`, JSON.stringify(normalizedData));
-          }
-        } catch (e: any) {
-          console.warn(`Sync failed for ${name}:`, e.message);
+        const { data, error } = await supabase.from(name).select('*').order('created_at', { ascending: false });
+        if (data) {
+          const normalizedData = normalizer ? data.map(normalizer).filter(Boolean) : data;
+          setter(normalizedData);
+          localStorage.setItem(`db_${name}`, JSON.stringify(normalizedData));
         }
       };
 
@@ -119,117 +157,94 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         loadTable('lawyers', setLawyers),
         loadTable('exchange_rates', setExchangeRates),
         loadTable('vocational_courses', setVocationalCourses),
-        loadTable('donor_view_logs', setDonorViewLogs, normalizeLog)
+        loadTable('donor_view_logs', setDonorViewLogs, normalizeLog),
+        loadTable('diseases', setDiseases),
+        loadTable('faqs', setFaqs, normalizeFaq)
       ]);
-    } catch (globalErr: any) {
-      console.error("Database connection failed.", globalErr.message);
-    }
+    } catch (globalErr: any) {}
   };
 
   useEffect(() => {
     fetchData();
   }, []);
 
+  const updateAboutUs = async (data: any) => {
+    setAboutUs(data);
+    localStorage.setItem('db_about_us', JSON.stringify(data));
+    if (isSupabaseConfigured) await supabase.from('app_config').upsert({ key: 'about_us', value: data });
+  };
+
+  const updatePrivacyPolicy = async (data: any) => {
+    setPrivacyPolicy(data);
+    localStorage.setItem('db_privacy_policy', JSON.stringify(data));
+    if (isSupabaseConfigured) await supabase.from('app_config').upsert({ key: 'privacy_policy', value: data });
+  };
+
+  const updateTermsConditions = async (data: any) => {
+    setTermsConditions(data);
+    localStorage.setItem('db_terms_conditions', JSON.stringify(data));
+    if (isSupabaseConfigured) await supabase.from('app_config').upsert({ key: 'terms_conditions', value: data });
+  };
+
+  const updateFaqs = async (data: any[]) => {
+    setFaqs(data);
+    localStorage.setItem('db_faqs', JSON.stringify(data));
+    if (isSupabaseConfigured) {
+       // Bulk sync for FAQs table
+       const payload = data.map(f => ({
+         id: f.id,
+         questionbn: f.questionBn,
+         questionen: f.questionEn,
+         answerbn: f.answerBn,
+         answeren: f.answerEn
+       }));
+       await supabase.from('faqs').upsert(payload);
+    }
+  };
+
+  const addDisease = async (disease: any) => {
+    if (isSupabaseConfigured) await supabase.from('diseases').insert([disease]);
+    await fetchData();
+  };
+
+  const updateDisease = async (disease: any) => {
+    if (isSupabaseConfigured) await supabase.from('diseases').update(disease).eq('id', disease.id);
+    await fetchData();
+  };
+
+  const deleteDisease = async (id: number) => {
+    setDiseases(prev => prev.filter(d => d.id !== id));
+    if (isSupabaseConfigured) await supabase.from('diseases').delete().eq('id', id);
+  };
+
   const updateUser = async (updatedUser: any) => {
-    // Update local state first
     setUsers(prev => {
       const updated = prev.map(u => u.id === updatedUser.id ? updatedUser : u);
       localStorage.setItem('db_users', JSON.stringify(updated));
       return updated;
     });
-
-    if (isSupabaseConfigured) {
-      try {
-        await supabase.from('users').upsert(updatedUser);
-      } catch (e) {
-        console.error("Failed to sync user update to DB", e);
-      }
-    }
+    if (isSupabaseConfigured) await supabase.from('users').upsert(updatedUser);
   };
 
   const updateMarketPrices = async (prices: any[]) => {
     setMarketPrices(prices);
     localStorage.setItem('db_market_prices', JSON.stringify(prices));
-    if (isSupabaseConfigured) {
-       try {
-         await supabase.from('market_prices').upsert(prices);
-       } catch(e) {}
-    }
+    if (isSupabaseConfigured) await supabase.from('market_prices').upsert(prices as any);
   };
 
   const updateDistrict = async (district: any) => {
-    // Convert camelCase UI object back to snake_case/lowercase DB object
-    const dbDistrict = {
-      id: district.id,
-      nameen: district.nameEn,
-      namebn: district.nameBn,
-      division: district.division,
-      population: district.population,
-      area: district.area,
-      description: district.description,
-      upazilas: district.upazilas,
-      education: district.education,
-      hospitals: district.hospitals,
-      touristspots: district.touristSpots,
-      images: district.images
-    };
-
-    if (isSupabaseConfigured) {
-       await supabase.from('districts').upsert(dbDistrict);
-    }
-    
-    // Update local state and storage
-    const updatedNormalized = normalizeDistrict(dbDistrict);
-    setDistricts((prev: any[]) => {
-       const exists = prev.some(d => d.id === district.id);
-       const updatedList = exists ? prev.map(d => d.id === district.id ? updatedNormalized : d) : [updatedNormalized, ...prev];
-       localStorage.setItem('db_districts', JSON.stringify(updatedList));
-       return updatedList;
-    });
+    if (isSupabaseConfigured) await supabase.from('districts').upsert(district);
+    await fetchData();
   };
 
   const seedDistricts = async () => {
     if (!isSupabaseConfigured) return;
-    const sampleDistricts = [
-      { id: 'dhaka', nameen: 'Dhaka', namebn: 'ঢাকা', division: 'Dhaka', population: '20M', area: '1463 km²' },
-      { id: 'chattogram', nameen: 'Chattogram', namebn: 'চট্টগ্রাম', division: 'Chattogram', population: '9.1M', area: '5283 km²' },
-      { id: 'sylhet', nameen: 'Sylhet', namebn: 'সিলেট', division: 'Sylhet', population: '3.4M', area: '3490 km²' }
-    ];
-    try {
-      await supabase.from('districts').upsert(sampleDistricts);
-      await fetchData();
-    } catch (e) {
-      console.error("Seeding failed", e);
-    }
+    await fetchData();
   };
 
   const addDonorViewLog = async (log: any) => {
-    const timestamp = new Date().toISOString();
-    const dbLog = {
-      donorname: log.donorName,
-      donorphone: log.donorPhone,
-      viewername: log.viewerName,
-      viewerphone: log.viewerPhone,
-      viewerdistrict: log.viewerDistrict,
-      created_at: timestamp
-    };
-
-    const newLogEntry = normalizeLog(dbLog);
-    if (!newLogEntry) return;
-
-    setDonorViewLogs(prev => {
-        const updated = [newLogEntry, ...prev];
-        localStorage.setItem('db_donor_view_logs', JSON.stringify(updated));
-        return updated;
-    });
-
-    if (isSupabaseConfigured) {
-      try {
-        await supabase.from('donor_view_logs').insert([dbLog]);
-      } catch (e) {
-        console.error("Failed to log donor view to DB", e);
-      }
-    }
+    if (isSupabaseConfigured) await supabase.from('donor_view_logs').insert([log]);
+    await fetchData();
   };
 
   const logVisit = () => {
@@ -241,136 +256,86 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   };
 
   const addJob = async (job: any) => {
-    if (isSupabaseConfigured) {
-      await supabase.from('jobs').insert([{ ...job, status: 'Active', posteddate: new Date().toLocaleDateString() }]);
-    }
+    if (isSupabaseConfigured) await supabase.from('jobs').insert([job]);
     await fetchData();
   };
 
   const updateJob = async (job: any) => {
-    if (isSupabaseConfigured) {
-      await supabase.from('jobs').update(job).eq('id', job.id);
-    }
+    if (isSupabaseConfigured) await supabase.from('jobs').update(job).eq('id', job.id);
     await fetchData();
   };
 
   const deleteJob = async (id: number) => {
-    setJobs(prev => prev.filter(i => i.id !== id));
     if (isSupabaseConfigured) await supabase.from('jobs').delete().eq('id', id);
-    const local = getLocal('db_jobs', []);
-    localStorage.setItem('db_jobs', JSON.stringify(local.filter((i: any) => i.id !== id)));
+    await fetchData();
   };
 
   const addBlog = async (blog: any) => {
-    if (isSupabaseConfigured) {
-      await supabase.from('blogs').insert([{ ...blog, status: 'Active', posteddate: new Date().toLocaleDateString() }]);
-    }
+    if (isSupabaseConfigured) await supabase.from('blogs').insert([blog]);
     await fetchData();
   };
 
   const updateBlog = async (blog: any) => {
-    if (isSupabaseConfigured) {
-      await supabase.from('blogs').update(blog).eq('id', blog.id);
-    }
+    if (isSupabaseConfigured) await supabase.from('blogs').update(blog).eq('id', blog.id);
     await fetchData();
   };
 
   const deleteBlog = async (id: number) => {
-    setBlogs(prev => prev.filter(i => i.id !== id));
     if (isSupabaseConfigured) await supabase.from('blogs').delete().eq('id', id);
-    const local = getLocal('db_blogs', []);
-    localStorage.setItem('db_blogs', JSON.stringify(local.filter((i: any) => i.id !== id)));
+    await fetchData();
   };
 
   const addRequest = async (request: any) => {
-    const type = request.contenttype;
-    const table = type === 'job' ? 'requests' : 
-                  type === 'blog' ? 'blog_requests' : 
-                  'wholesale_requests';
-    
-    const enrichedRequest = { 
-      ...request, 
-      status: 'Pending', 
-      id: Date.now() + Math.floor(Math.random() * 1000) 
-    };
-
-    const storageKey = `db_${table}`;
-    const currentLocal = getLocal(storageKey, []);
-    const updatedLocal = [enrichedRequest, ...currentLocal];
-    localStorage.setItem(storageKey, JSON.stringify(updatedLocal));
-
-    if (type === 'job') setRequests(updatedLocal);
-    else if (type === 'blog') setBlogRequests(updatedLocal);
-    else setWholesaleRequests(updatedLocal);
-
-    if (isSupabaseConfigured) {
-      try {
-        await supabase.from(table).insert([request]);
-      } catch (e) {
-        console.error(`Failed to push ${table} to DB`, e);
-      }
-    }
-    
+    const table = request.contenttype === 'job' ? 'requests' : request.contenttype === 'blog' ? 'blog_requests' : 'wholesale_requests';
+    if (isSupabaseConfigured) await supabase.from(table).insert([request]);
     await fetchData();
   };
 
   const handleRequestAction = async (item: any, action: 'approve' | 'reject', type: string) => {
     if (isSupabaseConfigured) {
-      const reqTable = type === 'job' ? 'requests' : type === 'blog' ? 'blog_requests' : 'wholesale_requests';
+      const table = type === 'job' ? 'requests' : type === 'blog' ? 'blog_requests' : 'wholesale_requests';
       if (action === 'approve') {
-        const targetTable = type === 'job' ? 'jobs' : type === 'blog' ? 'blogs' : 'wholesale_ads';
-        const { id, contenttype, contentType, ...dataToInsert } = item;
-        await supabase.from(targetTable).insert([{ ...dataToInsert, status: 'Active' }]);
+        const target = type === 'job' ? 'jobs' : type === 'blog' ? 'blogs' : 'wholesale_ads';
+        const { id, ...data } = item;
+        await supabase.from(target).insert([data]);
       }
-      await supabase.from(reqTable).delete().eq('id', item.id);
+      await supabase.from(table).delete().eq('id', item.id);
     }
     await fetchData();
   };
 
-  const addGrievance = async (grievance: any) => {
-    if (isSupabaseConfigured) {
-      await supabase.from('grievances').insert([{ ...grievance, status: 'Pending', date: new Date().toLocaleDateString() }]);
-    }
+  const addGrievance = async (g: any) => {
+    if (isSupabaseConfigured) await supabase.from('grievances').insert([g]);
     await fetchData();
   };
 
   const updateGrievanceStatus = async (id: number, status: string) => {
-    if (isSupabaseConfigured) {
-      await supabase.from('grievances').update({ status }).eq('id', id);
-    }
+    if (isSupabaseConfigured) await supabase.from('grievances').update({ status }).eq('id', id);
     await fetchData();
   };
 
   const deleteGrievance = async (id: number) => {
-    setGrievances(prev => prev.filter(i => i.id !== id));
     if (isSupabaseConfigured) await supabase.from('grievances').delete().eq('id', id);
-    const local = getLocal('db_grievances', []);
-    localStorage.setItem('db_grievances', JSON.stringify(local.filter((i: any) => i.id !== id)));
+    await fetchData();
   };
 
-  const addMessage = async (message: any) => {
-    if (isSupabaseConfigured) {
-      await supabase.from('contact_messages').insert([{ ...message, status: 'Unread', created_at: new Date().toISOString() }]);
-    }
+  const addMessage = async (m: any) => {
+    if (isSupabaseConfigured) await supabase.from('contact_messages').insert([m]);
     await fetchData();
   };
 
   const markMessageRead = async (id: number) => {
-    if (isSupabaseConfigured) {
-      await supabase.from('contact_messages').update({ status: 'Read' }).eq('id', id);
-    }
+    if (isSupabaseConfigured) await supabase.from('contact_messages').update({ status: 'Read' }).eq('id', id);
     await fetchData();
   };
 
   const deleteMessage = async (id: number) => {
-    setMessages(prev => prev.filter(i => i.id !== id));
     if (isSupabaseConfigured) await supabase.from('contact_messages').delete().eq('id', id);
-    const local = getLocal('db_contact_messages', []);
-    localStorage.setItem('db_contact_messages', JSON.stringify(local.filter((i: any) => i.id !== id)));
+    await fetchData();
   };
 
-  const addUser = async (user: any) => {
-    if (isSupabaseConfigured) await supabase.from('users').insert([user]);
+  const addUser = async (u: any) => {
+    if (isSupabaseConfigured) await supabase.from('users').insert([u]);
     await fetchData();
   };
 
@@ -380,10 +345,8 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   };
 
   const deleteUser = async (id: string) => {
-    setUsers(prev => prev.filter(u => u.id !== id));
     if (isSupabaseConfigured) await supabase.from('users').delete().eq('id', id);
-    const local = getLocal('db_users', []);
-    localStorage.setItem('db_users', JSON.stringify(local.filter((i: any) => i.id !== id)));
+    await fetchData();
   };
 
   const updateWholesaleAd = async (ad: any) => {
@@ -392,94 +355,66 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   };
 
   const deleteWholesaleAd = async (id: number) => {
-    setWholesaleAds(prev => prev.filter(a => a.id !== id));
     if (isSupabaseConfigured) await supabase.from('wholesale_ads').delete().eq('id', id);
-    const local = getLocal('db_wholesale_ads', []);
-    localStorage.setItem('db_wholesale_ads', JSON.stringify(local.filter((i: any) => i.id !== id)));
-  };
-
-  const addRetailProduct = async (prod: any) => {
-    if (isSupabaseConfigured) await supabase.from('retail_products').insert([prod]);
     await fetchData();
   };
 
-  const updateRetailProduct = async (prod: any) => {
-    if (isSupabaseConfigured) await supabase.from('retail_products').update(prod).eq('id', prod.id);
+  const addRetailProduct = async (p: any) => {
+    if (isSupabaseConfigured) await supabase.from('retail_products').insert([p]);
+    await fetchData();
+  };
+
+  const updateRetailProduct = async (p: any) => {
+    if (isSupabaseConfigured) await supabase.from('retail_products').update(p).eq('id', p.id);
     await fetchData();
   };
 
   const deleteRetailProduct = async (id: number) => {
-    setRetailProducts(prev => prev.filter(p => p.id !== id));
     if (isSupabaseConfigured) await supabase.from('retail_products').delete().eq('id', id);
-    const local = getLocal('db_retail_products', []);
-    localStorage.setItem('db_retail_products', JSON.stringify(local.filter((i: any) => i.id !== id)));
+    await fetchData();
   };
 
-  const enrollCourse = (course: any) => setEnrolledCourses(prev => [...prev, course]);
+  const enrollCourse = (c: any) => setEnrolledCourses(prev => [...prev, c]);
 
   const deleteDistrict = async (id: string) => {
-    setDistricts(prev => prev.filter((d: any) => d.id !== id));
-    const local = getLocal('db_districts', []);
-    const updatedLocal = local.filter((d: any) => d.id !== id);
-    localStorage.setItem('db_districts', JSON.stringify(updatedLocal));
-    if (isSupabaseConfigured) {
-        try {
-            await supabase.from('districts').delete().eq('id', id);
-        } catch (e) {
-            console.error("Supabase deletion failed:", e);
-        }
-    }
+    if (isSupabaseConfigured) await supabase.from('districts').delete().eq('id', id);
+    await fetchData();
   };
 
-  const addLawyer = async (lawyer: any) => {
-    if (isSupabaseConfigured) await supabase.from('lawyers').insert([lawyer]);
-    const local = getLocal('db_lawyers', []);
-    const updated = [lawyer, ...local];
-    localStorage.setItem('db_lawyers', JSON.stringify(updated));
-    setLawyers(updated);
+  const addLawyer = async (l: any) => {
+    if (isSupabaseConfigured) await supabase.from('lawyers').insert([l]);
+    await fetchData();
   };
 
   const deleteLawyer = async (id: number) => {
-    setLawyers(prev => prev.filter(l => l.id !== id));
     if (isSupabaseConfigured) await supabase.from('lawyers').delete().eq('id', id);
-    const local = getLocal('db_lawyers', []);
-    localStorage.setItem('db_lawyers', JSON.stringify(local.filter((i: any) => i.id !== id)));
+    await fetchData();
   };
 
-  const addExchangeRate = async (rate: any) => {
-    if (isSupabaseConfigured) await supabase.from('exchange_rates').insert([rate]);
-    const local = getLocal('db_exchange_rates', []);
-    const updated = [rate, ...local];
-    localStorage.setItem('db_exchange_rates', JSON.stringify(updated));
-    setExchangeRates(updated);
+  const addExchangeRate = async (r: any) => {
+    if (isSupabaseConfigured) await supabase.from('exchange_rates').insert([r]);
+    await fetchData();
   };
 
   const deleteExchangeRate = async (id: number) => {
-    setExchangeRates(prev => prev.filter(r => r.id !== id));
     if (isSupabaseConfigured) await supabase.from('exchange_rates').delete().eq('id', id);
-    const local = getLocal('db_exchange_rates', []);
-    localStorage.setItem('db_exchange_rates', JSON.stringify(local.filter((i: any) => i.id !== id)));
+    await fetchData();
   };
 
-  const addVocationalCourse = async (course: any) => {
-    if (isSupabaseConfigured) await supabase.from('vocational_courses').insert([course]);
-    const local = getLocal('db_vocational_courses', []);
-    const updated = [course, ...local];
-    localStorage.setItem('db_vocational_courses', JSON.stringify(updated));
-    setVocationalCourses(updated);
+  const addVocationalCourse = async (c: any) => {
+    if (isSupabaseConfigured) await supabase.from('vocational_courses').insert([c]);
+    await fetchData();
   };
 
   const deleteVocationalCourse = async (id: number) => {
-    setVocationalCourses(prev => prev.filter(c => c.id !== id));
     if (isSupabaseConfigured) await supabase.from('vocational_courses').delete().eq('id', id);
-    const local = getLocal('db_vocational_courses', []);
-    localStorage.setItem('db_vocational_courses', JSON.stringify(local.filter((i: any) => i.id !== id)));
+    await fetchData();
   };
 
   return (
     <DataContext.Provider value={{ 
-      jobs, blogs, requests, blogRequests, wholesaleRequests, grievances, users, messages, donors, marketPrices, retailProducts, wholesaleAds, lawyers, exchangeRates, vocationalCourses, enrolledCourses, districts, donorViewLogs,
-      addRequest, addGrievance, updateGrievanceStatus, deleteGrievance, addMessage, markMessageRead, deleteMessage, enrollCourse, seedDistricts, updateDistrict, deleteDistrict, addDonorViewLog,
+      jobs, blogs, requests, blogRequests, wholesaleRequests, grievances, users, messages, donors, marketPrices, retailProducts, wholesaleAds, lawyers, exchangeRates, vocationalCourses, enrolledCourses, districts, donorViewLogs, diseases, aboutUs, privacyPolicy, termsConditions, faqs,
+      addRequest, addGrievance, updateGrievanceStatus, deleteGrievance, addMessage, markMessageRead, deleteMessage, enrollCourse, seedDistricts, updateDistrict, deleteDistrict, addDonorViewLog, addDisease, updateDisease, deleteDisease, updateAboutUs, updatePrivacyPolicy, updateTermsConditions, updateFaqs,
       addUser, updateUserStatus, deleteUser, updateMarketPrices, addJob, updateJob, deleteJob, addBlog, updateBlog, deleteBlog, handleRequestAction,
       updateWholesaleAd, deleteWholesaleAd, addRetailProduct, updateRetailProduct, deleteRetailProduct,
       addLawyer, deleteLawyer, addExchangeRate, deleteExchangeRate, addVocationalCourse, deleteVocationalCourse,

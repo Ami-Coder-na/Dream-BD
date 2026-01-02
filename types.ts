@@ -27,6 +27,9 @@ export enum AppModule {
   AMAR_JELA = 'amar_jela',
   BAZAR_SODAI = 'bazar_sodai',
   ADMIN = 'admin',
+  ABOUT = 'about',
+  PRIVACY = 'privacy',
+  TERMS = 'terms',
   // New Modules
   LEGAL = 'legal',
   EXPAT = 'expat',

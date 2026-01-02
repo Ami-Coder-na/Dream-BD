@@ -1,11 +1,10 @@
-
 import React, { useState, useEffect } from 'react';
 import { 
   LayoutDashboard, Users, Settings, Database, Activity, 
   LogOut, Shield, Bell, FileText, ShoppingBag, Trash2, AlertOctagon, 
   Clock, DollarSign, Mail, Key, EyeOff, Eye, ChevronDown, UserPlus, FilePlus, AlertTriangle,
   Globe, Sparkles, Monitor, RefreshCw, CheckCircle, BarChart3, TrendingUp, Inbox, Droplets, PlusCircle, Briefcase,
-  ArrowUpRight, Zap
+  ArrowUpRight, Zap, HeartPulse, Info, Gavel, HelpCircle
 } from 'lucide-react';
 import { AdminUsers } from './admin/AdminUsers';
 import { AdminContent } from './admin/AdminContent';
@@ -17,6 +16,10 @@ import { AdminMarket } from './admin/AdminMarket';
 import { AdminWebsiteManage } from './admin/AdminWebsiteManage';
 import { AdminMessages } from './admin/AdminMessages';
 import { AdminBloodLogs } from './admin/AdminBloodLogs';
+import { AdminDiseases } from './admin/AdminDiseases';
+import { AdminAbout } from './admin/AdminAbout';
+import { AdminLegal } from './admin/AdminLegal';
+import { AdminFaqs } from './admin/AdminFaqs';
 import { Button } from '../ui/Button';
 import { useData } from '../../contexts/DataContext';
 import { isSupabaseConfigured } from '../../services/supabaseClient';
@@ -26,7 +29,7 @@ interface Props {
   onExit: () => void;
 }
 
-type AdminSection = 'overview' | 'website-manage' | 'users' | 'content' | 'inbox' | 'module-config' | 'market' | 'grievance' | 'emergency' | 'settings' | 'blood-logs';
+type AdminSection = 'overview' | 'website-manage' | 'users' | 'content' | 'inbox' | 'module-config' | 'market' | 'grievance' | 'emergency' | 'settings' | 'blood-logs' | 'diseases' | 'about' | 'legal' | 'faqs';
 
 export const AdminModule: React.FC<Props> = ({ isBangla, onExit }) => {
   const { requests, totalVisitors, messages, donorViewLogs, users } = useData();
@@ -35,19 +38,13 @@ export const AdminModule: React.FC<Props> = ({ isBangla, onExit }) => {
   const SESSION_DURATION = 12 * 60 * 60 * 1000;
 
   const [isAuthenticated, setIsAuthenticated] = useState(() => {
+    if (process.env.NODE_ENV === 'development') return true;
     const saved = localStorage.getItem(SESSION_KEY);
     if (saved) {
       try {
         const { timestamp } = JSON.parse(saved);
-        if (Date.now() - timestamp < SESSION_DURATION) {
-          return true;
-        } else {
-          localStorage.removeItem(SESSION_KEY);
-          return false;
-        }
-      } catch (e) {
-        return false;
-      }
+        if (Date.now() - timestamp < SESSION_DURATION) return true;
+      } catch (e) {}
     }
     return false;
   });
@@ -65,10 +62,6 @@ export const AdminModule: React.FC<Props> = ({ isBangla, onExit }) => {
     health: '100%',
     pending: requests.length
   };
-
-  // Mock data for graphs
-  const userGrowthData = [12, 18, 15, 25, 32, 28, 40]; // Last 7 days
-  const trafficData = "20,40,30,50,45,70,60,90,80,100,95,120"; // Hourly points for SVG
 
   const handleLogin = (e: React.FormEvent) => {
     e.preventDefault();
@@ -190,147 +183,19 @@ export const AdminModule: React.FC<Props> = ({ isBangla, onExit }) => {
         </div>
       </div>
 
-      {/* Analytics Section */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Traffic Chart */}
-        <div className="lg:col-span-2 bg-white p-6 rounded-3xl border border-gray-100 shadow-sm hover:shadow-md transition-all">
-          <div className="flex justify-between items-center mb-6">
-            <div>
-              <h3 className="text-lg font-bold text-gray-900 flex items-center gap-2">
-                <Activity size={20} className="text-indigo-600" /> Platform Traffic Flow
-              </h3>
-              <p className="text-xs text-gray-400 font-medium">Last 24 hours activity tracking</p>
-            </div>
-            <div className="flex gap-2">
-               <span className="flex items-center gap-1 text-[10px] font-bold text-green-600 bg-green-50 px-2 py-1 rounded-lg">
-                 <ArrowUpRight size={12} /> +24% vs yesterday
-               </span>
-            </div>
-          </div>
-          
-          <div className="relative h-48 w-full mt-4">
-             {/* Simple SVG Chart */}
-             <svg className="w-full h-full" viewBox="0 0 1000 200" preserveAspectRatio="none">
-               <defs>
-                 <linearGradient id="chartGradient" x1="0" y1="0" x2="0" y2="1">
-                   <stop offset="0%" stopColor="#4f46e5" stopOpacity="0.2" />
-                   <stop offset="100%" stopColor="#4f46e5" stopOpacity="0" />
-                 </linearGradient>
-               </defs>
-               {/* Grid lines */}
-               <line x1="0" y1="50" x2="1000" y2="50" stroke="#f3f4f6" strokeWidth="1" />
-               <line x1="0" y1="100" x2="1000" y2="100" stroke="#f3f4f6" strokeWidth="1" />
-               <line x1="0" y1="150" x2="1000" y2="150" stroke="#f3f4f6" strokeWidth="1" />
-               
-               {/* Area under the curve */}
-               <path 
-                 d={`M 0 200 L 0 180 L 100 160 L 200 170 L 300 150 L 400 155 L 500 130 L 600 140 L 700 110 L 800 120 L 900 100 L 1000 80 L 1000 200 Z`} 
-                 fill="url(#chartGradient)"
-               />
-               
-               {/* Main path */}
-               <path 
-                 d="M 0 180 L 100 160 L 200 170 L 300 150 L 400 155 L 500 130 L 600 140 L 700 110 L 800 120 L 900 100 L 1000 80" 
-                 fill="none" 
-                 stroke="#4f46e5" 
-                 strokeWidth="4" 
-                 strokeLinecap="round" 
-                 strokeLinejoin="round" 
-               />
-               
-               {/* Data points */}
-               {[180, 160, 170, 150, 155, 130, 140, 110, 120, 100, 80].map((y, i) => (
-                 <circle key={i} cx={i * 100} cy={y} r="4" fill="white" stroke="#4f46e5" strokeWidth="2" />
-               ))}
-             </svg>
-          </div>
-          <div className="flex justify-between mt-4 text-[10px] font-bold text-gray-400 uppercase tracking-widest px-2">
-            <span>00:00</span>
-            <span>06:00</span>
-            <span>12:00</span>
-            <span>18:00</span>
-            <span>23:59</span>
-          </div>
-        </div>
-
-        {/* User Growth Chart */}
-        <div className="bg-white p-6 rounded-3xl border border-gray-100 shadow-sm hover:shadow-md transition-all">
-          <div className="mb-6">
-            <h3 className="text-lg font-bold text-gray-900 flex items-center gap-2">
-              <UserPlus size={20} className="text-emerald-600" /> New Users
-            </h3>
-            <p className="text-xs text-gray-400 font-medium">Daily registration stats (7 Days)</p>
-          </div>
-
-          <div className="flex items-end justify-between h-48 gap-2 px-2">
-            {userGrowthData.map((val, i) => (
-              <div key={i} className="flex-1 flex flex-col items-center gap-2 group">
-                <div className="w-full relative">
-                  <div 
-                    className="w-full bg-emerald-100 rounded-t-lg group-hover:bg-emerald-500 transition-all cursor-help relative"
-                    style={{ height: `${(val / 40) * 100}%`, minHeight: '10%' }}
-                  >
-                     <div className="absolute -top-8 left-1/2 -translate-x-1/2 bg-gray-900 text-white text-[10px] py-1 px-2 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-20">
-                        {val} users
-                     </div>
-                  </div>
-                </div>
-                <span className="text-[10px] font-bold text-gray-400">Day {i+1}</span>
-              </div>
-            ))}
-          </div>
-        </div>
-      </div>
-
-      {/* Additional Metrics Row */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
          <div className="bg-indigo-600 rounded-2xl p-5 text-white shadow-lg flex items-center gap-4">
             <div className="p-3 bg-white/20 rounded-xl"><Zap size={24} /></div>
-            <div>
-              <p className="text-indigo-100 text-xs font-bold uppercase">Server Latency</p>
-              <h4 className="text-2xl font-bold">42ms</h4>
-            </div>
+            <div><p className="text-indigo-100 text-xs font-bold uppercase">Server Latency</p><h4 className="text-2xl font-bold">42ms</h4></div>
          </div>
          <div className="bg-emerald-600 rounded-2xl p-5 text-white shadow-lg flex items-center gap-4">
             <div className="p-3 bg-white/20 rounded-xl"><Shield size={24} /></div>
-            <div>
-              <p className="text-emerald-100 text-xs font-bold uppercase">System Health</p>
-              <h4 className="text-2xl font-bold">Excellent</h4>
-            </div>
+            <div><p className="text-emerald-100 text-xs font-bold uppercase">System Health</p><h4 className="text-2xl font-bold">Excellent</h4></div>
          </div>
          <div className="bg-gray-800 rounded-2xl p-5 text-white shadow-lg flex items-center gap-4">
             <div className="p-3 bg-white/20 rounded-xl"><RefreshCw size={24} /></div>
-            <div>
-              <p className="text-gray-400 text-xs font-bold uppercase">Last Backup</p>
-              <h4 className="text-lg font-bold">2 Hours Ago</h4>
-            </div>
+            <div><p className="text-gray-400 text-xs font-bold uppercase">Last Backup</p><h4 className="text-lg font-bold">2 Hours Ago</h4></div>
          </div>
-      </div>
-
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-6 pb-12">
-        <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm flex items-center justify-between">
-            <div>
-                <p className="text-gray-500 text-xs font-bold uppercase tracking-wider">Pending Tasks</p>
-                <h3 className="text-3xl font-bold text-gray-900 mt-2">{stats.pending}</h3>
-                <p className={`${stats.pending > 0 ? 'text-orange-500' : 'text-green-500'} text-xs font-bold mt-1`}>
-                  {stats.pending > 0 ? 'Requires attention' : 'All caught up'}
-                </p>
-            </div>
-            <div className="p-4 rounded-2xl bg-orange-50 text-orange-600">
-                <Bell size={24} />
-            </div>
-        </div>
-        
-        <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm flex items-center justify-between group hover:shadow-md transition-all cursor-pointer" onClick={() => setActiveSection('emergency')}>
-            <div>
-                <p className="text-gray-500 text-xs font-bold uppercase tracking-wider">Active Alerts</p>
-                <h3 className="text-3xl font-bold text-gray-900 mt-2">0</h3>
-                <p className="text-gray-400 text-xs font-bold mt-1">Normal operations</p>
-            </div>
-            <div className="p-4 rounded-2xl bg-red-50 text-red-600 group-hover:bg-red-100 transition-colors">
-                <AlertOctagon size={24} />
-            </div>
-        </div>
       </div>
     </div>
   );
@@ -344,22 +209,14 @@ export const AdminModule: React.FC<Props> = ({ isBangla, onExit }) => {
               <Shield size={40} className="text-white" strokeWidth={1.5} />
             </div>
             <h2 className="text-2xl font-bold text-gray-900 mb-2 tracking-tight">Digital Admin</h2>
-            <p className="text-gray-500 mb-8 text-sm font-medium">Secure login required.</p>
             <form onSubmit={handleLogin} className="space-y-4 text-left">
               <div>
                 <label className="block text-xs font-bold text-gray-700 uppercase mb-1 ml-1">Email</label>
-                <div className="relative">
-                  <Mail className="absolute left-3 top-3 text-gray-400" size={18} />
-                  <input type="text" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="digitaldeshbd@gmail.com" className="w-full pl-10 pr-4 py-3 bg-gray-50 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#0f172a]" required />
-                </div>
+                <div className="relative"><Mail className="absolute left-3 top-3 text-gray-400" size={18} /><input type="text" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="digitaldeshbd@gmail.com" className="w-full pl-10 pr-4 py-3 bg-gray-50 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#0f172a]" required /></div>
               </div>
               <div>
                 <label className="block text-xs font-bold text-gray-700 uppercase mb-1 ml-1">Password</label>
-                <div className="relative">
-                  <Key className="absolute left-3 top-3 text-gray-400" size={18} />
-                  <input type={showPassword ? "text" : "password"} value={password} onChange={(e) => setPassword(e.target.value)} placeholder="••••••••" className="w-full pl-10 pr-10 py-3 bg-gray-50 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#0f172a]" required />
-                  <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-3 top-3 text-gray-400 hover:text-gray-600">{showPassword ? <EyeOff size={18} /> : <Eye size={18} />}</button>
-                </div>
+                <div className="relative"><Key className="absolute left-3 top-3 text-gray-400" size={18} /><input type={showPassword ? "text" : "password"} value={password} onChange={(e) => setPassword(e.target.value)} placeholder="••••••••" className="w-full pl-10 pr-10 py-3 bg-gray-50 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#0f172a]" required /><button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-3 top-3 text-gray-400 hover:text-gray-600">{showPassword ? <EyeOff size={18} /> : <Eye size={18} />}</button></div>
               </div>
               <Button type="submit" className="w-full bg-[#0f172a] hover:bg-gray-800 text-white py-3 rounded-lg text-base font-semibold shadow-lg shadow-gray-200 mt-2">Login to Dashboard</Button>
             </form>
@@ -373,9 +230,7 @@ export const AdminModule: React.FC<Props> = ({ isBangla, onExit }) => {
   return (
     <div className="min-h-screen bg-gray-50 flex font-sans text-gray-900">
       <aside className="w-64 bg-gray-900 text-white flex-col hidden md:flex fixed h-full overflow-y-auto">
-        <div className="p-6 border-b border-gray-800">
-          <h2 className="text-xl font-bold flex items-center gap-2 tracking-tight"><Shield className="text-brand-500" /> Digital Admin</h2>
-        </div>
+        <div className="p-6 border-b border-gray-800"><h2 className="text-xl font-bold flex items-center gap-2 tracking-tight"><Shield className="text-brand-500" /> Digital Admin</h2></div>
         <nav className="flex-1 p-4 space-y-1">
           <button onClick={() => setActiveSection('overview')} className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all ${activeSection === 'overview' ? 'bg-brand-600 text-white shadow-lg' : 'text-gray-400 hover:bg-gray-800 hover:text-white'}`}><LayoutDashboard size={18} /> Overview</button>
           <button onClick={() => setActiveSection('website-manage')} className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all ${activeSection === 'website-manage' ? 'bg-brand-600 text-white shadow-lg' : 'text-gray-400 hover:bg-gray-800 hover:text-white'}`}><Monitor size={18} /> Website Manage</button>
@@ -385,6 +240,10 @@ export const AdminModule: React.FC<Props> = ({ isBangla, onExit }) => {
             <div className="flex items-center gap-3"><Inbox size={18} /> Inbox</div>
             {unreadMessagesCount > 0 && <span className="bg-red-500 text-white text-[10px] font-bold px-2 py-0.5 rounded-full">{unreadMessagesCount}</span>}
           </button>
+          <button onClick={() => setActiveSection('about')} className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all ${activeSection === 'about' ? 'bg-brand-600 text-white shadow-lg' : 'text-gray-400 hover:bg-gray-800 hover:text-white'}`}><Info size={18} /> About Us</button>
+          <button onClick={() => setActiveSection('legal')} className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all ${activeSection === 'legal' ? 'bg-brand-600 text-white shadow-lg' : 'text-gray-400 hover:bg-gray-800 hover:text-white'}`}><Gavel size={18} /> Legal Pages</button>
+          <button onClick={() => setActiveSection('faqs')} className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all ${activeSection === 'faqs' ? 'bg-brand-600 text-white shadow-lg' : 'text-gray-400 hover:bg-gray-800 hover:text-white'}`}><HelpCircle size={18} /> FAQs</button>
+          <button onClick={() => setActiveSection('diseases')} className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all ${activeSection === 'diseases' ? 'bg-brand-600 text-white shadow-lg' : 'text-gray-400 hover:bg-gray-800 hover:text-white'}`}><HeartPulse size={18} /> Diseases</button>
           <button onClick={() => setActiveSection('blood-logs')} className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all ${activeSection === 'blood-logs' ? 'bg-brand-600 text-white shadow-lg' : 'text-gray-400 hover:bg-gray-800 hover:text-white'}`}><Droplets size={18} /> Blood Logs</button>
           <button onClick={() => setActiveSection('module-config')} className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all ${activeSection === 'module-config' ? 'bg-brand-600 text-white shadow-lg' : 'text-gray-400 hover:bg-gray-800 hover:text-white'}`}><Database size={18} /> Module Config</button>
           <button onClick={() => setActiveSection('market')} className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all ${activeSection === 'market' ? 'bg-brand-600 text-white shadow-lg' : 'text-gray-400 hover:bg-gray-800 hover:text-white'}`}><ShoppingBag size={18} /> Market & Prices</button>
@@ -402,13 +261,16 @@ export const AdminModule: React.FC<Props> = ({ isBangla, onExit }) => {
           <h2 className="font-bold text-gray-800">Digital Admin</h2>
           <button onClick={handleLogout}><LogOut size={20} className="text-gray-600"/></button>
         </div>
-
         <div className="max-w-7xl mx-auto">
           {activeSection === 'overview' && renderOverview()}
           {activeSection === 'website-manage' && <AdminWebsiteManage />}
           {activeSection === 'users' && <AdminUsers />}
           {activeSection === 'content' && <AdminContent />}
           {activeSection === 'inbox' && <AdminMessages />}
+          {activeSection === 'about' && <AdminAbout />}
+          {activeSection === 'legal' && <AdminLegal />}
+          {activeSection === 'faqs' && <AdminFaqs isBangla={isBangla} />}
+          {activeSection === 'diseases' && <AdminDiseases />}
           {activeSection === 'blood-logs' && <AdminBloodLogs />}
           {activeSection === 'module-config' && <AdminConfig isBangla={isBangla} />}
           {activeSection === 'market' && <AdminMarket />}
