@@ -1,4 +1,3 @@
-
 import React, { useState, Suspense, lazy, useEffect } from 'react';
 import { User, AppModule, Notification } from './types';
 import { GeminiAssistant } from './components/GeminiAssistant';
@@ -73,13 +72,31 @@ const App: React.FC = () => {
     return null;
   });
 
-  const [activeModule, setActiveModule] = useState<AppModule | 'LANDING'>('LANDING');
+  const [activeModule, setActiveModule] = useState<AppModule | 'LANDING'>(() => {
+    if (typeof window !== 'undefined' && window.location.pathname === '/adminrm') {
+      return AppModule.ADMIN;
+    }
+    return 'LANDING';
+  });
+
   const [isBangla, setIsBangla] = useState(true);
   const [showAiChat, setShowAiChat] = useState(false);
   const [authView, setAuthView] = useState<'none' | 'login' | 'signup'>('none');
 
   useEffect(() => {
     window.scrollTo({ top: 0, behavior: 'instant' });
+    
+    // Support browser back button for admin route
+    const handlePopState = () => {
+      if (window.location.pathname === '/adminrm') {
+        setActiveModule(AppModule.ADMIN);
+      } else if (activeModule === AppModule.ADMIN) {
+        setActiveModule('LANDING');
+      }
+    };
+
+    window.addEventListener('popstate', handlePopState);
+    return () => window.removeEventListener('popstate', handlePopState);
   }, [activeModule, authView, showAiChat]);
 
   const handleLoginSuccess = (loggedInUser: User) => {
@@ -109,7 +126,7 @@ const App: React.FC = () => {
           {(() => {
             switch (activeModule) {
               case AppModule.PROFILE: return user ? <ProfilePage user={user} onUpdateUser={setUser} isBangla={isBangla} /> : null;
-              case AppModule.ADMIN: return <AdminModule isBangla={isBangla} onExit={() => setActiveModule('LANDING')} />;
+              case AppModule.ADMIN: return <AdminModule isBangla={isBangla} onExit={() => { setActiveModule('LANDING'); window.history.pushState({}, '', '/'); }} />;
               case AppModule.JOB: return <JobModule isBangla={isBangla} user={user} onLogin={() => setAuthView('login')} />;
               case AppModule.BLOG: return <BlogModule isBangla={isBangla} user={user} onLogin={() => setAuthView('login')} />;
               case AppModule.CONTACT: return <ContactModule isBangla={isBangla} />;
