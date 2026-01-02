@@ -120,6 +120,27 @@ const App: React.FC = () => {
   };
 
   const renderContent = () => {
+    if (authView === 'login') {
+      return (
+        <LoginPage 
+          onLoginSuccess={handleLoginSuccess} 
+          onNavigateToSignUp={() => setAuthView('signup')} 
+          onBack={() => setAuthView('none')}
+          isBangla={isBangla}
+        />
+      );
+    }
+    if (authView === 'signup') {
+      return (
+        <SignUpPage 
+          onSignUpSuccess={handleLoginSuccess} 
+          onNavigateToLogin={() => setAuthView('login')} 
+          onBack={() => setAuthView('none')}
+          isBangla={isBangla}
+        />
+      );
+    }
+
     return (
       <ErrorBoundary>
         <Suspense fallback={<LoadingFallback />}>
@@ -166,7 +187,7 @@ const App: React.FC = () => {
   return (
     <ErrorBoundary>
       <div className="min-h-screen bg-white font-sans text-gray-900 flex flex-col">
-        {activeModule !== AppModule.ADMIN && (
+        {activeModule !== AppModule.ADMIN && authView === 'none' && (
           <Header 
             user={user} onLogin={() => setAuthView('login')} onRegister={() => setAuthView('signup')} onLogout={handleLogout} 
             onModuleSelect={handleModuleSelect} onNavigateHome={() => setActiveModule('LANDING')} isBangla={isBangla} 
@@ -174,7 +195,7 @@ const App: React.FC = () => {
           />
         )}
         <main className="flex-1">{renderContent()}</main>
-        {activeModule !== AppModule.ADMIN && (
+        {activeModule !== AppModule.ADMIN && authView === 'none' && (
           <Footer 
             isBangla={isBangla} toggleLanguage={() => setIsBangla(!isBangla)} 
             onNavigateHome={() => setActiveModule('LANDING')} onModuleSelect={handleModuleSelect}

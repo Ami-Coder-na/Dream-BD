@@ -48,7 +48,6 @@ const DiseaseFormModal = memo(({ isOpen, onClose, initialData, onSave }: {
   initialData: any, 
   onSave: (payload: any) => void 
 }) => {
-  // Ensure state is never undefined to prevent "Uncaught" errors
   const [formData, setFormData] = useState({
     id: null,
     namebn: '', 
@@ -72,8 +71,19 @@ const DiseaseFormModal = memo(({ isOpen, onClose, initialData, onSave }: {
         treatmenten: initialData.treatmenten || initialData.treatmentEn || '',
         image: initialData.image || ''
       });
+    } else {
+      setFormData({
+        id: null,
+        namebn: '', 
+        nameen: '', 
+        symptomsbn: '', 
+        symptomsen: '', 
+        treatmentbn: '', 
+        treatmenten: '', 
+        image: ''
+      });
     }
-  }, [initialData]);
+  }, [initialData, isOpen]);
 
   const [isCompressing, setIsCompressing] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -95,14 +105,14 @@ const DiseaseFormModal = memo(({ isOpen, onClose, initialData, onSave }: {
     }
   };
 
-  // DARK UI STYLES FROM SCREENSHOT
+  // UI styles match the screenshot requested
   const inputStyles = "w-full p-4 bg-[#333333] border-none rounded-xl text-white focus:ring-2 focus:ring-brand-500 outline-none transition-all placeholder-gray-500 font-medium text-sm";
   const labelStyles = "block text-[13px] font-bold text-[#1e293b] mb-2";
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fade-in">
       <div className="bg-white w-full max-w-xl rounded-[24px] shadow-2xl overflow-hidden flex flex-col max-h-[90vh] animate-fade-in-up">
-        {/* Modal Header */}
+        {/* Header */}
         <div className="px-8 py-6 border-b border-gray-100 flex justify-between items-center">
           <h3 className="font-bold text-xl text-[#0f172a]">{formData.id ? 'Edit Disease' : 'Add Disease'}</h3>
           <button onClick={onClose} className="text-gray-400 hover:text-red-500 transition-colors">
@@ -111,7 +121,6 @@ const DiseaseFormModal = memo(({ isOpen, onClose, initialData, onSave }: {
         </div>
         
         <form onSubmit={(e) => { e.preventDefault(); onSave(formData); }} className="px-8 py-6 overflow-y-auto space-y-6 custom-scrollbar flex-1">
-          {/* Disease Names */}
           <div className="grid grid-cols-2 gap-4">
             <div>
               <label className={labelStyles}>Disease Name (BN)</label>
@@ -123,7 +132,6 @@ const DiseaseFormModal = memo(({ isOpen, onClose, initialData, onSave }: {
             </div>
           </div>
 
-          {/* Symptoms */}
           <div>
             <label className={labelStyles}>Symptoms (BN)</label>
             <textarea required rows={4} className={`${inputStyles} resize-none`} value={formData.symptomsbn} onChange={e => setFormData({...formData, symptomsbn: e.target.value})} />
@@ -134,7 +142,6 @@ const DiseaseFormModal = memo(({ isOpen, onClose, initialData, onSave }: {
             <textarea required rows={4} className={`${inputStyles} resize-none`} value={formData.symptomsen} onChange={e => setFormData({...formData, symptomsen: e.target.value})} />
           </div>
 
-          {/* Treatments */}
           <div>
             <label className={labelStyles}>Treatment (BN)</label>
             <textarea required rows={4} className={`${inputStyles} resize-none`} value={formData.treatmentbn} onChange={e => setFormData({...formData, treatmentbn: e.target.value})} />
@@ -145,16 +152,10 @@ const DiseaseFormModal = memo(({ isOpen, onClose, initialData, onSave }: {
             <textarea required rows={4} className={`${inputStyles} resize-none`} value={formData.treatmenten} onChange={e => setFormData({...formData, treatmenten: e.target.value})} />
           </div>
 
-          {/* Image Upload */}
           <div>
             <label className={labelStyles}>Image URL or Upload (Compressed)</label>
             <div className="flex gap-2">
-              <input 
-                className={`${inputStyles} flex-1`} 
-                value={formData.image} 
-                onChange={e => setFormData({...formData, image: e.target.value})} 
-                placeholder="Paste URL or click upload button..." 
-              />
+              <input className={`${inputStyles} flex-1`} value={formData.image} onChange={e => setFormData({...formData, image: e.target.value})} placeholder="Paste URL or click upload button..." />
               <button 
                 type="button" 
                 onClick={() => fileInputRef.current?.click()} 
@@ -167,7 +168,6 @@ const DiseaseFormModal = memo(({ isOpen, onClose, initialData, onSave }: {
             <input type="file" ref={fileInputRef} className="hidden" accept="image/*" onChange={handleImageUpload} />
           </div>
 
-          {/* Save Button */}
           <div className="pt-2 sticky bottom-0 bg-white pb-4">
             <button 
               type="submit" 
@@ -227,7 +227,7 @@ export const AdminDiseases = () => {
             <p className="text-gray-500 text-sm">Manage information about seasonal diseases</p>
           </div>
         </div>
-        <Button onClick={() => { setEditingItem({}); setShowModal(true); }} className="bg-gray-900 text-white">
+        <Button onClick={() => { setEditingItem(null); setShowModal(true); }} className="bg-gray-900 text-white">
           <Plus size={18} className="mr-2" /> Add New Disease
         </Button>
       </div>
