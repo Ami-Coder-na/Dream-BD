@@ -1,15 +1,18 @@
 
 import React, { useState, useRef, useEffect } from 'react';
-import { MessageCircle, X, Send, Bot, Loader2 } from 'lucide-react';
+import { MessageCircle, X, Send, Bot, Loader2, Lock } from 'lucide-react';
 import { generateAssistantResponse } from '../services/geminiService';
-import { AppModule, ChatMessage } from '../types';
+import { AppModule, ChatMessage, User } from '../types';
+import { Button } from './ui/Button';
 
 interface GeminiAssistantProps {
   currentModule: AppModule;
   isBangla: boolean;
+  user?: User | null;
+  onLogin: () => void;
 }
 
-export const GeminiAssistant: React.FC<GeminiAssistantProps> = ({ currentModule, isBangla }) => {
+export const GeminiAssistant: React.FC<GeminiAssistantProps> = ({ currentModule, isBangla, user, onLogin }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
@@ -30,8 +33,16 @@ export const GeminiAssistant: React.FC<GeminiAssistantProps> = ({ currentModule,
   };
 
   useEffect(() => {
-    scrollToBottom();
+    if (isOpen) scrollToBottom();
   }, [messages, isOpen]);
+
+  const handleOpen = () => {
+    if (!user) {
+      onLogin();
+      return;
+    }
+    setIsOpen(true);
+  };
 
   const handleSend = async () => {
     if (!input.trim()) return;
@@ -74,10 +85,10 @@ export const GeminiAssistant: React.FC<GeminiAssistantProps> = ({ currentModule,
     <div className="fixed bottom-6 right-6 z-50">
       {!isOpen && (
         <button
-          onClick={() => setIsOpen(true)}
+          onClick={handleOpen}
           className="bg-brand-600 hover:bg-brand-700 text-white p-4 rounded-full shadow-lg transition-transform hover:scale-110 flex items-center gap-2"
         >
-          <Bot size={24} />
+          {user ? <Bot size={24} /> : <Lock size={20} />}
           <span className="font-semibold hidden md:inline">{isBangla ? 'মিঠু - এআই' : 'Mithu - AI'}</span>
         </button>
       )}

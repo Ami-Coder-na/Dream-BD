@@ -1,3 +1,4 @@
+
 import React, { useState, Suspense, lazy, useEffect } from 'react';
 import { User, AppModule, Notification } from './types';
 import { GeminiAssistant } from './components/GeminiAssistant';
@@ -120,8 +121,21 @@ const App: React.FC = () => {
     else window.history.pushState({}, '', '/');
   };
 
+  const handleOpenAiChat = () => {
+    if (!user) {
+      setAuthView('login');
+      return;
+    }
+    setShowAiChat(true);
+  };
+
   const renderContent = () => {
     if (showAiChat) {
+      if (!user) {
+        setAuthView('login');
+        setShowAiChat(false);
+        return null;
+      }
       return (
         <AiChatPage 
           isBangla={isBangla} 
@@ -183,7 +197,7 @@ const App: React.FC = () => {
                 return (
                   <LandingPage 
                     user={user} onLogin={() => setAuthView('login')} onRegister={() => setAuthView('signup')} onLogout={handleLogout} 
-                    onOpenAiChat={() => setShowAiChat(true)} onModuleSelect={handleModuleSelect} isBangla={isBangla} 
+                    onOpenAiChat={handleOpenAiChat} onModuleSelect={handleModuleSelect} isBangla={isBangla} 
                     toggleLanguage={() => setIsBangla(!isBangla)}
                   />
                 );
@@ -211,7 +225,12 @@ const App: React.FC = () => {
             onNavigateHome={() => { setActiveModule('LANDING'); setShowAiChat(false); }} onModuleSelect={handleModuleSelect}
           />
         )}
-        <GeminiAssistant currentModule={activeModule as AppModule} isBangla={isBangla} />
+        <GeminiAssistant 
+          currentModule={activeModule as AppModule} 
+          isBangla={isBangla} 
+          user={user}
+          onLogin={() => setAuthView('login')}
+        />
         <ScrollToTop />
       </div>
     </ErrorBoundary>
