@@ -115,11 +115,21 @@ const App: React.FC = () => {
 
   const handleModuleSelect = (module: AppModule) => {
     setActiveModule(module);
+    setShowAiChat(false);
     if (module === AppModule.ADMIN) window.history.pushState({}, '', '/adminrm');
     else window.history.pushState({}, '', '/');
   };
 
   const renderContent = () => {
+    if (showAiChat) {
+      return (
+        <AiChatPage 
+          isBangla={isBangla} 
+          onBack={() => setShowAiChat(false)} 
+        />
+      );
+    }
+    
     if (authView === 'login') {
       return (
         <LoginPage 
@@ -187,18 +197,18 @@ const App: React.FC = () => {
   return (
     <ErrorBoundary>
       <div className="min-h-screen bg-white font-sans text-gray-900 flex flex-col">
-        {activeModule !== AppModule.ADMIN && authView === 'none' && (
+        {activeModule !== AppModule.ADMIN && authView === 'none' && !showAiChat && (
           <Header 
             user={user} onLogin={() => setAuthView('login')} onRegister={() => setAuthView('signup')} onLogout={handleLogout} 
-            onModuleSelect={handleModuleSelect} onNavigateHome={() => setActiveModule('LANDING')} isBangla={isBangla} 
+            onModuleSelect={handleModuleSelect} onNavigateHome={() => { setActiveModule('LANDING'); setShowAiChat(false); }} isBangla={isBangla} 
             toggleLanguage={() => setIsBangla(!isBangla)}
           />
         )}
         <main className="flex-1">{renderContent()}</main>
-        {activeModule !== AppModule.ADMIN && authView === 'none' && (
+        {activeModule !== AppModule.ADMIN && authView === 'none' && !showAiChat && (
           <Footer 
             isBangla={isBangla} toggleLanguage={() => setIsBangla(!isBangla)} 
-            onNavigateHome={() => setActiveModule('LANDING')} onModuleSelect={handleModuleSelect}
+            onNavigateHome={() => { setActiveModule('LANDING'); setShowAiChat(false); }} onModuleSelect={handleModuleSelect}
           />
         )}
         <GeminiAssistant currentModule={activeModule as AppModule} isBangla={isBangla} />
