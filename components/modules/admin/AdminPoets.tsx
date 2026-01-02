@@ -1,6 +1,6 @@
 
-import React, { useState, useMemo, useRef, useCallback } from 'react';
-import { Feather, Plus, Search, Edit3, Trash2, X, Upload, Loader2, Save, Image as ImageIcon } from 'lucide-react';
+import React, { useState, useMemo, useRef, useCallback, useEffect, memo } from 'react';
+import { Feather, Plus, Search, Edit3, Trash2, X, Upload, Loader2, Save, Image as ImageIcon, ChevronDown } from 'lucide-react';
 import { Button } from '../../ui/Button';
 import { useData } from '../../../contexts/DataContext';
 
@@ -10,10 +10,6 @@ const INITIAL_STATE = {
   awardsBn: '', awardsEn: '', image: ''
 };
 
-/**
- * Optimized Image compression utility for database efficiency
- * Reduced dimensions and quality to keep base64 strings small.
- */
 const compressImage = (file: File): Promise<string> => {
   return new Promise((resolve) => {
     const reader = new FileReader();
@@ -25,10 +21,7 @@ const compressImage = (file: File): Promise<string> => {
         const canvas = document.createElement('canvas');
         let width = img.width;
         let height = img.height;
-        
-        // Optimized for profile thumbnails (400px is ample for avatars)
         const MAX_SIZE = 400;
-
         if (width > height) {
           if (width > MAX_SIZE) {
             height *= MAX_SIZE / width;
@@ -40,34 +33,80 @@ const compressImage = (file: File): Promise<string> => {
             height = MAX_SIZE;
           }
         }
-        
         canvas.width = width;
         canvas.height = height;
         const ctx = canvas.getContext('2d');
-        // High quality downscaling
         ctx!.imageSmoothingEnabled = true;
         ctx!.imageSmoothingQuality = 'high';
         ctx?.drawImage(img, 0, 0, width, height);
-        
-        // 0.5 quality provides excellent compression for DB storage
         resolve(canvas.toDataURL('image/jpeg', 0.5));
       };
     };
   });
 };
 
+const PoetRow = memo(({ poet, onEdit, onDelete }: { poet: any, onEdit: (p: any) => void, onDelete: (id: any) => void }) => {
+  return (
+    <tr className="hover:bg-indigo-50/20 transition-colors group">
+      <td className="p-5">
+        <div className="flex items-center gap-4">
+          <div className="w-12 h-12 rounded-xl overflow-hidden shadow-sm border-2 border-white bg-gray-100 shrink-0">
+            <img 
+              src={poet.image} 
+              className="w-full h-full object-cover" 
+              loading="lazy"
+              onError={(e) => e.currentTarget.src = 'https://placehold.co/100x100?text=Author'} 
+            />
+          </div>
+          <div>
+            <p className="font-black text-gray-900 leading-none mb-1.5">{poet.nameBn}</p>
+            <p className="text-xs text-gray-400 font-bold uppercase tracking-tighter">{poet.nameEn}</p>
+          </div>
+        </div>
+      </td>
+      <td className="p-5">
+        <span className="text-[10px] font-black text-indigo-600 bg-indigo-50 border border-indigo-100 px-2.5 py-1 rounded-md uppercase">
+          {poet.sectionEn}
+        </span>
+      </td>
+      <td className="p-5">
+        <div className="text-xs font-bold text-gray-600 bg-gray-100 px-2 py-1 rounded-md inline-block">
+          {poet.birthYear} — {poet.deathYear}
+        </div>
+      </td>
+      <td className="p-5 text-right">
+        <div className="flex justify-end gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+          <button onClick={() => onEdit(poet)} className="p-2 text-indigo-600 hover:bg-indigo-50 rounded-xl"><Edit3 size={18}/></button>
+          <button onClick={() => onDelete(poet.id)} className="p-2 text-red-500 hover:bg-red-50 rounded-xl"><Trash2 size={18}/></button>
+        </div>
+      </td>
+    </tr>
+  );
+});
+
 export const AdminPoets = () => {
   const { poets, addPoet, updatePoet, deletePoet } = useData();
   const [showModal, setShowModal] = useState(false);
   const [editingItem, setEditingItem] = useState<any>(null);
-  const [searchTerm, setSearchTerm] = useState('');
+  
+  const [searchInput, setSearchInput] = useState('');
+  const [debouncedSearch, setDebouncedSearch] = useState('');
+  const [visibleItems, setVisibleItems] = useState(20); // Pagination: Initial visible items
+  
   const [formData, setFormData] = useState(INITIAL_STATE);
   const [isCompressing, setIsCompressing] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  // Optimized Search Filter
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearch(searchInput);
+      setVisibleItems(20); // Reset pagination on search
+    }, 300);
+    return () => clearTimeout(timer);
+  }, [searchInput]);
+
   const filtered = useMemo(() => {
-    const term = searchTerm.trim().toLowerCase();
+    const term = debouncedSearch.trim().toLowerCase();
     if (!term) return poets || [];
     return (poets || []).filter((p: any) => 
       p.nameEn?.toLowerCase().includes(term) || 
@@ -75,7 +114,16 @@ export const AdminPoets = () => {
       p.sectionEn?.toLowerCase().includes(term) ||
       p.sectionBn?.includes(term)
     );
-  }, [poets, searchTerm]);
+  }, [poets, debouncedSearch]);
+
+  // Sliced data for pagination
+  const paginatedList = useMemo(() => {
+    return filtered.slice(0, visibleItems);
+  }, [filtered, visibleItems]);
+
+  const handleLoadMore = () => {
+    setVisibleItems(prev => prev + 20);
+  };
 
   const handleOpenModal = useCallback((item: any = null) => {
     if (item) {
@@ -120,13 +168,15 @@ export const AdminPoets = () => {
     setEditingItem(null);
   };
 
-  // UI Component Helpers
+  const handleDelete = useCallback((id: any) => {
+    if(confirm('Are you sure?')) deletePoet(id);
+  }, [deletePoet]);
+
   const inputStyles = "w-full p-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none transition-all font-medium text-sm";
   const labelStyles = "block text-[11px] font-black text-gray-400 uppercase tracking-widest mb-1.5 ml-1";
 
   return (
     <div className="space-y-6 animate-fade-in">
-      {/* Optimized Header */}
       <div className="flex flex-col md:flex-row justify-between items-center gap-4 bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
         <div className="flex items-center gap-4">
           <div className="p-3.5 bg-indigo-50 rounded-2xl text-indigo-600 shadow-inner">
@@ -142,19 +192,17 @@ export const AdminPoets = () => {
         </Button>
       </div>
 
-      {/* Search Section */}
       <div className="relative group">
         <Search className="absolute left-4 top-3.5 text-gray-400 group-focus-within:text-indigo-500 transition-colors" size={20} />
         <input 
           type="text" 
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
+          value={searchInput}
+          onChange={(e) => setSearchInput(e.target.value)}
           placeholder="Search by name or era..."
           className="w-full pl-12 pr-4 py-3.5 bg-white border border-gray-200 rounded-2xl focus:ring-4 focus:ring-indigo-50 outline-none transition-all shadow-sm"
         />
       </div>
 
-      {/* Optimized List View */}
       <div className="bg-white rounded-3xl border border-gray-100 shadow-sm overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full text-left border-collapse">
@@ -167,36 +215,13 @@ export const AdminPoets = () => {
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-50">
-              {filtered.map((p: any) => (
-                <tr key={p.id} className="hover:bg-indigo-50/20 transition-colors group">
-                  <td className="p-5">
-                    <div className="flex items-center gap-4">
-                      <div className="w-12 h-12 rounded-xl overflow-hidden shadow-sm border-2 border-white bg-gray-100 shrink-0">
-                        <img src={p.image} className="w-full h-full object-cover" onError={(e) => e.currentTarget.src = 'https://placehold.co/100x100?text=Author'} />
-                      </div>
-                      <div>
-                        <p className="font-black text-gray-900 leading-none mb-1.5">{p.nameBn}</p>
-                        <p className="text-xs text-gray-400 font-bold uppercase tracking-tighter">{p.nameEn}</p>
-                      </div>
-                    </div>
-                  </td>
-                  <td className="p-5">
-                    <span className="text-[10px] font-black text-indigo-600 bg-indigo-50 border border-indigo-100 px-2.5 py-1 rounded-md uppercase">
-                      {p.sectionEn}
-                    </span>
-                  </td>
-                  <td className="p-5">
-                    <div className="text-xs font-bold text-gray-600 bg-gray-100 px-2 py-1 rounded-md inline-block">
-                      {p.birthYear} — {p.deathYear}
-                    </div>
-                  </td>
-                  <td className="p-5 text-right">
-                    <div className="flex justify-end gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                      <button onClick={() => handleOpenModal(p)} className="p-2 text-indigo-600 hover:bg-indigo-50 rounded-xl"><Edit3 size={18}/></button>
-                      <button onClick={() => { if(confirm('Are you sure?')) deletePoet(p.id); }} className="p-2 text-red-500 hover:bg-red-50 rounded-xl"><Trash2 size={18}/></button>
-                    </div>
-                  </td>
-                </tr>
+              {paginatedList.map((p: any) => (
+                <PoetRow 
+                  key={p.id} 
+                  poet={p} 
+                  onEdit={handleOpenModal} 
+                  onDelete={handleDelete} 
+                />
               ))}
               {filtered.length === 0 && (
                 <tr><td colSpan={4} className="p-20 text-center text-gray-400 font-bold uppercase tracking-widest italic opacity-30">No writers found</td></tr>
@@ -204,9 +229,20 @@ export const AdminPoets = () => {
             </tbody>
           </table>
         </div>
+        
+        {/* Pagination Control */}
+        {filtered.length > visibleItems && (
+          <div className="p-6 bg-gray-50/50 border-t border-gray-100 text-center">
+            <button 
+              onClick={handleLoadMore}
+              className="inline-flex items-center gap-2 px-6 py-2 bg-white border border-gray-200 rounded-xl text-indigo-600 font-bold text-sm shadow-sm hover:bg-indigo-50 transition-all"
+            >
+              <ChevronDown size={18} /> Load More ({filtered.length - visibleItems} left)
+            </button>
+          </div>
+        )}
       </div>
 
-      {/* Optimized Modal Editor */}
       {showModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fade-in" onClick={() => setShowModal(false)}>
           <div className="bg-white w-full max-w-2xl rounded-[32px] shadow-2xl overflow-hidden flex flex-col max-h-[90vh] animate-fade-in-up border border-white/20" onClick={e => e.stopPropagation()}>
