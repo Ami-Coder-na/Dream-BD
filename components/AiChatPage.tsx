@@ -1,4 +1,3 @@
-
 import React, { useState, useRef, useEffect } from 'react';
 import { Send, Bot, ArrowLeft, Loader2, User as UserIcon, Sparkles, Paperclip, X as XIcon, Image as ImageIcon, Mic, ThumbsUp, ThumbsDown, MessageSquare, Clock, Plus, Menu, Trash2 } from 'lucide-react';
 import { generateAssistantResponse } from '../services/geminiService';
@@ -62,9 +61,44 @@ export const AiChatPage: React.FC<AiChatPageProps> = ({ onBack, isBangla }) => {
   const [messages, setMessages] = useState<ChatMessage[]>([defaultWelcomeMessage]);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
-  // Persist sessions to LocalStorage whenever they change
+  // Persist sessions to LocalStorage whenever they change with safety checks for Quota limits
   useEffect(() => {
-    localStorage.setItem('digital_desh_bd_chat_sessions', JSON.stringify(sessions));
+    try {
+      // Optimization: Strip large base64 attachment data before saving to localStorage
+      // LocalStorage has a ~5MB limit; base64 images/audio will exceed this instantly.
+      const sessionsToSave = sessions.map(session => ({
+        ...session,
+        messages: session.messages.map(msg => {
+          if (msg.attachment) {
+            // Keep metadata but remove the actual large data strings
+            return { 
+              ...msg, 
+              attachment: { 
+                type: msg.attachment.type, 
+                url: '', // URL is usually the base64 string, clear it
+                mimeType: msg.attachment.mimeType 
+              } 
+            };
+          }
+          return msg;
+        })
+      })).slice(0, 15); // Limit to most recent 15 sessions
+
+      localStorage.setItem('digital_desh_bd_chat_sessions', JSON.stringify(sessionsToSave));
+    } catch (error) {
+      console.warn('LocalStorage quota exceeded. Pruning history...');
+      // Fallback: Try saving only the most recent 3 sessions without any attachments
+      try {
+        const minimalSessions = sessions.slice(0, 3).map(s => ({
+          ...s,
+          messages: s.messages.map(m => ({ ...m, attachment: undefined }))
+        }));
+        localStorage.setItem('digital_desh_bd_chat_sessions', JSON.stringify(minimalSessions));
+      } catch (e) {
+        // If even that fails, clear the key to stop the error
+        localStorage.removeItem('digital_desh_bd_chat_sessions');
+      }
+    }
   }, [sessions]);
 
   const scrollToBottom = () => {
@@ -343,7 +377,7 @@ export const AiChatPage: React.FC<AiChatPageProps> = ({ onBack, isBangla }) => {
                     <span>{formatTime(msg.timestamp)}</span>
                   </div>
 
-                  {msg.attachment && (
+                  {msg.attachment && msg.attachment.url && (
                     <div className={`rounded-xl overflow-hidden border ${msg.role === 'user' ? 'border-brand-500' : 'border-gray-200'} mb-1 bg-gray-50`}>
                       {msg.attachment.type === 'image' ? (
                         <img src={msg.attachment.url} alt="Attached" className="max-w-xs max-h-60 object-cover" />
