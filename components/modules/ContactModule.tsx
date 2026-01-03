@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Mail, Phone, MapPin, Send, Loader2 } from 'lucide-react';
 import { Button } from '../ui/Button';
@@ -22,6 +23,13 @@ export const ContactModule: React.FC<Props> = ({ isBangla }) => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    // Strict @gmail.com validation
+    if (!formData.email.toLowerCase().endsWith('@gmail.com')) {
+      alert(isBangla ? 'শুধুমাত্র @gmail.com ইমেইল ব্যবহার করা যাবে।' : 'Only @gmail.com emails are allowed.');
+      return;
+    }
+
     setIsSubmitting(true);
     
     try {
@@ -112,6 +120,7 @@ export const ContactModule: React.FC<Props> = ({ isBangla }) => {
                    value={formData.email}
                    onChange={e => setFormData({...formData, email: e.target.value})}
                    className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-brand-500 focus:border-transparent outline-none bg-gray-50 focus:bg-white transition-all"
+                   placeholder="example@gmail.com"
                  />
                </div>
                <div>

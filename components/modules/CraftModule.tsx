@@ -1,187 +1,35 @@
 
 import React, { useState, useMemo } from 'react';
-import { ShoppingBag, Star, Truck, Search, Filter, X, CheckCircle, Tag, Leaf, User, Heart, ChevronDown, RefreshCw } from 'lucide-react';
+import { ShoppingBag, Star, Truck, Search, Filter, X, CheckCircle, Tag, Leaf, User, Heart, ChevronDown, RefreshCw, Camera } from 'lucide-react';
 import { Button } from '../ui/Button';
 import { getOptimizedImageUrl } from '../utils/imageUtils';
+import { useData } from '../../contexts/DataContext';
 
 interface Props {
   isBangla: boolean;
 }
 
-interface Product {
-  id: number;
-  nameEn: string;
-  nameBn: string;
-  price: number;
-  category: string;
-  image: string;
-  rating: number;
-  reviews: number;
-  artisan: string;
-  descriptionEn: string;
-  descriptionBn: string;
-  ecoFriendly: boolean;
-  material: string;
-}
-
-// External Static Data
-const CRAFT_PRODUCTS: Product[] = [
-  { 
-    id: 1, 
-    nameEn: 'Nakshi Kantha', 
-    nameBn: 'নকশী কাঁথা', 
-    price: 2500, 
-    category: 'Textile', 
-    image: 'https://images.unsplash.com/photo-1597113366853-fea190b6cd82', // Authentic Kantha
-    rating: 4.8,
-    reviews: 120,
-    artisan: 'Rahima Begum, Jessore',
-    descriptionEn: 'Traditional embroidered quilt made from old saris and dhotis. A masterpiece of rural art.',
-    descriptionBn: 'পুরাতন শাড়ি এবং ধুতি দিয়ে তৈরি ঐতিহ্যবাহী নকশা করা কাঁথা। গ্রামীণ শিল্পের এক অনন্য নিদর্শন।',
-    ecoFriendly: true,
-    material: 'Cotton'
-  },
-  { 
-    id: 2, 
-    nameEn: 'Bamboo Basket Set', 
-    nameBn: 'বাঁশের ঝুড়ি সেট', 
-    price: 450, 
-    category: 'Bamboo', 
-    image: 'https://images.unsplash.com/photo-1595265677860-9a3143b87c32', // Bamboo basket
-    rating: 4.5,
-    reviews: 45,
-    artisan: 'Sunil Das, Sylhet',
-    descriptionEn: 'Handwoven bamboo baskets perfect for storage or decoration. Durable and eco-friendly.',
-    descriptionBn: 'হাতে বোনা বাঁশের ঝুড়ি যা সংরক্ষণ বা সাজসজ্জার জন্য উপযুক্ত। টেকসই এবং পরিবেশবান্ধব।',
-    ecoFriendly: true,
-    material: 'Bamboo'
-  },
-  { 
-    id: 3, 
-    nameEn: 'Jamdani Saree', 
-    nameBn: 'জামদানি শাড়ি', 
-    price: 12000, 
-    category: 'Textile', 
-    image: 'https://images.unsplash.com/photo-1610725664285-a3a962e51a46', // Saree
-    rating: 4.9,
-    reviews: 210,
-    artisan: 'Rupganj Weavers',
-    descriptionEn: 'Authentic Dhakai Jamdani with intricate geometric patterns. A symbol of Bengali nobility.',
-    descriptionBn: 'জ্যামিতিক নকশা সম্বলিত আসল ঢাকাই জামদানি। বাঙালি আভিজাত্যের প্রতীক।',
-    ecoFriendly: false,
-    material: 'Cotton & Silk'
-  },
-  { 
-    id: 4, 
-    nameEn: 'Terracotta Vase', 
-    nameBn: 'পোড়ামাটির ফুলদানি', 
-    price: 350, 
-    category: 'Pottery', 
-    image: 'https://images.unsplash.com/photo-1507646227500-4d389b0012be', // Clay Pot
-    rating: 4.6,
-    reviews: 85,
-    artisan: 'Pal Para, Bogra',
-    descriptionEn: 'Beautifully crafted clay vase with traditional motifs. Adds an earthy touch to your home.',
-    descriptionBn: 'ঐতিহ্যবাহী মোটিফ সহ সুন্দরভাবে তৈরি মাটির ফুলদানি। আপনার ঘরে মাটির ছোঁয়া আনে।',
-    ecoFriendly: true,
-    material: 'Clay'
-  },
-  { 
-    id: 5, 
-    nameEn: 'Jute Shopping Bag', 
-    nameBn: 'পাটের শপিং ব্যাগ', 
-    price: 200, 
-    category: 'Jute', 
-    image: 'https://images.unsplash.com/photo-1598532163257-ae3c6b2524b6', // Bag
-    rating: 4.7,
-    reviews: 300,
-    artisan: 'Golden Fiber Co.',
-    descriptionEn: 'Reusable eco-friendly shopping bag made from high-quality jute.',
-    descriptionBn: 'উচ্চ মানের পাট দিয়ে তৈরি পরিবেশবান্ধব শপিং ব্যাগ।',
-    ecoFriendly: true,
-    material: 'Jute'
-  },
-  { 
-    id: 6, 
-    nameEn: 'Brass Lamp', 
-    nameBn: 'পিতলের প্রদীপ', 
-    price: 1500, 
-    category: 'Metal', 
-    image: 'https://images.unsplash.com/photo-1629196914168-3a964433845c', // Brass
-    rating: 4.8,
-    reviews: 50,
-    artisan: 'Dhamrai Metal Crafts',
-    descriptionEn: 'Hand-polished brass lamp with intricate detailing. Perfect for festivals.',
-    descriptionBn: 'হাতে পালিশ করা পিতলের প্রদীপ। উৎসবের জন্য উপযুক্ত।',
-    ecoFriendly: false,
-    material: 'Brass'
-  },
-  { 
-    id: 7, 
-    nameEn: 'Wooden Rickshaw Art', 
-    nameBn: 'রিকশা পেইন্টিং শোপিস', 
-    price: 850, 
-    category: 'Wood', 
-    image: 'https://images.unsplash.com/photo-1584351608663-7140f7f32924', // Close to wood art
-    rating: 4.9,
-    reviews: 150,
-    artisan: 'Old Dhaka Artists',
-    descriptionEn: 'Vibrant rickshaw art painted on a wooden frame. A piece of Dhaka street culture.',
-    descriptionBn: 'কাঠের ফ্রেমে আঁকা রিকশা পেইন্টিং। ঢাকার রাস্তার সংস্কৃতির একটি অংশ।',
-    ecoFriendly: true,
-    material: 'Wood'
-  },
-  { 
-    id: 8, 
-    nameEn: 'Handloom Bed Sheet', 
-    nameBn: 'হাতের তৈরি চাদর', 
-    price: 1200, 
-    category: 'Textile', 
-    image: 'https://images.unsplash.com/photo-1522771753035-6a5a02a7fc99', // Textiles
-    rating: 4.4,
-    reviews: 90,
-    artisan: 'Sirajganj Weavers',
-    descriptionEn: 'Soft and durable cotton bed sheet woven on a handloom.',
-    descriptionBn: 'হ্যান্ডলুমে বোনা নরম এবং টেকসই সুতির বিছানার চাদর।',
-    ecoFriendly: true,
-    material: 'Cotton'
-  }
-];
-
 export const CraftModule: React.FC<Props> = ({ isBangla }) => {
-  const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
+  const { craftProducts } = useData();
+  const [selectedProduct, setSelectedProduct] = useState<any | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [showMobileFilters, setShowMobileFilters] = useState(false);
 
   // Filter States
   const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
-  const [selectedPriceRanges, setSelectedPriceRanges] = useState<string[]>([]);
   const [ecoOnly, setEcoOnly] = useState(false);
 
   // Memoized Filtering Logic
   const filteredProducts = useMemo(() => {
-    return CRAFT_PRODUCTS.filter(prod => {
-      const matchesSearch = 
-        prod.nameEn.toLowerCase().includes(searchQuery.toLowerCase()) || 
-        prod.nameBn.includes(searchQuery);
-      
+    return (craftProducts || []).filter((prod: any) => {
+      const nameE = (prod.nameEn || prod.nameen || '').toLowerCase();
+      const nameB = (prod.nameBn || prod.namebn || '');
+      const matchesSearch = nameE.includes(searchQuery.toLowerCase()) || nameB.includes(searchQuery);
       const matchesCategory = selectedCategories.length === 0 || selectedCategories.includes(prod.category);
-      
       const matchesEco = ecoOnly ? prod.ecoFriendly : true;
-
-      let matchesPrice = true;
-      if (selectedPriceRanges.length > 0) {
-        matchesPrice = selectedPriceRanges.some(range => {
-          if (range === 'low') return prod.price <= 500;
-          if (range === 'mid') return prod.price > 500 && prod.price <= 2000;
-          if (range === 'high') return prod.price > 2000;
-          return false;
-        });
-      }
-
-      return matchesSearch && matchesCategory && matchesPrice && matchesEco;
+      return matchesSearch && matchesCategory && matchesEco;
     });
-  }, [searchQuery, selectedCategories, selectedPriceRanges, ecoOnly]);
+  }, [searchQuery, selectedCategories, ecoOnly, craftProducts]);
 
   const toggleFilter = (item: string, current: string[], setter: (val: string[]) => void) => {
     if (current.includes(item)) {
@@ -193,7 +41,6 @@ export const CraftModule: React.FC<Props> = ({ isBangla }) => {
 
   const clearFilters = () => {
     setSelectedCategories([]);
-    setSelectedPriceRanges([]);
     setEcoOnly(false);
     setSearchQuery('');
   };
@@ -212,13 +59,12 @@ export const CraftModule: React.FC<Props> = ({ isBangla }) => {
           </h1>
           <p className="text-gray-500 max-w-2xl mx-auto">
             {isBangla 
-              ? 'সরাসরি কারিগরদের কাছ থেকে কিনুন এবং আমাদের সমৃদ্ধ ঐতিহ্য রক্ষা করুন।' 
-              : 'Buy directly from artisans, support fair trade, and preserve our rich heritage.'}
+              ? 'আমাদের সমৃদ্ধ ঐতিহ্য ও কারুশিল্পের সংকলন। বিস্তারিত জানতে ছবিতে ক্লিক করুন।' 
+              : 'A collection of our rich heritage and crafts. Click on an image to learn more.'}
           </p>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-8 items-start">
-          {/* Sidebar and Main Content structure remains same, leveraging filteredProducts */}
           <div className="lg:hidden col-span-1">
             <Button variant="outline" className="w-full flex justify-between" onClick={() => setShowMobileFilters(!showMobileFilters)}>
               <span className="flex items-center gap-2"><Filter size={16}/> {isBangla ? 'ফিল্টার' : 'Filters'}</span>
@@ -229,7 +75,7 @@ export const CraftModule: React.FC<Props> = ({ isBangla }) => {
           <aside className={`lg:block ${showMobileFilters ? 'block' : 'hidden'} bg-white p-6 rounded-2xl shadow-sm border border-gray-100 h-fit sticky top-24`}>
              <div className="flex justify-between items-center mb-6">
               <h3 className="font-bold text-gray-900 flex items-center gap-2"><Filter size={18} /> {isBangla ? 'ফিল্টার' : 'Filters'}</h3>
-              {(selectedCategories.length > 0 || selectedPriceRanges.length > 0 || ecoOnly) && (
+              {(selectedCategories.length > 0 || ecoOnly) && (
                 <button onClick={clearFilters} className="text-xs text-red-500 hover:underline flex items-center gap-1"><RefreshCw size={12} /> {isBangla ? 'রিসেট' : 'Reset'}</button>
               )}
             </div>
@@ -248,7 +94,17 @@ export const CraftModule: React.FC<Props> = ({ isBangla }) => {
                     ))}
                   </div>
                </div>
-               {/* Other filters... */}
+               <div className="pt-4 border-t border-gray-100">
+                  <label className="flex items-center gap-3 cursor-pointer">
+                    <button 
+                      onClick={() => setEcoOnly(!ecoOnly)} 
+                      className={`relative w-10 h-5 rounded-full transition-colors ${ecoOnly ? 'bg-green-500' : 'bg-gray-200'}`}
+                    >
+                      <div className={`absolute top-0.5 left-0.5 w-4 h-4 bg-white rounded-full transition-transform ${ecoOnly ? 'translate-x-5' : 'translate-x-0'}`}></div>
+                    </button>
+                    <span className="text-sm font-medium text-gray-700">{isBangla ? 'পরিবেশবান্ধব' : 'Eco-Friendly'}</span>
+                  </label>
+               </div>
             </div>
           </aside>
 
@@ -263,10 +119,10 @@ export const CraftModule: React.FC<Props> = ({ isBangla }) => {
                 onChange={(e) => setSearchQuery(e.target.value)}
               />
             </div>
-            {/* Product Grid */}
+            
             {filteredProducts.length > 0 ? (
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-                {filteredProducts.map((product) => (
+                {filteredProducts.map((product: any) => (
                   <div 
                     key={product.id} 
                     onClick={() => setSelectedProduct(product)}
@@ -278,7 +134,7 @@ export const CraftModule: React.FC<Props> = ({ isBangla }) => {
                         alt={product.nameEn} 
                         className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" 
                         loading="lazy"
-                        onError={(e) => { e.currentTarget.src = "https://placehold.co/400x300/orange/white?text=Product"; }}
+                        onError={(e) => { e.currentTarget.src = "https://placehold.co/400x300/orange/white?text=Craft"; }}
                       />
                       {product.ecoFriendly && (
                         <span className="absolute top-2 left-2 bg-green-100/90 backdrop-blur text-green-700 text-xs font-bold px-2 py-1 rounded-md flex items-center gap-1 shadow-sm">
@@ -292,17 +148,16 @@ export const CraftModule: React.FC<Props> = ({ isBangla }) => {
                         <span className="text-xs font-semibold text-orange-600 bg-orange-50 px-2 py-0.5 rounded">{product.category}</span>
                         <div className="flex items-center text-yellow-500 text-xs font-bold">
                           <Star size={12} fill="currentColor" className="mr-1" />
-                          {product.rating}
+                          {product.rating || 4.5}
                         </div>
                       </div>
                       <h3 className="font-bold text-gray-900 text-lg mb-1 group-hover:text-orange-700 transition-colors line-clamp-1">
                         {isBangla ? product.nameBn : product.nameEn}
                       </h3>
                       <p className="text-xs text-gray-500 mb-4">{product.artisan}</p>
-                      <div className="mt-auto flex items-center justify-between">
-                        <span className="font-bold text-gray-900 text-xl">৳ {product.price}</span>
-                        <Button size="sm" className="bg-orange-600 hover:bg-orange-700 border-none">
-                          {isBangla ? 'দেখুন' : 'View'}
+                      <div className="mt-auto pt-2 border-t border-gray-50">
+                        <Button size="sm" variant="outline" className="w-full text-xs h-9 border-orange-100 hover:bg-orange-50 text-orange-700">
+                          {isBangla ? 'বিস্তারিত দেখুন' : 'Learn More'}
                         </Button>
                       </div>
                     </div>
@@ -312,7 +167,7 @@ export const CraftModule: React.FC<Props> = ({ isBangla }) => {
             ) : (
               <div className="text-center py-20 bg-white rounded-2xl border border-dashed border-gray-200">
                 <ShoppingBag size={48} className="mx-auto text-gray-300 mb-4" />
-                <h3 className="text-lg font-bold text-gray-900">{isBangla ? 'কোন পণ্য পাওয়া যায়নি' : 'No products found'}</h3>
+                <h3 className="text-lg font-bold text-gray-900">{isBangla ? 'কোন শিল্পকর্ম পাওয়া যায়নি' : 'No crafts found'}</h3>
                 <Button variant="outline" onClick={clearFilters} className="mt-4">{isBangla ? 'ফিল্টার মুছুন' : 'Clear Filters'}</Button>
               </div>
             )}
@@ -320,7 +175,6 @@ export const CraftModule: React.FC<Props> = ({ isBangla }) => {
         </div>
       </div>
       
-      {/* Product Modal */}
       {selectedProduct && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fade-in" onClick={() => setSelectedProduct(null)}>
           <div className="bg-white rounded-2xl shadow-2xl w-full max-w-4xl max-h-[90vh] overflow-hidden flex flex-col md:flex-row" onClick={e => e.stopPropagation()}>
@@ -346,17 +200,29 @@ export const CraftModule: React.FC<Props> = ({ isBangla }) => {
                   </div>
                   <button onClick={() => setSelectedProduct(null)} className="p-2 hover:bg-gray-100 rounded-full text-gray-500 transition-colors hidden md:block"><X size={24} /></button>
                 </div>
-                <p className="text-gray-600 leading-relaxed mb-6 text-lg">{isBangla ? selectedProduct.descriptionBn : selectedProduct.descriptionEn}</p>
-                {/* Details... */}
-              </div>
-              <div className="p-6 border-t border-gray-100 flex items-center justify-between bg-gray-50 mt-auto">
-                <div>
-                  <p className="text-xs text-gray-500 uppercase font-bold">{isBangla ? 'মূল্য' : 'Price'}</p>
-                  <p className="text-3xl font-bold text-orange-700">৳ {selectedProduct.price}</p>
+                <div className="space-y-4">
+                  <div className="bg-orange-50 p-4 rounded-xl border border-orange-100">
+                    <p className="text-xs font-black text-orange-800 uppercase tracking-widest mb-1">{isBangla ? 'কারিগর' : 'ARTISAN'}</p>
+                    <p className="font-bold text-gray-800">{selectedProduct.artisan}</p>
+                  </div>
+                  <div className="prose prose-sm max-w-none text-gray-600 leading-relaxed">
+                    <p>{isBangla ? selectedProduct.descriptionBn : selectedProduct.descriptionEn}</p>
+                  </div>
+                  {selectedProduct.material && (
+                    <div className="flex gap-4 items-center pt-2">
+                       <span className="text-xs font-bold text-gray-400 uppercase">{isBangla ? 'উপাদান:' : 'Material:'}</span>
+                       <span className="bg-gray-100 px-2 py-0.5 rounded text-xs font-bold text-gray-600">{selectedProduct.material}</span>
+                    </div>
+                  )}
                 </div>
-                <Button size="lg" className="bg-orange-600 hover:bg-orange-700 border-none shadow-lg shadow-orange-600/20 px-8">
-                  <ShoppingBag size={20} className="mr-2" />
-                  {isBangla ? 'কিনুন' : 'Buy Now'}
+              </div>
+              <div className="p-6 border-t border-gray-100 bg-gray-50 mt-auto flex justify-between items-center">
+                <div className="flex items-center gap-2 text-orange-600">
+                   <Camera size={18} />
+                   <span className="text-sm font-bold">{isBangla ? 'ঐতিহ্যবাহী সংগ্রহ' : 'Heritage Collection'}</span>
+                </div>
+                <Button size="lg" onClick={() => setSelectedProduct(null)} className="bg-gray-900 hover:bg-black text-white px-10">
+                  {isBangla ? 'বন্ধ করুন' : 'Close'}
                 </Button>
               </div>
             </div>

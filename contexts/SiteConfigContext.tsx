@@ -1,4 +1,3 @@
-
 import React, { createContext, useState, useContext, ReactNode, useEffect } from 'react';
 import { AppModule } from '../types';
 import { supabase, isSupabaseConfigured } from '../services/supabaseClient';
@@ -18,8 +17,10 @@ export interface SiteSettings {
   announcementActive: boolean;
   announcement: string;
   galleryImages: string[];
+  bkashMerchantNumber: string;
 }
 
+/* Fix: Define the missing SiteConfigContextType interface used in the context creation */
 interface SiteConfigContextType {
   modules: Record<ToggableModule, boolean>;
   sections: Record<LandingSection, boolean>;
@@ -53,6 +54,7 @@ const DEFAULT_MODULES: Record<ToggableModule, boolean> = {
   [AppModule.EXPAT]: true,
   [AppModule.VOCATIONAL]: true,
   [AppModule.JANTE_CHAI]: true,
+  [AppModule.SUBSCRIPTION]: true,
 };
 
 const DEFAULT_SECTIONS: Record<LandingSection, boolean> = {
@@ -83,7 +85,8 @@ const DEFAULT_SETTINGS: SiteSettings = {
     'https://images.unsplash.com/photo-1628189873998-25f00e95a947',
     'https://images.unsplash.com/photo-1619671603704-8b6567958611',
     'https://images.unsplash.com/photo-1548013146-72479768bada'
-  ]
+  ],
+  bkashMerchantNumber: '01XXXXXXXXX'
 };
 
 const SiteConfigContext = createContext<SiteConfigContextType | undefined>(undefined);
@@ -105,7 +108,6 @@ export const SiteConfigProvider: React.FC<{ children: ReactNode }> = ({ children
           if (item.key === 'modules') setModules(item.value);
           if (item.key === 'sections') setSections(item.value);
           if (item.key === 'settings') {
-            // Merge existing settings with defaults to ensure new keys like galleryImages exist
             setSettings({ ...DEFAULT_SETTINGS, ...item.value });
           }
         });

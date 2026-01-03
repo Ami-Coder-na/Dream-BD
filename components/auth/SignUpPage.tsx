@@ -18,7 +18,7 @@ export const SignUpPage: React.FC<SignUpPageProps> = ({
   onBack,
   isBangla 
 }) => {
-  const { addUser } = useData(); // Use context to save user
+  const { addUser, users } = useData(); 
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -30,27 +30,51 @@ export const SignUpPage: React.FC<SignUpPageProps> = ({
     e.preventDefault();
     setLoading(true);
 
+    const trimmedEmail = email.trim().toLowerCase();
+
+    // Strict @gmail.com validation
+    if (!trimmedEmail.endsWith('@gmail.com')) {
+      alert(isBangla ? 'শুধুমাত্র @gmail.com ইমেইল ব্যবহার করা যাবে।' : 'Only @gmail.com emails are allowed.');
+      setLoading(false);
+      return;
+    }
+
+    // Robust Duplicate email check
+    const isDuplicate = (users || []).some((u: any) => 
+      u.email && u.email.trim().toLowerCase() === trimmedEmail
+    );
+
+    if (isDuplicate) {
+      alert(isBangla 
+        ? 'এই জিমেইল দিয়ে ইতোমধ্যে একটি অ্যাকাউন্ট তৈরি করা হয়েছে। অন্য জিমেইল ব্যবহার করুন অথবা লগইন করুন।' 
+        : 'An account already exists with this Gmail. Please use a different one or log in.'
+      );
+      setLoading(false);
+      return;
+    }
+
     const newUser = {
         id: `u${Date.now()}`,
-        name: name,
-        email: email,
-        password: password, // In real app, this should be hashed
+        name: name.trim(),
+        email: trimmedEmail,
+        password: password, 
         role: role,
         avatar: `https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&q=80&w=150`,
         status: 'Active',
         date: new Date().toLocaleDateString()
     };
 
-    // Simulate API delay and account creation
-    setTimeout(() => {
-      // 1. Save to Central Data Context (For Admin & Login)
-      addUser(newUser);
-      
-      // 2. Log user in immediately
-      onSignUpSuccess(newUser);
-      
-      setLoading(false);
-    }, 1200);
+    // Simulate API delay
+    setTimeout(async () => {
+      try {
+        await addUser(newUser);
+        onSignUpSuccess(newUser);
+      } catch (err) {
+        alert(isBangla ? 'অ্যাকাউন্ট তৈরিতে সমস্যা হয়েছে।' : 'Error creating account.');
+      } finally {
+        setLoading(false);
+      }
+    }, 1000);
   };
 
   return (
@@ -63,7 +87,7 @@ export const SignUpPage: React.FC<SignUpPageProps> = ({
           {isBangla ? 'অ্যাকাউন্ট তৈরি করুন' : 'Create Account'}
         </h2>
         <p className="mt-2 text-sm text-gray-600">
-          {isBangla ? 'ড্রিম বিডি প্ল্যাটফর্মে যোগ দিন' : 'Join the Dream BD platform today'}
+          {isBangla ? 'প্ল্যাটফর্মে যোগ দিন এবং সব সুবিধা উপভোগ করুন' : 'Join the platform and enjoy all features'}
         </p>
       </div>
 
@@ -78,7 +102,6 @@ export const SignUpPage: React.FC<SignUpPageProps> = ({
           </button>
 
           <form className="space-y-5 mt-6" onSubmit={handleSignUp}>
-            {/* Name Field */}
             <div>
               <label htmlFor="name" className="block text-sm font-semibold text-gray-700 mb-2">
                 {isBangla ? 'আপনার নাম' : 'Full Name'}
@@ -89,7 +112,6 @@ export const SignUpPage: React.FC<SignUpPageProps> = ({
                 </div>
                 <input
                   id="name"
-                  name="name"
                   type="text"
                   required
                   value={name}
@@ -100,7 +122,6 @@ export const SignUpPage: React.FC<SignUpPageProps> = ({
               </div>
             </div>
 
-            {/* Role Selection */}
             <div>
               <label htmlFor="role" className="block text-sm font-semibold text-gray-700 mb-2">
                 {isBangla ? 'পেশা নির্বাচন করুন' : 'Account Type'}
@@ -111,7 +132,6 @@ export const SignUpPage: React.FC<SignUpPageProps> = ({
                 </div>
                 <select
                   id="role"
-                  name="role"
                   value={role}
                   onChange={(e) => setRole(e.target.value as UserRole)}
                   className="block w-full pl-10 pr-10 py-3 border border-gray-200 rounded-xl leading-5 bg-gray-50 text-gray-900 focus:outline-none focus:bg-white focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-all duration-200 sm:text-sm appearance-none cursor-pointer"
@@ -129,10 +149,9 @@ export const SignUpPage: React.FC<SignUpPageProps> = ({
               </div>
             </div>
 
-            {/* Email Field */}
             <div>
               <label htmlFor="email" className="block text-sm font-semibold text-gray-700 mb-2">
-                {isBangla ? 'ইমেল ঠিকানা' : 'Email Address'}
+                {isBangla ? 'ইমেল ঠিকানা (Gmail)' : 'Email Address (Gmail)'}
               </label>
               <div className="relative group">
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -140,18 +159,16 @@ export const SignUpPage: React.FC<SignUpPageProps> = ({
                 </div>
                 <input
                   id="email"
-                  name="email"
                   type="email"
                   required
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   className="block w-full pl-10 pr-3 py-3 border border-gray-200 rounded-xl leading-5 bg-gray-50 placeholder-gray-400 text-gray-900 focus:outline-none focus:bg-white focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-all duration-200 sm:text-sm"
-                  placeholder="name@example.com"
+                  placeholder="name@gmail.com"
                 />
               </div>
             </div>
 
-            {/* Password Field */}
             <div>
               <label htmlFor="password" className="block text-sm font-semibold text-gray-700 mb-2">
                 {isBangla ? 'পাসওয়ার্ড' : 'Password'}
@@ -162,7 +179,6 @@ export const SignUpPage: React.FC<SignUpPageProps> = ({
                 </div>
                 <input
                   id="password"
-                  name="password"
                   type={showPassword ? 'text' : 'password'}
                   required
                   value={password}

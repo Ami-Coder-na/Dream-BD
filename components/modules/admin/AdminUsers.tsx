@@ -79,6 +79,12 @@ export const AdminUsers = () => {
       const role = (form.elements.namedItem('role') as HTMLSelectElement).value;
       const password = (form.elements.namedItem('password') as HTMLInputElement).value;
       
+      // Strict @gmail.com validation
+      if (!email.toLowerCase().endsWith('@gmail.com')) {
+        alert('Only @gmail.com emails are allowed.');
+        return;
+      }
+
       const newUser = {
           id: Date.now().toString(),
           name,
@@ -283,7 +289,7 @@ export const AdminUsers = () => {
                       type="email" 
                       name="email"
                       required
-                      placeholder="user@example.com" 
+                      placeholder="user@gmail.com" 
                       className="w-full pl-10 pr-4 py-3 bg-white border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-gray-900 transition-all text-sm font-medium"
                     />
                   </div>

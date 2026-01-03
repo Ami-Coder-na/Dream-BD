@@ -136,7 +136,10 @@ export const AgriModule: React.FC<Props> = ({ isBangla, user, onLogin }) => {
   const [cropType, setCropType] = useState('Rice');
   const [seedVariety, setSeedVariety] = useState('HYV');
   const [calculatedResult, setCalculatedResult] = useState<CalculationResult | null>(null);
+  
+  // Community / Forum States
   const [showPostModal, setShowPostModal] = useState(false);
+  const [postText, setPostText] = useState('');
   const [commentInputs, setCommentInputs] = useState<Record<number, string>>({});
   
   // Weather State
@@ -151,12 +154,10 @@ export const AgriModule: React.FC<Props> = ({ isBangla, user, onLogin }) => {
       navigator.geolocation.getCurrentPosition(async (position) => {
         const { latitude, longitude } = position.coords;
         try {
-          // Get City Name (Reverse Geocoding)
           const geoRes = await fetch(`https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${latitude}&lon=${longitude}`);
           const geoData = await geoRes.json();
           const city = geoData.address.city || geoData.address.town || geoData.address.village || geoData.address.state || "Unknown Location";
           
-          // Get Current Weather (Open-Meteo)
           const weatherRes = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${latitude}&longitude=${longitude}&current_weather=true`);
           const weatherData = await weatherRes.json();
           
@@ -251,6 +252,29 @@ export const AgriModule: React.FC<Props> = ({ isBangla, user, onLogin }) => {
     });
   };
 
+  const handleCreatePost = () => {
+    if (!postText.trim()) return;
+    if (!user) {
+       if (onLogin) onLogin();
+       return;
+    }
+
+    const newPost: ForumPost = {
+      id: Date.now(),
+      user: user.name,
+      text: postText,
+      likes: 0,
+      liked: false,
+      comments: [],
+      showComments: false,
+      timeAgo: isBangla ? 'এইমাত্র' : 'Just now'
+    };
+
+    setPosts([newPost, ...posts]);
+    setPostText('');
+    setShowPostModal(false);
+  };
+
   const handleLikePost = (postId: number) => {
     setPosts(prev => prev.map(p => {
       if (p.id === postId) {
@@ -333,7 +357,6 @@ export const AgriModule: React.FC<Props> = ({ isBangla, user, onLogin }) => {
     <div className="animate-fade-in space-y-8">
       <div className="bg-white rounded-[2.5rem] shadow-xl border border-gray-100 overflow-hidden">
         <div className="grid grid-cols-1 lg:grid-cols-2">
-          {/* Inputs Section */}
           <div className="p-8 md:p-12 border-r border-gray-100">
             <h3 className="text-2xl font-bold text-gray-900 mb-8 flex items-center gap-3">
               <Calculator size={32} className="text-green-600" />
@@ -401,7 +424,6 @@ export const AgriModule: React.FC<Props> = ({ isBangla, user, onLogin }) => {
             </div>
           </div>
 
-          {/* Results Section */}
           <div className="bg-gray-50 p-8 md:p-12">
             {calculatedResult ? (
               <div className="space-y-8 animate-fade-in-up">
@@ -435,10 +457,6 @@ export const AgriModule: React.FC<Props> = ({ isBangla, user, onLogin }) => {
                         <p className="text-3xl font-black text-gray-900">৳ {calculatedResult.cost.toLocaleString()}</p>
                       </div>
                    </div>
-                   <div className="text-right hidden sm:block">
-                      <p className="text-xs font-bold text-gray-400 uppercase">{isBangla ? 'প্রয়োজনীয় বীজ' : 'Required Seed'}</p>
-                      <p className="text-xl font-black text-green-700">{calculatedResult.seed} KG</p>
-                   </div>
                 </div>
 
                 <div>
@@ -455,11 +473,6 @@ export const AgriModule: React.FC<Props> = ({ isBangla, user, onLogin }) => {
                            <div>
                               <h5 className="font-bold text-gray-900">{isBangla ? step.stageBn : step.stageEn}</h5>
                               <p className="text-sm text-gray-500 mt-1">{isBangla ? step.detailBn : step.detailEn}</p>
-                              <div className="flex flex-wrap gap-2 mt-2">
-                                 {step.fertilizers.map((f, fi) => (
-                                   <span key={fi} className="text-[10px] font-bold px-2 py-0.5 bg-gray-100 rounded-md text-gray-600">{f}</span>
-                                 ))}
-                              </div>
                            </div>
                         </div>
                       ))}
@@ -477,16 +490,6 @@ export const AgriModule: React.FC<Props> = ({ isBangla, user, onLogin }) => {
             )}
           </div>
         </div>
-      </div>
-      
-      {/* Disclaimer */}
-      <div className="bg-amber-50 border border-amber-100 p-4 rounded-2xl flex items-start gap-3">
-         <Info className="text-amber-600 shrink-0 mt-0.5" size={18} />
-         <p className="text-xs text-amber-800 leading-relaxed">
-            {isBangla 
-              ? 'দ্রষ্টব্য: এই ক্যালকুলেটরটি কৃষি গবেষণা প্রতিষ্ঠান (BARI/BRRI) এর সাধারণ গাইডলাইনের ওপর ভিত্তি করে তৈরি। মাটির গুণাগুণ ভেদে সার ও বীজের পরিমাণ কম-বেশি হতে পারে। সঠিক পরামর্শের জন্য স্থানীয় কৃষি কর্মকর্তার সহায়তা নিন।'
-              : 'Note: This calculator is based on general guidelines from BARI/BRRI. Actual requirements may vary based on soil quality. Consult your local agriculture officer for precise advice.'}
-         </p>
       </div>
     </div>
   );
@@ -530,10 +533,8 @@ export const AgriModule: React.FC<Props> = ({ isBangla, user, onLogin }) => {
                </button>
              </div>
 
-             {/* Comment Section */}
              {post.showComments && (
                <div className="mt-6 pt-6 border-t border-gray-50 space-y-4 animate-fade-in">
-                  {/* List of Comments */}
                   <div className="space-y-4 max-h-60 overflow-y-auto pr-2 custom-scrollbar">
                     {post.comments.length > 0 ? post.comments.map(comment => (
                       <div key={comment.id} className="bg-gray-50 p-4 rounded-2xl border border-gray-100">
@@ -548,7 +549,6 @@ export const AgriModule: React.FC<Props> = ({ isBangla, user, onLogin }) => {
                     )}
                   </div>
 
-                  {/* Comment Input */}
                   <div className="flex gap-2 mt-4 bg-gray-50 p-2 rounded-2xl border border-gray-200 focus-within:ring-2 focus-within:ring-green-500/20 focus-within:border-green-500 transition-all">
                      <input 
                        type="text" 
@@ -571,6 +571,34 @@ export const AgriModule: React.FC<Props> = ({ isBangla, user, onLogin }) => {
           </div>
         ))}
       </div>
+
+      {/* NEW POST MODAL */}
+      {showPostModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fade-in" onClick={() => setShowPostModal(false)}>
+          <div className="bg-white w-full max-w-xl rounded-[2.5rem] shadow-2xl overflow-hidden animate-fade-in-up" onClick={e => e.stopPropagation()}>
+            <div className="bg-green-600 p-6 flex justify-between items-center text-white">
+              <h3 className="font-bold text-xl flex items-center gap-3"><MessageSquare size={24}/> {isBangla ? 'নতুন পোস্ট তৈরি করুন' : 'Create New Post'}</h3>
+              <button onClick={() => setShowPostModal(false)} className="p-2 hover:bg-white/20 rounded-full transition-all"><X size={24}/></button>
+            </div>
+            <div className="p-8">
+               <textarea 
+                 className="w-full p-5 bg-gray-50 border border-gray-200 rounded-3xl min-h-[150px] outline-none focus:ring-2 focus:ring-green-500/20 focus:border-green-500 text-lg transition-all resize-none"
+                 placeholder={isBangla ? 'আপনার সমস্যা বা অভিজ্ঞতা এখানে লিখুন...' : 'Write your problem or experience here...'}
+                 value={postText}
+                 onChange={(e) => setPostText(e.target.value)}
+               ></textarea>
+               <div className="mt-6 flex gap-4">
+                 <Button variant="outline" onClick={() => setShowPostModal(false)} className="flex-1 py-4 rounded-2xl font-bold">
+                   {isBangla ? 'বাতিল' : 'Cancel'}
+                 </Button>
+                 <Button onClick={handleCreatePost} disabled={!postText.trim()} className="flex-1 bg-green-600 hover:bg-green-700 text-white py-4 rounded-2xl font-bold shadow-xl shadow-green-200">
+                   {isBangla ? 'পোস্ট করুন' : 'Post Now'}
+                 </Button>
+               </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 
@@ -589,6 +617,32 @@ export const AgriModule: React.FC<Props> = ({ isBangla, user, onLogin }) => {
         {activeTab === 'calculator' && renderCalculator()}
         {activeTab === 'community' && renderCommunity()}
       </div>
+
+      {/* Selected Crop Modal */}
+      {selectedCrop && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fade-in" onClick={() => setSelectedCrop(null)}>
+          <div className="bg-white w-full max-w-2xl rounded-3xl shadow-2xl overflow-hidden flex flex-col" onClick={e => e.stopPropagation()}>
+            <div className="relative h-64 overflow-hidden">
+               <img src={selectedCrop.image} className="w-full h-full object-cover" />
+               <button onClick={() => setSelectedCrop(null)} className="absolute top-4 right-4 p-2 bg-white/20 hover:bg-white/40 backdrop-blur text-white rounded-full transition-all"><X size={24}/></button>
+               <div className="absolute bottom-6 left-6 text-white">
+                  <h2 className="text-3xl font-black">{isBangla ? selectedCrop.nameBn : selectedCrop.nameEn}</h2>
+                  <p className="text-sm italic opacity-80">{selectedCrop.scientificName}</p>
+               </div>
+            </div>
+            <div className="p-8 space-y-6 overflow-y-auto max-h-[60vh]">
+               <div className="grid grid-cols-2 gap-6">
+                  <div><p className="text-xs font-bold text-gray-400 uppercase mb-1">{isBangla ? 'মৌসুম' : 'Season'}</p><p className="font-bold text-gray-800">{isBangla ? selectedCrop.seasonBn : selectedCrop.seasonEn}</p></div>
+                  <div><p className="text-xs font-bold text-gray-400 uppercase mb-1">{isBangla ? 'সময়কাল' : 'Duration'}</p><p className="font-bold text-gray-800">{isBangla ? selectedCrop.durationBn : selectedCrop.durationEn}</p></div>
+               </div>
+               <div><p className="text-xs font-bold text-gray-400 uppercase mb-2">{isBangla ? 'উপযুক্ত মাটি' : 'Best Soil'}</p><div className="bg-green-50 p-4 rounded-xl text-green-800 font-medium">{isBangla ? selectedCrop.soilBn : selectedCrop.soilEn}</div></div>
+               <div><p className="text-xs font-bold text-gray-400 uppercase mb-2">{isBangla ? 'চাষের সময়' : 'Sowing Time'}</p><p className="text-gray-700 leading-relaxed">{isBangla ? selectedCrop.timeBn : selectedCrop.timeEn}</p></div>
+               <div><p className="text-xs font-bold text-gray-400 uppercase mb-2">{isBangla ? 'সার প্রয়োগ' : 'Fertilizers'}</p><p className="text-gray-700 leading-relaxed">{isBangla ? selectedCrop.fertilizerBn : selectedCrop.fertilizerEn}</p></div>
+               <div><p className="text-xs font-bold text-gray-400 uppercase mb-2">{isBangla ? 'যত্ন ও পরামর্শ' : 'Care Tips'}</p><p className="text-gray-700 leading-relaxed">{isBangla ? selectedCrop.careBn : selectedCrop.careEn}</p></div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

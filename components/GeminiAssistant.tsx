@@ -1,6 +1,6 @@
 
 import React, { useState, useRef, useEffect } from 'react';
-import { MessageCircle, X, Send, Bot, Loader2, Lock } from 'lucide-react';
+import { MessageCircle, X, Send, Bird, Loader2 } from 'lucide-react';
 import { generateAssistantResponse } from '../services/geminiService';
 import { AppModule, ChatMessage, User } from '../types';
 import { Button } from './ui/Button';
@@ -88,7 +88,7 @@ export const GeminiAssistant: React.FC<GeminiAssistantProps> = ({ currentModule,
           onClick={handleOpen}
           className="bg-brand-600 hover:bg-brand-700 text-white p-4 rounded-full shadow-lg transition-transform hover:scale-110 flex items-center gap-2"
         >
-          {user ? <Bot size={24} /> : <Lock size={20} />}
+          <Bird size={24} />
           <span className="font-semibold hidden md:inline">{isBangla ? 'মিঠু - এআই' : 'Mithu - AI'}</span>
         </button>
       )}
@@ -98,7 +98,7 @@ export const GeminiAssistant: React.FC<GeminiAssistantProps> = ({ currentModule,
           {/* Header */}
           <div className="bg-brand-600 p-4 flex justify-between items-center text-white">
             <div className="flex items-center gap-2">
-              <Bot size={20} />
+              <Bird size={20} />
               <h3 className="font-semibold">{isBangla ? 'মিঠু - এআই সহকারী' : 'Mithu - AI Assistant'}</h3>
             </div>
             <button onClick={() => setIsOpen(false)} className="hover:bg-brand-700 p-1 rounded">

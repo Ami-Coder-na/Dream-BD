@@ -5,7 +5,7 @@ import {
   LogOut, Shield, Bell, FileText, ShoppingBag, Trash2, AlertOctagon, 
   Clock, DollarSign, Mail, Key, EyeOff, Eye, ChevronDown, UserPlus, FilePlus, AlertTriangle,
   Globe, Sparkles, Monitor, RefreshCw, CheckCircle, BarChart3, TrendingUp, Inbox, Droplets, PlusCircle, Briefcase,
-  ArrowUpRight, Zap, HeartPulse, Info, Gavel, HelpCircle, Feather
+  ArrowUpRight, Zap, HeartPulse, Info, Gavel, HelpCircle, Feather, Crown
 } from 'lucide-react';
 import { AdminUsers } from './admin/AdminUsers';
 import { AdminContent } from './admin/AdminContent';
@@ -22,6 +22,7 @@ import { AdminAbout } from './admin/AdminAbout';
 import { AdminLegal } from './admin/AdminLegal';
 import { AdminFaqs } from './admin/AdminFaqs';
 import { AdminPoets } from './admin/AdminPoets';
+import { AdminSubscription } from './admin/AdminSubscription';
 import { Button } from '../ui/Button';
 import { useData } from '../../contexts/DataContext';
 import { isSupabaseConfigured } from '../../services/supabaseClient';
@@ -31,7 +32,7 @@ interface Props {
   onExit: () => void;
 }
 
-type AdminSection = 'overview' | 'website-manage' | 'users' | 'content' | 'inbox' | 'module-config' | 'market' | 'grievance' | 'emergency' | 'settings' | 'blood-logs' | 'diseases' | 'about' | 'legal' | 'faqs' | 'poets';
+type AdminSection = 'overview' | 'website-manage' | 'users' | 'content' | 'inbox' | 'module-config' | 'market' | 'grievance' | 'emergency' | 'settings' | 'blood-logs' | 'diseases' | 'about' | 'legal' | 'faqs' | 'poets' | 'subscriptions';
 
 export const AdminModule: React.FC<Props> = ({ isBangla, onExit }) => {
   const { requests, totalVisitors, todayVisitors, messages, donorViewLogs, users } = useData();
@@ -57,13 +58,6 @@ export const AdminModule: React.FC<Props> = ({ isBangla, onExit }) => {
   const [activeSection, setActiveSection] = useState<AdminSection>('overview');
 
   const unreadMessagesCount = messages.filter((m: any) => m.status === 'Unread').length;
-
-  const stats = {
-    users: users.length,
-    revenue: '৳ 0',
-    health: '100%',
-    pending: requests.length
-  };
 
   const handleLogin = (e: React.FormEvent) => {
     e.preventDefault();
@@ -123,17 +117,17 @@ export const AdminModule: React.FC<Props> = ({ isBangla, onExit }) => {
             <Briefcase size={64} className="opacity-20 group-hover:opacity-40 transition-opacity" />
         </div>
 
-        <div className="bg-gradient-to-br from-blue-500 to-cyan-600 p-6 rounded-3xl text-white shadow-xl flex items-center justify-between group hover:scale-[1.02] transition-all cursor-pointer" onClick={() => setActiveSection('content')}>
+        <div className="bg-gradient-to-br from-blue-500 to-cyan-600 p-6 rounded-3xl text-white shadow-xl flex items-center justify-between group hover:scale-[1.02] transition-all cursor-pointer" onClick={() => setActiveSection('subscriptions')}>
             <div className="space-y-2">
-                <h3 className="text-2xl font-black">Admin Blogs</h3>
-                <p className="text-blue-100 text-sm">Write articles and news updates</p>
+                <h3 className="text-2xl font-black">AI Subscriptions</h3>
+                <p className="text-blue-100 text-sm">Manage Mithu-AI Pro plans and revenue</p>
                 <div className="pt-4 flex gap-2">
-                   <button onClick={(e) => { e.stopPropagation(); setActiveSection('content'); }} className="bg-white/20 hover:bg-white/30 px-4 py-2 rounded-xl text-xs font-bold flex items-center gap-2 transition-all">
-                     <FilePlus size={14} /> Write Blog
+                   <button onClick={(e) => { e.stopPropagation(); setActiveSection('subscriptions'); }} className="bg-white/20 hover:bg-white/30 px-4 py-2 rounded-xl text-xs font-bold flex items-center gap-2 transition-all">
+                     <Crown size={14} /> Manage Plans
                    </button>
                 </div>
             </div>
-            <FileText size={64} className="opacity-20 group-hover:opacity-40 transition-opacity" />
+            <DollarSign size={64} className="opacity-20 group-hover:opacity-40 transition-opacity" />
         </div>
       </div>
 
@@ -176,7 +170,7 @@ export const AdminModule: React.FC<Props> = ({ isBangla, onExit }) => {
         <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm flex items-center justify-between group hover:shadow-md transition-all cursor-pointer" onClick={() => setActiveSection('users')}>
             <div>
                 <p className="text-gray-500 text-xs font-bold uppercase tracking-wider">Total Registered</p>
-                <h3 className="text-3xl font-bold text-gray-900 mt-2">{stats.users}</h3>
+                <h3 className="text-3xl font-bold text-gray-900 mt-2">{users.length}</h3>
                 <p className="text-blue-500 text-xs font-bold mt-1 flex items-center gap-1"><ArrowUpRight size={10} /> {users.length > 0 ? 'Verified' : 'Growing'}</p>
             </div>
             <div className="p-4 rounded-2xl bg-blue-50 text-blue-600 group-hover:bg-blue-100 transition-colors">
@@ -236,6 +230,7 @@ export const AdminModule: React.FC<Props> = ({ isBangla, onExit }) => {
         <nav className="flex-1 p-4 space-y-1">
           <button onClick={() => setActiveSection('overview')} className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all ${activeSection === 'overview' ? 'bg-brand-600 text-white shadow-lg' : 'text-gray-400 hover:bg-gray-800 hover:text-white'}`}><LayoutDashboard size={18} /> Overview</button>
           <button onClick={() => setActiveSection('website-manage')} className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all ${activeSection === 'website-manage' ? 'bg-brand-600 text-white shadow-lg' : 'text-gray-400 hover:bg-gray-800 hover:text-white'}`}><Monitor size={18} /> Website Manage</button>
+          <button onClick={() => setActiveSection('subscriptions')} className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all ${activeSection === 'subscriptions' ? 'bg-brand-600 text-white shadow-lg' : 'text-gray-400 hover:bg-gray-800 hover:text-white'}`}><Crown size={18} /> Subscriptions</button>
           <button onClick={() => setActiveSection('users')} className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all ${activeSection === 'users' ? 'bg-brand-600 text-white shadow-lg' : 'text-gray-400 hover:bg-gray-800 hover:text-white'}`}><Users size={18} /> Users & Roles</button>
           <button onClick={() => setActiveSection('content')} className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all ${activeSection === 'content' ? 'bg-brand-600 text-white shadow-lg' : 'text-gray-400 hover:bg-gray-800 hover:text-white'}`}><FileText size={18} /> Content Mod</button>
           <button onClick={() => setActiveSection('inbox')} className={`w-full flex items-center justify-between gap-3 px-4 py-3 rounded-xl transition-all ${activeSection === 'inbox' ? 'bg-brand-600 text-white shadow-lg' : 'text-gray-400 hover:bg-gray-800 hover:text-white'}`}>
@@ -281,6 +276,7 @@ export const AdminModule: React.FC<Props> = ({ isBangla, onExit }) => {
           {activeSection === 'emergency' && <AdminEmergency />}
           {activeSection === 'settings' && <AdminProfile />}
           {activeSection === 'poets' && <AdminPoets />}
+          {activeSection === 'subscriptions' && <AdminSubscription />}
         </div>
       </main>
     </div>

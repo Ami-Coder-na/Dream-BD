@@ -2,11 +2,11 @@
 import React, { useState, useEffect } from 'react';
 import { 
   ShoppingBag, Sprout, BookOpen, HeartPulse, 
-  Bus, Trash2, Fish, AlertOctagon, CheckCircle, Star, Sparkles,
+  Bus, Trash2, Fish, AlertOctagon, CheckCircle, Star, Bird,
   ArrowRight, MapPin, Calendar, ShieldAlert, TrendingUp, CloudRain, Phone, Activity,
   UserPlus, LayoutGrid, Shield, Building2, Landmark, Truck, Globe,
   CloudSun, Stethoscope, Recycle, Navigation, Clock, Fuel, ChevronDown, Camera,
-  Smile
+  Smile, Sparkles
 } from 'lucide-react';
 import { Button } from './ui/Button';
 import { User, AppModule, Notification } from '../types';
@@ -139,7 +139,7 @@ export const LandingPage: React.FC<Props> = ({
                 className="text-lg px-10 py-4 shadow-xl shadow-brand-600/30 hover:shadow-2xl hover:shadow-brand-600/50 hover:scale-105 active:scale-95 transition-all duration-300 flex items-center gap-2 relative overflow-hidden group w-full sm:w-auto"
               >
                  <span className="absolute inset-0 w-full h-full bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000 ease-in-out"></span>
-                 <Sparkles size={20} className="animate-pulse" />
+                 <Bird size={20} className="animate-pulse" />
                 {isBangla ? 'Mithu - Ai' : 'Mithu - Ai'} 
               </Button>
 
@@ -157,7 +157,7 @@ export const LandingPage: React.FC<Props> = ({
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="bg-gray-900 rounded-3xl p-8 md:p-16 text-center text-white relative overflow-hidden">
               <div className="absolute top-0 right-0 w-64 h-64 bg-brand-500 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob"></div>
-              <div className="absolute bottom-0 left-0 w-64 h-64 bg-purple-500 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob animation-delay-2000"></div>
+              <div className="absolute bottom-0 left-0 w-64 h-64 bg-purple-50 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob animation-delay-2000"></div>
               
               <h2 className="text-3xl font-bold mb-6 relative z-10">
                 {isBangla ? 'আমাদের লক্ষ্য' : 'Our Mission'}
@@ -243,7 +243,7 @@ export const LandingPage: React.FC<Props> = ({
               <div className="lg:w-1/2">
                 <span className="text-orange-600 font-bold tracking-wider uppercase text-sm mb-2 block">{isBangla ? 'কারুশিল্প' : 'Heritage Crafts'}</span>
                 <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-6">
-                  {isBangla ? 'বাংলার ঐতিহ্য, বিশ্বমানে' : 'Empowering Artisans, Preserving Heritage'}
+                  {isBangla ? 'কারুশিল্পীদের ক্ষমতায়ন, ঐতিহ্যের সুরক্ষা' : 'Empowering Artisans, Preserving Heritage'}
                 </h2>
                 <p className="text-lg text-gray-600 mb-8 leading-relaxed">
                   {isBangla 
@@ -261,7 +261,6 @@ export const LandingPage: React.FC<Props> = ({
                   <div key={idx} className={`bg-white p-4 rounded-xl shadow-sm border border-orange-100 ${idx % 2 === 1 ? 'translate-y-8' : ''}`}>
                     <img src={prod.image} alt={prod.name} className="w-full h-32 object-cover rounded-lg mb-3" />
                     <h4 className="font-bold text-gray-800 text-sm">{isBangla ? prod.nameBn : prod.name}</h4>
-                    <p className="text-orange-600 font-bold text-sm">৳ {prod.price}</p>
                   </div>
                 ))}
               </div>
@@ -681,7 +680,7 @@ export const LandingPage: React.FC<Props> = ({
             </h2>
             <p className="text-xl text-brand-100 mb-10 max-w-2xl mx-auto leading-relaxed">
               {isBangla 
-                ? 'কৃষক, শিক্ষক, ডাক্তার বা সাধারণ নাগরিক—সবার জন্য একটি প্ল্যাটফর্ম। আজই ফ্রি রেজিস্ট্রেশন করুন।'
+                ? 'কৃষক, শিক্ষক, ডাক্তার বা সাধারণ নাগরিক—সবের জন্য একটি প্ল্যাটফর্ম। আজই ফ্রি রেজিস্ট্রেশন করুন।'
                 : 'Whether you are a farmer, teacher, doctor or citizen—one platform for all. Register for free now.'}
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">

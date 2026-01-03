@@ -10,6 +10,13 @@ export enum UserRole {
   DISASTER_OFFICER = 'Disaster Officer'
 }
 
+export enum SubscriptionTier {
+  FREE = 'Free',
+  PRO = 'Pro',
+  MASTER = 'Master',
+  ULTRA = 'Ultra'
+}
+
 export enum AppModule {
   CRAFT = 'craft',
   AGRI = 'agriculture',
@@ -33,7 +40,8 @@ export enum AppModule {
   LEGAL = 'legal',
   EXPAT = 'expat',
   VOCATIONAL = 'vocational',
-  JANTE_CHAI = 'jante_chai'
+  JANTE_CHAI = 'jante_chai',
+  SUBSCRIPTION = 'subscription'
 }
 
 export interface User {
@@ -46,6 +54,41 @@ export interface User {
   location?: string;
   status?: string;
   date?: string;
+  subscriptionTier?: SubscriptionTier;
+  imageUploadCount?: number;
+}
+
+export interface PricingPlan {
+  id: string;
+  nameEn: string;
+  nameBn: string;
+  price: number;
+  tier: SubscriptionTier;
+  limit: number;
+  featuresEn: string[];
+  featuresBn: string[];
+  color: string;
+}
+
+export interface PromoCode {
+  id: string;
+  code: string;
+  discount: number; // percentage
+  isActive: boolean;
+}
+
+export interface PaymentRequest {
+  id: string;
+  userId: string;
+  userName: string;
+  planId: string;
+  tier: SubscriptionTier;
+  amount: number;
+  method: 'bkash';
+  userPhone: string;
+  trxId: string;
+  status: 'Pending' | 'Approved' | 'Rejected';
+  timestamp: string;
 }
 
 export interface Product {
