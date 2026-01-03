@@ -1,3 +1,4 @@
+
 import React, { useState, useMemo, useRef } from 'react';
 import { 
   Database, Search, Sprout, Stethoscope, BookOpen, 
@@ -71,7 +72,6 @@ export const AdminConfig: React.FC<Props> = ({ isBangla }) => {
     craftProducts, addCraftProduct, updateCraftProduct, deleteCraftProduct
   } = useData();
 
-  // Fix: Renamed activeConfigTab to activeSubTab to match usage throughout the component
   const [activeSubTab, setActiveSubTab] = useState<ConfigTab>('districts');
   const [isConfigModalOpen, setIsConfigModalOpen] = useState(false);
   const [configForm, setConfigForm] = useState<any>({});
@@ -306,7 +306,6 @@ export const AdminConfig: React.FC<Props> = ({ isBangla }) => {
       craft: craftProducts
     };
 
-    // Fix: Using activeSubTab here to resolve the missing name error
     const currentData = dataMap[activeSubTab] || [];
 
     return (
@@ -325,7 +324,6 @@ export const AdminConfig: React.FC<Props> = ({ isBangla }) => {
                         <td className="p-4"><span className="bg-gray-100 px-2 py-1 rounded text-xs font-bold text-gray-600">{item.category || item.unit || 'N/A'}</span></td>
                         <td className="p-4 text-right">
                            <div className="flex justify-end gap-2">
-                             {/* Fix: Using activeSubTab here to resolve the missing name error */}
                              {activeSubTab === 'craft' && <button onClick={() => handleEditCraft(item)} className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg"><Edit3 size={16}/></button>}
                              <button onClick={() => handleDeleteItem(item.id)} className="p-2 text-gray-400 hover:text-red-500 transition-colors"><Trash2 size={16} /></button>
                            </div>
@@ -371,10 +369,8 @@ export const AdminConfig: React.FC<Props> = ({ isBangla }) => {
               {TABS.map(tab => (
                 <button 
                   key={tab.id} 
-                  // Fix: Renamed setter to setActiveSubTab
                   onClick={() => setActiveSubTab(tab.id as any)} 
                   className={`flex items-center gap-2 px-6 py-2.5 rounded-xl text-sm font-bold transition-all whitespace-nowrap ${
-                    // Fix: Using activeSubTab here to resolve the missing name error
                     activeSubTab === tab.id ? 'bg-brand-600 text-white shadow-sm' : 'text-gray-500 hover:bg-gray-100'
                   }`}
                 >
@@ -394,7 +390,6 @@ export const AdminConfig: React.FC<Props> = ({ isBangla }) => {
                   <button onClick={() => setIsConfigModalOpen(false)}><X size={24}/></button>
                </div>
                <form onSubmit={handleSubmit} className="p-8 space-y-4 overflow-y-auto max-h-[70vh]">
-                  {/* Fix: Using activeSubTab here to resolve the missing name error */}
                   {activeSubTab === 'craft' && (
                     <>
                       <div className="grid grid-cols-2 gap-4">

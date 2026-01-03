@@ -31,7 +31,6 @@ export const JanteChaiModule: React.FC<Props> = ({ isBangla }) => {
   };
 
   const sortedPoets = useMemo(() => {
-    // Basic sorting if needed, usually we keep order from Context
     return [...(poets || [])];
   }, [poets]);
 
@@ -99,50 +98,50 @@ export const JanteChaiModule: React.FC<Props> = ({ isBangla }) => {
                         <div className={`ml-16 md:ml-0 md:w-1/2 ${isEven ? 'md:pr-16 md:text-right' : 'md:pl-16 md:ml-auto md:text-left'}`}>
                           <div 
                             onClick={() => toggleExpand(kobi.id)}
-                            className={`cursor-pointer inline-block bg-white p-4 rounded-2xl border-2 transition-all hover:shadow-md w-full md:w-auto min-w-[200px] ${isExpanded ? 'border-indigo-600 ring-4 ring-indigo-50' : 'border-gray-100 hover:border-indigo-200'}`}
+                            className={`cursor-pointer inline-block bg-white p-6 rounded-2xl border-2 transition-all hover:shadow-md w-full md:w-auto min-w-[250px] ${isExpanded ? 'border-indigo-600 ring-4 ring-indigo-50' : 'border-gray-100 hover:border-indigo-200'}`}
                           >
-                            <span className="text-[10px] font-black text-indigo-600 uppercase tracking-widest block mb-1">
+                            <span className="text-xs font-black text-indigo-500 uppercase tracking-widest block mb-2">
                               {kobi.birthYear} — {kobi.deathYear}
                             </span>
-                            <h3 className={`text-xl font-bold text-gray-900 flex items-center gap-2 ${isEven ? 'md:justify-end' : 'md:justify-start'}`}>
+                            <h3 className={`text-2xl font-black text-gray-900 flex items-center gap-2 ${isEven ? 'md:justify-end' : 'md:justify-start'}`}>
                               {isBangla ? kobi.nameBn : kobi.nameEn}
-                              {isExpanded ? <ChevronUp size={18} className="text-indigo-400" /> : <ChevronDown size={18} className="text-indigo-400" />}
+                              {isExpanded ? <ChevronUp size={22} className="text-indigo-400" /> : <ChevronDown size={22} className="text-indigo-400" />}
                             </h3>
                           </div>
 
                           {/* Detailed View */}
                           {isExpanded && (
                             <div className={`mt-6 animate-fade-in-up bg-indigo-50 border border-indigo-100 rounded-3xl p-6 md:p-8 text-left shadow-inner w-full overflow-hidden`}>
-                              <div className="flex flex-col md:flex-row gap-6">
-                                <div className="shrink-0 w-full md:w-32 h-40 rounded-2xl overflow-hidden shadow-lg border-2 border-white bg-white">
+                              <div className="flex flex-col md:flex-row gap-8">
+                                <div className="shrink-0 w-full md:w-40 h-48 rounded-2xl overflow-hidden shadow-lg border-4 border-white bg-white">
                                   <img src={kobi.image} alt={kobi.nameEn} className="w-full h-full object-cover" />
                                 </div>
-                                <div className="flex-1 space-y-4">
-                                  <div className="border-b border-indigo-100 pb-3">
-                                    <h4 className="text-2xl font-black text-indigo-900">
+                                <div className="flex-1 space-y-5">
+                                  <div className="border-b border-indigo-100 pb-4">
+                                    <h4 className="text-3xl font-black text-indigo-900 leading-tight">
                                       {isBangla ? kobi.nameBn : kobi.nameEn}
                                     </h4>
-                                    <div className="flex items-center gap-2 text-xs font-bold text-indigo-600 mt-1 uppercase tracking-tighter">
-                                      <Calendar size={14} />
+                                    <div className="flex items-center gap-2 text-sm font-bold text-indigo-600 mt-2 uppercase tracking-tighter">
+                                      <Calendar size={16} />
                                       {kobi.birthYear} — {kobi.deathYear}
                                     </div>
                                   </div>
 
-                                  <div className="space-y-4">
+                                  <div className="space-y-5">
                                     <div>
-                                      <h5 className="text-[10px] font-black text-indigo-400 uppercase mb-1 flex items-center gap-1">
-                                        <Book size={12} /> {isBangla ? 'সাহিত্যকর্ম' : 'Literary Works'}
+                                      <h5 className="text-xs font-black text-indigo-400 uppercase mb-2 flex items-center gap-1.5 tracking-widest">
+                                        <Book size={14} /> {isBangla ? 'সাহিত্যকর্ম' : 'Literary Works'}
                                       </h5>
-                                      <p className="text-gray-700 text-sm font-medium leading-relaxed">
+                                      <p className="text-gray-700 text-base font-medium leading-relaxed">
                                         {isBangla ? kobi.worksBn : kobi.worksEn}
                                       </p>
                                     </div>
 
                                     <div>
-                                      <h5 className="text-[10px] font-black text-indigo-400 uppercase mb-1 flex items-center gap-1">
-                                        <Trophy size={12} /> {isBangla ? 'পুরস্কার ও সম্মাননা' : 'Awards & Honors'}
+                                      <h5 className="text-xs font-black text-indigo-400 uppercase mb-2 flex items-center gap-1.5 tracking-widest">
+                                        <Trophy size={14} /> {isBangla ? 'পুরস্কার ও সম্মাননা' : 'Awards & Honors'}
                                       </h5>
-                                      <p className="text-gray-700 text-sm font-medium leading-relaxed">
+                                      <p className="text-gray-700 text-base font-medium leading-relaxed">
                                         {isBangla ? kobi.awardsBn : kobi.awardsEn}
                                       </p>
                                     </div>
@@ -160,8 +159,8 @@ export const JanteChaiModule: React.FC<Props> = ({ isBangla }) => {
             </div>
           </div>
 
-          <div className="bg-gray-50 p-8 border-t border-gray-100 text-center">
-             <p className="text-gray-400 text-sm italic font-medium">
+          <div className="bg-slate-50 p-10 border-t border-gray-100 text-center">
+             <p className="text-gray-400 text-sm italic font-bold">
                {isBangla ? 'আমাদের সাহিত্যের এই বিশাল পরিক্রমায় আরও অনেক বরণীয় নাম যুক্ত হতে থাকবে।' : 'Many more distinguished names will continue to be added to this grand literary journey.'}
              </p>
           </div>

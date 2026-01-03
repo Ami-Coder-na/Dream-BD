@@ -59,7 +59,7 @@ const normalizeDistrict = (d: any) => {
     upazilas: Array.isArray(d.upazilas) ? d.upazilas : [],
     education: d.education || { primary: 0, highSchool: 0, college: 0, university: 0 },
     hospitals: Array.isArray(d.hospitals) ? d.hospitals : [],
-    touristSpots: d.touristspots || d.touristSpots || [],
+    touristspots: d.touristspots || d.touristSpots || [],
     images: d.images || []
   };
 };
@@ -202,13 +202,12 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       }
 
       const loadTable = async (name: string, setter: any, normalizer?: any) => {
-        const { data } = await supabase.from(name).select('*').order('created_at', { ascending: false });
+        const { data, error } = await supabase.from(name).select('*').order('created_at', { ascending: false });
+        if (error) return;
         if (data && data.length > 0) {
           const normalizedData = normalizer ? data.map(normalizer).filter(Boolean) : data;
           setter(normalizedData);
           localStorage.setItem(`db_${name}`, JSON.stringify(normalizedData));
-        } else {
-          setter([]);
         }
       };
 
@@ -268,24 +267,20 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   }, []);
 
   const updateDistrict = async (district: any) => {
-    // Optimistically update local state for immediate reflection
     const normalized = normalizeDistrict(district);
     setDistricts(prev => {
         const index = prev.findIndex(d => d.id === district.id);
-        if (index !== -1) {
-            const newList = [...prev];
-            newList[index] = normalized;
-            return newList;
-        } else {
-            return [normalized, ...prev];
-        }
+        const newList = index !== -1 ? [...prev] : [normalized, ...prev];
+        if (index !== -1) newList[index] = normalized;
+        localStorage.setItem('db_districts', JSON.stringify(newList));
+        return newList;
     });
 
     if (isSupabaseConfigured) {
         await supabase.from('districts').upsert(district);
     }
-    // Deep sync
-    await fetchData();
+    // We don't call fetchData immediately to avoid overwrite by slow DB sync
+    setTimeout(fetchData, 1000);
   };
 
   const addCraftProduct = async (prod: any) => {
@@ -405,16 +400,20 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
   const addDisease = async (disease: any) => {
     if (isSupabaseConfigured) await supabase.from('diseases').insert([disease]);
-    await fetchData();
+    setTimeout(fetchData, 1000);
   };
 
   const updateDisease = async (disease: any) => {
     if (isSupabaseConfigured) await supabase.from('diseases').update(disease).eq('id', disease.id);
-    await fetchData();
+    setTimeout(fetchData, 1000);
   };
 
   const deleteDisease = async (id: number) => {
-    setDiseases(prev => prev.filter(d => d.id !== id));
+    setDiseases(prev => {
+        const updated = prev.filter(d => d.id !== id);
+        localStorage.setItem('db_diseases', JSON.stringify(updated));
+        return updated;
+    });
     if (isSupabaseConfigured) await supabase.from('diseases').delete().eq('id', id);
   };
 
@@ -445,7 +444,7 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
   const addDonorViewLog = async (log: any) => {
     if (isSupabaseConfigured) await supabase.from('donor_view_logs').insert([log]);
-    await fetchData();
+    setTimeout(fetchData, 1000);
   };
 
   const logVisit = async () => {
@@ -482,38 +481,40 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
   const addJob = async (job: any) => {
     if (isSupabaseConfigured) await supabase.from('jobs').insert([job]);
-    await fetchData();
+    setTimeout(fetchData, 1000);
   };
 
   const updateJob = async (job: any) => {
     if (isSupabaseConfigured) await supabase.from('jobs').update(job).eq('id', job.id);
-    await fetchData();
+    setTimeout(fetchData, 1000);
   };
 
   const deleteJob = async (id: number) => {
     if (isSupabaseConfigured) await supabase.from('jobs').delete().eq('id', id);
-    await fetchData();
+    setJobs(prev => prev.filter(j => j.id !== id));
+    localStorage.setItem('db_jobs', JSON.stringify(jobs.filter(j => j.id !== id)));
   };
 
   const addBlog = async (blog: any) => {
     if (isSupabaseConfigured) await supabase.from('blogs').insert([blog]);
-    await fetchData();
+    setTimeout(fetchData, 1000);
   };
 
   const updateBlog = async (blog: any) => {
     if (isSupabaseConfigured) await supabase.from('blogs').update(blog).eq('id', blog.id);
-    await fetchData();
+    setTimeout(fetchData, 1000);
   };
 
   const deleteBlog = async (id: number) => {
     if (isSupabaseConfigured) await supabase.from('blogs').delete().eq('id', id);
-    await fetchData();
+    setBlogs(prev => prev.filter(b => b.id !== id));
+    localStorage.setItem('db_blogs', JSON.stringify(blogs.filter(b => b.id !== id)));
   };
 
   const addRequest = async (request: any) => {
     const table = request.contenttype === 'job' ? 'requests' : request.contenttype === 'blog' ? 'blog_requests' : 'wholesale_requests';
     if (isSupabaseConfigured) await supabase.from(table).insert([request]);
-    await fetchData();
+    setTimeout(fetchData, 1000);
   };
 
   const handleRequestAction = async (item: any, action: 'approve' | 'reject', type: string) => {
@@ -526,114 +527,123 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       }
       await supabase.from(table).delete().eq('id', item.id);
     }
-    await fetchData();
+    setTimeout(fetchData, 500);
   };
 
   const addGrievance = async (g: any) => {
     if (isSupabaseConfigured) await supabase.from('grievances').insert([g]);
-    await fetchData();
+    setTimeout(fetchData, 1000);
   };
 
   const updateGrievanceStatus = async (id: number, status: string) => {
     if (isSupabaseConfigured) await supabase.from('grievances').update({ status }).eq('id', id);
-    await fetchData();
+    setTimeout(fetchData, 500);
   };
 
   const deleteGrievance = async (id: number) => {
     if (isSupabaseConfigured) await supabase.from('grievances').delete().eq('id', id);
-    await fetchData();
+    setGrievances(prev => prev.filter(g => g.id !== id));
+    localStorage.setItem('db_grievances', JSON.stringify(grievances.filter(g => g.id !== id)));
   };
 
   const addMessage = async (m: any) => {
     if (isSupabaseConfigured) await supabase.from('contact_messages').insert([m]);
-    await fetchData();
+    setTimeout(fetchData, 1000);
   };
 
   const markMessageRead = async (id: number) => {
     if (isSupabaseConfigured) await supabase.from('contact_messages').update({ status: 'Read' }).eq('id', id);
-    await fetchData();
+    setTimeout(fetchData, 500);
   };
 
   const deleteMessage = async (id: number) => {
     if (isSupabaseConfigured) await supabase.from('contact_messages').delete().eq('id', id);
-    await fetchData();
+    setMessages(prev => prev.filter(m => m.id !== id));
+    localStorage.setItem('db_contact_messages', JSON.stringify(messages.filter(m => m.id !== id)));
   };
 
   const addUser = async (u: any) => {
     if (isSupabaseConfigured) await supabase.from('users').insert([u]);
-    await fetchData();
+    setTimeout(fetchData, 1000);
   };
 
   const updateUserStatus = async (id: string, status: string) => {
     if (isSupabaseConfigured) await supabase.from('users').update({ status }).eq('id', id);
-    await fetchData();
+    setTimeout(fetchData, 500);
   };
 
   const deleteUser = async (id: string) => {
     if (isSupabaseConfigured) await supabase.from('users').delete().eq('id', id);
-    await fetchData();
+    setUsers(prev => prev.filter(u => u.id !== id));
+    localStorage.setItem('db_users', JSON.stringify(users.filter(u => u.id !== id)));
   };
 
   const updateWholesaleAd = async (ad: any) => {
     if (isSupabaseConfigured) await supabase.from('wholesale_ads').update(ad).eq('id', ad.id);
-    await fetchData();
+    setTimeout(fetchData, 1000);
   };
 
   const deleteWholesaleAd = async (id: number) => {
     if (isSupabaseConfigured) await supabase.from('wholesale_ads').delete().eq('id', id);
-    await fetchData();
+    setWholesaleAds(prev => prev.filter(a => a.id !== id));
+    localStorage.setItem('db_wholesale_ads', JSON.stringify(wholesaleAds.filter(a => a.id !== id)));
   };
 
   const addRetailProduct = async (p: any) => {
     if (isSupabaseConfigured) await supabase.from('retail_products').insert([p]);
-    await fetchData();
+    setTimeout(fetchData, 1000);
   };
 
   const updateRetailProduct = async (p: any) => {
     if (isSupabaseConfigured) await supabase.from('retail_products').update(p).eq('id', p.id);
-    await fetchData();
+    setTimeout(fetchData, 1000);
   };
 
   const deleteRetailProduct = async (id: number) => {
     if (isSupabaseConfigured) await supabase.from('retail_products').delete().eq('id', id);
-    await fetchData();
+    setRetailProducts(prev => prev.filter(p => p.id !== id));
+    localStorage.setItem('db_retail_products', JSON.stringify(retailProducts.filter(p => p.id !== id)));
   };
 
   const enrollCourse = (c: any) => setEnrolledCourses(prev => [...prev, c]);
 
   const deleteDistrict = async (id: string) => {
     if (isSupabaseConfigured) await supabase.from('districts').delete().eq('id', id);
-    await fetchData();
+    setDistricts(prev => prev.filter(d => d.id !== id));
+    localStorage.setItem('db_districts', JSON.stringify(districts.filter(d => d.id !== id)));
   };
 
   const addLawyer = async (l: any) => {
     if (isSupabaseConfigured) await supabase.from('lawyers').insert([l]);
-    await fetchData();
+    setTimeout(fetchData, 1000);
   };
 
   const deleteLawyer = async (id: number) => {
     if (isSupabaseConfigured) await supabase.from('lawyers').delete().eq('id', id);
-    await fetchData();
+    setLawyers(prev => prev.filter(l => l.id !== id));
+    localStorage.setItem('db_lawyers', JSON.stringify(lawyers.filter(l => l.id !== id)));
   };
 
   const addExchangeRate = async (r: any) => {
     if (isSupabaseConfigured) await supabase.from('exchange_rates').insert([r]);
-    await fetchData();
+    setTimeout(fetchData, 1000);
   };
 
   const deleteExchangeRate = async (id: number) => {
     if (isSupabaseConfigured) await supabase.from('exchange_rates').delete().eq('id', id);
-    await fetchData();
+    setExchangeRates(prev => prev.filter(r => r.id !== id));
+    localStorage.setItem('db_exchange_rates', JSON.stringify(exchangeRates.filter(r => r.id !== id)));
   };
 
   const addVocationalCourse = async (c: any) => {
     if (isSupabaseConfigured) await supabase.from('vocational_courses').insert([c]);
-    await fetchData();
+    setTimeout(fetchData, 1000);
   };
 
   const deleteVocationalCourse = async (id: number) => {
     if (isSupabaseConfigured) await supabase.from('vocational_courses').delete().eq('id', id);
-    await fetchData();
+    setVocationalCourses(prev => prev.filter(c => c.id !== id));
+    localStorage.setItem('db_vocational_courses', JSON.stringify(vocationalCourses.filter(c => c.id !== id)));
   };
 
   return (

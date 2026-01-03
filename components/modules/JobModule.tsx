@@ -1,6 +1,5 @@
-
 import React, { useState, useMemo } from 'react';
-import { Briefcase, MapPin, Clock, DollarSign, Search, X, CheckCircle, Calendar, Building2, Filter, ChevronDown, RefreshCw, PlusCircle, Send } from 'lucide-react';
+import { Briefcase, MapPin, Clock, DollarSign, Search, X, CheckCircle, Calendar, Building2, Filter, ChevronDown, RefreshCw, PlusCircle, Send, Globe, Info } from 'lucide-react';
 import { Button } from '../ui/Button';
 import { useData } from '../../contexts/DataContext';
 import { User } from '../../types';
@@ -103,7 +102,7 @@ export const JobModule: React.FC<Props> = ({ isBangla, user, onLogin }) => {
   const handlePostSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     const request = {
-        contenttype: 'job', // Standardized lowercase
+        contenttype: 'job', 
         title: newJobData.title,
         company: newJobData.company,
         description: newJobData.description,
@@ -111,7 +110,7 @@ export const JobModule: React.FC<Props> = ({ isBangla, user, onLogin }) => {
         salary: newJobData.salary,
         type: newJobData.type,
         deadline: newJobData.deadline,
-        postedby: user ? user.name : 'Guest', // Standardized lowercase
+        postedby: user ? user.name : 'Guest', 
         category: 'Private',
         level: 'Entry'
     };
@@ -230,6 +229,82 @@ export const JobModule: React.FC<Props> = ({ isBangla, user, onLogin }) => {
           </main>
         </div>
       </div>
+
+      {/* JOB DETAILS MODAL */}
+      {selectedJob && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fade-in" onClick={() => setSelectedJob(null)}>
+          <div className="bg-white w-full max-w-2xl rounded-3xl shadow-2xl overflow-hidden animate-fade-in-up flex flex-col max-h-[90vh]" onClick={e => e.stopPropagation()}>
+            <div className="bg-gradient-to-r from-brand-600 to-brand-700 p-8 text-white relative">
+              <button onClick={() => setSelectedJob(null)} className="absolute top-4 right-4 p-2 hover:bg-white/20 rounded-full transition-all text-white"><X size={24} /></button>
+              <div className="flex gap-4 items-start">
+                <div className="w-16 h-16 bg-white/20 backdrop-blur-md rounded-2xl flex items-center justify-center border border-white/30 shrink-0">
+                  <Building2 size={32} />
+                </div>
+                <div>
+                  <h2 className="text-2xl font-bold leading-tight">{selectedJob.title}</h2>
+                  <p className="text-brand-100 font-medium mt-1">{selectedJob.company}</p>
+                </div>
+              </div>
+            </div>
+
+            <div className="p-8 overflow-y-auto custom-scrollbar flex-1 space-y-8">
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+                <div className="p-4 bg-gray-50 rounded-2xl border border-gray-100 flex flex-col items-center text-center">
+                  <MapPin size={18} className="text-red-500 mb-2" />
+                  <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">{isBangla ? 'অবস্থান' : 'Location'}</p>
+                  <p className="text-xs font-bold text-gray-800">{selectedJob.location}</p>
+                </div>
+                <div className="p-4 bg-gray-50 rounded-2xl border border-gray-100 flex flex-col items-center text-center">
+                  <Clock size={18} className="text-blue-500 mb-2" />
+                  <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">{isBangla ? 'ধরন' : 'Type'}</p>
+                  <p className="text-xs font-bold text-gray-800">{selectedJob.type}</p>
+                </div>
+                <div className="p-4 bg-gray-50 rounded-2xl border border-gray-100 flex flex-col items-center text-center">
+                  <DollarSign size={18} className="text-green-600 mb-2" />
+                  <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">{isBangla ? 'বেতন' : 'Salary'}</p>
+                  <p className="text-xs font-bold text-gray-800">{selectedJob.salary || 'Negotiable'}</p>
+                </div>
+                <div className="p-4 bg-gray-50 rounded-2xl border border-gray-100 flex flex-col items-center text-center">
+                  <Calendar size={18} className="text-orange-500 mb-2" />
+                  <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">{isBangla ? 'ডেডলাইন' : 'Deadline'}</p>
+                  <p className="text-xs font-bold text-gray-800">{selectedJob.deadline}</p>
+                </div>
+              </div>
+
+              <div>
+                <h3 className="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
+                  <Info size={20} className="text-brand-600" />
+                  {isBangla ? 'চাকরির বিবরণ' : 'Job Description'}
+                </h3>
+                <div className="prose prose-sm max-w-none text-gray-600 leading-relaxed bg-gray-50/50 p-6 rounded-2xl border border-gray-100">
+                  <p className="whitespace-pre-wrap">{selectedJob.description}</p>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                 <div className="p-5 rounded-2xl bg-indigo-50 border border-indigo-100 flex gap-4 items-center">
+                    <div className="p-2 bg-white rounded-lg text-indigo-600 shadow-sm"><Globe size={18}/></div>
+                    <div><p className="text-[10px] font-black text-indigo-400 uppercase">{isBangla ? 'ক্যাটাগরি' : 'Category'}</p><p className="font-bold text-gray-800">{selectedJob.category}</p></div>
+                 </div>
+                 <div className="p-5 rounded-2xl bg-emerald-50 border border-emerald-100 flex gap-4 items-center">
+                    <div className="p-2 bg-white rounded-lg text-emerald-600 shadow-sm"><CheckCircle size={18}/></div>
+                    <div><p className="text-[10px] font-black text-emerald-400 uppercase">{isBangla ? 'লেভেল' : 'Level'}</p><p className="font-bold text-gray-800">{selectedJob.level}</p></div>
+                 </div>
+              </div>
+            </div>
+
+            <div className="p-6 border-t border-gray-100 bg-gray-50 flex gap-4">
+              <Button variant="outline" className="flex-1 py-4 font-bold" onClick={() => setSelectedJob(null)}>
+                {isBangla ? 'বন্ধ করুন' : 'Close'}
+              </Button>
+              <Button onClick={handleApplyClick} className="flex-1 py-4 bg-brand-600 hover:bg-brand-700 text-white font-bold shadow-xl shadow-brand-500/20">
+                {isBangla ? 'আবেদন করুন' : 'Apply Now'}
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {showPostModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fade-in" onClick={() => setShowPostModal(false)}>
           <div className="bg-white w-full max-w-2xl rounded-2xl shadow-2xl overflow-hidden transform transition-all" onClick={e => e.stopPropagation()}>
