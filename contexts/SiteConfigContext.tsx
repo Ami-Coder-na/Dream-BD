@@ -1,3 +1,4 @@
+
 import React, { createContext, useState, useContext, ReactNode, useEffect } from 'react';
 import { AppModule } from '../types';
 import { supabase, isSupabaseConfigured } from '../services/supabaseClient';
@@ -17,6 +18,8 @@ export interface SiteSettings {
   announcementActive: boolean;
   announcement: string;
   galleryImages: string[];
+  heroImages: string[];
+  heroSliderActive: boolean;
   bkashMerchantNumber: string;
 }
 
@@ -86,6 +89,13 @@ const DEFAULT_SETTINGS: SiteSettings = {
     'https://images.unsplash.com/photo-1619671603704-8b6567958611',
     'https://images.unsplash.com/photo-1548013146-72479768bada'
   ],
+  heroImages: [
+    'https://images.unsplash.com/photo-1548013146-72479768bada',
+    'https://images.unsplash.com/photo-1500382017468-9049fed747ef',
+    'https://images.unsplash.com/photo-1596895111956-bf1cf0599ce5',
+    'https://images.unsplash.com/photo-1610725664285-a3a962e51a46'
+  ],
+  heroSliderActive: false,
   bkashMerchantNumber: '01XXXXXXXXX'
 };
 

@@ -47,6 +47,9 @@ export const LandingPage: React.FC<Props> = ({
 
   // Rotating Headline State
   const [currentHeadlineIndex, setCurrentHeadlineIndex] = useState(0);
+  
+  // Hero Slider State
+  const [currentHeroIndex, setCurrentHeroIndex] = useState(0);
 
   // Distance Calculator State
   const [fromDistrict, setFromDistrict] = useState('');
@@ -56,33 +59,44 @@ export const LandingPage: React.FC<Props> = ({
 
   const headlines = [
     {
-      bn: <>এক প্ল্যাটফর্মে <span className="text-brand-600">কৃষি, শিক্ষা, স্বাস্থ্য ও পরিবহন</span></>,
-      en: <>Agriculture, Education, Health <br className="hidden md:block"/> <span className="text-brand-600">& Transport in One Platform</span></>
+      bn: <>এক প্ল্যাটফর্মে <span className={`${settings.heroSliderActive ? 'text-brand-400' : 'text-brand-600'}`}>কৃষি, শিক্ষা, স্বাস্থ্য ও পরিবহন</span></>,
+      en: <>Agriculture, Education, Health <br className="hidden md:block"/> <span className={`${settings.heroSliderActive ? 'text-brand-400' : 'text-brand-600'}`}>& Transport in One Platform</span></>
     },
     {
-      bn: <>গ্রামীণ জীবনের সব সমস্যার <span className="text-brand-600">ডিজিটাল সমাধান</span></>,
-      en: <>Digital Solutions for <br className="hidden md:block"/> <span className="text-brand-600">All Rural Challenges</span></>
+      bn: <>গ্রামীণ জীবনের সব সমস্যার <span className={`${settings.heroSliderActive ? 'text-brand-400' : 'text-brand-600'}`}>ডিজিটাল সমাধান</span></>,
+      en: <>Digital Solutions for <br className="hidden md:block"/> <span className={`${settings.heroSliderActive ? 'text-brand-400' : 'text-brand-600'}`}>All Rural Challenges</span></>
     },
     {
-      bn: <>কৃষকের মুখে হাসি, <span className="text-brand-600">শিক্ষার আলো</span> সবার ঘরে</>,
-      en: <>Empowering Farmers, <br className="hidden md:block"/> <span className="text-brand-600">Enlightening Students Everywhere</span></>
+      bn: <>কৃষকের মুখে হাসি, <span className={`${settings.heroSliderActive ? 'text-brand-400' : 'text-brand-600'}`}>শিক্ষার আলো</span> সবার ঘরে</>,
+      en: <>Empowering Farmers, <br className="hidden md:block"/> <span className={`${settings.heroSliderActive ? 'text-brand-400' : 'text-brand-600'}`}>Enlightening Students Everywhere</span></>
     },
     {
-      bn: <>জরুরি স্বাস্থ্যসেবা ও পরিবহন <span className="text-brand-600">এখন হাতের মুঠোয়</span></>,
-      en: <>Emergency Healthcare & Transport <br className="hidden md:block"/> <span className="text-brand-600">at Your Fingertips</span></>
+      bn: <>জরুরি স্বাস্থ্যসেবা ও পরিবহন <span className={`${settings.heroSliderActive ? 'text-brand-400' : 'text-brand-600'}`}>এখন হাতের মুঠোয়</span></>,
+      en: <>Emergency Healthcare & Transport <br className="hidden md:block"/> <span className={`${settings.heroSliderActive ? 'text-brand-400' : 'text-brand-600'}`}>at Your Fingertips</span></>
     },
     {
-      bn: <>স্বপ্নের বাংলাদেশ গড়ার <span className="text-brand-600">ডিজিটাল কারিগর</span></>,
-      en: <>Building a Smart & <br className="hidden md:block"/> <span className="text-brand-600">Digital Dream Bangladesh</span></>
+      bn: <>স্বপ্নের বাংলাদেশ গড়ার <span className={`${settings.heroSliderActive ? 'text-brand-400' : 'text-brand-600'}`}>ডিজিটাল কারিগর</span></>,
+      en: <>Building a Smart & <br className="hidden md:block"/> <span className={`${settings.heroSliderActive ? 'text-brand-400' : 'text-brand-600'}`}>Digital Dream Bangladesh</span></>
     }
   ];
 
   useEffect(() => {
-    const interval = setInterval(() => {
+    const headlineInterval = setInterval(() => {
       setCurrentHeadlineIndex((prev) => (prev + 1) % headlines.length);
     }, 6000); 
-    return () => clearInterval(interval);
-  }, []);
+    
+    let heroInterval: any;
+    if (settings.heroSliderActive && settings.heroImages?.length > 0) {
+      heroInterval = setInterval(() => {
+        setCurrentHeroIndex((prev) => (prev + 1) % settings.heroImages.length);
+      }, 5000);
+    }
+    
+    return () => {
+      clearInterval(headlineInterval);
+      if (heroInterval) clearInterval(heroInterval);
+    };
+  }, [settings.heroSliderActive, settings.heroImages]);
 
   const scrollToSection = (id: string) => {
     document.getElementById(id)?.scrollIntoView({ behavior: 'smooth' });
@@ -114,20 +128,37 @@ export const LandingPage: React.FC<Props> = ({
     <div className="min-h-screen bg-white font-sans text-gray-900 flex flex-col">
       {/* Hero Section */}
       {sections.hero && (
-        <div className="relative overflow-hidden bg-gradient-to-br from-brand-50 via-white to-brand-50 pt-20 pb-32">
+        <div className="relative overflow-hidden pt-20 pb-32 min-h-[600px] flex items-center">
+          {/* Background Slider */}
+          {settings.heroSliderActive && settings.heroImages?.length > 0 ? (
+            <div className="absolute inset-0 z-0">
+              {settings.heroImages.map((img, idx) => (
+                <div 
+                  key={idx}
+                  className={`absolute inset-0 transition-opacity duration-1000 ease-in-out ${idx === currentHeroIndex ? 'opacity-100' : 'opacity-0'}`}
+                >
+                  <img src={img} alt="Hero Slider" className="w-full h-full object-cover" />
+                  <div className="absolute inset-0 bg-black/50"></div>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="absolute inset-0 bg-gradient-to-br from-brand-50 via-white to-brand-50 z-0"></div>
+          )}
+
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 text-center">
-            <span className="inline-block py-2 px-4 rounded-full bg-white border border-brand-100 text-brand-700 text-sm font-semibold mb-8 shadow-sm animate-fade-in-up">
+            <span className={`inline-block py-2 px-4 rounded-full border text-sm font-semibold mb-8 shadow-sm animate-fade-in-up ${settings.heroSliderActive ? 'bg-white/10 text-white border-white/20 backdrop-blur-md' : 'bg-white border-brand-100 text-brand-700'}`}>
               🚀 {isBangla ? 'ডিজিটাল বাংলাদেশের এক নতুন দিগন্ত' : 'A New Horizon for Digital Bangladesh'}
             </span>
             
             <h1 
               key={currentHeadlineIndex}
-              className="text-4xl md:text-6xl lg:text-7xl font-bold text-gray-900 mb-8 leading-tight tracking-tight animate-fade-in min-h-[120px] md:min-h-[160px]"
+              className={`text-4xl md:text-6xl lg:text-7xl font-bold mb-8 leading-tight tracking-tight animate-fade-in min-h-[120px] md:min-h-[160px] ${settings.heroSliderActive ? 'text-white drop-shadow-xl' : 'text-gray-900'}`}
             >
               {isBangla ? headlines[currentHeadlineIndex].bn : headlines[currentHeadlineIndex].en}
             </h1>
 
-            <p className="text-xl text-gray-600 mb-10 max-w-3xl mx-auto leading-relaxed">
+            <p className={`text-xl mb-10 max-w-3xl mx-auto leading-relaxed ${settings.heroSliderActive ? 'text-gray-200' : 'text-gray-600'}`}>
               {isBangla 
                 ? 'স্বপ্ন দেখুন, গড়ুন আগামীর বাংলাদেশ। কারুশিল্প থেকে কৃষি, স্বাস্থ্য থেকে শিক্ষা—সব সেবা এখন আপনার হাতের মুঠোয়।'
                 : 'Dream it, build it. From heritage crafts to smart agriculture, health to education—access all essential services at your fingertips.'}
@@ -143,7 +174,7 @@ export const LandingPage: React.FC<Props> = ({
                 {isBangla ? 'Mithu - Ai' : 'Mithu - Ai'} 
               </Button>
 
-              <Button onClick={() => scrollToSection('about')} variant="outline" size="lg" className="text-lg px-10 py-4 bg-white border-gray-300 hover:bg-gray-50 w-full sm:w-auto">
+              <Button onClick={() => scrollToSection('about')} variant="outline" size="lg" className={`text-lg px-10 py-4 w-full sm:w-auto ${settings.heroSliderActive ? 'bg-white/10 text-white border-white/30 hover:bg-white/20' : 'bg-white border-gray-300 hover:bg-gray-50'}`}>
                 {isBangla ? 'আরও জানুন' : 'Learn More'}
               </Button>
             </div>

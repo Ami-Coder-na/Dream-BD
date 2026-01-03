@@ -299,6 +299,7 @@ export const AdminWebsiteManage = () => {
   const logoInputRef = useRef<HTMLInputElement>(null);
   const faviconInputRef = useRef<HTMLInputElement>(null);
   const galleryInputRefs = [useRef<HTMLInputElement>(null), useRef<HTMLInputElement>(null), useRef<HTMLInputElement>(null), useRef<HTMLInputElement>(null)];
+  const heroInputRefs = [useRef<HTMLInputElement>(null), useRef<HTMLInputElement>(null), useRef<HTMLInputElement>(null), useRef<HTMLInputElement>(null)];
 
   const [dbUrl, setDbUrl] = useState(localStorage.getItem('dream_sb_url') || '');
   const [dbKey, setDbKey] = useState(localStorage.getItem('dream_sb_key') || '');
@@ -310,6 +311,7 @@ export const AdminWebsiteManage = () => {
   const [isUploadingFavicon, setIsUploadingFavicon] = useState(false);
   const [isSeeding, setIsSeeding] = useState(false);
   const [uploadingGalleryIdx, setUploadingGalleryIdx] = useState<number | null>(null);
+  const [uploadingHeroIdx, setUploadingHeroIdx] = useState<number | null>(null);
 
   useEffect(() => {
       if (isSupabaseConfigured) {
@@ -394,6 +396,23 @@ export const AdminWebsiteManage = () => {
         console.error("Gallery upload failed", err);
       } finally {
         setUploadingGalleryIdx(null);
+      }
+    }
+  };
+
+  const handleHeroUpload = async (e: React.ChangeEvent<HTMLInputElement>, index: number) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setUploadingHeroIdx(index);
+      try {
+        const compressed = await compressImage(file);
+        const currentHero = [...(settings.heroImages || [])];
+        currentHero[index] = compressed;
+        updateSettings('heroImages', currentHero);
+      } catch (err) {
+        console.error("Hero upload failed", err);
+      } finally {
+        setUploadingHeroIdx(null);
       }
     }
   };
@@ -506,6 +525,42 @@ export const AdminWebsiteManage = () => {
         </div>
       </div>
 
+      {/* Hero Slider Management */}
+      <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+        <div className="p-6 border-b border-gray-100 bg-gray-50 flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <ImageIcon className="text-brand-600" />
+            <h3 className="text-xl font-bold text-gray-900">Hero Slider Images</h3>
+          </div>
+          <ToggleSwitch 
+            label="Enable Hero Slider" 
+            checked={settings.heroSliderActive} 
+            onChange={() => updateSettings('heroSliderActive', !settings.heroSliderActive)}
+            color="bg-brand-600"
+          />
+        </div>
+        <div className="p-8 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+          {(settings.heroImages || []).map((img, idx) => (
+            <div key={idx} className="space-y-3">
+              <div className="aspect-video rounded-2xl border-2 border-dashed border-gray-200 bg-gray-50 overflow-hidden relative group">
+                <img src={img} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+                <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                  <button 
+                    onClick={() => heroInputRefs[idx].current?.click()}
+                    className="bg-white text-gray-900 px-4 py-2 rounded-xl font-bold text-sm shadow-xl flex items-center gap-2 hover:bg-teal-50"
+                  >
+                    {uploadingHeroIdx === idx ? <Loader2 className="animate-spin" size={16} /> : <Upload size={16} />}
+                    {uploadingHeroIdx === idx ? 'Processing' : 'Replace'}
+                  </button>
+                </div>
+                <span className="absolute top-2 left-2 bg-brand-600 text-white text-[10px] font-black px-2 py-1 rounded shadow-md uppercase tracking-widest">Hero {idx + 1}</span>
+              </div>
+              <input type="file" ref={heroInputRefs[idx]} className="hidden" accept="image/*" onChange={(e) => handleHeroUpload(e, idx)} />
+            </div>
+          ))}
+        </div>
+      </div>
+
       <div className="grid grid-cols-1 lg:grid-cols-1 gap-8">
         <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
           <div className="p-6 border-b border-gray-100 bg-gray-50 flex items-center justify-between">
@@ -543,7 +598,7 @@ export const AdminWebsiteManage = () => {
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         <div className="lg:col-span-1 space-y-8">
-          <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-6">
+          <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
             <h3 className="text-lg font-bold text-gray-900 mb-6 flex items-center gap-2">
               <Power className="text-red-500" /> System Controls
             </h3>
@@ -599,7 +654,7 @@ export const AdminWebsiteManage = () => {
                       <Button onClick={() => logoInputRef.current?.click()} variant="outline" size="sm" className="text-xs px-2 py-1">
                         {isUploadingLogo ? '...' : 'Upload Logo'}
                       </Button>
-                      <input type="file" ref={logoInputRef} className="hidden" accept="image/*" onChange={handleLogoUpload} />
+                      <input type="file" logoInputRef={logoInputRef} className="hidden" accept="image/*" onChange={handleLogoUpload} />
                     </div>
                   </div>
                   <div>
