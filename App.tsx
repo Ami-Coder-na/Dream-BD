@@ -1,6 +1,6 @@
 
 import React, { useState, Suspense, lazy, useEffect } from 'react';
-import { User, AppModule, Notification } from './types';
+import { User, AppModule, UserRole, Notification } from './types';
 import { GeminiAssistant } from './components/GeminiAssistant';
 import { LandingPage } from './components/LandingPage';
 import { AiChatPage } from './components/AiChatPage';
@@ -86,8 +86,11 @@ const App: React.FC = () => {
   const [authView, setAuthView] = useState<'none' | 'login' | 'signup'>('none');
 
   useEffect(() => {
-    // Log the visit on initial mount
-    logVisit();
+    // Only log visit if not an admin or on admin route
+    const isAdmin = user?.role === UserRole.ADMIN || window.location.pathname === '/adminrm';
+    if (!isAdmin) {
+      logVisit();
+    }
 
     window.scrollTo({ top: 0, behavior: 'instant' });
     
@@ -102,7 +105,7 @@ const App: React.FC = () => {
 
     window.addEventListener('popstate', handlePopState);
     return () => window.removeEventListener('popstate', handlePopState);
-  }, []);
+  }, [user]);
 
   const handleLoginSuccess = (loggedInUser: User) => {
     localStorage.setItem(SESSION_KEY, JSON.stringify({ user: loggedInUser, timestamp: Date.now() }));

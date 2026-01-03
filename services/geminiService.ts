@@ -23,35 +23,38 @@ export const generateAssistantResponse = async (
     
     Current User Context: ${context}.`;
 
-    // Upgrading to Pro for significantly better reasoning and accuracy
-    const modelName = 'gemini-3-pro-preview';
+    // Using Flash for significantly better reliability and speed in production
+    const modelName = 'gemini-3-flash-preview';
     
-    // Create chat with system instruction and thinking budget in config
-    const chat = ai.chats.create({
-      model: modelName,
-      config: {
-        systemInstruction: systemInstruction,
-        temperature: 0.8,
-        // High thinking budget for more accurate and reasoned results
-        thinkingConfig: { thinkingBudget: 16384 },
-      },
-      history: history
-    });
+    // Construct contents from history
+    // IMPORTANT: History must start with 'user' role for Gemini API
+    let contents = history.map(h => ({
+      role: h.role === 'model' ? 'model' : 'user',
+      parts: h.parts
+    }));
 
-    // Prepare message which can be a string or Content object with parts
-    let message: any = prompt;
-    if (attachment) {
-      message = {
-        parts: [
-          { text: prompt },
-          { inlineData: { mimeType: attachment.mimeType, data: attachment.data } }
-        ]
-      };
+    // Ensure the first message is from 'user'
+    if (contents.length > 0 && contents[0].role === 'model') {
+      contents.shift();
     }
 
-    // Call sendMessage with the message parameter
-    const response: GenerateContentResponse = await chat.sendMessage({
-      message: message
+    // Add current message
+    const currentParts: any[] = [{ text: prompt }];
+    if (attachment) {
+      currentParts.push({ inlineData: attachment });
+    }
+    contents.push({ role: 'user', parts: currentParts });
+
+    // Use generateContent for more stateless and robust connection in browser
+    const response = await ai.models.generateContent({
+      model: modelName,
+      contents: contents,
+      config: {
+        systemInstruction: systemInstruction,
+        temperature: 0.7,
+        // Disable thinking to prioritize speed and avoid timeouts
+        thinkingConfig: { thinkingBudget: 0 },
+      },
     });
 
     // Access .text property directly (not a method)
@@ -63,7 +66,7 @@ export const generateAssistantResponse = async (
 };
 
 /**
- * Specialized function for Agricultural Image Analysis with Pro model accuracy
+ * Specialized function for Agricultural Image Analysis
  */
 export const analyzePlantDisease = async (
   base64Data: string,
@@ -71,8 +74,8 @@ export const analyzePlantDisease = async (
   isBangla: boolean
 ): Promise<{ disease: string; severity: string; solution: string; isPlant: boolean }> => {
   try {
-    // Upgrading to Pro for high-accuracy scientific diagnosis
-    const modelName = 'gemini-3-pro-preview';
+    // Using Flash for high-speed analysis
+    const modelName = 'gemini-3-flash-preview';
     
     const systemInstruction = `You are an elite Agricultural Scientist and Plant Pathologist specialized in crops of Bangladesh (Rice, Jute, Mango, Tea, Potato, etc.).
     
@@ -91,7 +94,6 @@ export const analyzePlantDisease = async (
       ? "এই কৃষি ছবিটি গভীরভাবে বিশ্লেষণ করুন। রোগের নাম, ভয়াবহতা এবং প্রতিকার সম্পর্কে বিস্তারিত তথ্য দিন। যদি এটি গাছ বা ফসলের ছবি না হয় তবে 'NOT_AGRICULTURAL' বলুন।" 
       : "Deeply analyze this agricultural image. Provide the disease name, severity level, and a detailed step-by-step solution. If it's not a plant/crop, say 'NOT_AGRICULTURAL'.";
 
-    // Use models.generateContent with responseSchema and thinkingConfig
     const response = await ai.models.generateContent({
       model: modelName,
       contents: {
@@ -103,8 +105,7 @@ export const analyzePlantDisease = async (
       config: {
         systemInstruction: systemInstruction,
         responseMimeType: "application/json",
-        // Enable reasoning for diagnosis accuracy
-        thinkingConfig: { thinkingBudget: 16384 },
+        thinkingConfig: { thinkingBudget: 0 },
         responseSchema: {
           type: Type.OBJECT,
           properties: {
@@ -118,7 +119,6 @@ export const analyzePlantDisease = async (
       }
     });
 
-    // Access .text property directly (not a method)
     const text = response.text?.trim() || "";
     
     if (text.includes("NOT_AGRICULTURAL")) {

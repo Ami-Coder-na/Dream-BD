@@ -338,6 +338,8 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   };
 
   const logVisit = async () => {
+    if (sessionStorage.getItem('visited_this_session')) return; // Prevent double counting in same session
+    
     const todayStr = new Date().toDateString();
     const savedDate = localStorage.getItem('last_visit_date');
     
@@ -350,6 +352,7 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     localStorage.setItem('total_visitors', newTotal.toString());
     localStorage.setItem('today_visitors', newToday.toString());
     localStorage.setItem('last_visit_date', todayStr);
+    sessionStorage.setItem('visited_this_session', 'true');
 
     if (isSupabaseConfigured) {
       await supabase.from('app_config').upsert({ 
@@ -516,7 +519,7 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   };
 
   return (
-    <    DataContext.Provider value={{ 
+    <DataContext.Provider value={{ 
       jobs, blogs, requests, blogRequests, wholesaleRequests, grievances, users, messages, donors, marketPrices, retailProducts, wholesaleAds, lawyers, exchangeRates, vocationalCourses, enrolledCourses, districts, donorViewLogs, diseases, aboutUs, privacyPolicy, termsConditions, faqs, poets,
       addPoet, updatePoet, deletePoet,
       addRequest, addGrievance, updateGrievanceStatus, deleteGrievance, addMessage, markMessageRead, deleteMessage, enrollCourse, seedDistricts, updateDistrict, deleteDistrict, addDonorViewLog, addDisease, updateDisease, deleteDisease, updateAboutUs, updatePrivacyPolicy, updateTermsConditions, updateFaqs,
