@@ -147,29 +147,30 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const [todayVisitors, setTodayVisitors] = useState<number>(() => parseInt(localStorage.getItem('today_visitors') || '1'));
 
   const fetchData = async () => {
-    setJobs(getLocal('db_jobs', []));
-    setBlogs(getLocal('db_blogs', []));
-    setRequests(getLocal('db_requests', []));
-    setBlogRequests(getLocal('db_blog_requests', []));
-    setWholesaleRequests(getLocal('db_wholesale_requests', []));
-    setDistricts(getLocal('db_districts', []).map(normalizeDistrict));
-    setDonorViewLogs(getLocal('db_donor_view_logs', []).map(normalizeLog).filter(Boolean));
-    setDonors(getLocal('db_donors', []));
-    setGrievances(getLocal('db_grievances', []));
-    setMessages(getLocal('db_contact_messages', []));
-    setWholesaleAds(getLocal('db_wholesale_ads', []));
-    setLawyers(getLocal('db_lawyers', []));
-    setMarketPrices(getLocal('db_market_prices', []));
-    setRetailProducts(getLocal('db_retail_products', []));
-    setExchangeRates(getLocal('db_exchange_rates', []));
-    setVocationalCourses(getLocal('db_vocational_courses', []));
-    setUsers(getLocal('db_users', []).map(normalizeUser));
-    setDiseases(getLocal('db_diseases', []));
-    setCraftProducts(getLocal('db_craft_products', INITIAL_CRAFTS));
-    setPoets(getLocal('db_poets', INITIAL_POETS));
-    setPaymentRequests(getLocal('db_payment_requests', []));
-    
-    if (!isSupabaseConfigured) return;
+    if (!isSupabaseConfigured) {
+      setJobs(getLocal('db_jobs', []));
+      setBlogs(getLocal('db_blogs', []));
+      setRequests(getLocal('db_requests', []));
+      setBlogRequests(getLocal('db_blog_requests', []));
+      setWholesaleRequests(getLocal('db_wholesale_requests', []));
+      setDistricts(getLocal('db_districts', []).map(normalizeDistrict));
+      setDonorViewLogs(getLocal('db_donor_view_logs', []).map(normalizeLog).filter(Boolean));
+      setDonors(getLocal('db_donors', []));
+      setGrievances(getLocal('db_grievances', []));
+      setMessages(getLocal('db_contact_messages', []));
+      setWholesaleAds(getLocal('db_wholesale_ads', []));
+      setLawyers(getLocal('db_lawyers', []));
+      setMarketPrices(getLocal('db_market_prices', []));
+      setRetailProducts(getLocal('db_retail_products', []));
+      setExchangeRates(getLocal('db_exchange_rates', []));
+      setVocationalCourses(getLocal('db_vocational_courses', []));
+      setUsers(getLocal('db_users', []).map(normalizeUser));
+      setDiseases(getLocal('db_diseases', []));
+      setCraftProducts(getLocal('db_craft_products', INITIAL_CRAFTS));
+      setPoets(getLocal('db_poets', INITIAL_POETS));
+      setPaymentRequests(getLocal('db_payment_requests', []));
+      return;
+    }
 
     try {
       const { data: configData } = await supabase.from('app_config').select('*');
@@ -201,11 +202,13 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       }
 
       const loadTable = async (name: string, setter: any, normalizer?: any) => {
-        const { data, error } = await supabase.from(name).select('*').order('created_at', { ascending: false });
+        const { data } = await supabase.from(name).select('*').order('created_at', { ascending: false });
         if (data && data.length > 0) {
           const normalizedData = normalizer ? data.map(normalizer).filter(Boolean) : data;
           setter(normalizedData);
           localStorage.setItem(`db_${name}`, JSON.stringify(normalizedData));
+        } else {
+          setter([]);
         }
       };
 
@@ -263,6 +266,27 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       };
     }
   }, []);
+
+  const updateDistrict = async (district: any) => {
+    // Optimistically update local state for immediate reflection
+    const normalized = normalizeDistrict(district);
+    setDistricts(prev => {
+        const index = prev.findIndex(d => d.id === district.id);
+        if (index !== -1) {
+            const newList = [...prev];
+            newList[index] = normalized;
+            return newList;
+        } else {
+            return [normalized, ...prev];
+        }
+    });
+
+    if (isSupabaseConfigured) {
+        await supabase.from('districts').upsert(district);
+    }
+    // Deep sync
+    await fetchData();
+  };
 
   const addCraftProduct = async (prod: any) => {
     const updated = [prod, ...craftProducts];
@@ -412,11 +436,6 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     setMarketPrices(prices);
     localStorage.setItem('db_market_prices', JSON.stringify(prices));
     if (isSupabaseConfigured) await supabase.from('market_prices').upsert(prices as any);
-  };
-
-  const updateDistrict = async (district: any) => {
-    if (isSupabaseConfigured) await supabase.from('districts').upsert(district);
-    await fetchData();
   };
 
   const seedDistricts = async () => {
