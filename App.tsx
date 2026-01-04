@@ -86,6 +86,19 @@ const App: React.FC = () => {
   const [authView, setAuthView] = useState<'none' | 'login' | 'signup'>('none');
 
   useEffect(() => {
+    // Update Favicon
+    if (settings.websiteFavicon) {
+      let link: HTMLLinkElement | null = document.querySelector("link[rel~='icon']");
+      if (!link) {
+        link = document.createElement('link');
+        link.rel = 'icon';
+        document.getElementsByTagName('head')[0].appendChild(link);
+      }
+      link.href = settings.websiteFavicon;
+    }
+  }, [settings.websiteFavicon]);
+
+  useEffect(() => {
     // Only log visit if not an admin or on admin route
     const isAdmin = user?.role === UserRole.ADMIN || window.location.pathname === '/adminrm';
     if (!isAdmin) {
@@ -233,12 +246,14 @@ const App: React.FC = () => {
             onNavigateHome={() => { setActiveModule('LANDING'); setShowAiChat(false); }} onModuleSelect={handleModuleSelect}
           />
         )}
-        <GeminiAssistant 
-          currentModule={activeModule as AppModule} 
-          isBangla={isBangla} 
-          user={user}
-          onLogin={() => setAuthView('login')}
-        />
+        {!showAiChat && (
+          <GeminiAssistant 
+            currentModule={activeModule as AppModule} 
+            isBangla={isBangla} 
+            user={user}
+            onLogin={() => setAuthView('login')}
+          />
+        )}
         <ScrollToTop />
       </div>
     </ErrorBoundary>

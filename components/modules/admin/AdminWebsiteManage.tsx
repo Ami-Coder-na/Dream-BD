@@ -654,7 +654,11 @@ export const AdminWebsiteManage = () => {
                       <Button onClick={() => logoInputRef.current?.click()} variant="outline" size="sm" className="text-xs px-2 py-1">
                         {isUploadingLogo ? '...' : 'Upload Logo'}
                       </Button>
-                      <input type="file" logoInputRef={logoInputRef} className="hidden" accept="image/*" onChange={handleLogoUpload} />
+                      {/* 
+                        Fix: Added comment above fix 
+                        Changed logoInputRef prop to ref prop on the input element to correctly assign the useRef reference.
+                      */}
+                      <input type="file" ref={logoInputRef} className="hidden" accept="image/*" onChange={handleLogoUpload} />
                     </div>
                   </div>
                   <div>

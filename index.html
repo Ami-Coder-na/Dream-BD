@@ -69,7 +69,7 @@
     </script>
 
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@300;400;500;600;700&family=Noto+Sans+Bengali:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="preconnect" href="https://images.unsplash.com" />
     <script>
       window.process = window.process || { env: { NODE_ENV: 'development' } };
@@ -92,7 +92,7 @@
               }
             },
             fontFamily: {
-              sans: ['"Hind Siliguri"', 'sans-serif'],
+              sans: ['"Noto Sans Bengali"', '"Hind Siliguri"', 'sans-serif'],
             },
             animation: {
               'fade-in': 'fadeIn 0.5s ease-out',
@@ -120,6 +120,11 @@
       }
     </script>
     <style>
+      body {
+        text-rendering: optimizeLegibility;
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+      }
       ::-webkit-scrollbar {
         width: 8px;
         height: 8px;

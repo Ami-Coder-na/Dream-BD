@@ -359,8 +359,15 @@ export const AiChatPage: React.FC<AiChatPageProps> = ({ onBack, isBangla }) => {
 
       {/* PRICING & PAYMENT MODAL */}
       {showPricing && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/70 backdrop-blur-md animate-fade-in" onClick={() => { setShowPricing(false); setPaymentStep('plans'); }}>
-          <div className="bg-white w-full max-w-4xl rounded-[2.5rem] shadow-2xl overflow-hidden animate-fade-in-up" onClick={e => e.stopPropagation()}>
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/70 backdrop-blur-md animate-fade-in">
+          <div className="bg-white w-full max-w-4xl rounded-[2.5rem] shadow-2xl overflow-hidden animate-fade-in-up relative" onClick={e => e.stopPropagation()}>
+            {/* Close Button Added */}
+            <button 
+              onClick={() => { setShowPricing(false); setPaymentStep('plans'); }}
+              className="absolute top-6 right-8 p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-full transition-all z-[110]"
+            >
+              <XIcon size={24} />
+            </button>
             
             {/* Step 1: Select Plan */}
             {paymentStep === 'plans' && (
