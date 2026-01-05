@@ -5,7 +5,7 @@ import {
   LogOut, Shield, Bell, FileText, ShoppingBag, Trash2, AlertOctagon, 
   Clock, DollarSign, Mail, Key, EyeOff, Eye, ChevronDown, UserPlus, FilePlus, AlertTriangle,
   Globe, Sparkles, Monitor, RefreshCw, CheckCircle, BarChart3, TrendingUp, Inbox, Droplets, PlusCircle, Briefcase,
-  ArrowUpRight, Zap, HeartPulse, Info, Gavel, HelpCircle, Feather, Crown
+  ArrowUpRight, Zap, HeartPulse, Info, Gavel, HelpCircle, Feather, Crown, FileCheck
 } from 'lucide-react';
 import { AdminUsers } from './admin/AdminUsers';
 import { AdminContent } from './admin/AdminContent';
@@ -35,7 +35,7 @@ interface Props {
 type AdminSection = 'overview' | 'website-manage' | 'users' | 'content' | 'inbox' | 'module-config' | 'market' | 'grievance' | 'emergency' | 'settings' | 'blood-logs' | 'diseases' | 'about' | 'legal' | 'faqs' | 'poets' | 'subscriptions';
 
 export const AdminModule: React.FC<Props> = ({ isBangla, onExit }) => {
-  const { requests, totalVisitors, todayVisitors, messages, donorViewLogs, users } = useData();
+  const { requests, totalVisitors, todayVisitors, messages, donorViewLogs, users, totalCvGenerated, todayCvGenerated } = useData();
 
   const SESSION_KEY = 'digital_desh_bd_admin_session';
   const SESSION_DURATION = 12 * 60 * 60 * 1000;
@@ -175,6 +175,30 @@ export const AdminModule: React.FC<Props> = ({ isBangla, onExit }) => {
             </div>
             <div className="p-4 rounded-2xl bg-blue-50 text-blue-600 group-hover:bg-blue-100 transition-colors">
                 <Users size={24} />
+            </div>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm flex items-center justify-between group hover:shadow-md transition-all">
+            <div>
+                <p className="text-gray-500 text-xs font-bold uppercase tracking-wider">Total CV Generated</p>
+                <h3 className="text-3xl font-bold text-gray-900 mt-2">{totalCvGenerated.toLocaleString()}</h3>
+                <p className="text-brand-600 text-xs font-bold mt-1 flex items-center gap-1"><TrendingUp size={10} /> Real-time</p>
+            </div>
+            <div className="p-4 rounded-2xl bg-brand-50 text-brand-600 group-hover:bg-brand-100 transition-colors">
+                <FileCheck size={24} />
+            </div>
+        </div>
+
+        <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm flex items-center justify-between group hover:shadow-md transition-all">
+            <div>
+                <p className="text-gray-500 text-xs font-bold uppercase tracking-wider">Today CV Generated</p>
+                <h3 className="text-3xl font-bold text-gray-900 mt-2">{todayCvGenerated.toLocaleString()}</h3>
+                <p className="text-brand-600 text-xs font-bold mt-1 flex items-center gap-1"><Activity size={10} /> Live Stats</p>
+            </div>
+            <div className="p-4 rounded-2xl bg-brand-50 text-brand-600 group-hover:bg-brand-100 transition-colors">
+                <FilePlus size={24} />
             </div>
         </div>
       </div>

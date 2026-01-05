@@ -151,6 +151,9 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
   const [totalVisitors, setTotalVisitors] = useState<number>(() => parseInt(localStorage.getItem('total_visitors') || '1250'));
   const [todayVisitors, setTodayVisitors] = useState<number>(() => parseInt(localStorage.getItem('today_visitors') || '1'));
+  
+  const [totalCvGenerated, setTotalCvGenerated] = useState<number>(() => parseInt(localStorage.getItem('total_cv_generated') || '0'));
+  const [todayCvGenerated, setTodayCvGenerated] = useState<number>(() => parseInt(localStorage.getItem('today_cv_generated') || '0'));
 
   const fetchData = async () => {
     if (!isSupabaseConfigured) {
@@ -175,6 +178,8 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       setCraftProducts(getLocal('db_craft_products', INITIAL_CRAFTS));
       setPoets(getLocal('db_poets', INITIAL_POETS));
       setPaymentRequests(getLocal('db_payment_requests', []));
+      setTotalCvGenerated(parseInt(localStorage.getItem('total_cv_generated') || '0'));
+      setTodayCvGenerated(parseInt(localStorage.getItem('today_cv_generated') || '0'));
       return;
     }
 
@@ -204,6 +209,18 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
           } else {
             setTodayVisitors(1);
           }
+        }
+
+        const cvData = configData.find(i => i.key === 'cv_stats');
+        if (cvData) {
+            const stats = cvData.value;
+            const todayStr = new Date().toLocaleDateString('en-GB');
+            setTotalCvGenerated(stats.total || 0);
+            if (stats.lastDate === todayStr) {
+                setTodayCvGenerated(stats.today || 0);
+            } else {
+                setTodayCvGenerated(0);
+            }
         }
       }
 
@@ -247,7 +264,7 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     fetchData();
 
     if (isSupabaseConfigured) {
-      const channel = supabase
+      const visitorChannel = supabase
         .channel('visitor-updates')
         .on('postgres_changes', 
           { event: 'UPDATE', schema: 'public', table: 'app_config', filter: 'key=eq.visitor_stats' }, 
@@ -266,11 +283,60 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         )
         .subscribe();
 
+      const cvChannel = supabase
+        .channel('cv-updates')
+        .on('postgres_changes', 
+          { event: 'UPDATE', schema: 'public', table: 'app_config', filter: 'key=eq.cv_stats' }, 
+          (payload) => {
+            if (payload.new && payload.new.value) {
+               const stats = payload.new.value;
+               const todayStr = new Date().toLocaleDateString('en-GB');
+               setTotalCvGenerated(stats.total);
+               if (stats.lastDate === todayStr) {
+                 setTodayCvGenerated(stats.today);
+               } else {
+                 setTodayCvGenerated(0);
+               }
+            }
+          }
+        )
+        .subscribe();
+
       return () => {
-        supabase.removeChannel(channel);
+        supabase.removeChannel(visitorChannel);
+        supabase.removeChannel(cvChannel);
       };
     }
   }, []);
+
+  const logCvGeneration = async () => {
+    const todayStr = new Date().toLocaleDateString('en-GB');
+    let stats = { total: totalCvGenerated, today: todayCvGenerated, lastDate: localStorage.getItem('last_cv_date') || '' };
+
+    if (isSupabaseConfigured) {
+      const { data } = await supabase.from('app_config').select('value').eq('key', 'cv_stats').single();
+      if (data && data.value) {
+        stats = data.value;
+      }
+    }
+
+    const newTotal = (stats.total || 0) + 1;
+    const newToday = (stats.lastDate === todayStr) ? (stats.today || 0) + 1 : 1;
+
+    setTotalCvGenerated(newTotal);
+    setTodayCvGenerated(newToday);
+    
+    localStorage.setItem('total_cv_generated', newTotal.toString());
+    localStorage.setItem('today_cv_generated', newToday.toString());
+    localStorage.setItem('last_cv_date', todayStr);
+
+    if (isSupabaseConfigured) {
+      await supabase.from('app_config').upsert({ 
+        key: 'cv_stats', 
+        value: { total: newTotal, today: newToday, lastDate: todayStr } 
+      });
+    }
+  };
 
   const updateDistrict = async (district: any) => {
     const normalized = normalizeDistrict(district);
@@ -655,7 +721,7 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   return (
     <DataContext.Provider value={{ 
       jobs, blogs, requests, blogRequests, wholesaleRequests, grievances, users, messages, donors, marketPrices, retailProducts, wholesaleAds, lawyers, exchangeRates, vocationalCourses, enrolledCourses, districts, donorViewLogs, diseases, aboutUs, privacyPolicy, termsConditions, faqs, poets, craftProducts,
-      pricingPlans, promoCodes, paymentRequests, updatePricingPlans, updatePromoCodes, addPaymentRequest, handlePaymentAction,
+      pricingPlans, promoCodes, paymentRequests, totalCvGenerated, todayCvGenerated, updatePricingPlans, updatePromoCodes, addPaymentRequest, handlePaymentAction, logCvGeneration,
       addPoet, updatePoet, deletePoet, addCraftProduct, updateCraftProduct, deleteCraftProduct,
       addRequest, addGrievance, updateGrievanceStatus, deleteGrievance, addMessage, markMessageRead, deleteMessage, enrollCourse, seedDistricts, updateDistrict, deleteDistrict, addDonorViewLog, addDisease, updateDisease, deleteDisease, updateAboutUs, updatePrivacyPolicy, updateTermsConditions, updateFaqs,
       addUser, updateUserStatus, deleteUser, updateMarketPrices, addJob, updateJob, deleteJob, addBlog, updateBlog, deleteBlog, handleRequestAction,

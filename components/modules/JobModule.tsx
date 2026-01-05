@@ -1,5 +1,11 @@
-import React, { useState, useMemo } from 'react';
-import { Briefcase, MapPin, Clock, DollarSign, Search, X, CheckCircle, Calendar, Building2, Filter, ChevronDown, RefreshCw, PlusCircle, Send, Globe, Info } from 'lucide-react';
+
+import React, { useState, useMemo, useRef } from 'react';
+import { 
+  Briefcase, MapPin, Clock, DollarSign, Search, X, CheckCircle, Calendar, 
+  Building2, Filter, ChevronDown, RefreshCw, PlusCircle, Send, Globe, 
+  Info, FileText, Download, User as UserIcon, Mail, Phone, Link as LinkIcon,
+  Trash2, Plus, Layout, Type as TypeIcon, Camera, Globe2
+} from 'lucide-react';
 import { Button } from '../ui/Button';
 import { useData } from '../../contexts/DataContext';
 import { User } from '../../types';
@@ -14,7 +20,35 @@ type JobCategory = 'Government' | 'Private' | 'NGO' | 'International' | 'Autonom
 type JobType = 'Full Time' | 'Part Time' | 'Contract' | 'Remote';
 type JobLevel = 'Entry' | 'Mid' | 'Senior';
 
-// Translations for categories
+// CV Types
+interface CvExperience {
+  company: string;
+  role: string;
+  period: string;
+  desc: string;
+}
+
+interface CvEducation {
+  school: string;
+  degree: string;
+  year: string;
+}
+
+interface CvData {
+  name: string;
+  title: string;
+  email: string;
+  phone: string;
+  address: string;
+  dob: string;
+  website: string;
+  image: string | null;
+  summary: string;
+  experience: CvExperience[];
+  education: CvEducation[];
+  skills: string[];
+}
+
 const categoryLabels: Record<string, { bn: string; en: string }> = {
   'Government': { bn: 'সরকারি', en: 'Government' },
   'Autonomous': { bn: 'স্বায়ত্বশাসিত', en: 'Autonomous' },
@@ -26,7 +60,7 @@ const categoryLabels: Record<string, { bn: string; en: string }> = {
 };
 
 export const JobModule: React.FC<Props> = ({ isBangla, user, onLogin }) => {
-  const { jobs, addRequest } = useData();
+  const { jobs, addRequest, logCvGeneration } = useData();
   const [selectedJob, setSelectedJob] = useState<any | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
   
@@ -36,8 +70,30 @@ export const JobModule: React.FC<Props> = ({ isBangla, user, onLogin }) => {
   const [selectedLevels, setSelectedLevels] = useState<JobLevel[]>([]);
   const [showMobileFilters, setShowMobileFilters] = useState(false);
 
-  // Post Job States
+  // Modal States
   const [showPostModal, setShowPostModal] = useState(false);
+  const [showCvModal, setShowCvModal] = useState(false);
+  const [cvStep, setCvStep] = useState(1);
+  const [cvTemplate, setCvTemplate] = useState<'executive' | 'modern' | 'classic'>('executive');
+
+  const cvPhotoInputRef = useRef<HTMLInputElement>(null);
+
+  // CV Form Data
+  const [cvData, setCvData] = useState<CvData>({
+    name: user?.name || '',
+    title: '',
+    email: user?.email || '',
+    phone: '',
+    address: '',
+    dob: '',
+    website: '',
+    image: user?.avatar || null,
+    summary: '',
+    experience: [{ company: '', role: '', period: '', desc: '' }],
+    education: [{ school: '', degree: '', year: '' }],
+    skills: ['']
+  });
+
   const [postSubmitted, setPostSubmitted] = useState(false);
   const [newJobData, setNewJobData] = useState({
       title: '',
@@ -90,6 +146,26 @@ export const JobModule: React.FC<Props> = ({ isBangla, user, onLogin }) => {
       setPostSubmitted(false);
   };
 
+  const handleCvGeneratorClick = () => {
+      if (!user) {
+          if (onLogin) onLogin();
+          return;
+      }
+      setShowCvModal(true);
+      setCvStep(1);
+  };
+
+  const handleCvPhotoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setCvData({ ...cvData, image: reader.result as string });
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
   const handleApplyClick = () => {
       if (!user) {
           if (onLogin) onLogin();
@@ -120,6 +196,16 @@ export const JobModule: React.FC<Props> = ({ isBangla, user, onLogin }) => {
     setNewJobData({ title: '', company: '', description: '', location: '', salary: '', type: 'Full Time', deadline: '' });
   };
 
+  // CV Handlers
+  const addExperience = () => setCvData({ ...cvData, experience: [...cvData.experience, { company: '', role: '', period: '', desc: '' }] });
+  const addEducation = () => setCvData({ ...cvData, education: [...cvData.education, { school: '', degree: '', year: '' }] });
+  const addSkill = () => setCvData({ ...cvData, skills: [...cvData.skills, ''] });
+
+  const handlePrintCv = () => {
+    logCvGeneration(); // Real-time track CV generation
+    window.print();
+  };
+
   const getCategoryColor = (cat: string) => {
     switch (cat) {
       case 'Government': return 'bg-green-100 text-green-800 border-green-200';
@@ -142,8 +228,47 @@ export const JobModule: React.FC<Props> = ({ isBangla, user, onLogin }) => {
   ];
 
   return (
-    <div className="bg-gray-50 min-h-screen py-8 lg:py-12 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-7xl mx-auto">
+    <div className="bg-gray-50 min-h-screen py-8 lg:py-12 px-4 sm:px-6 lg:px-8 print:p-0 print:bg-white">
+      {/* Enhanced Print Only CSS for Perfect PDF Export */}
+      <style>{`
+        @media print {
+          @page {
+            margin: 0;
+            size: A4;
+          }
+          body {
+            margin: 0;
+            padding: 0;
+            height: auto !important;
+            min-height: 100%;
+            background: white !important;
+            visibility: hidden !important;
+          }
+          #root, .fixed, .no-print {
+            display: none !important;
+            visibility: hidden !important;
+          }
+          #cv-paper {
+            visibility: visible !important;
+            display: block !important;
+            position: absolute !important;
+            left: 0 !important;
+            top: 0 !important;
+            width: 210mm !important;
+            min-height: 297mm !important;
+            margin: 0 !important;
+            padding: 15mm !important;
+            box-shadow: none !important;
+            z-index: 99999 !important;
+            background: white !important;
+          }
+          #cv-paper * {
+            visibility: visible !important;
+          }
+        }
+      `}</style>
+
+      <div className="max-w-7xl mx-auto print:max-w-none no-print">
         <div className="text-center mb-10">
           <h1 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
             {isBangla ? 'আপনার স্বপ্নের চাকরি খুঁজুন' : 'Find Your Dream Job'}
@@ -153,19 +278,25 @@ export const JobModule: React.FC<Props> = ({ isBangla, user, onLogin }) => {
               ? 'সরকারি, বেসরকারি, স্বায়ত্বশাসিত এবং এনজিও - সব ধরনের চাকরির বিশাল সমাহার।' 
               : 'Government, Private, Autonomous, and NGO - A vast collection of all types of jobs.'}
           </p>
-          <div className="flex justify-center">
-            <Button onClick={handlePostClick} className="bg-brand-600 hover:bg-brand-700 text-white shadow-lg shadow-brand-600/20 rounded-full px-8 py-3 flex items-center gap-2 text-lg font-bold">
+          <div className="flex flex-col sm:flex-row justify-center gap-4">
+            <Button onClick={handlePostClick} className="bg-brand-600 hover:bg-brand-700 text-white shadow-lg shadow-brand-600/20 rounded-full px-8 py-3 flex items-center justify-center gap-2 text-lg font-bold">
               <PlusCircle size={20} />
               {isBangla ? 'চাকরির পোস্ট দিন' : 'Create Job Post'}
             </Button>
+            <Button onClick={handleCvGeneratorClick} variant="outline" className="bg-white border-brand-500 text-brand-700 shadow-lg rounded-full px-8 py-3 flex items-center justify-center gap-2 text-lg font-bold hover:bg-brand-50">
+              <FileText size={20} />
+              {isBangla ? 'সিভি জেনারেটর' : 'CV Generator'}
+            </Button>
           </div>
         </div>
+
         <div className="lg:hidden mb-4">
           <Button variant="outline" className="w-full flex justify-between items-center bg-white border-gray-200" onClick={() => setShowMobileFilters(!showMobileFilters)}>
             <span className="flex items-center gap-2"><Filter size={18}/> {isBangla ? 'ফিল্টার' : 'Filters'}</span>
             <ChevronDown size={18} className={`transform transition-transform ${showMobileFilters ? 'rotate-180' : ''}`} />
           </Button>
         </div>
+
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-8 items-start">
           <aside className={`lg:block ${showMobileFilters ? 'block' : 'hidden'} lg:sticky lg:top-24 space-y-6 bg-white p-6 rounded-2xl shadow-sm border border-gray-100`}>
             <div className="flex justify-between items-center mb-4">
@@ -229,6 +360,378 @@ export const JobModule: React.FC<Props> = ({ isBangla, user, onLogin }) => {
           </main>
         </div>
       </div>
+
+      {/* CV GENERATOR MODAL */}
+      {showCvModal && (
+        <div className="fixed inset-0 z-50 overflow-y-auto bg-black/70 backdrop-blur-sm animate-fade-in print:relative print:inset-auto print:p-0 print:bg-white print:block">
+          <div className="min-h-screen flex items-center justify-center p-4 md:p-8 print:block print:p-0">
+            <div className="bg-white w-full max-w-6xl rounded-[2.5rem] shadow-2xl overflow-hidden flex flex-col h-full max-h-[90vh] print:max-h-none print:shadow-none print:rounded-none print:h-auto no-print" onClick={e => e.stopPropagation()}>
+              <div className="bg-brand-600 p-6 flex justify-between items-center text-white shrink-0 print:hidden">
+                <div className="flex items-center gap-3">
+                  <FileText size={24} />
+                  <h3 className="font-bold text-xl">{isBangla ? 'প্রফেশনাল সিভি জেনারেটর' : 'Professional CV Generator'}</h3>
+                </div>
+                <div className="flex items-center gap-4">
+                  <div className="hidden md:flex gap-1">
+                    {[1, 2, 3, 4].map(step => (
+                      <div key={step} className={`w-8 h-1.5 rounded-full ${cvStep >= step ? 'bg-white' : 'bg-white/30'}`}></div>
+                    ))}
+                  </div>
+                  <button onClick={() => setShowCvModal(false)} className="p-2 hover:bg-white/20 rounded-full transition-all"><X size={24}/></button>
+                </div>
+              </div>
+
+              <div className="flex-1 flex flex-col md:flex-row overflow-hidden">
+                {/* Form Sidebar */}
+                <div className="w-full md:w-1/2 p-6 md:p-10 overflow-y-auto custom-scrollbar border-r border-gray-100 print:hidden">
+                  {cvStep === 1 && (
+                    <div className="space-y-6 animate-fade-in">
+                      <h4 className="text-lg font-black text-gray-900 mb-4 border-b-2 border-brand-100 pb-2 flex items-center gap-2">
+                        <UserIcon size={20} className="text-brand-600"/> {isBangla ? 'ব্যক্তিগত তথ্য' : 'Personal Information'}
+                      </h4>
+                      <div className="grid grid-cols-1 gap-5">
+                        <div className="flex items-center gap-6 mb-2">
+                          <div className="relative group cursor-pointer" onClick={() => cvPhotoInputRef.current?.click()}>
+                            <div className="w-24 h-24 rounded-full bg-gray-100 flex items-center justify-center overflow-hidden border-4 border-brand-500 shadow-lg">
+                              {cvData.image ? <img src={cvData.image} className="w-full h-full object-cover" /> : <Camera size={24} className="text-gray-400" />}
+                            </div>
+                            <div className="absolute inset-0 bg-black/40 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                              <Plus size={20} className="text-white" />
+                            </div>
+                          </div>
+                          <input type="file" ref={cvPhotoInputRef} className="hidden" accept="image/*" onChange={handleCvPhotoUpload} />
+                          <div>
+                              <p className="text-sm font-bold text-gray-700">{isBangla ? 'প্রোফাইল ছবি' : 'Profile Picture'}</p>
+                              <p className="text-xs text-gray-400">{isBangla ? 'সিভির জন্য একটি ছবি আপলোড করুন' : 'Upload a photo for your CV'}</p>
+                          </div>
+                        </div>
+                        <div><label className="block text-xs font-bold text-gray-400 uppercase tracking-widest mb-1.5 ml-1">Full Name</label><input type="text" className="w-full p-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-brand-500 outline-none font-bold" value={cvData.name} onChange={e => setCvData({...cvData, name: e.target.value})} /></div>
+                        <div><label className="block text-xs font-bold text-gray-400 uppercase tracking-widest mb-1.5 ml-1">Professional Title</label><input type="text" className="w-full p-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-brand-500 outline-none font-bold" placeholder="e.g. Sales Manager" value={cvData.title} onChange={e => setCvData({...cvData, title: e.target.value})} /></div>
+                        <div className="grid grid-cols-2 gap-4">
+                          <div><label className="block text-xs font-bold text-gray-400 uppercase tracking-widest mb-1.5 ml-1">Email</label><input type="email" className="w-full p-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-brand-500 outline-none font-bold" value={cvData.email} onChange={e => setCvData({...cvData, email: e.target.value})} /></div>
+                          <div><label className="block text-xs font-bold text-gray-400 uppercase tracking-widest mb-1.5 ml-1">Phone</label><input type="tel" className="w-full p-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-brand-500 outline-none font-bold" value={cvData.phone} onChange={e => setCvData({...cvData, phone: e.target.value})} /></div>
+                        </div>
+                        <div className="grid grid-cols-2 gap-4">
+                          <div><label className="block text-xs font-bold text-gray-400 uppercase tracking-widest mb-1.5 ml-1">Date of Birth</label><input type="text" placeholder="e.g. Jan 15, 1987" className="w-full p-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-brand-500 outline-none font-bold" value={cvData.dob} onChange={e => setCvData({...cvData, dob: e.target.value})} /></div>
+                          <div><label className="block text-xs font-bold text-gray-400 uppercase tracking-widest mb-1.5 ml-1">Website</label><input type="text" placeholder="www.example.me" className="w-full p-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-brand-500 outline-none font-bold" value={cvData.website} onChange={e => setCvData({...cvData, website: e.target.value})} /></div>
+                        </div>
+                        <div><label className="block text-xs font-bold text-gray-400 uppercase tracking-widest mb-1.5 ml-1">Address</label><input type="text" className="w-full p-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-brand-500 outline-none font-bold" value={cvData.address} onChange={e => setCvData({...cvData, address: e.target.value})} /></div>
+                      </div>
+                    </div>
+                  )}
+
+                  {cvStep === 2 && (
+                    <div className="space-y-6 animate-fade-in">
+                      <h4 className="text-lg font-black text-gray-900 mb-4 border-b-2 border-brand-100 pb-2 flex items-center gap-2">
+                        <FileText size={20} className="text-brand-600"/> {isBangla ? 'সারসংক্ষেপ ও অভিজ্ঞতা' : 'Summary & Experience'}
+                      </h4>
+                      <div><label className="block text-xs font-bold text-gray-400 uppercase tracking-widest mb-1.5 ml-1">OBJECTIVE / SUMMARY</label><textarea rows={4} className="w-full p-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-brand-500 outline-none font-medium resize-none" value={cvData.summary} onChange={e => setCvData({...cvData, summary: e.target.value})} /></div>
+                      
+                      <div className="space-y-6">
+                        {cvData.experience.map((exp, idx) => (
+                          <div key={idx} className="p-5 bg-gray-50 rounded-2xl border border-gray-100 relative group">
+                              <button onClick={() => { const newList = [...cvData.experience]; newList.splice(idx, 1); setCvData({...cvData, experience: newList}); }} className="absolute -top-2 -right-2 p-1 bg-red-100 text-red-600 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"><X size={14}/></button>
+                              <div className="grid grid-cols-1 gap-4">
+                                <input placeholder="Company Name" className="bg-transparent border-b border-gray-200 py-1 font-bold outline-none focus:border-brand-500" value={exp.company} onChange={e => { const nl = [...cvData.experience]; nl[idx].company = e.target.value; setCvData({...cvData, experience: nl}); }} />
+                                <input placeholder="Your Role" className="bg-transparent border-b border-gray-200 py-1 font-medium outline-none focus:border-brand-500" value={exp.role} onChange={e => { const nl = [...cvData.experience]; nl[idx].role = e.target.value; setCvData({...cvData, experience: nl}); }} />
+                                <input placeholder="Period (e.g. 2020 - Present)" className="bg-transparent border-b border-gray-200 py-1 text-sm outline-none focus:border-brand-500" value={exp.period} onChange={e => { const nl = [...cvData.experience]; nl[idx].period = e.target.value; setCvData({...cvData, experience: nl}); }} />
+                                <textarea placeholder="Job Description (use - for bullets)" className="bg-transparent border-b border-gray-200 py-1 text-sm outline-none focus:border-brand-500 resize-none" rows={3} value={exp.desc} onChange={e => { const nl = [...cvData.experience]; nl[idx].desc = e.target.value; setCvData({...cvData, experience: nl}); }} />
+                              </div>
+                          </div>
+                        ))}
+                        <button onClick={addExperience} className="w-full py-3 border-2 border-dashed border-gray-200 rounded-2xl text-gray-400 font-bold hover:bg-gray-50 flex items-center justify-center gap-2"><Plus size={18}/> Add Experience</button>
+                      </div>
+                    </div>
+                  )}
+
+                  {cvStep === 3 && (
+                    <div className="space-y-6 animate-fade-in">
+                      <h4 className="text-lg font-black text-gray-900 mb-4 border-b-2 border-brand-100 pb-2 flex items-center gap-2">
+                        <Plus size={20} className="text-brand-600"/> {isBangla ? 'শিক্ষা ও দক্ষতা' : 'Education & Skills'}
+                      </h4>
+                      
+                      <div className="space-y-4">
+                        {cvData.education.map((edu, idx) => (
+                          <div key={idx} className="p-4 bg-gray-50 rounded-2xl border border-gray-100 relative group">
+                              <button onClick={() => { const newList = [...cvData.education]; newList.splice(idx, 1); setCvData({...cvData, education: newList}); }} className="absolute -top-2 -right-2 p-1 bg-red-100 text-red-600 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"><X size={14}/></button>
+                              <div className="grid grid-cols-2 gap-4">
+                                <input placeholder="University/School Name" className="bg-transparent border-b border-gray-200 py-1 font-bold outline-none focus:border-brand-500 col-span-2" value={edu.school} onChange={e => { const nl = [...cvData.education]; nl[idx].school = e.target.value; setCvData({...cvData, education: nl}); }} />
+                                <input placeholder="Major/Degree" className="bg-transparent border-b border-gray-200 py-1 font-medium outline-none focus:border-brand-500" value={edu.degree} onChange={e => { const nl = [...cvData.education]; nl[idx].degree = e.target.value; setCvData({...cvData, education: nl}); }} />
+                                <input placeholder="Year / GPA" className="bg-transparent border-b border-gray-200 py-1 text-sm outline-none focus:border-brand-500" value={edu.year} onChange={e => { const nl = [...cvData.education]; nl[idx].year = e.target.value; setCvData({...cvData, education: nl}); }} />
+                              </div>
+                          </div>
+                        ))}
+                        <button onClick={addEducation} className="w-full py-3 border-2 border-dashed border-gray-200 rounded-2xl text-gray-400 font-bold hover:bg-gray-50 flex items-center justify-center gap-2"><Plus size={18}/> Add Education</button>
+                      </div>
+
+                      <div className="pt-6">
+                        <label className="block text-xs font-bold text-gray-400 uppercase tracking-widest mb-4">Activities / Skills</label>
+                        <div className="flex flex-wrap gap-2">
+                            {cvData.skills.map((skill, idx) => (
+                              <div key={idx} className="relative flex items-center bg-brand-50 border border-brand-100 rounded-full px-4 py-2">
+                                <input className="bg-transparent border-none text-brand-700 font-bold text-sm focus:outline-none w-24" value={skill} onChange={e => { const nl = [...cvData.skills]; nl[idx] = e.target.value; setCvData({...cvData, skills: nl}); }} />
+                                <button onClick={() => { const nl = [...cvData.skills]; nl.splice(idx, 1); setCvData({...cvData, skills: nl}); }} className="ml-1 text-brand-400 hover:text-red-500"><X size={12}/></button>
+                              </div>
+                            ))}
+                            <button onClick={addSkill} className="px-4 py-2 rounded-full border-2 border-dashed border-gray-200 text-gray-400 hover:bg-gray-50"><Plus size={14}/></button>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  {cvStep === 4 && (
+                    <div className="space-y-8 animate-fade-in">
+                      <h4 className="text-lg font-black text-gray-900 mb-4 border-b-2 border-brand-100 pb-2 flex items-center gap-2">
+                        <Layout size={20} className="text-brand-600"/> {isBangla ? 'টেমপ্লেট নির্বাচন' : 'Select Template'}
+                      </h4>
+                      
+                      <div className="grid grid-cols-2 gap-6">
+                        <div 
+                          onClick={() => setCvTemplate('executive')}
+                          className={`cursor-pointer rounded-2xl border-4 overflow-hidden transition-all relative ${cvTemplate === 'executive' ? 'border-brand-500 shadow-xl' : 'border-gray-100 grayscale opacity-60 hover:grayscale-0 hover:opacity-100'}`}
+                        >
+                            <div className="p-3 bg-gray-50 border-b border-gray-100 text-center font-black text-xs uppercase">Executive</div>
+                            <div className="h-40 bg-white p-4 space-y-2">
+                              <div className="flex gap-2">
+                                  <div className="w-8 h-8 rounded-full bg-gray-200"></div>
+                                  <div className="space-y-1">
+                                    <div className="h-3 w-16 bg-brand-600 rounded"></div>
+                                    <div className="h-1 w-10 bg-gray-200 rounded"></div>
+                                  </div>
+                              </div>
+                              <div className="h-1 w-full bg-brand-200 mt-2"></div>
+                              <div className="space-y-1 pt-2">
+                                  <div className="h-1 w-3/4 bg-gray-100 rounded"></div>
+                                  <div className="h-1 w-1/2 bg-gray-100 rounded"></div>
+                              </div>
+                            </div>
+                            {cvTemplate === 'executive' && <div className="absolute top-2 right-2 bg-brand-600 text-white rounded-full p-1"><CheckCircle size={14}/></div>}
+                        </div>
+
+                        <div 
+                          onClick={() => setCvTemplate('modern')}
+                          className={`cursor-pointer rounded-2xl border-4 overflow-hidden transition-all relative ${cvTemplate === 'modern' ? 'border-brand-500 shadow-xl' : 'border-gray-100 grayscale opacity-60 hover:grayscale-0 hover:opacity-100'}`}
+                        >
+                            <div className="p-3 bg-gray-50 border-b border-gray-100 text-center font-black text-xs">MODERN</div>
+                            <div className="h-40 bg-white p-4 space-y-2">
+                              <div className="h-4 w-2/3 bg-brand-600 rounded"></div>
+                              <div className="h-2 w-1/2 bg-gray-200 rounded"></div>
+                              <div className="flex gap-1 pt-4">
+                                  <div className="h-2 w-8 bg-gray-100 rounded"></div>
+                                  <div className="h-2 w-8 bg-gray-100 rounded"></div>
+                              </div>
+                            </div>
+                            {cvTemplate === 'modern' && <div className="absolute top-2 right-2 bg-brand-600 text-white rounded-full p-1"><CheckCircle size={14}/></div>}
+                        </div>
+                      </div>
+
+                      <div className="bg-yellow-50 p-6 rounded-3xl border border-yellow-100 flex gap-4">
+                        <Info size={24} className="text-yellow-600 shrink-0" />
+                        <p className="text-sm text-yellow-800 leading-relaxed">
+                          {isBangla ? 'আপনার সকল তথ্য ঠিক থাকলে সিভিটি ডাউনলোড করুন। পিডিএফ সেভ করতে ডাউনলোড বাটনে ক্লিক করে প্রিন্ট অপশন থেকে "Save as PDF" নির্বাচন করুন।' : 'If all info is correct, download your CV. To save as PDF, click download and choose "Save as PDF" from print options.'}
+                        </p>
+                      </div>
+                    </div>
+                  )}
+
+                  <div className="mt-10 flex gap-4">
+                    {cvStep > 1 && (
+                      <Button variant="outline" className="flex-1 py-4 rounded-2xl font-bold" onClick={() => setCvStep(cvStep - 1)}>
+                        {isBangla ? 'পিছনে' : 'Back'}
+                      </Button>
+                    )}
+                    {cvStep < 4 ? (
+                      <Button className="flex-1 py-4 rounded-2xl font-bold shadow-lg" onClick={() => setCvStep(cvStep + 1)}>
+                        {isBangla ? 'পরবর্তী' : 'Next Step'}
+                      </Button>
+                    ) : (
+                      <Button onClick={handlePrintCv} className="flex-1 py-4 rounded-2xl font-black bg-brand-600 hover:bg-brand-700 text-white shadow-xl flex items-center justify-center gap-2">
+                        <Download size={20} /> {isBangla ? 'ডাউনলোড (PDF)' : 'Download PDF'}
+                      </Button>
+                    )}
+                  </div>
+                </div>
+
+                {/* Real-time Preview Area */}
+                <div className="w-full md:w-1/2 bg-gray-300 p-4 md:p-12 overflow-y-auto custom-scrollbar flex flex-col items-center print:p-0 print:block print:bg-white">
+                  <div id="cv-paper" className={`bg-white w-full shadow-2xl origin-top transition-all duration-300 print:shadow-none print:w-full print:scale-100 p-10 md:p-14 mb-12 min-h-[297mm] ${cvTemplate === 'classic' ? 'font-serif' : 'font-sans'}`}>
+                      
+                      {/* Template: EXECUTIVE (Requested Design) */}
+                      {cvTemplate === 'executive' && (
+                        <div className="h-full flex flex-col font-sans text-[#333]">
+                          {/* Header Section */}
+                          <div className="flex gap-8 items-center mb-8">
+                              <div className="w-32 h-32 rounded-full overflow-hidden border-4 border-[#0366d6] shadow-md shrink-0">
+                                <img src={cvData.image || 'https://placehold.co/200x200?text=Photo'} className="w-full h-full object-cover" />
+                              </div>
+                              <div className="flex-1">
+                                <h2 className="text-4xl font-bold text-[#0366d6] tracking-tight mb-2 uppercase">{cvData.name || 'FULL NAME'}</h2>
+                                <div className="border-t-2 border-[#0366d6] pt-2">
+                                    <p className="text-lg font-bold text-[#0366d6] tracking-wider uppercase">{cvData.title || 'PROFESSIONAL TITLE'}</p>
+                                </div>
+                              </div>
+                          </div>
+
+                          {/* Contact Info Grid */}
+                          <div className="grid grid-cols-2 gap-x-8 gap-y-3 text-[11px] mb-10 font-medium">
+                              <div className="flex items-center gap-3"><Calendar size={14} className="text-[#0366d6]" /> <span>{cvData.dob || 'Birth Date'}</span></div>
+                              <div className="flex items-center gap-3"><UserIcon size={14} className="text-[#0366d6]" /> <span>Mail</span></div>
+                              <div className="flex items-center gap-3"><Phone size={14} className="text-[#0366d6]" /> <span>{cvData.phone || '+880 1XXX'}</span></div>
+                              <div className="flex items-center gap-3"><Mail size={14} className="text-[#0366d6]" /> <span className="lowercase">{cvData.email || 'email@example.com'}</span></div>
+                              <div className="flex items-center gap-3"><MapPin size={14} className="text-[#0366d6]" /> <span>{cvData.address || 'Address'}</span></div>
+                              <div className="flex items-center gap-3"><Globe2 size={14} className="text-[#0366d6]" /> <span className="lowercase">{cvData.website || 'Portfolio/Link'}</span></div>
+                          </div>
+
+                          {/* Sections */}
+                          <div className="space-y-10">
+                              {/* Objective */}
+                              <section>
+                                <h3 className="text-lg font-bold text-[#0366d6] border-b-2 border-[#0366d6] mb-4 uppercase pb-1">OBJECTIVE</h3>
+                                <p className="text-[12px] leading-relaxed text-gray-700 whitespace-pre-wrap">{cvData.summary || 'Your career goal and objective goes here.'}</p>
+                              </section>
+
+                              {/* Education */}
+                              <section>
+                                <h3 className="text-lg font-bold text-[#0366d6] border-b-2 border-[#0366d6] mb-6 uppercase pb-1">EDUCATION</h3>
+                                <div className="space-y-6">
+                                    {cvData.education.map((edu, idx) => (
+                                      <div key={idx} className="flex gap-6">
+                                        <div className="w-1/3 shrink-0">
+                                            <p className="font-bold text-[#0366d6] text-[11px] uppercase tracking-tight">{edu.degree || 'Degree'}</p>
+                                            <p className="text-[10px] text-gray-500 mt-1">{edu.year || 'Duration'}</p>
+                                        </div>
+                                        <div className="flex-1">
+                                            <p className="font-bold text-gray-900 text-[11px] uppercase">{edu.school || 'School/University'}</p>
+                                            <p className="text-[10px] text-gray-500 mt-1 italic">Achievement or GPA</p>
+                                        </div>
+                                      </div>
+                                    ))}
+                                </div>
+                              </section>
+
+                              {/* Experience */}
+                              <section>
+                                <h3 className="text-lg font-bold text-[#0366d6] border-b-2 border-[#0366d6] mb-6 uppercase pb-1">WORK EXPERIENCE</h3>
+                                <div className="space-y-8">
+                                    {cvData.experience.map((exp, idx) => (
+                                      <div key={idx} className="flex gap-6">
+                                        <div className="w-1/3 shrink-0">
+                                            <p className="font-bold text-[#0366d6] text-[11px] uppercase tracking-tight">{exp.role || 'Role'}</p>
+                                            <p className="text-[10px] text-gray-500 mt-1">{exp.period || 'Period'}</p>
+                                        </div>
+                                        <div className="flex-1">
+                                            <p className="font-bold text-gray-900 text-[11px] uppercase mb-2">{exp.company || 'Company'}</p>
+                                            <div className="text-[11px] text-gray-600 leading-relaxed space-y-1.5">
+                                              {(exp.desc || '').split('\n').filter(l => l.trim()).map((line, i) => (
+                                                <p key={i} className="flex gap-2"><span>-</span> {line.startsWith('- ') ? line.substring(2) : line}</p>
+                                              ))}
+                                            </div>
+                                        </div>
+                                      </div>
+                                    ))}
+                                </div>
+                              </section>
+
+                              {/* Activities / Skills */}
+                              <section>
+                                <h3 className="text-lg font-bold text-[#0366d6] border-b-2 border-[#0366d6] mb-6 uppercase pb-1">ACTIVITIES / SKILLS</h3>
+                                <div className="flex gap-6">
+                                  <div className="w-1/3 shrink-0">
+                                      <p className="font-bold text-[#0366d6] text-[11px] uppercase tracking-tight">TOP SKILLS</p>
+                                  </div>
+                                  <div className="flex-1">
+                                      <div className="flex flex-wrap gap-2">
+                                        {cvData.skills.filter(s => s.trim()).map((s, i) => (
+                                          <span key={i} className="px-2 py-0.5 bg-gray-100 text-gray-700 text-[10px] font-bold rounded border border-gray-200">{s}</span>
+                                        ))}
+                                      </div>
+                                  </div>
+                                </div>
+                              </section>
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Template: MODERN */}
+                      {cvTemplate === 'modern' && (
+                        <div className="h-full flex flex-col">
+                          <div className="flex justify-between items-start border-b-4 border-brand-600 pb-8">
+                              <div className="flex-1">
+                                <h2 className="text-4xl font-black text-gray-900 tracking-tight leading-none mb-3">{cvData.name || 'YOUR NAME'}</h2>
+                                <p className="text-xl font-bold text-brand-600 uppercase tracking-widest">{cvData.title || 'PROFESSIONAL TITLE'}</p>
+                              </div>
+                              <div className="text-right text-[10px] space-y-1 text-gray-500 font-bold uppercase tracking-wider">
+                                <p className="flex items-center justify-end gap-2">{cvData.email || 'email@example.com'} <Mail size={10} /></p>
+                                <p className="flex items-center justify-end gap-2">{cvData.phone || '+880 1XXX'} <Phone size={10} /></p>
+                                <p className="flex items-center justify-end gap-2">{cvData.address || 'Dhaka, BD'} <MapPin size={10} /></p>
+                              </div>
+                          </div>
+
+                          <div className="grid grid-cols-12 gap-8 mt-10">
+                              <div className="col-span-8 space-y-10">
+                                <section>
+                                    <h3 className="text-sm font-black text-gray-900 uppercase tracking-[0.2em] mb-4 flex items-center gap-2">
+                                      <span className="w-4 h-4 bg-brand-600 rounded-full"></span> EXPERIENCE
+                                    </h3>
+                                    <div className="space-y-6">
+                                      {cvData.experience.map((exp, idx) => (
+                                        <div key={idx}>
+                                            <div className="flex justify-between font-bold text-gray-800">
+                                              <span>{exp.role || 'Position'}</span>
+                                              <span className="text-gray-400 text-xs">{exp.period || '2020 - 2024'}</span>
+                                            </div>
+                                            <p className="text-xs text-brand-600 font-black mb-2">{exp.company || 'Company Name'}</p>
+                                            <p className="text-[11px] text-gray-500 leading-relaxed">{exp.desc || 'Responsibilities and achievements...'}</p>
+                                        </div>
+                                      ))}
+                                    </div>
+                                </section>
+
+                                <section>
+                                    <h3 className="text-sm font-black text-gray-900 uppercase tracking-[0.2em] mb-4 flex items-center gap-2">
+                                      <span className="w-4 h-4 bg-brand-600 rounded-full"></span> EDUCATION
+                                    </h3>
+                                    <div className="space-y-4">
+                                      {cvData.education.map((edu, idx) => (
+                                        <div key={idx}>
+                                            <div className="flex justify-between font-bold text-gray-800">
+                                              <span className="text-xs">{edu.degree || 'Degree'}</span>
+                                              <span className="text-gray-400 text-[10px]">{edu.year || '2018'}</span>
+                                            </div>
+                                            <p className="text-[10px] text-gray-500 font-bold">{edu.school || 'University Name'}</p>
+                                        </div>
+                                      ))}
+                                    </div>
+                                </section>
+                              </div>
+
+                              <div className="col-span-4 space-y-10">
+                                <section>
+                                    <h3 className="text-[10px] font-black text-gray-900 uppercase tracking-[0.2em] mb-4 border-b border-gray-100 pb-1">SUMMARY</h3>
+                                    <p className="text-[11px] text-gray-600 leading-relaxed italic">{cvData.summary || 'A brief professional summary about your career goals and achievements.'}</p>
+                                </section>
+
+                                <section>
+                                    <h3 className="text-[10px] font-black text-gray-900 uppercase tracking-[0.2em] mb-4 border-b border-gray-100 pb-1">SKILLS</h3>
+                                    <div className="flex flex-wrap gap-2">
+                                      {cvData.skills.filter(s => s.trim()).map((skill, idx) => (
+                                        <span key={idx} className="bg-gray-100 text-gray-700 text-[10px] font-bold px-2 py-1 rounded">
+                                            {skill}
+                                        </span>
+                                      ))}
+                                    </div>
+                                </section>
+                              </div>
+                          </div>
+                        </div>
+                      )}
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* JOB DETAILS MODAL */}
       {selectedJob && (
