@@ -25,14 +25,14 @@ export const AmarJelaModule: React.FC<Props> = ({ isBangla }) => {
     return '';
   };
 
-  const allDistricts = useMemo(() => [...(dbDistricts || [])], [dbDistricts]);
+  const allDistricts = useMemo(() => Array.isArray(dbDistricts) ? [...dbDistricts].filter(Boolean) : [], [dbDistricts]);
 
   useEffect(() => {
-    const term = (searchTerm || '').trim().toLowerCase();
+    const term = (searchTerm || '').toString().trim().toLowerCase();
     if (term.length > 0 && isTyping) {
       const filtered = allDistricts.filter((d: any) => {
-        const nameE = getDValue(d, ['nameEn', 'nameen']).toString().toLowerCase();
-        const nameB = getDValue(d, ['nameBn', 'namebn']).toString();
+        const nameE = (getDValue(d, ['nameEn', 'nameen']) || '').toString().toLowerCase();
+        const nameB = (getDValue(d, ['nameBn', 'namebn']) || '').toString();
         return nameE.includes(term) || nameB.includes(searchTerm);
       });
       setSuggestions(filtered);
@@ -52,11 +52,11 @@ export const AmarJelaModule: React.FC<Props> = ({ isBangla }) => {
   };
 
   const executeSearch = (overrideTerm?: string) => {
-    const term = (overrideTerm || searchTerm || '').trim().toLowerCase();
+    const term = (overrideTerm || searchTerm || '').toString().trim().toLowerCase();
     if (!term) return;
     const match = allDistricts.find((d: any) => {
-      const nameE = getDValue(d, ['nameEn', 'nameen']).toString().toLowerCase();
-      const nameB = getDValue(d, ['nameBn', 'namebn']).toString();
+      const nameE = (getDValue(d, ['nameEn', 'nameen']) || '').toString().toLowerCase();
+      const nameB = (getDValue(d, ['nameBn', 'namebn']) || '').toString();
       return nameE === term || nameB === term || nameE.includes(term) || nameB.includes(term);
     });
     if (match) handleSelectDistrict(match);
@@ -113,7 +113,7 @@ export const AmarJelaModule: React.FC<Props> = ({ isBangla }) => {
                <div className="flex flex-col md:flex-row justify-between items-start mb-8 gap-4">
                   <div className="flex-1">
                      <span className="inline-block px-3 py-1 rounded-full bg-[#e6f4f1] text-[#0b6352] text-[10px] font-black uppercase mb-2 border border-emerald-100 tracking-widest">
-                       {selectedDistrict.division} {isBangla ? 'বিভাগ' : 'Division'}
+                       {getDValue(selectedDistrict, ['division'])} {isBangla ? 'বিভাগ' : 'Division'}
                      </span>
                      <h2 className="text-4xl md:text-6xl font-black text-gray-900">
                        {isBangla ? getDValue(selectedDistrict, ['nameBn', 'namebn']) : getDValue(selectedDistrict, ['nameEn', 'nameen'])}
@@ -121,7 +121,7 @@ export const AmarJelaModule: React.FC<Props> = ({ isBangla }) => {
                   </div>
                   <div className="bg-[#f0fdfa] px-5 py-4 rounded-2xl border border-emerald-50 shadow-sm flex items-center gap-4">
                      <div className="w-10 h-10 bg-white rounded-xl flex items-center justify-center text-emerald-600 shadow-sm"><Users size={20} /></div>
-                     <div><p className="text-[10px] font-bold text-gray-400 uppercase leading-none mb-1">{isBangla ? 'জনসংখ্যা' : 'Population'}</p><p className="text-xl font-black text-gray-800">{selectedDistrict.population || 'N/A'}</p></div>
+                     <div><p className="text-[10px] font-bold text-gray-400 uppercase leading-none mb-1">{isBangla ? 'জনসংখ্যা' : 'Population'}</p><p className="text-xl font-black text-gray-800">{getDValue(selectedDistrict, ['population']) || 'N/A'}</p></div>
                      <button onClick={() => setSelectedDistrict(null)} className="ml-4 p-2 text-gray-300 hover:text-red-500 transition-all"><X size={20} /></button>
                   </div>
                </div>
@@ -139,17 +139,13 @@ export const AmarJelaModule: React.FC<Props> = ({ isBangla }) => {
                   <div className="lg:col-span-8 space-y-6">
                      <div className="bg-[#f9fafb] p-6 rounded-3xl border-l-[6px] border-[#0b6352] min-h-[140px]">
                         <p className="text-gray-600 text-lg leading-relaxed font-medium">
-                          {selectedDistrict.description || (isBangla ? 'জেলার পরিচিতি ও গুরুত্ব এখানে তুলে ধরা হবে।' : 'District profile and significance.')}
+                          {getDValue(selectedDistrict, ['description']) || (isBangla ? 'জেলার পরিচিতি ও গুরুত্ব এখানে তুলে ধরা হবে।' : 'District profile and significance.')}
                         </p>
                      </div>
-                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                     <div className="grid grid-cols-1 gap-4">
                         <div className="bg-white p-6 rounded-3xl border border-gray-100 shadow-sm flex items-center gap-5 hover:border-red-100 transition-all">
                            <div className="w-14 h-14 bg-red-50 rounded-2xl flex items-center justify-center text-red-500 shrink-0"><MapIcon size={28} /></div>
-                           <div><p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">{isBangla ? 'আয়তন' : 'Area'}</p><p className="text-2xl font-black text-gray-900">{selectedDistrict.area || 'N/A'} <span className="text-xs font-bold text-gray-400 uppercase ml-1">km²</span></p></div>
-                        </div>
-                        <div className="bg-white p-6 rounded-3xl border border-gray-100 shadow-sm flex items-center gap-5 hover:border-blue-100 transition-all">
-                           <div className="w-14 h-14 bg-blue-50 rounded-2xl flex items-center justify-center text-blue-500 shrink-0"><Building2 size={28} /></div>
-                           <div><p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">{isBangla ? 'উপজেলা' : 'Upazila'}</p><p className="text-2xl font-black text-gray-900">{selectedDistrict.upazilas?.length || '0'}</p></div>
+                           <div><p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">{isBangla ? 'আয়তন' : 'Area'}</p><p className="text-2xl font-black text-gray-900">{getDValue(selectedDistrict, ['area']) || 'N/A'} <span className="text-xs font-bold text-gray-400 uppercase ml-1">km²</span></p></div>
                         </div>
                      </div>
                   </div>
@@ -161,13 +157,21 @@ export const AmarJelaModule: React.FC<Props> = ({ isBangla }) => {
                <div className="bg-white rounded-[2.5rem] p-8 shadow-lg border border-gray-50 flex flex-col">
                   <h3 className="text-xl font-black text-gray-900 mb-6 flex items-center gap-3"><BookOpen size={24} className="text-blue-500" /> {isBangla ? 'শিক্ষা তথ্য' : 'Education Info'}</h3>
                   <div className="grid grid-cols-2 gap-4 flex-1">
-                     <div className="bg-blue-50/50 p-6 rounded-[1.5rem] border border-blue-50 text-center flex flex-col justify-center">
-                        <p className="text-4xl font-black text-blue-600 leading-none mb-2">{selectedDistrict.education?.primary || '0'}</p>
+                     <div className="bg-blue-50/50 p-4 rounded-[1.25rem] border border-blue-50 text-center flex flex-col justify-center">
+                        <p className="text-2xl font-black text-blue-600 leading-none mb-1">{selectedDistrict.education?.primary || '0'}</p>
                         <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">{isBangla ? 'প্রাথমিক' : 'Primary'}</p>
                      </div>
-                     <div className="bg-blue-50/50 p-6 rounded-[1.5rem] border border-blue-50 text-center flex flex-col justify-center">
-                        <p className="text-4xl font-black text-blue-600 leading-none mb-2">{selectedDistrict.education?.highSchool || '0'}</p>
+                     <div className="bg-blue-50/50 p-4 rounded-[1.25rem] border border-blue-50 text-center flex flex-col justify-center">
+                        <p className="text-2xl font-black text-blue-600 leading-none mb-1">{selectedDistrict.education?.highSchool || '0'}</p>
                         <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">{isBangla ? 'উচ্চ' : 'High'}</p>
+                     </div>
+                     <div className="bg-blue-50/50 p-4 rounded-[1.25rem] border border-blue-50 text-center flex flex-col justify-center">
+                        <p className="text-2xl font-black text-blue-600 leading-none mb-1">{selectedDistrict.education?.college || '0'}</p>
+                        <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">{isBangla ? 'কলেজ' : 'College'}</p>
+                     </div>
+                     <div className="bg-blue-50/50 p-4 rounded-[1.25rem] border border-blue-50 text-center flex flex-col justify-center">
+                        <p className="text-2xl font-black text-blue-600 leading-none mb-1">{selectedDistrict.education?.university || '0'}</p>
+                        <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">{isBangla ? 'বিশ্ববিদ্যালয়' : 'University'}</p>
                      </div>
                   </div>
                </div>
@@ -204,15 +208,16 @@ export const AmarJelaModule: React.FC<Props> = ({ isBangla }) => {
                   </div>
                </div>
 
-               {/* Card 4: Upazilas */}
+               {/* Card 4: Upazilas (Styled like Tourist Spots) */}
                <div className="bg-white rounded-[2.5rem] p-8 shadow-lg border border-gray-50 flex flex-col">
-                  <h3 className="text-xl font-black text-gray-900 mb-6 flex items-center gap-3"><MapPin size={24} className="text-emerald-500" /> {isBangla ? 'উপজেলা সমূহ' : 'Upazila List'}</h3>
-                  <div className="flex flex-wrap gap-2 flex-1 items-start content-start">
-                     {(selectedDistrict.upazilas || []).length > 0 ? (selectedDistrict.upazilas).map((upz: string, i: number) => (
-                        <span key={i} className="px-4 py-2 bg-gray-50 border border-gray-100 rounded-xl text-xs font-black text-gray-600 hover:bg-emerald-50 hover:text-emerald-700 transition-colors shadow-sm">
-                           {upz}
-                        </span>
-                     )) : <p className="text-gray-300 text-sm italic py-10 text-center w-full">{isBangla ? 'কোন তথ্য পাওয়া যায়নি' : 'No information found'}</p>}
+                  <h3 className="text-xl font-black text-gray-900 mb-6 flex items-center gap-3"><MapPin size={24} className="text-emerald-500" /> {isBangla ? 'উপজেলা সমূহ' : 'Upazilas'}</h3>
+                  <div className="space-y-3 flex-1">
+                     {(selectedDistrict.upazilas || []).length > 0 ? (selectedDistrict.upazilas).slice(0, 8).map((upz: string, idx: number) => (
+                        <div key={idx} className="flex items-center gap-4 group">
+                           <span className="w-8 h-8 bg-emerald-50 text-emerald-600 rounded-xl flex items-center justify-center font-black text-sm shrink-0 shadow-sm group-hover:bg-emerald-600 group-hover:text-white transition-colors">{idx + 1}</span>
+                           <p className="text-base font-bold text-gray-700">{upz}</p>
+                        </div>
+                     )) : <p className="text-gray-300 text-sm italic py-10 text-center">{isBangla ? 'কোন তথ্য পাওয়া যায়নি' : 'No information found'}</p>}
                   </div>
                </div>
             </div>

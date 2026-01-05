@@ -75,8 +75,9 @@ const App: React.FC = () => {
   });
 
   const [activeModule, setActiveModule] = useState<AppModule | 'LANDING'>(() => {
-    if (typeof window !== 'undefined' && window.location.pathname === '/adminrm') {
-      return AppModule.ADMIN;
+    if (typeof window !== 'undefined') {
+      if (window.location.pathname === '/adminrm') return AppModule.ADMIN;
+      if (window.location.pathname.startsWith('/blog')) return AppModule.BLOG;
     }
     return 'LANDING';
   });
@@ -107,11 +108,13 @@ const App: React.FC = () => {
 
     window.scrollTo({ top: 0, behavior: 'instant' });
     
-    // Support browser back button for admin route
+    // Support browser back button
     const handlePopState = () => {
       if (window.location.pathname === '/adminrm') {
         setActiveModule(AppModule.ADMIN);
-      } else if (activeModule === AppModule.ADMIN) {
+      } else if (window.location.pathname.startsWith('/blog')) {
+        setActiveModule(AppModule.BLOG);
+      } else if (activeModule !== 'LANDING') {
         setActiveModule('LANDING');
       }
     };
@@ -138,6 +141,7 @@ const App: React.FC = () => {
     setActiveModule(module);
     setShowAiChat(false);
     if (module === AppModule.ADMIN) window.history.pushState({}, '', '/adminrm');
+    else if (module === AppModule.BLOG) window.history.pushState({}, '', '/blog');
     else window.history.pushState({}, '', '/');
   };
 
@@ -235,7 +239,7 @@ const App: React.FC = () => {
         {activeModule !== AppModule.ADMIN && authView === 'none' && !showAiChat && (
           <Header 
             user={user} onLogin={() => setAuthView('login')} onRegister={() => setAuthView('signup')} onLogout={handleLogout} 
-            onModuleSelect={handleModuleSelect} onNavigateHome={() => { setActiveModule('LANDING'); setShowAiChat(false); }} isBangla={isBangla} 
+            onModuleSelect={handleModuleSelect} onNavigateHome={() => { setActiveModule('LANDING'); setShowAiChat(false); window.history.pushState({}, '', '/'); }} isBangla={isBangla} 
             toggleLanguage={() => setIsBangla(!isBangla)}
           />
         )}
@@ -243,7 +247,7 @@ const App: React.FC = () => {
         {activeModule !== AppModule.ADMIN && authView === 'none' && !showAiChat && (
           <Footer 
             isBangla={isBangla} toggleLanguage={() => setIsBangla(!isBangla)} 
-            onNavigateHome={() => { setActiveModule('LANDING'); setShowAiChat(false); }} onModuleSelect={handleModuleSelect}
+            onNavigateHome={() => { setActiveModule('LANDING'); setShowAiChat(false); window.history.pushState({}, '', '/'); }} onModuleSelect={handleModuleSelect}
           />
         )}
         {!showAiChat && (

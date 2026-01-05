@@ -1,8 +1,10 @@
+
 import React, { useState, useMemo } from 'react';
 import { MapPin, ArrowRight, Search, Info, ChevronRight, X, Users, BookOpen, HeartPulse, Camera, Building2, Map, ChevronDown, Gem, Utensils, Shirt, Coffee, Leaf, Droplets, Gift, Calendar, ChevronLeft, List } from 'lucide-react';
 import { Button } from '../ui/Button';
 import { AppModule } from '../../types';
 import { getOptimizedImageUrl } from '../utils/imageUtils';
+import { useData } from '../../contexts/DataContext';
 
 interface Props {
   isBangla: boolean;
@@ -59,7 +61,7 @@ const DISTRICT_BRANDING = {
   barisal: [
     { nameBn: 'বরিশাল', nameEn: 'Barisal', productBn: 'আমড়া ও পেয়ারা', productEn: 'Hog Plum & Guava', type: 'fruit' },
     { nameBn: 'ঝালকাঠি', nameEn: 'Jhalokati', productBn: 'পেয়ারা ও শীতল পাটি', productEn: 'Guava & Shital Pati', type: 'craft' },
-    { nameBn: 'ভোলা', nameEn: 'Bhola', productBn: 'মহিষের দই ও নারিকেল', productEn: 'Buffalo Curd & Coconut', type: 'food' },
+    { nameBn: 'ভোলা', nameEn: 'Bhola', productBn: 'মহিষের ডই ও নারিকেল', productEn: 'Buffalo Curd & Coconut', type: 'food' },
     { nameBn: 'পিরোজপুর', nameEn: 'Pirojpur', productBn: 'নারিকেল ও সুপারি', productEn: 'Coconut & Betel Nut', type: 'fruit' },
   ],
   sylhet: [
@@ -93,7 +95,7 @@ const tourismData: DivisionData[] = [
       { nameBn: 'মানিকগঞ্জ', nameEn: 'Manikganj', spots: ['Baliati Palace', 'Teota Zamindar Bari', 'Aricha Ghat'] },
       { nameBn: 'টাঙ্গাইল', nameEn: 'Tangail', spots: ['Mohera Jamindar Bari', 'Madhupur National Park', 'Atiya Mosque', '201 Dome Mosque'] },
       { nameBn: 'কিশোরগঞ্জ', nameEn: 'Kishoreganj', spots: ['Nikli Haor', 'Jangalbari Fort', 'Egarosindur', 'Sholakia Eidgah'] },
-      { nameBn: 'ফরিদপুর', nameEn: 'Faridpur', spots: ['River Research Institute', 'Kanaipur Zamindar Bari', 'Pallikabi Jasimuddin Home'] },
+      { nameBn: 'ফরিদুর', nameEn: 'Faridpur', spots: ['River Research Institute', 'Kanaipur Zamindar Bari', 'Pallikabi Jasimuddin Home'] },
       { nameBn: 'গোপালগঞ্জ', nameEn: 'Gopalganj', spots: ['Mausoleum of Bangabandhu', 'Ulpur Zamindar Bari', 'Modhumoti River'] },
       { nameBn: 'মাদারীপুর', nameEn: 'Madaripur', spots: ['Shakuni Lake', 'Raza Ram Khal', 'Senapati Dighi'] },
       { nameBn: 'শরীয়তপুর', nameEn: 'Shariatpur', spots: ['Fateh Jangpur Fort', 'Modern Fantasy Kingdom', 'River Padma'] },
@@ -246,23 +248,41 @@ const ENGLISH_MONTHS = [
 ];
 
 export const AmarBdModule: React.FC<Props> = ({ isBangla, onModuleSelect }) => {
+  const { districts: dbDistricts } = useData();
   const [activeDivision, setActiveDivision] = useState<string>('All');
   const [searchQuery, setSearchQuery] = useState('');
-  const [selectedDistrictForDetails, setSelectedDistrictForDetails] = useState<{ district: DistrictData, divisionName: string } | null>(null);
+  const [selectedDistrictForDetails, setSelectedDistrictForDetails] = useState<{ district: any, divisionName: string, divisionId: string } | null>(null);
   const [treeOpenDivision, setTreeOpenDivision] = useState<string | null>(null);
   const [brandingDivision, setBrandingDivision] = useState<string>('dhaka');
   const [calendarView, setCalendarView] = useState<'monthly' | 'yearly'>('monthly');
   const [currentDate, setCurrentDate] = useState(new Date());
 
   const filteredList = useMemo(() => {
-    let districts: { district: DistrictData, divisionName: string, divisionId: string }[] = [];
+    let districts: { district: any, divisionName: string, divisionId: string }[] = [];
     
+    // Add static districts
     tourismData.forEach(div => {
       if (activeDivision === 'All' || activeDivision === div.id) {
         div.districts.forEach(dist => {
            districts.push({ district: dist, divisionName: isBangla ? div.nameBn : div.nameEn, divisionId: div.id });
         });
       }
+    });
+
+    // Add dynamic districts from database (filter duplicates by name)
+    (dbDistricts || []).forEach((dbD: any) => {
+        const divId = (dbD.division || '').toLowerCase();
+        if (activeDivision === 'All' || activeDivision === divId) {
+            // Check if already in static list (by name match)
+            const exists = districts.some(d => d.district.nameEn?.toLowerCase() === dbD.nameEn?.toLowerCase());
+            if (!exists) {
+                districts.push({ 
+                    district: { ...dbD, spots: dbD.touristspots || dbD.touristSpots || [] }, 
+                    divisionName: dbD.division + (isBangla ? ' বিভাগ' : ' Division'), 
+                    divisionId: divId 
+                });
+            }
+        }
     });
 
     if (searchQuery) {
@@ -274,7 +294,7 @@ export const AmarBdModule: React.FC<Props> = ({ isBangla, onModuleSelect }) => {
     }
 
     return districts;
-  }, [activeDivision, searchQuery, isBangla]);
+  }, [activeDivision, searchQuery, isBangla, dbDistricts]);
 
   const getBrandingIcon = (type: string) => {
     switch(type) {
@@ -651,49 +671,71 @@ export const AmarBdModule: React.FC<Props> = ({ isBangla, onModuleSelect }) => {
               <div className="hidden md:block absolute top-0 left-1/2 w-0.5 h-8 bg-gray-300 -translate-x-1/2"></div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 relative z-10">
-                {tourismData.map((division, idx) => (
-                  <div key={division.id} className="flex flex-col items-center">
-                    <div className="hidden md:block h-8 w-0.5 bg-gray-300 mb-[-2px]"></div>
-                    <div className="md:hidden h-8 w-0.5 bg-gray-300"></div>
+                {tourismData.map((division, idx) => {
+                  const divId = division.id;
+                  // Get dynamic districts for this division
+                  const dynamicInDiv = (dbDistricts || []).filter((d: any) => d.division?.toLowerCase() === divId);
+                  const staticInDiv = division.districts;
+                  
+                  return (
+                    <div key={division.id} className="flex flex-col items-center">
+                      <div className="hidden md:block h-8 w-0.5 bg-gray-300 mb-[-2px]"></div>
+                      <div className="md:hidden h-8 w-0.5 bg-gray-300"></div>
 
-                    <div 
-                      onClick={() => setTreeOpenDivision(treeOpenDivision === division.id ? null : division.id)}
-                      className={`w-full rounded-xl shadow-sm hover:shadow-lg border-2 transition-all cursor-pointer overflow-hidden ${
-                        treeOpenDivision === division.id 
-                          ? `${divisionColors[division.id]} ring-2 ring-offset-2 ring-green-500` 
-                          : 'bg-white border-gray-100 hover:border-green-200'
-                      }`}
-                    >
-                      <div className={`p-4 flex items-center justify-between ${treeOpenDivision === division.id ? 'text-white' : 'text-gray-800'}`}>
-                        <div>
-                          <h4 className="font-bold text-lg">{isBangla ? division.nameBn : division.nameEn}</h4>
-                          <span className={`text-xs ${treeOpenDivision === division.id ? 'text-white/80' : 'text-gray-500'}`}>
-                            {isBangla ? `${division.districts.length}টি জেলা` : `${division.districts.length} Districts`}
-                          </span>
-                        </div>
-                        {treeOpenDivision === division.id ? <ChevronDown size={20} /> : <ChevronRight size={20} className="text-gray-400" />}
-                      </div>
-                      
-                      {treeOpenDivision === division.id && (
-                        <div className="bg-white p-4 border-t border-white/20 animate-fade-in cursor-default">
-                          <p className="text-xs font-bold text-gray-400 uppercase mb-3 tracking-wider">
-                            {isBangla ? 'জেলাসমূহ' : 'Districts'}
-                          </p>
-                          <div className="flex flex-wrap gap-2">
-                            {division.districts.map((dist, dIdx) => (
-                              <span 
-                                key={dIdx} 
-                                className="inline-block px-3 py-1.5 rounded-lg bg-gray-50 text-gray-700 text-sm font-medium border border-gray-200 hover:bg-green-50 hover:text-green-700 hover:border-green-200 transition-colors"
-                              >
-                                {isBangla ? dist.nameBn : dist.nameEn}
-                              </span>
-                            ))}
+                      <div 
+                        onClick={() => setTreeOpenDivision(treeOpenDivision === division.id ? null : division.id)}
+                        className={`w-full rounded-xl shadow-sm hover:shadow-lg border-2 transition-all cursor-pointer overflow-hidden ${
+                          treeOpenDivision === division.id 
+                            ? `${divisionColors[division.id]} ring-2 ring-offset-2 ring-green-500` 
+                            : 'bg-white border-gray-100 hover:border-green-200'
+                        }`}
+                      >
+                        <div className={`p-4 flex items-center justify-between ${treeOpenDivision === division.id ? 'text-white' : 'text-gray-800'}`}>
+                          <div>
+                            <h4 className="font-bold text-lg">{isBangla ? division.nameBn : division.nameEn}</h4>
+                            <span className={`text-xs ${treeOpenDivision === division.id ? 'text-white/80' : 'text-gray-500'}`}>
+                              {isBangla ? `${staticInDiv.length + dynamicInDiv.length}টি জেলা` : `${staticInDiv.length + dynamicInDiv.length} Districts`}
+                            </span>
                           </div>
+                          {treeOpenDivision === division.id ? <ChevronDown size={20} /> : <ChevronRight size={20} className="text-gray-400" />}
                         </div>
-                      )}
+                        
+                        {treeOpenDivision === division.id && (
+                          <div className="bg-white p-4 border-t border-white/20 animate-fade-in cursor-default">
+                            <p className="text-xs font-bold text-gray-400 uppercase mb-3 tracking-wider">
+                              {isBangla ? 'জেলাসমূহ' : 'Districts'}
+                            </p>
+                            <div className="flex flex-wrap gap-2">
+                              {/* Render Static */}
+                              {staticInDiv.map((dist, dIdx) => (
+                                <span 
+                                  key={`static-${dIdx}`} 
+                                  className="inline-block px-3 py-1.5 rounded-lg bg-gray-50 text-gray-700 text-sm font-medium border border-gray-200 hover:bg-green-50 hover:text-green-700 hover:border-green-200 transition-colors"
+                                >
+                                  {isBangla ? dist.nameBn : dist.nameEn}
+                                </span>
+                              ))}
+                              {/* Render Dynamic */}
+                              {dynamicInDiv.map((dbD: any, dIdx: number) => {
+                                // Prevent double display if dynamic matches static name
+                                const isDuplicate = staticInDiv.some(s => s.nameEn?.toLowerCase() === dbD.nameEn?.toLowerCase());
+                                if (isDuplicate) return null;
+                                return (
+                                  <span 
+                                    key={`dynamic-${dIdx}`} 
+                                    className="inline-block px-3 py-1.5 rounded-lg bg-emerald-50 text-emerald-700 text-sm font-bold border border-emerald-100 hover:bg-emerald-100 transition-colors"
+                                  >
+                                    {isBangla ? (dbD.nameBn || dbD.namebn) : (dbD.nameEn || dbD.nameen)}
+                                  </span>
+                                );
+                              })}
+                            </div>
+                          </div>
+                        )}
+                      </div>
                     </div>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             </div>
           </div>
@@ -759,7 +801,7 @@ export const AmarBdModule: React.FC<Props> = ({ isBangla, onModuleSelect }) => {
                       <h3 className="text-xl font-bold text-gray-900 group-hover:text-green-700 transition-colors">
                         {isBangla ? item.district.nameBn : item.district.nameEn}
                       </h3>
-                      <div className={`inline-block px-2 py-0.5 rounded text-[10px] font-bold uppercase mt-1 tracking-wider ${divisionColors[item.divisionId].replace('text-white', 'text-white bg-opacity-90')}`}>
+                      <div className={`inline-block px-2 py-0.5 rounded text-[10px] font-bold uppercase mt-1 tracking-wider ${divisionColors[item.divisionId] ? divisionColors[item.divisionId].replace('text-white', 'text-white bg-opacity-90') : 'bg-gray-200 text-gray-700'}`}>
                          {item.divisionName}
                       </div>
                     </div>
@@ -774,12 +816,15 @@ export const AmarBdModule: React.FC<Props> = ({ isBangla, onModuleSelect }) => {
                       {isBangla ? 'জনপ্রিয় স্থানসমূহ' : 'Popular Spots'}
                     </p>
                     <ul className="space-y-2">
-                      {(item.district?.spots || []).slice(0, 3).map((spot, sIdx) => (
+                      {(item.district?.spots || []).slice(0, 3).map((spot: string, sIdx: number) => (
                         <li key={sIdx} className="flex items-start gap-2 text-sm text-gray-600">
                           <span className="w-1.5 h-1.5 rounded-full bg-green-400 mt-1.5 shrink-0"></span>
                           <span className="line-clamp-1">{spot}</span>
                         </li>
                       ))}
+                      {(item.district?.spots || []).length === 0 && (
+                        <li className="text-xs text-gray-300 italic">{isBangla ? 'কোন স্পট যুক্ত নেই' : 'No spots added'}</li>
+                      )}
                     </ul>
                   </div>
 
@@ -824,13 +869,19 @@ export const AmarBdModule: React.FC<Props> = ({ isBangla, onModuleSelect }) => {
             </div>
             
             <div className="p-6 max-h-[60vh] overflow-y-auto">
+              {selectedDistrictForDetails.district.description && (
+                <div className="mb-6 bg-gray-50 p-4 rounded-xl border border-gray-100 italic text-sm text-gray-600">
+                   {selectedDistrictForDetails.district.description}
+                </div>
+              )}
+
               <h3 className="text-lg font-bold text-gray-800 mb-4 flex items-center gap-2">
                 <Camera className="text-green-600" size={20} />
                 {isBangla ? 'দর্শনীয় স্থানসমূহ' : 'Tourist Attractions'}
               </h3>
               
               <div className="space-y-3">
-                {(selectedDistrictForDetails.district?.spots || []).map((spot, idx) => (
+                {(selectedDistrictForDetails.district?.spots || []).map((spot: string, idx: number) => (
                   <div key={idx} className="flex items-center gap-3 p-3 rounded-xl hover:bg-gray-50 border border-transparent hover:border-gray-200 transition-all cursor-pointer group">
                     <span className="w-8 h-8 rounded-full bg-green-100 text-green-700 flex items-center justify-center font-bold text-sm">
                       {idx + 1}
@@ -838,6 +889,9 @@ export const AmarBdModule: React.FC<Props> = ({ isBangla, onModuleSelect }) => {
                     <span className="text-gray-700 font-medium group-hover:text-green-700">{spot}</span>
                   </div>
                 ))}
+                {(selectedDistrictForDetails.district?.spots || []).length === 0 && (
+                   <div className="p-8 text-center text-gray-300 italic">{isBangla ? 'কোন স্থান যুক্ত নেই' : 'No spots listed'}</div>
+                )}
               </div>
             </div>
 

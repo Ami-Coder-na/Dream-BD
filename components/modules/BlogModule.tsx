@@ -1,4 +1,5 @@
-import React, { useState, useRef } from 'react';
+
+import React, { useState, useRef, useEffect } from 'react';
 import { Search, Calendar, User, ArrowRight, Tag, PenTool, X, CheckCircle, Image as ImageIcon, ArrowLeft, Share2, Clock, Printer, Facebook, Linkedin, Twitter, ExternalLink, Upload, RefreshCw, Link as LinkIcon, MessageCircle } from 'lucide-react';
 import { Button } from '../ui/Button';
 import { getOptimizedImageUrl } from '../utils/imageUtils';
@@ -29,6 +30,16 @@ export const BlogModule: React.FC<Props> = ({ isBangla, user, onLogin }) => {
   
   // State for Detail View
   const [selectedPost, setSelectedPost] = useState<any | null>(null);
+
+  // Handle loading post from URL id parameter
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const id = params.get('id');
+    if (id && blogs && blogs.length > 0) {
+      const post = blogs.find((b: any) => b.id?.toString() === id);
+      if (post) setSelectedPost(post);
+    }
+  }, [blogs]);
 
   const handlePostClick = () => {
       if (!user) {

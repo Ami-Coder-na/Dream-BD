@@ -1,5 +1,5 @@
 
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useMemo } from 'react';
 import { Send, Bird, ArrowLeft, Loader2, User as UserIcon, Sparkles, Paperclip, X as XIcon, Image as ImageIcon, Mic, ThumbsUp, ThumbsDown, MessageSquare, Clock, Plus, Menu, Trash2, Check, Zap, Crown, Rocket, ShieldCheck, CreditCard, Smartphone, Wallet, Tag, ClipboardCheck } from 'lucide-react';
 import { generateAssistantResponse } from '../services/geminiService';
 import { ChatMessage, Attachment, ChatSession, SubscriptionTier, PricingPlan, PromoCode, PaymentRequest } from '../types';
@@ -27,15 +27,24 @@ export const AiChatPage: React.FC<AiChatPageProps> = ({ onBack, isBangla }) => {
   const [promoInput, setPromoInput] = useState('');
   const [appliedPromo, setAppliedPromo] = useState<PromoCode | null>(null);
   
-  // New Payment Verification State
   const [userBkashNumber, setUserBkashNumber] = useState('');
   const [trxId, setTrxId] = useState('');
   
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  // Get current user (reactive)
-  const userSession = JSON.parse(localStorage.getItem('digital_desh_bd_user_session') || '{}');
-  const currentUser = users.find((u: any) => u.id === userSession.user?.id) || userSession.user;
+  // Fix: Added useMemo to the React imports to resolve the compilation error on line 36.
+  // Get current user (reactive with safe parsing)
+  const currentUser = useMemo(() => {
+    try {
+      const sessionStr = localStorage.getItem('digital_desh_bd_user_session');
+      if (!sessionStr) return null;
+      const session = JSON.parse(sessionStr);
+      const userId = session?.user?.id;
+      return users.find((u: any) => u.id === userId) || session?.user || null;
+    } catch (e) {
+      return null;
+    }
+  }, [users]);
   
   const defaultWelcomeMessage: ChatMessage = {
     id: 'init',
@@ -51,15 +60,21 @@ export const AiChatPage: React.FC<AiChatPageProps> = ({ onBack, isBangla }) => {
       const saved = localStorage.getItem('digital_desh_bd_chat_sessions');
       if (saved) {
         const parsed = JSON.parse(saved);
-        return parsed.map((session: any) => ({
-          ...session,
-          messages: session.messages.map((msg: any) => ({
-            ...msg,
-            timestamp: new Date(msg.timestamp)
-          }))
-        }));
+        if (Array.isArray(parsed)) {
+          return parsed.map((session: any) => ({
+            ...session,
+            messages: Array.isArray(session.messages) 
+              ? session.messages.map((msg: any) => ({
+                  ...msg,
+                  timestamp: new Date(msg.timestamp || Date.now())
+                }))
+              : []
+          }));
+        }
       }
-    } catch (e) {}
+    } catch (e) {
+      console.warn("Failed to load chat sessions", e);
+    }
     return [];
   });
 
@@ -70,7 +85,7 @@ export const AiChatPage: React.FC<AiChatPageProps> = ({ onBack, isBangla }) => {
     try {
       const sessionsToSave = sessions.map(session => ({
         ...session,
-        messages: session.messages.map(msg => {
+        messages: (session.messages || []).map(msg => {
           if (msg.attachment) {
             return { ...msg, attachment: { type: msg.attachment.type, url: '', mimeType: msg.attachment.mimeType } };
           }
@@ -78,7 +93,9 @@ export const AiChatPage: React.FC<AiChatPageProps> = ({ onBack, isBangla }) => {
         })
       })).slice(0, 15);
       localStorage.setItem('digital_desh_bd_chat_sessions', JSON.stringify(sessionsToSave));
-    } catch (e) {}
+    } catch (e) {
+      console.error("Storage Error", e);
+    }
   }, [sessions]);
 
   const scrollToBottom = () => {
@@ -93,7 +110,6 @@ export const AiChatPage: React.FC<AiChatPageProps> = ({ onBack, isBangla }) => {
     const file = event.target.files?.[0];
     if (!file) return;
 
-    // Check Subscription Limit for Images
     if (file.type.startsWith('image/')) {
        const tier = currentUser?.subscriptionTier || SubscriptionTier.FREE;
        const count = currentUser?.imageUploadCount || 0;
@@ -140,7 +156,7 @@ export const AiChatPage: React.FC<AiChatPageProps> = ({ onBack, isBangla }) => {
   };
 
   const handleApplyPromo = () => {
-     const match = promoCodes.find((c: PromoCode) => c.code === promoInput.trim().toUpperCase() && c.isActive);
+     const match = (promoCodes || []).find((c: PromoCode) => c.code === promoInput.trim().toUpperCase() && c.isActive);
      if (match) {
         setAppliedPromo(match);
         alert(isBangla ? 'প্রোমো কোড সফলভাবে যুক্ত হয়েছে!' : 'Promo code applied successfully!');
@@ -199,7 +215,7 @@ export const AiChatPage: React.FC<AiChatPageProps> = ({ onBack, isBangla }) => {
   const handleSessionSelect = (session: ChatSession) => {
     if (loading) return; 
     setActiveSessionId(session.id);
-    setMessages(session.messages);
+    setMessages(session.messages || [defaultWelcomeMessage]);
     setSidebarOpen(false);
   };
 
@@ -249,7 +265,7 @@ export const AiChatPage: React.FC<AiChatPageProps> = ({ onBack, isBangla }) => {
     const botMsg: ChatMessage = {
       id: (Date.now() + 1).toString(),
       role: 'model',
-      text: responseText,
+      text: responseText || "No response.",
       timestamp: new Date()
     };
 
@@ -294,7 +310,7 @@ export const AiChatPage: React.FC<AiChatPageProps> = ({ onBack, isBangla }) => {
           </button>
         </div>
         <div className="flex-1 overflow-y-auto px-3 pb-4">
-          {sessions.map(session => (
+          {(sessions || []).map(session => (
             <div key={session.id} onClick={() => handleSessionSelect(session)} className={`p-3 rounded-lg cursor-pointer transition-all border mb-2 ${activeSessionId === session.id ? 'bg-white border-brand-200 shadow-sm ring-1 ring-brand-100' : 'border-transparent hover:bg-white hover:border-gray-200'}`}>
               <h4 className={`font-bold text-sm truncate ${activeSessionId === session.id ? 'text-brand-700' : 'text-gray-800'}`}>{session.title}</h4>
               <p className="text-[10px] text-gray-500 truncate mt-0.5">{session.preview}</p>
@@ -331,14 +347,14 @@ export const AiChatPage: React.FC<AiChatPageProps> = ({ onBack, isBangla }) => {
 
         <div className="flex-1 overflow-y-auto p-4 md:p-6 bg-gray-50">
            <div className="max-w-[1000px] mx-auto space-y-6 pb-20">
-              {messages.map((msg) => (
+              {(messages || []).map((msg) => (
                 <div key={msg.id} className={`flex gap-3 ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
                   {msg.role === 'model' && <div className="w-8 h-8 rounded-full bg-white border border-gray-200 flex items-center justify-center shrink-0 mt-1 shadow-sm text-brand-600"><Bird size={14}/></div>}
                   <div className={`max-w-[85%] rounded-2xl p-4 shadow-sm text-sm ${msg.role === 'user' ? 'bg-brand-600 text-white rounded-br-none' : 'bg-white border border-gray-100 text-gray-800 rounded-bl-none'}`}>
                     {msg.attachment && (
                       <div className="mb-3 rounded-lg overflow-hidden border border-gray-100"><img src={msg.attachment.url} className="max-w-xs max-h-60 object-cover" /></div>
                     )}
-                    <p className="whitespace-pre-wrap leading-relaxed prose prose-sm" dangerouslySetInnerHTML={{ __html: msg.text }} />
+                    <p className="whitespace-pre-wrap leading-relaxed prose prose-sm" dangerouslySetInnerHTML={{ __html: msg.text || '' }} />
                   </div>
                 </div>
               ))}
@@ -357,11 +373,9 @@ export const AiChatPage: React.FC<AiChatPageProps> = ({ onBack, isBangla }) => {
         </div>
       </main>
 
-      {/* PRICING & PAYMENT MODAL */}
       {showPricing && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/70 backdrop-blur-md animate-fade-in">
           <div className="bg-white w-full max-w-4xl rounded-[2.5rem] shadow-2xl overflow-hidden animate-fade-in-up relative" onClick={e => e.stopPropagation()}>
-            {/* Close Button Added */}
             <button 
               onClick={() => { setShowPricing(false); setPaymentStep('plans'); }}
               className="absolute top-6 right-8 p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-full transition-all z-[110]"
@@ -369,7 +383,6 @@ export const AiChatPage: React.FC<AiChatPageProps> = ({ onBack, isBangla }) => {
               <XIcon size={24} />
             </button>
             
-            {/* Step 1: Select Plan */}
             {paymentStep === 'plans' && (
                <div className="p-8 md:p-12 max-h-[90vh] overflow-y-auto">
                   <div className="text-center mb-12">
@@ -379,7 +392,7 @@ export const AiChatPage: React.FC<AiChatPageProps> = ({ onBack, isBangla }) => {
                   </div>
 
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                    {pricingPlans.map((plan: PricingPlan) => (
+                    {(pricingPlans || []).map((plan: PricingPlan) => (
                       <div key={plan.id} className="relative group">
                         <div className={`h-full bg-white border border-gray-100 rounded-[2rem] p-8 shadow-sm hover:shadow-2xl hover:-translate-y-2 transition-all flex flex-col border-b-8 ${plan.tier === SubscriptionTier.MASTER ? 'border-b-blue-600' : plan.tier === SubscriptionTier.ULTRA ? 'border-b-purple-600' : 'border-b-yellow-500'}`}>
                             <div className="flex justify-between items-start mb-6">
@@ -405,7 +418,6 @@ export const AiChatPage: React.FC<AiChatPageProps> = ({ onBack, isBangla }) => {
                </div>
             )}
 
-            {/* Step 2: Select Payment Method */}
             {paymentStep === 'methods' && (
               <div className="p-8 md:p-16 animate-fade-in">
                 <button onClick={() => setPaymentStep('plans')} className="mb-8 flex items-center gap-2 text-gray-500 font-bold hover:text-gray-800 transition-colors"><ArrowLeft size={20}/> {isBangla ? 'প্ল্যান পরিবর্তন করুন' : 'Change Plan'}</button>
@@ -423,7 +435,6 @@ export const AiChatPage: React.FC<AiChatPageProps> = ({ onBack, isBangla }) => {
               </div>
             )}
 
-            {/* Step 3: Confirm Summary */}
             {paymentStep === 'confirm' && (
                <div className="p-8 md:p-16 animate-fade-in text-center max-w-xl mx-auto">
                   <div className="w-20 h-20 bg-brand-50 text-brand-600 rounded-full flex items-center justify-center mx-auto mb-6">
@@ -471,7 +482,6 @@ export const AiChatPage: React.FC<AiChatPageProps> = ({ onBack, isBangla }) => {
                </div>
             )}
 
-            {/* Step 4: Final Payment Details */}
             {paymentStep === 'details' && (
               <div className="p-8 md:p-16 animate-fade-in max-w-xl mx-auto">
                 <div className="text-center mb-8">

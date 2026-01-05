@@ -48,6 +48,7 @@ const normalizeLog = (log: any) => {
 
 const normalizeDistrict = (d: any) => {
   if (!d) return null;
+  const edu = d.education || {};
   return {
     id: d.id,
     nameEn: d.nameen || d.nameEn || '',
@@ -57,7 +58,12 @@ const normalizeDistrict = (d: any) => {
     area: d.area || '',
     description: d.description || '',
     upazilas: Array.isArray(d.upazilas) ? d.upazilas : [],
-    education: d.education || { primary: 0, highSchool: 0, college: 0, university: 0 },
+    education: {
+      primary: edu.primary || edu.primaryCount || 0,
+      highSchool: edu.highSchool || edu.highschool || edu.highSchoolCount || 0,
+      college: edu.college || edu.collegeCount || 0,
+      university: edu.university || edu.universityCount || 0
+    },
     hospitals: Array.isArray(d.hospitals) ? d.hospitals : [],
     touristspots: d.touristspots || d.touristSpots || [],
     images: d.images || []

@@ -293,7 +293,9 @@ export const Header: React.FC<HeaderProps> = ({
                     onClick={() => setUserMenuOpen(!userMenuOpen)}
                     className="flex items-center gap-2 pl-2"
                   >
-                    <img src={user.avatar} alt="User" className="w-10 h-10 rounded-full border-2 border-white shadow-sm object-cover" />
+                    <div className="w-10 h-10 rounded-full bg-gray-100 border-2 border-white shadow-sm flex items-center justify-center text-gray-500 overflow-hidden">
+                      <UserIcon size={20} />
+                    </div>
                     <ChevronDown size={14} className="text-gray-500" />
                   </button>
                   
@@ -387,7 +389,9 @@ export const Header: React.FC<HeaderProps> = ({
           <div className="lg:hidden absolute top-20 left-0 w-full bg-white border-b border-gray-100 p-4 flex flex-col gap-4 shadow-xl h-[calc(100vh-5rem)] overflow-y-auto">
               {user && (
                 <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg mb-2">
-                  <img src={user.avatar} alt="User" className="w-10 h-10 rounded-full" />
+                  <div className="w-10 h-10 rounded-full bg-white border border-gray-200 flex items-center justify-center text-gray-500 overflow-hidden">
+                    <UserIcon size={20} />
+                  </div>
                   <div>
                     <p className="text-sm font-bold text-gray-900">{user.name}</p>
                     <p className="text-xs text-gray-500">{user.role}</p>
