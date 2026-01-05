@@ -294,7 +294,11 @@ export const Header: React.FC<HeaderProps> = ({
                     className="flex items-center gap-2 pl-2"
                   >
                     <div className="w-10 h-10 rounded-full bg-gray-100 border-2 border-white shadow-sm flex items-center justify-center text-gray-500 overflow-hidden">
-                      <UserIcon size={20} />
+                      {user.avatar ? (
+                        <img src={user.avatar} alt={user.name} className="w-full h-full object-cover" />
+                      ) : (
+                        <UserIcon size={20} />
+                      )}
                     </div>
                     <ChevronDown size={14} className="text-gray-500" />
                   </button>
@@ -390,7 +394,11 @@ export const Header: React.FC<HeaderProps> = ({
               {user && (
                 <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg mb-2">
                   <div className="w-10 h-10 rounded-full bg-white border border-gray-200 flex items-center justify-center text-gray-500 overflow-hidden">
-                    <UserIcon size={20} />
+                    {user.avatar ? (
+                      <img src={user.avatar} alt={user.name} className="w-full h-full object-cover" />
+                    ) : (
+                      <UserIcon size={20} />
+                    )}
                   </div>
                   <div>
                     <p className="text-sm font-bold text-gray-900">{user.name}</p>

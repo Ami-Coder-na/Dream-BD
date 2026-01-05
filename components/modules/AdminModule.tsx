@@ -73,7 +73,7 @@ export const AdminModule: React.FC<Props> = ({ isBangla, onExit }) => {
     if(confirm('Are you sure you want to logout?')) {
       localStorage.removeItem(SESSION_KEY);
       setIsAuthenticated(false);
-      onExit();
+      // onExit() is intentionally removed here so the admin remains on the login page of the admin route
     }
   };
 
