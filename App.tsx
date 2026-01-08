@@ -157,16 +157,19 @@ const App: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-white">
-      <Header 
-        user={user} 
-        onLogin={() => setAuthView('login')} 
-        onRegister={() => setAuthView('signup')} 
-        onLogout={() => { setUser(null); localStorage.removeItem('digital_desh_bd_user_session'); }}
-        onModuleSelect={m => handleNavigate(m)}
-        onNavigateHome={() => handleNavigate('LANDING')}
-        isBangla={isBangla}
-        toggleLanguage={() => setIsBangla(!isBangla)}
-      />
+      {/* Hide site header when on Admin Module to show a clean login page */}
+      {activeModule !== AppModule.ADMIN && (
+        <Header 
+          user={user} 
+          onLogin={() => setAuthView('login')} 
+          onRegister={() => setAuthView('signup')} 
+          onLogout={() => { setUser(null); localStorage.removeItem('digital_desh_bd_user_session'); }}
+          onModuleSelect={m => handleNavigate(m)}
+          onNavigateHome={() => handleNavigate('LANDING')}
+          isBangla={isBangla}
+          toggleLanguage={() => setIsBangla(!isBangla)}
+        />
+      )}
       {renderContent()}
     </div>
   );

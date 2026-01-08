@@ -100,13 +100,6 @@ export const Header: React.FC<HeaderProps> = ({
 
           {/* Right Controls */}
           <div className="flex items-center gap-2 sm:gap-4">
-            <button 
-              onClick={() => handleModuleClick(AppModule.ADMIN)} 
-              className="hidden md:flex px-3 py-1.5 rounded-lg border border-orange-200 bg-orange-50 text-orange-600 text-xs font-black uppercase tracking-tighter hover:bg-orange-100 transition-colors"
-            >
-              Admin
-            </button>
-
             <button className="p-2 text-gray-400 hover:text-brand-600 hover:bg-gray-50 rounded-full transition-colors relative">
                <Bell size={22} />
                <span className="absolute top-2 right-2 w-2 h-2 bg-red-500 rounded-full border-2 border-white"></span>
@@ -143,7 +136,6 @@ export const Header: React.FC<HeaderProps> = ({
           <button onClick={() => handleModuleClick(AppModule.BAZAR_SODAI)} className="text-left font-black text-lime-700 py-4 border-b border-gray-50 hover:bg-lime-50 px-3 rounded-lg transition-colors">বাজার সদাই</button>
           <button onClick={() => handleModuleClick(AppModule.JANTE_CHAI)} className="text-left font-black text-indigo-700 py-4 border-b border-gray-50 flex items-center gap-2 hover:bg-indigo-50 px-3 rounded-lg transition-colors"><HelpCircle size={18}/> জানতে চাই</button>
           <button onClick={() => handleModuleClick(AppModule.JOB)} className="text-left font-bold py-4 border-b border-gray-50 hover:bg-gray-50 px-3 rounded-lg transition-colors">চাকরি</button>
-          <button onClick={() => handleModuleClick(AppModule.ADMIN)} className="text-left font-black text-orange-600 py-4 hover:bg-orange-50 px-3 rounded-lg transition-colors">Admin Panel</button>
           {!user && <Button onClick={onLogin} variant="outline" className="w-full mt-6 rounded-xl py-4">লগইন</Button>}
         </div>
       )}
