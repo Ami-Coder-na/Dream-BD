@@ -31,13 +31,17 @@ export const BlogModule: React.FC<Props> = ({ isBangla, user, onLogin }) => {
   // State for Detail View
   const [selectedPost, setSelectedPost] = useState<any | null>(null);
 
-  // Handle loading post from URL id parameter
+  // Safe id load
   useEffect(() => {
-    const params = new URLSearchParams(window.location.search);
-    const id = params.get('id');
-    if (id && blogs && blogs.length > 0) {
-      const post = blogs.find((b: any) => b.id?.toString() === id);
-      if (post) setSelectedPost(post);
+    try {
+      const params = new URLSearchParams(window.location.search);
+      const id = params.get('id');
+      if (id && blogs && blogs.length > 0) {
+        const post = blogs.find((b: any) => b.id?.toString() === id);
+        if (post) setSelectedPost(post);
+      }
+    } catch (e) {
+      console.warn("Could not access URL search params.");
     }
   }, [blogs]);
 
@@ -88,25 +92,33 @@ export const BlogModule: React.FC<Props> = ({ isBangla, user, onLogin }) => {
 
   const handleCopyLink = (e: React.MouseEvent, id: number) => {
     e.stopPropagation();
-    const url = `${window.location.origin}/blog?id=${id}`;
-    navigator.clipboard.writeText(url);
-    setCopyStatus(id);
-    setTimeout(() => setCopyStatus(null), 2000);
+    try {
+      const url = `${window.location.origin}/blog?id=${id}`;
+      navigator.clipboard.writeText(url);
+      setCopyStatus(id);
+      setTimeout(() => setCopyStatus(null), 2000);
+    } catch (e) {
+      console.warn("Could not copy link.");
+    }
   };
 
   const handleShare = (e: React.MouseEvent, platform: 'fb' | 'wa', post: any) => {
     e.stopPropagation();
-    const url = encodeURIComponent(`${window.location.origin}/blog?id=${post.id}`);
-    const text = encodeURIComponent(post.title);
-    let shareUrl = '';
+    try {
+      const url = encodeURIComponent(`${window.location.origin}/blog?id=${post.id}`);
+      const text = encodeURIComponent(post.title);
+      let shareUrl = '';
 
-    if (platform === 'fb') {
-      shareUrl = `https://www.facebook.com/sharer/sharer.php?u=${url}`;
-    } else if (platform === 'wa') {
-      shareUrl = `https://api.whatsapp.com/send?text=${text}%20${url}`;
+      if (platform === 'fb') {
+        shareUrl = `https://www.facebook.com/sharer/sharer.php?u=${url}`;
+      } else if (platform === 'wa') {
+        shareUrl = `https://api.whatsapp.com/send?text=${text}%20${url}`;
+      }
+
+      window.open(shareUrl, '_blank', 'width=600,height=400');
+    } catch (err) {
+      console.warn("Could not open share window.");
     }
-
-    window.open(shareUrl, '_blank', 'width=600,height=400');
   };
 
   const handleReadMore = (post: any) => {

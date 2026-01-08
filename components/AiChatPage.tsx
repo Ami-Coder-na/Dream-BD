@@ -9,10 +9,11 @@ import { Button } from './ui/Button';
 
 interface AiChatPageProps {
   onBack: () => void;
+  onLogin: () => void;
   isBangla: boolean;
 }
 
-export const AiChatPage: React.FC<AiChatPageProps> = ({ onBack, isBangla }) => {
+export const AiChatPage: React.FC<AiChatPageProps> = ({ onBack, onLogin, isBangla }) => {
   const { users, updateUser, pricingPlans, promoCodes, addPaymentRequest } = useData();
   const { settings } = useSiteConfig();
   const [input, setInput] = useState('');
@@ -32,7 +33,6 @@ export const AiChatPage: React.FC<AiChatPageProps> = ({ onBack, isBangla }) => {
   
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  // Fix: Added useMemo to the React imports to resolve the compilation error on line 36.
   // Get current user (reactive with safe parsing)
   const currentUser = useMemo(() => {
     try {
@@ -45,6 +45,9 @@ export const AiChatPage: React.FC<AiChatPageProps> = ({ onBack, isBangla }) => {
       return null;
     }
   }, [users]);
+
+  // Safety return if somehow reached without user (App.tsx now handles this)
+  if (!currentUser) return null;
   
   const defaultWelcomeMessage: ChatMessage = {
     id: 'init',
@@ -364,11 +367,39 @@ export const AiChatPage: React.FC<AiChatPageProps> = ({ onBack, isBangla }) => {
         </div>
 
         <div className="absolute bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-gray-50 via-gray-50/90 to-transparent">
-           <div className="max-w-3xl mx-auto bg-white border border-gray-200 rounded-[2rem] p-2 flex items-end gap-2 shadow-xl focus-within:ring-4 focus-within:ring-brand-500/10 transition-all">
-              <input type="file" ref={fileInputRef} className="hidden" accept="image/*,audio/*" onChange={handleFileSelect} />
-              <button onClick={() => fileInputRef.current?.click()} className="p-3 text-gray-400 hover:text-brand-600 rounded-full hover:bg-brand-50 transition-colors"><Paperclip size={20}/></button>
-              <textarea value={input} onChange={(e) => setInput(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && !e.shiftKey && (e.preventDefault(), handleSend())} placeholder={isBangla ? 'মিঠুকে লিখুন...' : 'Type to Mithu...'} className="flex-1 bg-transparent border-none py-3 px-2 text-gray-900 outline-none resize-none max-h-32 scrollbar-hide text-sm md:text-base" rows={1} />
-              <button onClick={handleSend} disabled={loading || (!input.trim() && !selectedFile)} className="bg-brand-600 hover:bg-brand-700 text-white p-3 rounded-full shadow-lg disabled:opacity-50 transition-all"><Send size={20}/></button>
+           <div className="max-w-3xl mx-auto bg-white border border-gray-200 rounded-[2rem] p-2 flex flex-col gap-2 shadow-xl focus-within:ring-4 focus-within:ring-brand-500/10 transition-all overflow-hidden">
+              {/* Image Preview Block */}
+              {selectedFile && selectedFile.type === 'image' && (
+                <div className="flex px-4 pt-2 animate-fade-in relative">
+                  <div className="relative group">
+                    <img 
+                      src={selectedFile.url} 
+                      alt="Upload Preview" 
+                      className="w-20 h-20 object-cover rounded-xl border-2 border-brand-100 shadow-sm"
+                    />
+                    <button 
+                      onClick={() => setSelectedFile(null)}
+                      className="absolute -top-2 -right-2 bg-red-500 text-white p-1 rounded-full shadow-md hover:bg-red-600 transition-colors"
+                    >
+                      <XIcon size={14} />
+                    </button>
+                  </div>
+                </div>
+              )}
+              
+              <div className="flex items-end gap-2 w-full">
+                <input type="file" ref={fileInputRef} className="hidden" accept="image/*,audio/*" onChange={handleFileSelect} />
+                <button onClick={() => fileInputRef.current?.click()} className="p-3 text-gray-400 hover:text-brand-600 rounded-full hover:bg-brand-50 transition-colors"><Paperclip size={20}/></button>
+                <textarea 
+                  value={input} 
+                  onChange={(e) => setInput(e.target.value)} 
+                  onKeyDown={(e) => e.key === 'Enter' && !e.shiftKey && (e.preventDefault(), handleSend())} 
+                  placeholder={isBangla ? 'মিঠুকে লিখুন...' : 'Type to Mithu...'} 
+                  className="flex-1 bg-transparent border-none py-3 px-2 text-gray-900 outline-none resize-none max-h-32 scrollbar-hide text-sm md:text-base" 
+                  rows={1} 
+                />
+                <button onClick={handleSend} disabled={loading || (!input.trim() && !selectedFile)} className="bg-brand-600 hover:bg-brand-700 text-white p-3 rounded-full shadow-lg disabled:opacity-50 transition-all"><Send size={20}/></button>
+              </div>
            </div>
         </div>
       </main>

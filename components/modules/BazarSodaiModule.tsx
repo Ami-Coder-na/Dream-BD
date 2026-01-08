@@ -1,9 +1,10 @@
+
 import React, { useState, useMemo } from 'react';
 import { 
   ShoppingBasket, TrendingUp, Truck, Search, Filter, 
   PlusCircle, Sun, CloudRain, Snowflake, User as UserIcon,
   CheckCircle, X, RefreshCw, MapPin, ChevronDown, Tag, 
-  Package, DollarSign, MapPinned, Info, Phone
+  Package, DollarSign, MapPinned, Info, Phone, Loader2
 } from 'lucide-react';
 import { Button } from '../ui/Button';
 import { getOptimizedImageUrl } from '../utils/imageUtils';
@@ -65,15 +66,15 @@ export const BazarSodaiModule: React.FC<Props> = ({ isBangla, user, onLogin }) =
     e.preventDefault();
     setIsSubmitting(true);
     const request = {
-      contenttype: 'wholesale', // Standardized lowercase
+      contenttype: 'wholesale',
       product: adForm.product,
       quantity: adForm.quantity,
       price: adForm.price,
       location: adForm.location,
-      sellertype: adForm.sellerType, // Standardized lowercase
+      sellertype: adForm.sellerType,
       seller: adForm.name,
       phone: adForm.phone,
-      posteddate: new Date().toLocaleDateString() // Standardized lowercase
+      posteddate: new Date().toLocaleDateString()
     };
     try {
       await addRequest(request);
@@ -92,7 +93,7 @@ export const BazarSodaiModule: React.FC<Props> = ({ isBangla, user, onLogin }) =
             <ShoppingBasket size={16} />
             {isBangla ? 'বাংলাদেশের ডিজিটাল হাট' : 'Digital Market of Bangladesh'}
           </div>
-          <h1 className="text-4xl font-bold text-gray-900 mb-4">{isBangla ? 'বাজার সদাই' : 'Bazar Sodai'}</h1>
+          <h1 className="text-4xl font-black text-gray-900 mb-4 tracking-tight">{isBangla ? 'বাজার সদাই' : 'Bazar Sodai'}</h1>
         </div>
         <div className="flex justify-center mb-10">
           <div className="bg-white p-1.5 rounded-full shadow-md border border-gray-100 flex gap-1">
@@ -102,47 +103,80 @@ export const BazarSodaiModule: React.FC<Props> = ({ isBangla, user, onLogin }) =
         </div>
         {activeTab === 'paikari' ? (
           <div className="space-y-8 animate-fade-in-up">
-            <div className="bg-gradient-to-r from-orange-50 to-amber-50 border border-orange-100 rounded-3xl p-8 flex flex-col md:flex-row items-center justify-between gap-8">
-              <h2 className="text-3xl font-bold text-orange-900">{isBangla ? 'আপনার পণ্য বিক্রি করুন' : 'Sell Your Produce Bulk'}</h2>
-              <Button onClick={handleOpenModal} size="lg" className="bg-orange-600 hover:bg-orange-700">{isBangla ? 'বিজ্ঞাপন দিন (ফ্রি)' : 'Post Ad (Free)'}</Button>
+            <div className="bg-gradient-to-r from-orange-50 to-amber-50 border border-orange-100 rounded-3xl p-8 flex flex-col md:flex-row items-center justify-between gap-8 shadow-sm">
+              <h2 className="text-3xl font-black text-orange-900">{isBangla ? 'আপনার পণ্য বিক্রি করুন' : 'Sell Your Produce Bulk'}</h2>
+              <Button onClick={handleOpenModal} size="lg" className="bg-orange-600 hover:bg-orange-700 font-bold px-10 shadow-lg shadow-orange-500/20 transition-all active:scale-95">{isBangla ? 'বিজ্ঞাপন দিন (ফ্রি)' : 'Post Ad (Free)'}</Button>
             </div>
-            <div className="relative max-w-2xl mx-auto"><input type="text" className="w-full pl-14 pr-4 py-4 rounded-2xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-orange-500/50 bg-white" placeholder={isBangla ? 'পাইকারি পণ্য বা এলাকা খুঁজুন...' : 'Search wholesale items or location...'} value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} /><Search className="absolute left-4 top-4 text-gray-400" size={24} /></div>
+            <div className="relative max-w-2xl mx-auto">
+              <input type="text" className="w-full pl-14 pr-4 py-4 rounded-2xl border border-gray-200 focus:outline-none focus:ring-4 focus:ring-orange-500/10 bg-white text-gray-900 font-bold placeholder-gray-400" placeholder={isBangla ? 'পাইকারি পণ্য বা এলাকা খুঁজুন...' : 'Search wholesale items or location...'} value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} />
+              <Search className="absolute left-4 top-4 text-gray-400" size={24} />
+            </div>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
               {filteredWholesaleListings.map((item:any) => (
-                <div key={item.id} className="bg-white p-6 rounded-3xl shadow-sm border border-gray-100 hover:shadow-xl transition-all">
-                  <h4 className="text-2xl font-bold text-gray-900">{isBangla ? (item.productBn || item.product) : (item.productEn || item.product)}</h4>
-                  <div className="flex items-center gap-2 text-sm text-gray-500 mt-2 font-medium"><MapPin size={16} className="text-orange-500" /> {item.location}</div>
-                  <div className="bg-gray-50 rounded-2xl p-5 space-y-3 my-4"><div className="flex justify-between"><span className="text-gray-500">{isBangla ? 'পরিমাণ' : 'Quantity'}</span><span className="font-bold">{item.quantity}</span></div><div className="flex justify-between"><span className="text-gray-500">{isBangla ? 'দাম' : 'Price'}</span><span className="font-bold text-orange-600">{item.price}</span></div></div>
-                  <a href={`tel:${item.phone}`} className="w-full flex items-center justify-center gap-2 bg-orange-600 text-white py-3 rounded-xl font-bold"><Phone size={18} /> {isBangla ? 'কল করুন' : 'Call'}</a>
+                <div key={item.id} className="bg-white p-6 rounded-3xl shadow-sm border border-gray-100 hover:shadow-xl hover:-translate-y-1 transition-all group">
+                  <h4 className="text-2xl font-black text-gray-900 group-hover:text-orange-600 transition-colors">{isBangla ? (item.productBn || item.product) : (item.productEn || item.product)}</h4>
+                  <div className="flex items-center gap-2 text-sm text-gray-500 mt-2 font-bold uppercase tracking-wider"><MapPin size={16} className="text-orange-500" /> {item.location}</div>
+                  <div className="bg-gray-50 rounded-2xl p-5 space-y-3 my-4 border border-gray-100"><div className="flex justify-between font-medium"><span className="text-gray-500">{isBangla ? 'পরিমাণ' : 'Quantity'}</span><span className="text-gray-900">{item.quantity}</span></div><div className="flex justify-between font-black"><span className="text-gray-500">{isBangla ? 'দাম' : 'Price'}</span><span className="text-orange-600">৳ {item.price}</span></div></div>
+                  <a href={`tel:${item.phone}`} className="w-full flex items-center justify-center gap-2 bg-orange-600 text-white py-3.5 rounded-2xl font-black shadow-lg shadow-orange-500/20 hover:brightness-110 active:scale-95 transition-all"><Phone size={18} /> {isBangla ? 'কল করুন' : 'Call Seller'}</a>
                 </div>
               ))}
             </div>
           </div>
         ) : (
-          <div className="bg-white rounded-3xl shadow-sm border border-gray-100 overflow-hidden animate-fade-in-up"><div className="p-8 border-b border-gray-100 flex justify-between items-center bg-gray-50/30"><h3 className="text-2xl font-bold text-gray-900 flex items-center gap-3"><TrendingUp className="text-blue-600" />{isBangla ? 'আজকের বাজার দর (গড়)' : 'Today\'s Average Price'}</h3></div><div className="overflow-x-auto"><table className="w-full text-left"><thead className="bg-gray-50 text-gray-500 text-xs font-bold uppercase"><tr><th className="px-8 py-5">{isBangla ? 'পণ্য' : 'Product'}</th><th className="px-8 py-5">{isBangla ? 'বর্তমান দাম' : 'Price'}</th><th className="px-8 py-5 text-right">{isBangla ? 'অবস্থা' : 'Trend'}</th></tr></thead><tbody className="divide-y divide-gray-100">{marketPrices.map((item: any, idx: number) => (<tr key={idx}><td className="px-8 py-5 font-bold text-gray-900">{isBangla ? item.nameBn : item.nameEn}</td><td className="px-8 py-5 font-bold text-blue-700">৳ {item.today}</td><td className="px-8 py-5 text-right">{item.trend === 'up' ? <span className="text-red-500">▲ Up</span> : item.trend === 'down' ? <span className="text-green-500">▼ Down</span> : <span className="text-gray-500">• Stable</span>}</td></tr>))}</tbody></table></div></div>
+          <div className="bg-white rounded-[2.5rem] shadow-sm border border-gray-100 overflow-hidden animate-fade-in-up">
+            <div className="p-8 border-b border-gray-100 flex justify-between items-center bg-gray-50/30">
+              <h3 className="text-2xl font-black text-gray-900 flex items-center gap-3"><TrendingUp className="text-blue-600" />{isBangla ? 'আজকের বাজার দর (গড়)' : 'Today\'s Average Price'}</h3>
+              <Button variant="outline" className="text-xs font-bold rounded-xl"><RefreshCw size={14} className="mr-1"/> Refresh</Button>
+            </div>
+            <div className="overflow-x-auto">
+              <table className="w-full text-left">
+                <thead className="bg-gray-50 text-gray-400 text-[10px] font-black uppercase tracking-widest"><tr><th className="px-8 py-5">{isBangla ? 'পণ্য' : 'Product'}</th><th className="px-8 py-5">{isBangla ? 'বর্তমান দাম' : 'Price'}</th><th className="px-8 py-5 text-right">{isBangla ? 'অবস্থা' : 'Trend'}</th></tr></thead>
+                <tbody className="divide-y divide-gray-100">{marketPrices.map((item: any, idx: number) => (<tr key={idx} className="hover:bg-blue-50/20 transition-colors"><td className="px-8 py-5 font-black text-gray-900">{isBangla ? item.nameBn : item.nameEn}</td><td className="px-8 py-5 font-black text-blue-700">৳ {item.today}</td><td className="px-8 py-5 text-right">{item.trend === 'up' ? <span className="text-red-500 font-bold">▲ Up</span> : item.trend === 'down' ? <span className="text-green-500 font-bold">▼ Down</span> : <span className="text-gray-400 font-bold">• Stable</span>}</td></tr>))}</tbody>
+              </table>
+            </div>
+          </div>
         )}
       </div>
       {showPostModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fade-in" onClick={() => setShowPostModal(false)}>
-          <div className="bg-white w-full max-w-xl rounded-3xl shadow-2xl p-8" onClick={e => e.stopPropagation()}>
-            <h2 className="text-2xl font-bold text-orange-900 mb-6">{isBangla ? 'পাইকারি বিজ্ঞাপন দিন' : 'Post Wholesale Ad'}</h2>
-            {submitted ? (
-              <div className="text-center py-10"><CheckCircle size={48} className="mx-auto text-green-500 mb-4" /><h3 className="text-xl font-bold mb-8">{isBangla ? 'আবেদন জমা হয়েছে!' : 'Submitted!'}</h3><Button onClick={() => setShowPostModal(false)}>OK</Button></div>
-            ) : (
-              <form onSubmit={handleAdSubmit} className="space-y-4">
-                <input required className="w-full p-3 bg-gray-50 border rounded-xl" placeholder={isBangla ? 'পণ্যের নাম' : 'Product Name'} value={adForm.product} onChange={e => setAdForm({...adForm, product: e.target.value})} />
-                <div className="grid grid-cols-2 gap-4">
-                  <input required className="w-full p-3 bg-gray-50 border rounded-xl" placeholder={isBangla ? 'পরিমাণ' : 'Quantity'} value={adForm.quantity} onChange={e => setAdForm({...adForm, quantity: e.target.value})} />
-                  <input required className="w-full p-3 bg-gray-50 border rounded-xl" placeholder={isBangla ? 'দাম' : 'Price'} value={adForm.price} onChange={e => setAdForm({...adForm, price: e.target.value})} />
-                </div>
-                <input required className="w-full p-3 bg-gray-50 border rounded-xl" placeholder={isBangla ? 'স্থান/জেলা' : 'Location'} value={adForm.location} onChange={e => setAdForm({...adForm, location: e.target.value})} />
-                <div className="grid grid-cols-2 gap-4">
-                  <input required className="w-full p-3 bg-gray-50 border rounded-xl" placeholder={isBangla ? 'আপনার নাম' : 'Your Name'} value={adForm.name} onChange={e => setAdForm({...adForm, name: e.target.value})} />
-                  <input required className="w-full p-3 bg-gray-50 border rounded-xl" placeholder={isBangla ? 'ফোন নম্বর' : 'Phone Number'} value={adForm.phone} onChange={e => setAdForm({...adForm, phone: e.target.value})} />
-                </div>
-                <Button type="submit" disabled={isSubmitting} className="w-full bg-orange-600">{isSubmitting ? '...' : (isBangla ? 'জমা দিন' : 'Submit')}</Button>
-              </form>
-            )}
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm animate-fade-in" onClick={() => setShowPostModal(false)}>
+          <div className="bg-white w-full max-w-xl rounded-[2.5rem] shadow-2xl overflow-hidden animate-fade-in-up" onClick={e => e.stopPropagation()}>
+            <div className="bg-orange-600 p-6 flex justify-between items-center text-white">
+              <h2 className="text-xl font-black uppercase tracking-tighter">{isBangla ? 'পাইকারি বিজ্ঞাপন দিন' : 'Post Wholesale Ad'}</h2>
+              <button onClick={() => setShowPostModal(false)}><X size={24}/></button>
+            </div>
+            <div className="p-8">
+              {submitted ? (
+                <div className="text-center py-10"><div className="w-20 h-20 bg-green-100 text-green-600 rounded-full flex items-center justify-center mx-auto mb-6"><CheckCircle size={48} className="animate-bounce" /></div><h3 className="text-2xl font-black text-gray-900 mb-8">{isBangla ? 'বিজ্ঞাপনটি অনুমোদনের জন্য জমা হয়েছে!' : 'Ad submitted for moderation!'}</h3><Button onClick={() => setShowPostModal(false)} className="w-full bg-orange-600 font-bold py-4 rounded-xl">OK</Button></div>
+              ) : (
+                <form onSubmit={handleAdSubmit} className="space-y-4">
+                  <div>
+                    <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1.5 ml-1">Product Name</label>
+                    <input required className="w-full p-4 bg-gray-50 border border-gray-200 rounded-xl text-gray-900 font-bold outline-none focus:ring-2 focus:ring-orange-500/20" placeholder={isBangla ? 'যেমন: দিনাজপুরের লিচু' : 'e.g. Lychee'} value={adForm.product} onChange={e => setAdForm({...adForm, product: e.target.value})} />
+                  </div>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1.5 ml-1">Quantity</label>
+                      <input required className="w-full p-4 bg-gray-50 border border-gray-200 rounded-xl text-gray-900 font-bold outline-none" placeholder="5000 pcs" value={adForm.quantity} onChange={e => setAdForm({...adForm, quantity: e.target.value})} />
+                    </div>
+                    <div>
+                      <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1.5 ml-1">Expected Price</label>
+                      <input required className="w-full p-4 bg-gray-50 border border-gray-200 rounded-xl text-gray-900 font-bold outline-none" placeholder="৳ 3.5 / pc" value={adForm.price} onChange={e => setAdForm({...adForm, price: e.target.value})} />
+                    </div>
+                  </div>
+                  <div>
+                    <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1.5 ml-1">Location</label>
+                    <input required className="w-full p-4 bg-gray-50 border border-gray-200 rounded-xl text-gray-900 font-bold outline-none" placeholder={isBangla ? 'স্থান/জেলা' : 'Location'} value={adForm.location} onChange={e => setAdForm({...adForm, location: e.target.value})} />
+                  </div>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2 border-t border-gray-50">
+                    <input required className="w-full p-4 bg-gray-50 border border-gray-200 rounded-xl text-gray-900 font-bold" placeholder={isBangla ? 'আপনার নাম' : 'Your Name'} value={adForm.name} onChange={e => setAdForm({...adForm, name: e.target.value})} />
+                    <input required className="w-full p-4 bg-gray-50 border border-gray-200 rounded-xl text-gray-900 font-bold" placeholder={isBangla ? 'ফোন নম্বর' : 'Phone Number'} value={adForm.phone} onChange={e => setAdForm({...adForm, phone: e.target.value})} />
+                  </div>
+                  <Button type="submit" disabled={isSubmitting} className="w-full bg-orange-600 hover:bg-orange-700 text-white font-black py-4 rounded-2xl shadow-xl shadow-orange-500/20 text-lg flex items-center justify-center gap-2 mt-4">
+                    {isSubmitting ? <Loader2 className="animate-spin"/> : (isBangla ? 'জমা দিন' : 'Submit Ad')}
+                  </Button>
+                </form>
+              )}
+            </div>
           </div>
         </div>
       )}

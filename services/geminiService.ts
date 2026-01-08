@@ -1,9 +1,8 @@
 
-import { GoogleGenAI, GenerateContentResponse, Type } from "@google/genai";
+import { GoogleGenAI, Type } from "@google/genai";
 
-// Initialize client securely using obtained key exclusively from process.env.API_KEY as per guidelines.
-// Assume process.env.API_KEY is pre-configured and valid.
-const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+// Fix: Removed global initialization and top-level getApiKey helper to comply with Gemini SDK security guidelines.
+// Each request now initializes its own client right before the API call using process.env.API_KEY directly.
 
 export const generateAssistantResponse = async (
   prompt: string, 
@@ -11,36 +10,26 @@ export const generateAssistantResponse = async (
   history: {role: string, parts: {text: string}[]}[],
   attachment?: { mimeType: string; data: string }
 ): Promise<string> => {
+  // Fix: Obtained API key directly from process.env and initialized right before usage.
+  if (!process.env.API_KEY) return "এপিআই কী (API Key) পাওয়া যায়নি। দয়া করে এডমিনকে জানান।";
+  const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+  
   try {
     const systemInstruction = `You are 'Mithu', an elite AI persona for 'Digital Desh BD'. 
-    
-    CORE DIRECTIVES:
-    1. EXTREME SPEED: Be concise. Avoid long introductions. Get straight to the point.
-    2. BEAUTIFUL FORMATTING: ALWAYS use Markdown. Use bullet points (• or *) for almost everything to make it "guchano" (organized).
-    3. ENGAGING STYLE: Use friendly, cheerful, and helpful language. Use relevant emojis.
-    4. STRUCTURE: 
-       - Start with a tiny friendly greeting.
-       - Use bullet points for the main information.
-       - End with a short encouraging closing.
-    5. LANGUAGE: Respond in the user's language (Bangla/English).
-    
-    Current User Context: ${context}.`;
+    Respond helpfuly and concisely. ALWAYS use Markdown. Use Bangla/English as per user.
+    Context: ${context}.`;
 
-    // Using gemini-3-flash-preview for maximum speed
     const modelName = 'gemini-3-flash-preview';
     
-    // Construct contents from history
     let contents = history.map(h => ({
       role: h.role === 'model' ? 'model' : 'user',
       parts: h.parts
     }));
 
-    // Ensure the first message is from 'user'
     if (contents.length > 0 && contents[0].role === 'model') {
       contents.shift();
     }
 
-    // Add current message
     const currentParts: any[] = [{ text: prompt }];
     if (attachment) {
       currentParts.push({ inlineData: attachment });
@@ -52,11 +41,11 @@ export const generateAssistantResponse = async (
       contents: contents,
       config: {
         systemInstruction: systemInstruction,
-        temperature: 0.4, // Lower temperature for faster, more focused and concise responses
-        thinkingConfig: { thinkingBudget: 0 }, // Disable thinking for maximum speed
+        temperature: 0.4,
       },
     });
 
+    // Fix: Access response.text property directly as per latest SDK guidelines.
     return response.text || "দুঃখিত, আমি উত্তর তৈরি করতে পারছি না।";
   } catch (error: any) {
     console.error("Gemini API Error:", error);
@@ -64,72 +53,46 @@ export const generateAssistantResponse = async (
   }
 };
 
-/**
- * Specialized function for Agricultural Image Analysis
- */
 export const analyzePlantDisease = async (
   base64Data: string,
   mimeType: string,
   isBangla: boolean
 ): Promise<{ disease: string; severity: string; solution: string; isPlant: boolean }> => {
-  try {
-    const modelName = 'gemini-3-flash-preview';
-    
-    const systemInstruction = `You are an elite Agricultural Scientist.
-    
-    STRICT RULES:
-    1. IMAGE VALIDATION: If NOT agricultural, respond ONLY with "NOT_AGRICULTURAL".
-    2. DIAGNOSIS: Provide specific disease name, risk level, and solution.
-    3. STYLE: Use beautiful bullet points for the solution steps. Be concise for speed.
-    4. FORMAT: JSON only.
-    5. LANGUAGE: Text in ${isBangla ? 'Bangla' : 'English'}.`;
+  // Fix: Obtained API key directly from process.env and initialized right before usage.
+  if (!process.env.API_KEY) throw new Error("API Key Missing");
+  const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
 
-    const prompt = isBangla 
-      ? "এই কৃষি ছবিটি বিশ্লেষণ করে সুন্দর বুলেট পয়েন্টে সমাধান দিন।" 
-      : "Analyze this image and provide solutions in beautiful bullet points.";
+  try {
+    const promptText = isBangla 
+      ? "এই কৃষি ছবিটি (ফসল, পাতা, গবাদি পশু যেমন গরু/ছাগল, হাঁস-মুরগি বা মাছ) বিশ্লেষণ করুন। যদি এটি কোন রোগ হয় তবে তার নাম, ভয়াবহতা এবং প্রতিকার প্রদান করুন।" 
+      : "Analyze this agricultural image (crop, leaf, livestock like cow/goat, poultry, or fish). Identify any disease, its severity, and provide a detailed solution.";
 
     const response = await ai.models.generateContent({
-      model: modelName,
+      model: 'gemini-3-flash-preview',
       contents: {
         parts: [
-          { text: prompt },
+          { text: promptText },
           { inlineData: { data: base64Data, mimeType: mimeType } }
         ]
       },
       config: {
-        systemInstruction: systemInstruction,
         responseMimeType: "application/json",
-        temperature: 0.3,
-        thinkingConfig: { thinkingBudget: 0 },
         responseSchema: {
           type: Type.OBJECT,
           properties: {
-            disease: { type: Type.STRING },
-            severity: { type: Type.STRING },
-            solution: { type: Type.STRING, description: "Detailed steps using bullet points" },
-            isPlant: { type: Type.BOOLEAN }
+            disease: { type: Type.STRING, description: "Name of the disease or issue" },
+            severity: { type: Type.STRING, description: "How serious the condition is" },
+            solution: { type: Type.STRING, description: "Step by step treatment or solution" },
+            isPlant: { type: Type.BOOLEAN, description: "True if it's a plant/crop, False if it's animal/fish/bird" }
           },
           required: ["disease", "severity", "solution", "isPlant"]
         }
       }
     });
 
-    const text = response.text?.trim() || "";
-    
-    if (text.includes("NOT_AGRICULTURAL")) {
-      return { disease: "", severity: "", solution: "", isPlant: false };
-    }
-
-    try {
-      return JSON.parse(text);
-    } catch (e) {
-      return { 
-        disease: isBangla ? "অজ্ঞাত সমস্যা" : "Unknown Condition", 
-        severity: "Unknown", 
-        solution: text, 
-        isPlant: true 
-      };
-    }
+    // Fix: Access response.text property directly as per latest SDK guidelines.
+    const text = response.text || "";
+    return JSON.parse(text);
   } catch (error) {
     console.error("Image Analysis Error:", error);
     throw error;

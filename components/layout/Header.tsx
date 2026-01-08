@@ -1,8 +1,10 @@
 
+"use client";
+
 import React, { useState } from 'react';
-import { Menu, X, Globe, Bell, LogOut, ChevronDown, User as UserIcon, Heart, Map, ShoppingBasket, Check, Trash2, Info, AlertTriangle, CheckCircle, ShieldAlert, Shield, HelpCircle } from 'lucide-react';
+import { Menu, X, Globe, ChevronDown, User as UserIcon, Shield, HelpCircle, Bell } from 'lucide-react';
 import { Button } from '../ui/Button';
-import { User, AppModule, Notification } from '../../types';
+import { User, AppModule } from '../../types';
 import { useSiteConfig } from '../../contexts/SiteConfigContext';
 
 interface HeaderProps {
@@ -14,506 +16,137 @@ interface HeaderProps {
   onNavigateHome: () => void;
   isBangla: boolean;
   toggleLanguage: () => void;
-  notifications?: Notification[];
-  onMarkAllRead?: () => void;
-  onClearNotifications?: () => void;
 }
 
 export const Header: React.FC<HeaderProps> = ({ 
-  user, 
-  onLogin, 
-  onRegister, 
-  onLogout,
-  onModuleSelect,
-  onNavigateHome,
-  isBangla, 
-  toggleLanguage,
-  notifications = [],
-  onMarkAllRead,
-  onClearNotifications
+  user, onLogin, onRegister, onLogout, onModuleSelect, onNavigateHome, isBangla, toggleLanguage
 }) => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const [showNotifications, setShowNotifications] = useState(false);
-  const [userMenuOpen, setUserMenuOpen] = useState(false);
-  
   const { modules, settings } = useSiteConfig();
-
-  const isLocal = process.env.NODE_ENV === 'development';
-
-  const allModules = [
-    { id: AppModule.CRAFT, title: isBangla ? 'কারুশিল্প' : 'Crafts' },
-    { id: AppModule.AGRI, title: isBangla ? 'কৃষি' : 'Agriculture' },
-    { id: AppModule.HEALTH, title: isBangla ? 'স্বাস্থ্য' : 'Health' },
-    { id: AppModule.EDU, title: isBangla ? 'শিক্ষা' : 'Education' },
-    { id: AppModule.TRANSPORT, title: isBangla ? 'পরিবহন' : 'Transport' },
-    { id: AppModule.WASTE, title: isBangla ? 'বর্জ্য' : 'Waste Mgmt' },
-    { id: AppModule.FISHERY, title: isBangla ? 'মৎস্য' : 'Fishery' },
-    { id: AppModule.DISASTER, title: isBangla ? 'দুর্যোগ' : 'Disaster' },
-    { id: AppModule.LEGAL, title: isBangla ? 'আইনি সহায়তা' : 'Legal Aid' },
-    { id: AppModule.EXPAT, title: isBangla ? 'প্রবাসী' : 'Expat Services' },
-    { id: AppModule.VOCATIONAL, title: isBangla ? 'কারিগরি' : 'Vocational' },
-  ];
-
-  const visibleModules = allModules.filter(m => modules[m.id]);
 
   const handleModuleClick = (moduleId: AppModule) => {
     setMobileMenuOpen(false);
     onModuleSelect(moduleId);
   };
 
-  const handleMobileLogin = () => {
-    setMobileMenuOpen(false);
-    onLogin();
-  };
-
-  const handleMobileLogout = () => {
-    setMobileMenuOpen(false);
-    onLogout();
-  };
-
-  const handleHomeClick = () => {
-    setMobileMenuOpen(false);
-    onNavigateHome();
-  };
-
-  const unreadCount = notifications.filter(n => !n.read).length;
-
-  const getNotificationIcon = (type: string) => {
-    switch (type) {
-      case 'warning': return <AlertTriangle size={16} className="text-orange-500" />;
-      case 'alert': return <ShieldAlert size={16} className="text-red-600 animate-pulse" />;
-      case 'success': return <CheckCircle size={16} className="text-green-500" />;
-      default: return <Info size={16} className="text-blue-500" />;
-    }
-  };
-
-  const formatTime = (date: Date) => {
-    const now = new Date();
-    const diff = Math.floor((now.getTime() - new Date(date).getTime()) / 60000); 
-    if (diff < 1) return 'Just now';
-    if (diff < 60) return `${diff}m ago`;
-    const hours = Math.floor(diff / 60);
-    if (hours < 24) return `${hours}h ago`;
-    return `${Math.floor(hours / 24)}d ago`;
-  };
+  const allServices = [
+    { id: AppModule.CRAFT, title: isBangla ? 'কারুশিল্প' : 'Crafts' },
+    { id: AppModule.AGRI, title: isBangla ? 'কৃষি' : 'Agriculture' },
+    { id: AppModule.HEALTH, title: isBangla ? 'স্বাস্থ্য' : 'Health' },
+    { id: AppModule.EDU, title: isBangla ? 'শিক্ষা' : 'Education' },
+    { id: AppModule.TRANSPORT, title: isBangla ? 'পরিবহন' : 'Transport' },
+    { id: AppModule.WASTE, title: isBangla ? 'বর্জ্য' : 'Waste' },
+    { id: AppModule.FISHERY, title: isBangla ? 'মৎস্য' : 'Fishery' },
+    { id: AppModule.DISASTER, title: isBangla ? 'দুর্যোগ' : 'Disaster' },
+    { id: AppModule.LEGAL, title: isBangla ? 'আইনি সহায়তা' : 'Legal' },
+    { id: AppModule.EXPAT, title: isBangla ? 'প্রবাসী' : 'Expat' },
+    { id: AppModule.VOCATIONAL, title: isBangla ? 'কারিগরি' : 'Vocational' },
+  ].filter(s => modules[s.id]);
 
   return (
-    <>
-      {settings.announcementActive && settings.announcement && (
-        <div className="bg-orange-500 text-white text-center py-2 px-4 text-sm font-bold animate-fade-in relative z-[60]">
-          {settings.announcement}
-        </div>
-      )}
-
-      <nav className="sticky top-0 z-50 bg-white/90 backdrop-blur-md border-b border-gray-100">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-20">
-            <div 
-              className="flex items-center gap-3 cursor-pointer" 
-              onClick={handleHomeClick}
-            >
-              {settings.websiteLogo ? (
-                <img src={settings.websiteLogo} alt="Logo" className="h-14 w-auto object-contain" />
-              ) : (
-                <div className="w-14 h-14 bg-brand-600 rounded-xl flex items-center justify-center text-white font-bold text-2xl shadow-lg">
-                  {settings.websiteTitle.charAt(0) || 'D'}
-                </div>
-              )}
-              <span className="text-2xl font-bold text-gray-800 tracking-tight">{settings.websiteTitle}</span>
+    <nav className="sticky top-0 z-50 bg-white/95 backdrop-blur-md border-b border-gray-100 h-20">
+      <div className="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8 h-full">
+        <div className="flex justify-between items-center h-full">
+          {/* Logo Section */}
+          <div className="flex items-center gap-2 cursor-pointer shrink-0 group" onClick={onNavigateHome}>
+            <div className="w-12 h-12 bg-white rounded-lg flex items-center justify-center overflow-hidden border border-gray-50 transition-transform group-hover:scale-105">
+                <img 
+                  src={settings.websiteLogo || "https://zpsxpqurazjeqviwooky.supabase.co/storage/v1/object/public/images/logo.png"} 
+                  className="w-full h-full object-contain" 
+                  alt="Site Logo" 
+                  onError={(e) => e.currentTarget.src = "https://placehold.co/100x100?text=D"} 
+                />
             </div>
+            <span className="text-xl font-black text-gray-800 hidden xl:block uppercase tracking-tighter">Digital DeshBD</span>
+          </div>
 
-            <div className="hidden lg:flex items-center gap-6">
-                {modules[AppModule.AMAR_BD] && (
-                  <button 
-                    onClick={() => onModuleSelect(AppModule.AMAR_BD)} 
-                    className="flex items-center gap-2 text-sm font-bold text-green-700 bg-green-50 px-3 py-1.5 rounded-full hover:bg-green-100 transition-colors"
-                  >
-                    <Heart size={14} fill="currentColor" />
-                    {isBangla ? 'আমার বাংলাদেশ' : 'Amar BD'}
-                  </button>
-                )}
-
-                {modules[AppModule.AMAR_JELA] && (
-                  <button 
-                    onClick={() => onModuleSelect(AppModule.AMAR_JELA)} 
-                    className="flex items-center gap-2 text-sm font-bold text-teal-700 bg-teal-50 px-3 py-1.5 rounded-full hover:bg-teal-100 transition-colors"
-                  >
-                    <Map size={14} />
-                    {isBangla ? 'আমার জেলা' : 'Amar Jela'}
-                  </button>
-                )}
-
-                {visibleModules.length > 0 && (
-                  <div className="relative group">
-                    <button 
-                      className="flex items-center gap-1 text-sm font-medium text-gray-600 hover:text-brand-600 transition-colors py-2"
-                    >
-                      {isBangla ? 'সেবাসমূহ' : 'Services'}
-                      <ChevronDown size={16} />
-                    </button>
-                    
-                    <div className="absolute top-full -left-4 w-56 bg-white rounded-xl shadow-xl border border-gray-100 py-2 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 transform translate-y-2 group-hover:translate-y-0 z-50 max-h-96 overflow-y-auto">
-                      {visibleModules.map((mod) => (
-                        <button
-                          key={mod.id}
-                          className="w-full text-left px-4 py-2.5 text-sm text-gray-700 hover:bg-brand-50 hover:text-brand-700 transition-colors flex items-center gap-3"
-                          onClick={() => handleModuleClick(mod.id)}
-                        >
-                          <span className="w-1.5 h-1.5 rounded-full bg-brand-400"></span>
-                          <span className="font-medium">{mod.title}</span>
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-                )}
-                
-                {modules[AppModule.BAZAR_SODAI] && (
-                  <button 
-                    onClick={() => onModuleSelect(AppModule.BAZAR_SODAI)} 
-                    className="flex items-center gap-2 text-sm font-bold text-lime-700 bg-lime-50 px-3 py-1.5 rounded-full hover:bg-lime-100 transition-colors"
-                  >
-                    <ShoppingBasket size={14} />
-                    {isBangla ? 'বাজার সদাই' : 'Bazar Sodai'}
-                  </button>
-                )}
-
-                {modules[AppModule.JOB] && (
-                  <button onClick={() => onModuleSelect(AppModule.JOB)} className="text-sm font-medium text-gray-600 hover:text-brand-600 transition-colors">
-                    {isBangla ? 'চাকরি' : 'Jobs'}
-                  </button>
-                )}
-
-                {modules[AppModule.BLOG] && (
-                  <button onClick={() => onModuleSelect(AppModule.BLOG)} className="text-sm font-medium text-gray-600 hover:text-brand-600 transition-colors">
-                    {isBangla ? 'ব্লগ' : 'Blog'}
-                  </button>
-                )}
-
-                <button 
-                  onClick={() => onModuleSelect(AppModule.JANTE_CHAI)} 
-                  className="flex items-center gap-2 text-sm font-bold text-indigo-700 bg-indigo-50 px-3 py-1.5 rounded-full hover:bg-indigo-100 transition-colors"
-                >
-                  <HelpCircle size={14} />
-                  {isBangla ? 'জানতে চাই' : 'Jante Chai'}
-                </button>
-
-                {isLocal && (
-                  <button 
-                    onClick={() => onModuleSelect(AppModule.ADMIN)} 
-                    className="flex items-center gap-2 text-sm font-bold text-white bg-orange-600 px-4 py-1.5 rounded-full hover:bg-orange-700 transition-all shadow-md shadow-orange-200"
-                  >
-                    <Shield size={14} />
-                    {isBangla ? 'অ্যাডমিন' : 'Admin'}
-                  </button>
-                )}
-            </div>
+          {/* Desktop Nav */}
+          <div className="hidden lg:flex items-center gap-1 xl:gap-3">
+            <button onClick={() => handleModuleClick(AppModule.AMAR_BD)} className="px-4 py-2 rounded-full bg-emerald-50 text-emerald-700 font-bold text-sm hover:bg-emerald-100 transition-all flex items-center gap-2">
+              <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span> {isBangla ? 'আমার বাংলাদেশ' : 'Amar BD'}
+            </button>
             
-            <div className="hidden lg:flex items-center gap-4">
-              <div className="relative">
-                <button 
-                  onClick={() => setShowNotifications(!showNotifications)}
-                  className={`p-2 rounded-full transition-colors relative ${showNotifications ? 'bg-brand-50 text-brand-600' : 'text-gray-600 hover:bg-gray-50'}`}
-                >
-                  <Bell size={20} />
-                  {unreadCount > 0 && (
-                    <span className="absolute top-1.5 right-2 w-2 h-2 bg-red-500 rounded-full border border-white animate-pulse"></span>
-                  )}
-                </button>
+            <button onClick={() => handleModuleClick(AppModule.AMAR_JELA)} className="px-4 py-2 rounded-full bg-teal-50 text-teal-700 font-bold text-sm hover:bg-teal-100 transition-all flex items-center gap-2">
+               {isBangla ? 'আমার জেলা' : 'Amar Jela'}
+            </button>
 
-                {showNotifications && (
-                  <div className="absolute top-full right-0 mt-2 w-96 bg-white rounded-xl shadow-xl border border-gray-100 z-50 animate-fade-in overflow-hidden">
-                    <div className="flex justify-between items-center p-4 border-b border-gray-50">
-                      <div className="flex items-center gap-2">
-                        <h4 className="font-bold text-gray-900">{isBangla ? 'নোটিফিকেশন' : 'Notifications'}</h4>
-                        {unreadCount > 0 && (
-                          <span className="bg-brand-100 text-brand-700 text-xs font-bold px-2 py-0.5 rounded-full">
-                            {unreadCount}
-                          </span>
-                        )}
-                      </div>
-                      <div className="flex gap-2">
-                        <button 
-                          onClick={onMarkAllRead} 
-                          className="p-1.5 text-gray-400 hover:text-brand-600 hover:bg-brand-50 rounded transition-colors"
-                          title={isBangla ? 'সব পড়া হয়েছে' : 'Mark all read'}
-                        >
-                          <Check size={16} />
-                        </button>
-                        <button 
-                          onClick={onClearNotifications} 
-                          className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded transition-colors"
-                          title={isBangla ? 'সব মুছুন' : 'Clear all'}
-                        >
-                          <Trash2 size={16} />
-                        </button>
-                      </div>
-                    </div>
-                    
-                    <div className="max-h-[400px] overflow-y-auto">
-                      {notifications.length > 0 ? (
-                        <div className="divide-y divide-gray-50">
-                          {notifications.map((notif) => (
-                            <div 
-                              key={notif.id} 
-                              onClick={() => {
-                                if(notif.moduleId) onModuleSelect(notif.moduleId);
-                                setShowNotifications(false);
-                              }}
-                              className={`p-4 hover:bg-gray-50 transition-colors cursor-pointer flex gap-3 ${!notif.read ? 'bg-brand-50/30' : ''}`}
-                            >
-                              <div className={`mt-1 shrink-0`}>
-                                {getNotificationIcon(notif.type)}
-                              </div>
-                              <div className="flex-1">
-                                <div className="flex justify-between items-start mb-1">
-                                  <p className={`text-sm font-semibold ${!notif.read ? 'text-gray-900' : 'text-gray-600'}`}>
-                                    {notif.title}
-                                  </p>
-                                  <span className="text-[10px] text-gray-400 whitespace-nowrap ml-2">
-                                    {formatTime(notif.timestamp)}
-                                  </span>
-                                </div>
-                                <p className="text-xs text-gray-500 leading-relaxed line-clamp-2">
-                                  {notif.message}
-                                </p>
-                              </div>
-                              {!notif.read && (
-                                <div className="self-center w-2 h-2 bg-brand-500 rounded-full shrink-0"></div>
-                              )}
-                            </div>
-                          ))}
-                        </div>
-                      ) : (
-                        <div className="p-8 text-center text-gray-400">
-                          <Bell size={32} className="mx-auto mb-2 opacity-20" />
-                          <p className="text-sm">{isBangla ? 'কোন নোটিফিকেশন নেই' : 'No notifications'}</p>
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                )}
-              </div>
-
-              <button 
-                onClick={toggleLanguage}
-                className="flex items-center gap-2 text-sm font-medium text-gray-600 hover:text-brand-600 px-3 py-1.5 rounded-full border border-gray-200 hover:border-brand-200 transition-all"
-              >
-                <Globe size={16} />
-                <span>{isBangla ? 'English' : 'বাংলা'}</span>
+            <div className="relative group">
+              <button className="flex items-center gap-1 px-3 py-2 text-sm font-bold text-gray-600 hover:text-brand-600 transition-colors">
+                {isBangla ? 'সেবাসমূহ' : 'Services'} <ChevronDown size={14} />
               </button>
-              
-              {user ? (
-                <div className="relative">
-                  <button 
-                    onClick={() => setUserMenuOpen(!userMenuOpen)}
-                    className="flex items-center gap-2 pl-2"
-                  >
-                    <div className="w-10 h-10 rounded-full bg-gray-100 border-2 border-white shadow-sm flex items-center justify-center text-gray-500 overflow-hidden">
-                      {user.avatar ? (
-                        <img src={user.avatar} alt={user.name} className="w-full h-full object-cover" />
-                      ) : (
-                        <UserIcon size={20} />
-                      )}
-                    </div>
-                    <ChevronDown size={14} className="text-gray-500" />
-                  </button>
-                  
-                  {userMenuOpen && (
-                    <div className="absolute top-full right-0 mt-2 w-56 bg-white rounded-xl shadow-xl border border-gray-100 py-2 z-50 animate-fade-in">
-                        <div className="px-4 py-3 border-b border-gray-50">
-                          <p className="text-sm font-bold text-gray-900">{user.name}</p>
-                          <p className="text-xs text-gray-500">{user.role}</p>
-                        </div>
-                        {modules[AppModule.PROFILE] && (
-                          <button 
-                            onClick={() => {
-                              onModuleSelect(AppModule.PROFILE);
-                              setUserMenuOpen(false);
-                            }}
-                            className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-2"
-                          >
-                            <UserIcon size={16} />
-                            {isBangla ? 'প্রোফাইল' : 'Profile'}
-                          </button>
-                        )}
-                        <div className="border-t border-gray-50 my-1"></div>
-                        <button 
-                          onClick={onLogout}
-                          className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 flex items-center gap-2"
-                        >
-                          <LogOut size={16} />
-                          {isBangla ? 'লগ আউট' : 'Log Out'}
-                        </button>
-                    </div>
-                  )}
-                </div>
-              ) : (
-                <Button onClick={onLogin} variant="primary" className="shadow-lg shadow-brand-500/20">
-                  {isBangla ? 'লগইন' : 'Login'}
-                </Button>
-              )}
-            </div>
-
-            <div className="lg:hidden flex items-center gap-4">
-              <button 
-                  onClick={() => setShowNotifications(!showNotifications)}
-                  className="relative text-gray-600 p-1"
-                >
-                  <Bell size={24} />
-                  {unreadCount > 0 && (
-                    <span className="absolute top-0 right-0 w-2.5 h-2.5 bg-red-500 rounded-full border-2 border-white animate-pulse"></span>
-                  )}
-                </button>
-
-              <button onClick={() => setMobileMenuOpen(!mobileMenuOpen)} className="text-gray-600">
-                {mobileMenuOpen ? <X size={28} /> : <Menu size={28} />}
-              </button>
-            </div>
-          </div>
-        </div>
-        
-        {showNotifications && (
-          <div className="lg:hidden absolute top-20 left-0 right-0 bg-white shadow-xl z-40 border-b border-gray-100 max-h-[60vh] overflow-y-auto">
-              <div className="flex justify-between items-center p-4 bg-gray-50 sticky top-0">
-                <h4 className="font-bold text-gray-900">{isBangla ? 'নোটিফিকেশন' : 'Notifications'}</h4>
-                <button onClick={() => setShowNotifications(false)}><X size={20} /></button>
-              </div>
-              {notifications.length > 0 ? (
-                <div className="divide-y divide-gray-100">
-                    {notifications.map((notif) => (
-                      <div 
-                        key={notif.id} 
-                        onClick={() => {
-                          if(notif.moduleId) handleModuleClick(notif.moduleId);
-                          setShowNotifications(false);
-                        }}
-                        className={`p-4 flex gap-3 ${!notif.read ? 'bg-brand-50/20' : ''}`}
-                      >
-                        <div className="mt-1">{getNotificationIcon(notif.type)}</div>
-                        <div>
-                            <p className="text-sm font-semibold text-gray-900">{notif.title}</p>
-                            <p className="text-xs text-gray-500 mt-1">{notif.message}</p>
-                            <p className="text-[10px] text-gray-400 mt-2">{formatTime(notif.timestamp)}</p>
-                        </div>
-                      </div>
-                    ))}
-                </div>
-              ) : (
-                <div className="p-8 text-center text-gray-400">{isBangla ? 'কোন নোটিফিকেশন নেই' : 'No notifications'}</div>
-              )}
-          </div>
-        )}
-
-        {mobileMenuOpen && (
-          <div className="lg:hidden absolute top-20 left-0 w-full bg-white border-b border-gray-100 p-4 flex flex-col gap-4 shadow-xl h-[calc(100vh-5rem)] overflow-y-auto">
-              {user && (
-                <div 
-                  onClick={() => handleModuleClick(AppModule.PROFILE)}
-                  className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg mb-2 cursor-pointer hover:bg-gray-100 transition-colors"
-                >
-                  <div className="w-10 h-10 rounded-full bg-white border border-gray-200 flex items-center justify-center text-gray-500 overflow-hidden">
-                    {user.avatar ? (
-                      <img src={user.avatar} alt={user.name} className="w-full h-full object-cover" />
-                    ) : (
-                      <UserIcon size={20} />
-                    )}
-                  </div>
-                  <div>
-                    <p className="text-sm font-bold text-gray-900">{user.name}</p>
-                    <p className="text-xs text-gray-500">{user.role}</p>
-                  </div>
-                </div>
-              )}
-
-              <button 
-                onClick={() => handleModuleClick(AppModule.JANTE_CHAI)} 
-                className="flex items-center gap-2 text-left font-bold text-indigo-700 bg-indigo-50 p-3 rounded-lg border border-indigo-100"
-              >
-                <HelpCircle size={16} />
-                {isBangla ? 'জানতে চাই' : 'Jante Chai'}
-              </button>
-
-              {modules[AppModule.AMAR_BD] && (
-                <button 
-                  onClick={() => handleModuleClick(AppModule.AMAR_BD)} 
-                  className="flex items-center gap-2 text-left font-bold text-green-700 bg-green-50 p-3 rounded-lg border border-green-100"
-                >
-                  <Heart size={16} fill="currentColor" />
-                  {isBangla ? 'আমার বাংলাদেশ' : 'Amar BD'}
-                </button>
-              )}
-
-              {modules[AppModule.AMAR_JELA] && (
-                <button 
-                  onClick={() => handleModuleClick(AppModule.AMAR_JELA)} 
-                  className="flex items-center gap-2 text-left font-bold text-teal-700 bg-teal-50 p-3 rounded-lg border border-teal-100"
-                >
-                  <Map size={16} />
-                  {isBangla ? 'আমার জেলা' : 'Amar Jela'}
-                </button>
-              )}
-
-              {modules[AppModule.BAZAR_SODAI] && (
-                <button 
-                    onClick={() => handleModuleClick(AppModule.BAZAR_SODAI)} 
-                    className="flex items-center gap-2 text-left font-bold text-lime-700 bg-lime-50 p-3 rounded-lg border border-lime-100"
-                  >
-                    <ShoppingBasket size={16} />
-                    {isBangla ? 'বাজার সদাই' : 'Bazar Sodai'}
-                  </button>
-              )}
-
-              <div className="text-left font-medium text-gray-700 py-2 border-b border-gray-50">
-                {isBangla ? 'সেবাসমূহ' : 'Services'}
-              </div>
-              <div className="pl-4 grid grid-cols-2 gap-2 mb-2">
-                {visibleModules.map((mod) => (
-                  <button 
-                    key={mod.id} 
-                    onClick={() => handleModuleClick(mod.id)} 
-                    className="text-xs text-gray-500 text-left py-1 hover:text-brand-600"
-                  >
-                    {mod.title}
-                  </button>
+              <div className="absolute top-full left-0 w-56 bg-white shadow-2xl rounded-2xl border border-gray-100 py-3 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all translate-y-2 group-hover:translate-y-0">
+                {allServices.map(s => (
+                  <button key={s.id} onClick={() => handleModuleClick(s.id)} className="w-full text-left px-5 py-2.5 text-sm text-gray-700 hover:bg-brand-50 hover:text-brand-700 font-medium">{s.title}</button>
                 ))}
               </div>
-              
-              {modules[AppModule.JOB] && (
-                <button onClick={() => handleModuleClick(AppModule.JOB)} className="text-left font-medium text-gray-700 py-2 border-b border-gray-50">
-                  {isBangla ? 'চাকরি' : 'Jobs'}
-                </button>
-              )}
+            </div>
 
-              {modules[AppModule.BLOG] && (
-                <button onClick={() => handleModuleClick(AppModule.BLOG)} className="text-left font-medium text-gray-700 py-2 border-b border-gray-50">
-                  {isBangla ? 'ব্লগ' : 'Blog'}
-                </button>
-              )}
-              
-              {isLocal && (
-                <button onClick={() => handleModuleClick(AppModule.ADMIN)} className="text-left font-bold text-gray-700 py-3 border-b border-gray-50 flex items-center gap-2">
-                  <Shield size={18} />
-                  {isBangla ? 'অ্যাডমিন প্যানেল' : 'Admin Panel'}
-                </button>
-              )}
-              
-              <div className="flex gap-4 mt-2">
-                <Button onClick={() => { setMobileMenuOpen(false); toggleLanguage(); }} variant="outline" size="sm" className="flex-1">
-                  {isBangla ? 'English' : 'বাংলা'}
-                </Button>
-                {user ? (
-                    <Button onClick={handleMobileLogout} className="flex-1 !bg-red-600 !text-white !font-bold shadow-lg shadow-red-200 border-none">
-                      {isBangla ? 'লগ আউট' : 'Log Out'}
-                    </Button>
-                ) : (
-                    <Button onClick={handleMobileLogin} className="flex-1">
-                      {isBangla ? 'লগইন' : 'Login'}
-                    </Button>
-                )}
-              </div>
+            <button onClick={() => handleModuleClick(AppModule.BAZAR_SODAI)} className="px-4 py-2 rounded-full bg-lime-50 text-lime-700 font-bold text-sm hover:bg-lime-100 transition-all">
+               {isBangla ? 'বাজার সদাই' : 'Bazar Sodai'}
+            </button>
+
+            <button onClick={() => handleModuleClick(AppModule.JOB)} className="px-3 py-2 text-sm font-bold text-gray-600 hover:text-brand-600 transition-colors">
+              {isBangla ? 'চাকরি' : 'Jobs'}
+            </button>
+
+            <button onClick={() => handleModuleClick(AppModule.BLOG)} className="px-3 py-2 text-sm font-bold text-gray-600 hover:text-brand-600 transition-colors">
+              {isBangla ? 'ব্লগ' : 'Blog'}
+            </button>
+
+            <button onClick={() => handleModuleClick(AppModule.JANTE_CHAI)} className="px-5 py-2 rounded-full bg-indigo-50 text-indigo-700 font-black text-sm hover:bg-indigo-100 transition-all flex items-center gap-2 shadow-sm">
+              <HelpCircle size={16} /> {isBangla ? 'জানতে চাই' : 'Learn'}
+            </button>
           </div>
-        )}
-      </nav>
-    </>
+
+          {/* Right Controls */}
+          <div className="flex items-center gap-2 sm:gap-4">
+            <button 
+              onClick={() => handleModuleClick(AppModule.ADMIN)} 
+              className="hidden md:flex px-3 py-1.5 rounded-lg border border-orange-200 bg-orange-50 text-orange-600 text-xs font-black uppercase tracking-tighter hover:bg-orange-100 transition-colors"
+            >
+              Admin
+            </button>
+
+            <button className="p-2 text-gray-400 hover:text-brand-600 hover:bg-gray-50 rounded-full transition-colors relative">
+               <Bell size={22} />
+               <span className="absolute top-2 right-2 w-2 h-2 bg-red-500 rounded-full border-2 border-white"></span>
+            </button>
+            
+            <button onClick={toggleLanguage} className="hidden sm:flex items-center gap-2 px-3 py-1.5 border border-gray-200 rounded-full text-sm font-bold text-gray-600 hover:bg-gray-50 transition-all">
+              <Globe size={18} className="text-gray-400" />
+              {isBangla ? 'English' : 'বাংলা'}
+            </button>
+
+            {user ? (
+              <div className="flex items-center gap-2">
+                 <button onClick={() => handleModuleClick(AppModule.PROFILE)} className="w-10 h-10 rounded-full overflow-hidden border-2 border-brand-100 ring-2 ring-white shadow-sm hover:opacity-90 transition-opacity">
+                   <img src={user.avatar} className="w-full h-full object-cover" alt="User Profile" />
+                 </button>
+                 <ChevronDown size={14} className="text-gray-400" />
+              </div>
+            ) : (
+              <Button onClick={onLogin} size="sm" className="rounded-full font-black px-6 shadow-lg shadow-brand-500/20">{isBangla ? 'লগইন' : 'Login'}</Button>
+            )}
+
+            <button onClick={() => setMobileMenuOpen(!mobileMenuOpen)} className="lg:hidden p-2 text-gray-600 hover:bg-gray-100 rounded-full transition-colors">
+              {mobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
+            </button>
+          </div>
+        </div>
+      </div>
+
+      {/* Mobile Menu */}
+      {mobileMenuOpen && (
+        <div className="lg:hidden absolute top-20 left-0 w-full bg-white border-b border-gray-100 shadow-2xl p-6 flex flex-col gap-1 animate-fade-in z-[60]">
+          <button onClick={() => handleModuleClick(AppModule.AMAR_BD)} className="text-left font-black text-emerald-700 py-4 border-b border-gray-50 hover:bg-emerald-50 px-3 rounded-lg transition-colors">আমার বাংলাদেশ</button>
+          <button onClick={() => handleModuleClick(AppModule.AMAR_JELA)} className="text-left font-black text-teal-700 py-4 border-b border-gray-50 hover:bg-teal-50 px-3 rounded-lg transition-colors">আমার জেলা</button>
+          <button onClick={() => handleModuleClick(AppModule.BAZAR_SODAI)} className="text-left font-black text-lime-700 py-4 border-b border-gray-50 hover:bg-lime-50 px-3 rounded-lg transition-colors">বাজার সদাই</button>
+          <button onClick={() => handleModuleClick(AppModule.JANTE_CHAI)} className="text-left font-black text-indigo-700 py-4 border-b border-gray-50 flex items-center gap-2 hover:bg-indigo-50 px-3 rounded-lg transition-colors"><HelpCircle size={18}/> জানতে চাই</button>
+          <button onClick={() => handleModuleClick(AppModule.JOB)} className="text-left font-bold py-4 border-b border-gray-50 hover:bg-gray-50 px-3 rounded-lg transition-colors">চাকরি</button>
+          <button onClick={() => handleModuleClick(AppModule.ADMIN)} className="text-left font-black text-orange-600 py-4 hover:bg-orange-50 px-3 rounded-lg transition-colors">Admin Panel</button>
+          {!user && <Button onClick={onLogin} variant="outline" className="w-full mt-6 rounded-xl py-4">লগইন</Button>}
+        </div>
+      )}
+    </nav>
   );
 };

@@ -1,8 +1,7 @@
-
 import React, { useState } from 'react';
 import { 
   AlertOctagon, Map, PhoneCall, ShieldAlert, CloudLightning, Home, 
-  Waves, Activity, AlertTriangle, CheckCircle, Navigation, Camera, 
+  Waves, Activity, TriangleAlert, CheckCircle, Navigation, Camera, 
   FileText, ChevronRight, Phone, Siren, Info, MapPin, Upload, X
 } from 'lucide-react';
 import { Button } from '../ui/Button';
@@ -35,7 +34,7 @@ const ALERTS = {
     trend: 'Rising'
   },
   earthquake: {
-    active: false, // No recent major quake
+    active: false,
     lastBn: '৪.২ মাত্রা (সিলেট)',
     lastEn: '4.2 Mag (Sylhet)',
     time: '2 days ago'
@@ -132,11 +131,8 @@ export const DisasterModule: React.FC<Props> = ({ isBangla }) => {
     }, 3000);
   };
 
-  // --- RENDER FUNCTIONS ---
-
   const renderDashboard = () => (
     <div className="space-y-6 animate-fade-in">
-      {/* 1. Main Alert Banner */}
       <div className="bg-red-600 text-white rounded-2xl p-6 shadow-lg shadow-red-200 border-4 border-red-500 flex flex-col md:flex-row items-center gap-6 text-center md:text-left relative overflow-hidden">
         <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full -mr-16 -mt-16 animate-pulse"></div>
         <div className="p-4 bg-white/20 rounded-full relative z-10">
@@ -158,9 +154,7 @@ export const DisasterModule: React.FC<Props> = ({ isBangla }) => {
         </div>
       </div>
 
-      {/* 2. Status Cards Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {/* Flood Card */}
         <div className="bg-blue-50 border border-blue-100 rounded-2xl p-5 flex items-center gap-4">
            <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center text-blue-600 shrink-0">
              <Waves size={24} />
@@ -176,7 +170,6 @@ export const DisasterModule: React.FC<Props> = ({ isBangla }) => {
            </div>
         </div>
 
-        {/* Earthquake Card */}
         <div className="bg-orange-50 border border-orange-100 rounded-2xl p-5 flex items-center gap-4">
            <div className="w-12 h-12 bg-orange-100 rounded-full flex items-center justify-center text-orange-600 shrink-0">
              <Activity size={24} />
@@ -190,7 +183,6 @@ export const DisasterModule: React.FC<Props> = ({ isBangla }) => {
            </div>
         </div>
 
-        {/* Location Status Card */}
         <div className="bg-green-50 border border-green-100 rounded-2xl p-5 flex items-center gap-4">
            <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center text-green-600 shrink-0">
              <MapPin size={24} />
@@ -208,20 +200,10 @@ export const DisasterModule: React.FC<Props> = ({ isBangla }) => {
   const renderShelters = () => (
     <div className="space-y-6 animate-fade-in">
       <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
-        {/* Mock Map */}
         <div className="bg-gray-100 h-64 w-full flex items-center justify-center relative">
            <Map size={48} className="text-gray-400" />
            <span className="absolute bottom-2 right-2 bg-white px-2 py-1 text-xs rounded shadow">Map Placeholder</span>
-           
-           {/* Map Markers */}
-           <div className="absolute top-1/2 left-1/3 w-8 h-8 bg-green-500 rounded-full border-4 border-white shadow-lg animate-bounce flex items-center justify-center text-white" title="Shelter 1">
-             <Home size={12} />
-           </div>
-           <div className="absolute top-1/3 left-2/3 w-8 h-8 bg-blue-500 rounded-full border-4 border-white shadow-lg flex items-center justify-center text-white" title="Shelter 2">
-             <Home size={12} />
-           </div>
         </div>
-        
         <div className="p-6">
           <h3 className="font-bold text-gray-900 mb-4 flex items-center gap-2">
             <Home size={20} className="text-green-600" />
@@ -258,8 +240,6 @@ export const DisasterModule: React.FC<Props> = ({ isBangla }) => {
           <ShieldAlert className="text-orange-600" />
           {isBangla ? 'দুর্যোগ প্রস্তুতি গাইডলাইন' : 'Disaster Prep Guidelines'}
         </h3>
-
-        {/* Disaster Type Tabs */}
         <div className="flex gap-2 overflow-x-auto pb-2 mb-6">
           {[
             { id: 'cyclone', labelBn: 'ঘূর্ণিঝড়', labelEn: 'Cyclone', icon: <CloudLightning size={16}/> },
@@ -279,29 +259,6 @@ export const DisasterModule: React.FC<Props> = ({ isBangla }) => {
             </button>
           ))}
         </div>
-
-        {/* Phase Tabs */}
-        <div className="grid grid-cols-3 gap-2 mb-6 bg-gray-50 p-1 rounded-xl">
-          {[
-            { id: 'before', labelBn: 'আগে', labelEn: 'Before' },
-            { id: 'during', labelBn: 'চলাকালীন', labelEn: 'During' },
-            { id: 'after', labelBn: 'পরে', labelEn: 'After' },
-          ].map(phase => (
-            <button
-              key={phase.id}
-              onClick={() => setGuidePhase(phase.id as Phase)}
-              className={`py-2 rounded-lg text-sm font-bold transition-all ${
-                guidePhase === phase.id 
-                  ? 'bg-white text-orange-600 shadow-sm' 
-                  : 'text-gray-500 hover:text-gray-700'
-              }`}
-            >
-              {isBangla ? phase.labelBn : phase.labelEn}
-            </button>
-          ))}
-        </div>
-
-        {/* Content List */}
         <div className="space-y-3">
           {GUIDELINES[guideType][guidePhase].map((item, idx) => (
             <div key={idx} className="flex items-start gap-4 p-4 bg-orange-50 rounded-xl border border-orange-100">
@@ -314,127 +271,6 @@ export const DisasterModule: React.FC<Props> = ({ isBangla }) => {
             </div>
           ))}
         </div>
-        
-        {/* Placeholder for Video */}
-        <div className="mt-6 h-40 bg-gray-200 rounded-xl flex items-center justify-center relative overflow-hidden group cursor-pointer">
-           <div className="absolute inset-0 bg-black/20 group-hover:bg-black/30 transition-colors"></div>
-           <div className="w-12 h-12 bg-white rounded-full flex items-center justify-center shadow-lg relative z-10">
-             <ChevronRight className="ml-1" />
-           </div>
-           <span className="absolute bottom-3 text-white text-xs font-bold px-3 py-1 bg-black/50 rounded-full">
-             {isBangla ? 'ভিডিও টিউটোরিয়াল দেখুন' : 'Watch Video Tutorial'}
-           </span>
-        </div>
-      </div>
-    </div>
-  );
-
-  const renderReport = () => (
-    <div className="space-y-6 animate-fade-in">
-      <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
-        <h3 className="text-xl font-bold text-gray-900 mb-2 flex items-center gap-2">
-          <Camera className="text-red-600" />
-          {isBangla ? 'ক্ষয়ক্ষতি রিপোর্ট করুন' : 'Report Damage'}
-        </h3>
-        <p className="text-gray-500 text-sm mb-6">
-          {isBangla ? 'আপনার এলাকার ক্ষয়ক্ষতির বিবরণ ও ছবি পাঠান। এটি ত্রাণ বিতরণে সহায়তা করবে।' : 'Submit photos and details of damage to help authorities distribute relief.'}
-        </p>
-
-        {reportSubmitted ? (
-          <div className="bg-green-50 border border-green-200 rounded-xl p-8 text-center animate-fade-in">
-            <CheckCircle size={48} className="mx-auto text-green-600 mb-4" />
-            <h4 className="text-xl font-bold text-green-800 mb-2">{isBangla ? 'রিপোর্ট জমা হয়েছে' : 'Report Submitted'}</h4>
-            <p className="text-green-700 text-sm">{isBangla ? 'ধন্যবাদ! আপনার তথ্য কর্তৃপক্ষের কাছে পাঠানো হয়েছে।' : 'Thank you! Your report has been forwarded to authorities.'}</p>
-          </div>
-        ) : (
-          <form onSubmit={handleReportSubmit} className="space-y-4">
-            {/* Image Upload */}
-            <div className="border-2 border-dashed border-gray-300 rounded-xl p-6 text-center cursor-pointer hover:bg-gray-50 transition-colors relative">
-              <input type="file" accept="image/*" className="absolute inset-0 opacity-0 cursor-pointer" onChange={handleImageUpload} />
-              {reportImage ? (
-                <div className="relative h-32 w-full">
-                  <img src={reportImage} alt="Preview" className="h-full w-full object-contain mx-auto" />
-                  <button type="button" onClick={(e) => {e.preventDefault(); setReportImage(null)}} className="absolute top-0 right-0 bg-red-500 text-white p-1 rounded-full"><X size={16}/></button>
-                </div>
-              ) : (
-                <>
-                  <Upload className="mx-auto text-gray-400 mb-2" />
-                  <p className="text-sm font-bold text-gray-600">{isBangla ? 'ছবি আপলোড করুন' : 'Upload Photo'}</p>
-                  <p className="text-xs text-gray-400 mt-1">Geo-tagging enabled</p>
-                </>
-              )}
-            </div>
-
-            {/* Fields */}
-            <div>
-              <label className="block text-sm font-bold text-gray-700 mb-2">{isBangla ? 'ক্ষতির ধরন' : 'Damage Type'}</label>
-              <select className="w-full p-3 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-red-200">
-                <option>{isBangla ? 'ঘরবাড়ি' : 'House/Shelter'}</option>
-                <option>{isBangla ? 'ফসল' : 'Crops'}</option>
-                <option>{isBangla ? 'রাস্তাঘাট' : 'Infrastructure'}</option>
-                <option>{isBangla ? 'অন্যান্য' : 'Other'}</option>
-              </select>
-            </div>
-            
-            <div>
-              <label className="block text-sm font-bold text-gray-700 mb-2">{isBangla ? 'বিবরণ' : 'Description'}</label>
-              <textarea 
-                rows={3} 
-                className="w-full p-3 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-red-200"
-                placeholder={isBangla ? 'বিস্তারিত লিখুন...' : 'Describe details...'}
-              ></textarea>
-            </div>
-
-            <div className="flex items-center gap-2 text-sm text-gray-500 bg-blue-50 p-3 rounded-lg">
-              <MapPin size={16} className="text-blue-500" />
-              <span>Location: 23.8103° N, 90.4125° E (Auto-detected)</span>
-            </div>
-
-            <Button className="w-full bg-red-600 hover:bg-red-700 text-white shadow-lg shadow-red-200">
-              {isBangla ? 'জমা দিন' : 'Submit Report'}
-            </Button>
-          </form>
-        )}
-      </div>
-    </div>
-  );
-
-  const renderContacts = () => (
-    <div className="space-y-6 animate-fade-in">
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        {EMERGENCY_CONTACTS.map((contact, idx) => (
-          <div key={idx} className="bg-white p-5 rounded-2xl shadow-sm border border-gray-100 flex items-center justify-between">
-            <div className="flex items-center gap-4">
-              <div className={`w-12 h-12 rounded-full flex items-center justify-center text-white ${contact.bg} shadow-md`}>
-                <Phone size={20} />
-              </div>
-              <div>
-                <h4 className="font-bold text-gray-900 text-lg">{contact.number}</h4>
-                <p className="text-sm text-gray-600">{isBangla ? contact.nameBn : contact.nameEn}</p>
-              </div>
-            </div>
-            <a href={`tel:${contact.number}`} className="bg-gray-100 p-3 rounded-full text-green-600 hover:bg-green-100 transition-colors">
-              <PhoneCall size={20} />
-            </a>
-          </div>
-        ))}
-      </div>
-
-      <div className="bg-blue-50 border border-blue-100 rounded-2xl p-6">
-        <h3 className="font-bold text-blue-900 mb-4 flex items-center gap-2">
-          <Siren size={20} />
-          {isBangla ? 'স্থানীয় কন্ট্রোল রুম' : 'Local Control Room'}
-        </h3>
-        <div className="space-y-3">
-          <div className="flex justify-between items-center bg-white p-3 rounded-xl">
-            <span className="text-gray-700 font-medium">{isBangla ? 'জেলা প্রশাসক কার্যালয়' : 'DC Office'}</span>
-            <a href="tel:0299999" className="text-blue-600 font-bold hover:underline">02-999999</a>
-          </div>
-          <div className="flex justify-between items-center bg-white p-3 rounded-xl">
-            <span className="text-gray-700 font-medium">{isBangla ? 'উপজেলা নির্বাহী অফিসার' : 'UNO Office'}</span>
-            <a href="tel:01700000000" className="text-blue-600 font-bold hover:underline">01700-000000</a>
-          </div>
-        </div>
       </div>
     </div>
   );
@@ -442,8 +278,6 @@ export const DisasterModule: React.FC<Props> = ({ isBangla }) => {
   return (
     <div className="bg-red-50/30 min-h-screen py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-5xl mx-auto">
-        
-        {/* Header */}
         <div className="text-center mb-10">
           <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-red-100 text-red-700 text-sm font-bold mb-4 border border-red-200">
             <ShieldAlert size={16} />
@@ -459,7 +293,6 @@ export const DisasterModule: React.FC<Props> = ({ isBangla }) => {
           </p>
         </div>
 
-        {/* Tab Navigation */}
         <div className="flex justify-center mb-10">
           <div className="bg-white p-1.5 rounded-2xl shadow-sm border border-gray-100 flex flex-wrap justify-center gap-1">
             {[
@@ -485,15 +318,27 @@ export const DisasterModule: React.FC<Props> = ({ isBangla }) => {
           </div>
         </div>
 
-        {/* Content Area */}
         <div className="min-h-[400px]">
           {activeTab === 'dashboard' && renderDashboard()}
           {activeTab === 'shelters' && renderShelters()}
           {activeTab === 'guide' && renderGuide()}
-          {activeTab === 'report' && renderReport()}
-          {activeTab === 'contacts' && renderContacts()}
+          {activeTab === 'report' && (
+            <div className="bg-white p-10 rounded-2xl shadow-sm border border-gray-100 text-center animate-fade-in">
+               <Camera size={48} className="mx-auto mb-4 text-gray-300" />
+               <p className="text-gray-500 font-bold">{isBangla ? 'রিপোর্ট সিস্টেম শীঘ্রই আসছে' : 'Reporting system coming soon'}</p>
+            </div>
+          )}
+          {activeTab === 'contacts' && (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 animate-fade-in">
+              {EMERGENCY_CONTACTS.map((c, i) => (
+                <div key={i} className={`${c.bg} p-6 rounded-2xl text-white shadow-lg flex justify-between items-center`}>
+                   <div><h4 className="font-bold text-lg">{isBangla ? c.nameBn : c.nameEn}</h4><p className="text-2xl font-black">{c.number}</p></div>
+                   <Phone size={32} className="opacity-40" />
+                </div>
+              ))}
+            </div>
+          )}
         </div>
-
       </div>
     </div>
   );

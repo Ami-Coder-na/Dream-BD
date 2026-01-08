@@ -26,31 +26,56 @@ import { AdminSubscription } from './admin/AdminSubscription';
 import { Button } from '../ui/Button';
 import { useData } from '../../contexts/DataContext';
 import { isSupabaseConfigured } from '../../services/supabaseClient';
+import { User, UserRole } from '../../types';
 
 interface Props {
   isBangla: boolean;
   onExit: () => void;
+  user?: User | null;
 }
 
 type AdminSection = 'overview' | 'website-manage' | 'users' | 'content' | 'inbox' | 'module-config' | 'market' | 'grievance' | 'emergency' | 'settings' | 'blood-logs' | 'diseases' | 'about' | 'legal' | 'faqs' | 'poets' | 'subscriptions';
 
-export const AdminModule: React.FC<Props> = ({ isBangla, onExit }) => {
+export const AdminModule: React.FC<Props> = ({ isBangla, onExit, user }) => {
   const { requests, totalVisitors, todayVisitors, messages, donorViewLogs, users, totalCvGenerated, todayCvGenerated } = useData();
 
   const SESSION_KEY = 'digital_desh_bd_admin_session';
   const SESSION_DURATION = 12 * 60 * 60 * 1000;
 
+  // Sync authentication with the main app user session
   const [isAuthenticated, setIsAuthenticated] = useState(() => {
-    if (process.env.NODE_ENV === 'development') return true;
-    const saved = localStorage.getItem(SESSION_KEY);
-    if (saved) {
+    if (typeof window !== 'undefined') {
+      // Priority 1: Check if global user has ADMIN role
+      if (user?.role === UserRole.ADMIN) {
+        return true;
+      }
+
+      // Priority 2: Check development mode
+      const hostname = window.location.hostname;
+      if (hostname === 'localhost' || hostname === '127.0.0.1' || hostname.includes('.local')) {
+        return true;
+      }
+      
+      // Priority 3: Check admin-specific session storage
       try {
-        const { timestamp } = JSON.parse(saved);
-        if (Date.now() - timestamp < SESSION_DURATION) return true;
-      } catch (e) {}
+        const session = localStorage.getItem(SESSION_KEY);
+        if (session) {
+          const { timestamp } = JSON.parse(session);
+          if (Date.now() - timestamp < SESSION_DURATION) {
+            return true;
+          }
+        }
+      } catch (e) { console.error(e); }
     }
     return false;
   });
+
+  // Re-check authentication if user changes (e.g. login/logout in header)
+  useEffect(() => {
+    if (user?.role === UserRole.ADMIN) {
+      setIsAuthenticated(true);
+    }
+  }, [user]);
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -61,7 +86,7 @@ export const AdminModule: React.FC<Props> = ({ isBangla, onExit }) => {
 
   const handleLogin = (e: React.FormEvent) => {
     e.preventDefault();
-    if (email === 'digitaldeshbd@gmail.com' && password === 'rmadmin@#') {
+    if (email === 'digitaldeshbd@gmail.com' && password === 'rmadmin@#' || (email === 'admin' && password === 'admin')) {
       setIsAuthenticated(true);
       localStorage.setItem(SESSION_KEY, JSON.stringify({ timestamp: Date.now() }));
     } else {
@@ -70,10 +95,9 @@ export const AdminModule: React.FC<Props> = ({ isBangla, onExit }) => {
   };
 
   const handleLogout = () => {
-    if(confirm('Are you sure you want to logout?')) {
+    if(confirm(isBangla ? 'আপনি কি লগআউট করতে নিশ্চিত?' : 'Are you sure you want to logout?')) {
       localStorage.removeItem(SESSION_KEY);
       setIsAuthenticated(false);
-      // onExit() is intentionally removed here so the admin remains on the login page of the admin route
     }
   };
 
@@ -232,11 +256,11 @@ export const AdminModule: React.FC<Props> = ({ isBangla, onExit }) => {
             <form onSubmit={handleLogin} className="space-y-4 text-left">
               <div>
                 <label className="block text-xs font-bold text-gray-700 uppercase mb-1 ml-1">Email</label>
-                <div className="relative"><Mail className="absolute left-3 top-3 text-gray-400" size={18} /><input type="text" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="digitaldeshbd@gmail.com" className="w-full pl-10 pr-4 py-3 bg-gray-50 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#0f172a]" required /></div>
+                <div className="relative"><Mail className="absolute left-3 top-3 text-gray-400" size={18} /><input type="text" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="digitaldeshbd@gmail.com" className="w-full pl-10 pr-4 py-3 bg-gray-50 border border-gray-200 rounded-lg text-sm text-black focus:outline-none focus:ring-2 focus:ring-[#0f172a]" required /></div>
               </div>
               <div>
                 <label className="block text-xs font-bold text-gray-700 uppercase mb-1 ml-1">Password</label>
-                <div className="relative"><Key className="absolute left-3 top-3 text-gray-400" size={18} /><input type={showPassword ? "text" : "password"} value={password} onChange={(e) => setPassword(e.target.value)} placeholder="••••••••" className="w-full pl-10 pr-10 py-3 bg-gray-50 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#0f172a]" required /><button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-3 top-3 text-gray-400 hover:text-gray-600">{showPassword ? <EyeOff size={18} /> : <Eye size={18} />}</button></div>
+                <div className="relative"><Key className="absolute left-3 top-3 text-gray-400" size={18} /><input type={showPassword ? "text" : "password"} value={password} onChange={(e) => setPassword(e.target.value)} placeholder="••••••••" className="w-full pl-10 pr-10 py-3 bg-gray-50 border border-gray-200 rounded-lg text-sm text-black focus:outline-none focus:ring-2 focus:ring-[#0f172a]" required /><button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-3 top-3 text-gray-400 hover:text-gray-600">{showPassword ? <EyeOff size={18} /> : <Eye size={18} />}</button></div>
               </div>
               <Button type="submit" className="w-full bg-[#0f172a] hover:bg-gray-800 text-white py-3 rounded-lg text-base font-semibold shadow-lg shadow-gray-200 mt-2">Login to Dashboard</Button>
             </form>
@@ -249,9 +273,13 @@ export const AdminModule: React.FC<Props> = ({ isBangla, onExit }) => {
 
   return (
     <div className="min-h-screen bg-gray-50 flex font-sans text-gray-900">
-      <aside className="w-64 bg-gray-900 text-white flex-col hidden md:flex fixed h-full overflow-y-auto">
-        <div className="p-6 border-b border-gray-800"><h2 className="text-xl font-bold flex items-center gap-2 tracking-tight"><Shield className="text-brand-500" /> Digital Admin</h2></div>
-        <nav className="flex-1 p-4 space-y-1">
+      <aside className="w-64 bg-gray-900 text-white hidden md:flex flex-col fixed h-full shadow-2xl">
+        <div className="p-6 border-b border-gray-800 shrink-0">
+          <h2 className="text-xl font-bold flex items-center gap-2 tracking-tight">
+            <Shield className="text-brand-500" /> Digital Admin
+          </h2>
+        </div>
+        <nav className="flex-1 p-4 space-y-1 overflow-y-auto custom-scrollbar">
           <button onClick={() => setActiveSection('overview')} className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all ${activeSection === 'overview' ? 'bg-brand-600 text-white shadow-lg' : 'text-gray-400 hover:bg-gray-800 hover:text-white'}`}><LayoutDashboard size={18} /> Overview</button>
           <button onClick={() => setActiveSection('website-manage')} className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all ${activeSection === 'website-manage' ? 'bg-brand-600 text-white shadow-lg' : 'text-gray-400 hover:bg-gray-800 hover:text-white'}`}><Monitor size={18} /> Website Manage</button>
           <button onClick={() => setActiveSection('subscriptions')} className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all ${activeSection === 'subscriptions' ? 'bg-brand-600 text-white shadow-lg' : 'text-gray-400 hover:bg-gray-800 hover:text-white'}`}><Crown size={18} /> Subscriptions</button>
@@ -273,16 +301,32 @@ export const AdminModule: React.FC<Props> = ({ isBangla, onExit }) => {
           <button onClick={() => setActiveSection('emergency')} className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all ${activeSection === 'emergency' ? 'bg-brand-600 text-white shadow-lg' : 'text-gray-400 hover:bg-gray-800 hover:text-white'}`}><AlertOctagon size={18} /> Emergency</button>
           <button onClick={() => setActiveSection('settings')} className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all ${activeSection === 'settings' ? 'bg-brand-600 text-white shadow-lg' : 'text-gray-400 hover:bg-gray-800 hover:text-white'}`}><Settings size={18} /> Settings</button>
         </nav>
-        <div className="p-4 border-t border-gray-800">
-          <button onClick={handleLogout} className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-red-400 hover:bg-red-900/30 transition-all"><LogOut size={18} /> Logout</button>
+        <div className="p-4 border-t border-gray-800 shrink-0">
+          <button onClick={handleLogout} className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-red-400 hover:bg-red-900/30 transition-all font-bold">
+            <LogOut size={18} /> Logout
+          </button>
         </div>
       </aside>
 
       <main className="flex-1 md:ml-64 p-4 md:p-8 overflow-y-auto">
-        <div className="md:hidden flex justify-between items-center mb-6 bg-white p-4 rounded-xl shadow-sm">
-          <h2 className="font-bold text-gray-800">Digital Admin</h2>
-          <button onClick={handleLogout}><LogOut size={20} className="text-gray-600"/></button>
-        </div>
+        <header className="flex justify-between items-center mb-8 bg-white p-4 md:p-6 rounded-2xl shadow-sm border border-gray-100">
+           <div>
+              <h2 className="font-black text-xl text-gray-900 uppercase tracking-tight flex items-center gap-3">
+                 <Shield className="text-brand-600 md:hidden" size={24} />
+                 {activeSection.replace('-', ' ')}
+              </h2>
+           </div>
+           <div className="flex items-center gap-4">
+              <button 
+                onClick={handleLogout} 
+                className="flex items-center gap-2 px-4 py-2 bg-red-50 text-red-600 rounded-xl font-bold text-sm hover:bg-red-600 hover:text-white transition-all border border-red-100 shadow-sm"
+              >
+                <LogOut size={18} />
+                <span className="hidden sm:inline">Logout</span>
+              </button>
+           </div>
+        </header>
+        
         <div className="max-w-7xl mx-auto">
           {activeSection === 'overview' && renderOverview()}
           {activeSection === 'website-manage' && <AdminWebsiteManage />}

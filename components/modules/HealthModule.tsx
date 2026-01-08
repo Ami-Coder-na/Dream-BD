@@ -1,10 +1,10 @@
 
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { 
   HeartPulse, Calendar, Phone, MapPin, Star, UserPlus, 
   Thermometer, Activity, Baby, Utensils, AlertCircle, 
   Search, ChevronRight, Droplets, ShieldCheck, Stethoscope,
-  Info, Clock, ChevronDown, Check, Building2, X, Eye, CheckCircle, Heart, Siren, Pill, CreditCard, User, Fingerprint
+  Info, Clock, ChevronDown, Check, Building2, X, Eye, CheckCircle, Heart, Siren, Pill, CreditCard, User, Fingerprint, Sparkles
 } from 'lucide-react';
 import { Button } from '../ui/Button';
 import { getOptimizedImageUrl } from '../utils/imageUtils';
@@ -34,8 +34,23 @@ const HOSPITALS_DB = [
   { id: 6, name: 'United Hospital', address: 'Plot 15, Road 71, Gulshan', phone: '10666' },
 ];
 
+// --- FALLBACK PREGNANCY DATA ---
+const PREGNANCY_WEEKS_FALLBACK: Record<number, any> = {
+  1: { babyBn: 'নিষেক প্রক্রিয়া শুরু হয়।', babyEn: 'Fertilization process starts.', momBn: 'পিরিয়ড বন্ধ হয়, হালকা ক্লান্তি আসতে পারে।', momEn: 'Periods stop, light fatigue may occur.' },
+  4: { babyBn: 'ভ্রূণ জরায়ুতে স্থাপিত হয়। এটি পোস্ত দানার মতো ছোট।', babyEn: 'Embryo implants. Tiny like a poppy seed.', momBn: 'স্তনে ব্যথা বা বমি বমি ভাব হতে পারে।', momEn: 'Breast tenderness or morning sickness.' },
+  8: { babyBn: 'শিশুর হৃদস্পন্দন শুরু হয় এবং ক্ষুদ্র অঙ্গপ্রত্যঙ্গ তৈরি হয়।', babyEn: "Baby's heartbeat starts, tiny limbs form.", momBn: 'ঘন ঘন প্রস্রাবের বেগ এবং মেজাজ পরিবর্তন হতে পারে।', momEn: 'Frequent urination and mood swings.' },
+  12: { babyBn: 'শিশুর সব অঙ্গ এখন গঠিত, নড়াচড়া শুরু হয়।', babyEn: 'All organs formed, baby starts moving.', momBn: 'পেট একটু বড় হতে শুরু করে, বমি ভাব কমে আসে।', momEn: 'Belly starts showing, nausea decreases.' },
+  16: { babyBn: 'শিশু এখন চোখের আলো অনুভব করতে পারে।', babyEn: 'Baby can now sense light.', momBn: 'ত্বকে পরিবর্তন আসতে পারে, শক্তির মাত্রা বৃদ্ধি পায়।', momEn: 'Skin changes, energy levels increase.' },
+  20: { babyBn: 'শিশুর লিঙ্গ নির্ধারণ সম্ভব এবং সে শুনতে পায়।', babyEn: 'Gender can be identified, baby can hear.', momBn: 'শিশুর নড়াচড়া (কুইকেনিং) অনুভব করতে পারবেন।', momEn: 'You can feel baby movements (quickening).' },
+  24: { babyBn: 'ফুসফুস তৈরি হচ্ছে, শিশু এখন হাই তোলে।', babyEn: 'Lungs developing, baby can yawn.', momBn: 'পা ফুলে যাওয়া বা পিঠের ব্যথা হতে পারে।', momEn: 'Swollen feet or backaches may occur.' },
+  28: { babyBn: 'শিশু এখন চোখ মেলে তাকাতে পারে।', babyEn: 'Baby can open and close eyes.', momBn: 'ব্র্যাক্সটন হিকস (ফলস লেবার) অনুভব হতে পারে।', momEn: 'Braxton Hicks contractions may occur.' },
+  32: { babyBn: 'শিশুর হাড় শক্ত হচ্ছে, কিন্তু খুলি নরম থাকে।', babyEn: 'Bones hardening, but skull remains soft.', momBn: 'পেটে চুলকানি বা শ্বাসকষ্ট হতে পারে।', momEn: 'Abdominal itching or breathlessness.' },
+  36: { babyBn: 'শিশু এখন মাথা নিচের দিকে নামিয়ে জন্মের প্রস্তুতি নেয়।', babyEn: 'Baby drops head down for birth prep.', momBn: 'হাঁটাচলায় অসুবিধা এবং পেলভিক এলাকায় চাপ অনুভূত হয়।', momEn: 'Walking becomes difficult, pelvic pressure.' },
+  40: { babyBn: 'শিশু সম্পূর্ণ প্রস্তুত! এটি কুমড়োর মতো ওজনের।', babyEn: 'Full term! Baby is about the size of a pumpkin.', momBn: 'যেকোনো সময় প্রসব বেদনা শুরু হতে পারে।', momEn: 'Labor pains can start any time.' }
+};
+
 export const HealthModule: React.FC<Props> = ({ isBangla }) => {
-  const { donors, addDonorViewLog } = useData();
+  const { donors, addDonorViewLog, pregnancyInfo } = useData();
   const [activeTab, setActiveTab] = useState<Tab>('diseases');
   const [hospitalDistrict, setHospitalDistrict] = useState('Dhaka');
   const [pregnancyWeek, setPregnancyWeek] = useState(8);
@@ -75,6 +90,35 @@ export const HealthModule: React.FC<Props> = ({ isBangla }) => {
     e.preventDefault();
     setCardRegistered(true);
   };
+
+  // Helper to get closest defined week data from DB or Fallback
+  const getWeekData = (week: number) => {
+     // Check if we have dynamic data from DB
+     if (pregnancyInfo && pregnancyInfo.length > 0) {
+        let closest = pregnancyInfo[0];
+        for (const info of pregnancyInfo) {
+           if (week >= info.week) closest = info;
+           else break;
+        }
+        return {
+           babyBn: closest.baby_bn,
+           babyEn: closest.baby_en,
+           momBn: closest.mom_bn,
+           momEn: closest.mom_en
+        };
+     }
+     
+     // Fallback to local constant
+     const keys = Object.keys(PREGNANCY_WEEKS_FALLBACK).map(Number).sort((a, b) => a - b);
+     let closestKey = keys[0];
+     for (const k of keys) {
+        if (week >= k) closestKey = k;
+        else break;
+     }
+     return PREGNANCY_WEEKS_FALLBACK[closestKey];
+  };
+
+  const currentWeekData = getWeekData(pregnancyWeek);
 
   const renderDiseases = () => (
     <div className="space-y-10 animate-fade-in">
@@ -266,39 +310,76 @@ export const HealthModule: React.FC<Props> = ({ isBangla }) => {
           <h3 className="text-xl font-bold text-gray-900 mb-8 flex items-center gap-3">
              <Baby size={24} className="text-pink-500" /> {isBangla ? 'গর্ভাবস্থা ট্র্যাকার' : 'Pregnancy Tracker'}
           </h3>
-          <div className="mb-10 px-4">
-             <label className="block text-sm font-bold text-gray-600 mb-4">{isBangla ? 'বর্তমান সপ্তাহ নির্বাচন করুন:' : 'Select Current Week:'} <span className="text-pink-600 text-lg">{pregnancyWeek}</span></label>
-             <input type="range" min="1" max="40" className="w-full h-1.5 bg-pink-100 rounded-lg appearance-none cursor-pointer accent-pink-600" value={pregnancyWeek} onChange={(e) => setPregnancyWeek(parseInt(e.target.value))} />
-             <div className="flex justify-between mt-2 text-[10px] font-bold text-gray-400 uppercase"><span>Week 1</span><span>Week 40</span></div>
+          <div className="mb-12 px-4 max-w-2xl">
+             <label className="block text-sm font-black text-gray-600 mb-6 uppercase tracking-widest">
+               {isBangla ? 'আপনার বর্তমান সপ্তাহ নির্বাচন করুন' : 'Select Your Current Week'}: 
+               <span className="text-pink-600 text-2xl ml-2 font-black">{pregnancyWeek}</span>
+             </label>
+             <div className="relative pt-2">
+                <input 
+                  type="range" 
+                  min="1" 
+                  max="40" 
+                  className="w-full h-2.5 bg-pink-100 rounded-lg appearance-none cursor-pointer accent-pink-600" 
+                  value={pregnancyWeek} 
+                  onChange={(e) => setPregnancyWeek(parseInt(e.target.value))} 
+                />
+                <div className="flex justify-between mt-3 text-[10px] font-black text-gray-400 uppercase tracking-widest">
+                  <span>Week 1</span>
+                  <span>Week 40</span>
+                </div>
+             </div>
           </div>
-          <div className="bg-white p-6 rounded-2xl border border-pink-50 flex gap-6 items-center">
-             <div className="w-12 h-12 bg-pink-50 rounded-full flex items-center justify-center text-pink-600 font-bold text-lg shrink-0">{pregnancyWeek}</div>
-             <div>
-                <h4 className="font-bold text-gray-800 mb-1">{isBangla ? 'পরামর্শ' : 'Advice'}</h4>
-                <p className="text-gray-500 text-sm leading-relaxed">{isBangla ? 'শিশুর হৃদস্পন্দন শুরু হয়। মায়ের বমি বমি ভাব হতে পারে।' : "Baby's heartbeat starts. Mother may experience nausea."}</p>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+             <div className="bg-[#FFF5F8] p-6 rounded-3xl border border-pink-100 shadow-sm flex gap-5 items-start hover:shadow-md transition-shadow">
+                <div className="w-14 h-14 bg-white rounded-2xl flex items-center justify-center text-pink-500 shadow-sm shrink-0">
+                  <Sparkles size={28} />
+                </div>
+                <div>
+                   <h4 className="font-black text-pink-900 text-lg mb-2 uppercase tracking-tight">{isBangla ? 'শিশুর অবস্থা' : "Baby's Status"}</h4>
+                   <p className="text-pink-800/80 text-sm leading-relaxed font-medium">
+                     {isBangla ? currentWeekData.babyBn : currentWeekData.babyEn}
+                   </p>
+                </div>
+             </div>
+
+             <div className="bg-[#F0F9FF] p-6 rounded-3xl border border-blue-100 shadow-sm flex gap-5 items-start hover:shadow-md transition-shadow">
+                <div className="w-14 h-14 bg-white rounded-2xl flex items-center justify-center text-blue-500 shadow-sm shrink-0">
+                  <HeartPulse size={28} />
+                </div>
+                <div>
+                   <h4 className="font-black text-blue-900 text-lg mb-2 uppercase tracking-tight">{isBangla ? 'মায়ের পরামর্শ' : "Mother's Advice"}</h4>
+                   <p className="text-blue-800/80 text-sm leading-relaxed font-medium">
+                     {isBangla ? currentWeekData.momBn : currentWeekData.momEn}
+                   </p>
+                </div>
              </div>
           </div>
        </div>
 
-       <div className="bg-white p-2 animate-fade-in">
-          <h3 className="text-xl font-bold text-gray-900 mb-6 flex items-center gap-2">
-            <CheckCircle size={20} className="text-blue-500" />
-            {isBangla ? 'টিকা ক্যালেন্ডার (EPI)' : 'Vaccination Calendar (EPI)'}
-          </h3>
-          <div className="space-y-4">
+       <div className="bg-white rounded-[2rem] border border-gray-100 overflow-hidden shadow-sm">
+          <div className="bg-blue-600 p-6 text-white flex items-center gap-3">
+            <CheckCircle size={24} />
+            <h3 className="text-xl font-bold">{isBangla ? 'টিকা ক্যালেন্ডার (EPI)' : 'Vaccination Calendar (EPI)'}</h3>
+          </div>
+          <div className="divide-y divide-gray-50">
              {[
-               { ageBn: 'জন্মের সময়', ageEn: 'At Birth', vaccines: 'BCG, OPV-0, HepB-0' },
-               { ageBn: '৬ সপ্তাহ', ageEn: '6 Weeks', vaccines: 'Pentavalent-1, OPV-1, PCV-1' },
-               { ageBn: '৯ মাস', ageEn: '9 Months', vaccines: 'Measles-Rubella (MR)' }
+               { ageBn: 'জন্মের সময়', ageEn: 'At Birth', vaccines: 'BCG, OPV-0, HepB-0', icon: <Baby size={20}/> },
+               { ageBn: '৬ সপ্তাহ', ageEn: '6 Weeks', vaccines: 'Pentavalent-1, OPV-1, PCV-1', icon: <Clock size={20}/> },
+               { ageBn: '৯ মাস', ageEn: '9 Months', vaccines: 'Measles-Rubella (MR)', icon: <Activity size={20}/> }
              ].map((item, idx) => (
-               <div key={idx} className="bg-white p-6 rounded-2xl border border-gray-100 flex items-center shadow-sm">
-                  <div className="w-32">
-                    <p className="text-xs text-gray-400 font-bold uppercase mb-1">{isBangla ? 'বয়স' : 'Age'}</p>
-                    <p className="font-bold text-blue-600 text-lg">{isBangla ? item.ageBn : item.ageEn}</p>
+               <div key={idx} className="p-6 flex items-center hover:bg-gray-50 transition-colors">
+                  <div className="w-36 shrink-0">
+                    <p className="text-[10px] text-gray-400 font-black uppercase mb-1 tracking-widest">{isBangla ? 'বয়স' : 'Age'}</p>
+                    <p className="font-black text-blue-600 text-lg">{isBangla ? item.ageBn : item.ageEn}</p>
                   </div>
-                  <div className="flex-1">
-                    <h4 className="font-bold text-gray-800 text-lg">{item.vaccines}</h4>
-                    <p className="text-xs text-gray-400">{isBangla ? 'নিকটস্থ স্বাস্থ্যকেন্দ্রে যান' : 'Visit nearest health center'}</p>
+                  <div className="flex-1 flex items-center gap-4">
+                    <div className="w-10 h-10 bg-blue-50 rounded-lg flex items-center justify-center text-blue-500">{item.icon}</div>
+                    <div>
+                      <h4 className="font-bold text-gray-800 text-lg">{item.vaccines}</h4>
+                      <p className="text-xs text-gray-400 font-medium">{isBangla ? 'নিকটস্থ সরকারি স্বাস্থ্যকেন্দ্রে যোগাযোগ করুন' : 'Contact nearest govt health center'}</p>
+                    </div>
                   </div>
                </div>
              ))}
@@ -306,15 +387,15 @@ export const HealthModule: React.FC<Props> = ({ isBangla }) => {
        </div>
 
        <div className="bg-[#FFF7ED] border border-orange-100 rounded-3xl p-10">
-          <h3 className="text-xl font-bold text-orange-900 mb-8 flex items-center gap-3"><AlertCircle size={24} className="text-orange-500" /> {isBangla ? 'শিশুর সাধারণ রোগ ও প্রতিকার' : 'Common Child Diseases'}</h3>
+          <h3 className="text-2xl font-black text-orange-900 mb-8 flex items-center gap-3"><AlertCircle size={32} className="text-orange-500" /> {isBangla ? 'শিশুর জরুরি লক্ষণসমূহ' : 'Emergency Child Symptoms'}</h3>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-             <div className="bg-white p-8 rounded-3xl shadow-sm">
-                <h4 className="font-bold text-gray-800 text-lg mb-3">{isBangla ? 'নিউমোনিয়া' : 'Pneumonia'}</h4>
-                <p className="text-sm text-gray-500 leading-relaxed">{isBangla ? 'লক্ষণ: শ্বাসকষ্ট, জ্বর। প্রতিকার: দ্রুত হাসপাতালে নিন।' : 'Symptoms: Breathing difficulty, fever. Action: Take to hospital immediately.'}</p>
+             <div className="bg-white p-8 rounded-3xl shadow-sm border border-orange-50 group hover:border-orange-200 transition-all">
+                <h4 className="font-black text-gray-800 text-xl mb-3 flex items-center gap-2"><div className="w-2 h-8 bg-red-500 rounded-full"></div> {isBangla ? 'নিউমোনিয়া' : 'Pneumonia'}</h4>
+                <p className="text-gray-600 leading-relaxed font-medium">{isBangla ? 'লক্ষণ: শ্বাস নিতে কষ্ট হওয়া, পাঁজরের নিচ দেবে যাওয়া, দ্রুত শ্বাস নেওয়া। করণীয়: দেরি না করে হাসপাতালে নিন।' : 'Symptoms: Fast breathing, chest indrawing, fever. Action: Take to hospital immediately.'}</p>
              </div>
-             <div className="bg-white p-8 rounded-3xl shadow-sm">
-                <h4 className="font-bold text-gray-800 text-lg mb-3">{isBangla ? 'ডায়রিয়া' : 'Diarrhea'}</h4>
-                <p className="text-sm text-gray-500 leading-relaxed">{isBangla ? 'লক্ষণ: পানিশূন্যতা। প্রতিকার: প্রতিবার পায়খানার পর স্যালাইন।' : 'Symptoms: Dehydration. Action: Provide saline after every stool.'}</p>
+             <div className="bg-white p-8 rounded-3xl shadow-sm border border-orange-50 group hover:border-orange-200 transition-all">
+                <h4 className="font-black text-gray-800 text-xl mb-3 flex items-center gap-2"><div className="w-2 h-8 bg-blue-500 rounded-full"></div> {isBangla ? 'ডায়রিয়া' : 'Diarrhea'}</h4>
+                <p className="text-gray-600 leading-relaxed font-medium">{isBangla ? 'লক্ষণ: দিনে ৩ বারের বেশি পাতলা পায়খানা। করণীয়: প্রতিবার পায়খানার পর বয়স অনুযায়ী খাবার স্যালাইন দিন।' : 'Symptoms: More than 3 loose stools. Action: Provide age-appropriate saline after each stool.'}</p>
              </div>
           </div>
        </div>

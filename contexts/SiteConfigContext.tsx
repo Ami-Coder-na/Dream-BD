@@ -1,9 +1,9 @@
 
+"use client";
 import React, { createContext, useState, useContext, ReactNode, useEffect } from 'react';
 import { AppModule } from '../types';
 import { supabase, isSupabaseConfigured } from '../services/supabaseClient';
 
-// Fix: Export ToggableModule and LandingSection for use in Admin modules
 export type ToggableModule = AppModule;
 export type LandingSection = 'hero' | 'about' | 'features' | 'craft' | 'agri' | 'health' | 'edu' | 'transport' | 'gallery' | 'testimonials';
 
@@ -17,13 +17,12 @@ export interface SiteSettings {
   maintenanceMode: boolean;
   announcementActive: boolean;
   announcement: string;
-  galleryImages: string[];
-  heroImages: string[];
   heroSliderActive: boolean;
+  heroImages: string[];
+  galleryImages: string[];
   bkashMerchantNumber: string;
 }
 
-/* Fix: Define the missing SiteConfigContextType interface used in the context creation */
 interface SiteConfigContextType {
   modules: Record<ToggableModule, boolean>;
   sections: Record<LandingSection, boolean>;
@@ -33,124 +32,46 @@ interface SiteConfigContextType {
   updateSettings: (key: keyof SiteSettings, value: any) => void;
 }
 
-const DEFAULT_MODULES: Record<ToggableModule, boolean> = {
-  [AppModule.CRAFT]: true,
-  [AppModule.AGRI]: true,
-  [AppModule.EDU]: true,
-  [AppModule.HEALTH]: true,
-  [AppModule.TRANSPORT]: true,
-  [AppModule.WASTE]: true,
-  [AppModule.FISHERY]: true,
-  [AppModule.DISASTER]: true,
-  [AppModule.PROFILE]: true,
-  [AppModule.JOB]: true,
-  [AppModule.CONTACT]: true,
-  [AppModule.BLOG]: true,
-  [AppModule.AMAR_BD]: true,
-  [AppModule.AMAR_JELA]: true,
-  [AppModule.BAZAR_SODAI]: true,
-  [AppModule.ADMIN]: true,
-  [AppModule.ABOUT]: true,
-  [AppModule.PRIVACY]: true,
-  [AppModule.TERMS]: true,
-  [AppModule.LEGAL]: true,
-  [AppModule.EXPAT]: true,
-  [AppModule.VOCATIONAL]: true,
-  [AppModule.JANTE_CHAI]: true,
-  [AppModule.SUBSCRIPTION]: true,
-};
-
-const DEFAULT_SECTIONS: Record<LandingSection, boolean> = {
-  hero: true,
-  about: true,
-  features: true,
-  craft: true,
-  agri: true,
-  health: true,
-  edu: true,
-  transport: true,
-  gallery: true,
-  testimonials: true,
-};
-
-const DEFAULT_SETTINGS: SiteSettings = {
-  websiteTitle: 'Digital Desh BD',
-  websiteLogo: '',
-  websiteFavicon: '',
-  contactEmail: 'info@digitaldeshbd.com',
-  contactPhone: '+880 1XXX-XXXXXX',
-  address: 'Dhaka, Bangladesh',
-  maintenanceMode: false,
-  announcementActive: false,
-  announcement: 'Welcome to Digital Desh BD!',
-  galleryImages: [
-    'https://images.unsplash.com/photo-1596895111956-bf1cf0599ce5',
-    'https://images.unsplash.com/photo-1628189873998-25f00e95a947',
-    'https://images.unsplash.com/photo-1619671603704-8b6567958611',
-    'https://images.unsplash.com/photo-1548013146-72479768bada'
-  ],
-  heroImages: [
-    'https://images.unsplash.com/photo-1548013146-72479768bada',
-    'https://images.unsplash.com/photo-1500382017468-9049fed747ef',
-    'https://images.unsplash.com/photo-1596895111956-bf1cf0599ce5',
-    'https://images.unsplash.com/photo-1610725664285-a3a962e51a46'
-  ],
-  heroSliderActive: false,
-  bkashMerchantNumber: '01XXXXXXXXX'
-};
-
 const SiteConfigContext = createContext<SiteConfigContextType | undefined>(undefined);
 
+// Implementation of the SiteConfigProvider to manage global module and section visibility
 export const SiteConfigProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
-  const [modules, setModules] = useState<Record<ToggableModule, boolean>>(DEFAULT_MODULES);
-  const [sections, setSections] = useState<Record<LandingSection, boolean>>(DEFAULT_SECTIONS);
-  const [settings, setSettings] = useState<SiteSettings>(DEFAULT_SETTINGS);
+  const [modules, setModules] = useState<Record<ToggableModule, boolean>>(() => {
+    const initial: any = {};
+    Object.values(AppModule).forEach(m => initial[m] = true);
+    return initial;
+  });
 
-  const fetchRemoteConfig = async () => {
-    if (!isSupabaseConfigured) return;
-    
-    try {
-      const { data, error } = await supabase.from('app_config').select('*');
-      if (error) return;
+  const [sections, setSections] = useState<Record<LandingSection, boolean>>({
+    hero: true, about: true, features: true, craft: true, agri: true, health: true, edu: true, transport: true, gallery: true, testimonials: true
+  });
 
-      if (data && data.length > 0) {
-        data.forEach(item => {
-          if (item.key === 'modules') setModules(item.value);
-          if (item.key === 'sections') setSections(item.value);
-          if (item.key === 'settings') {
-            setSettings({ ...DEFAULT_SETTINGS, ...item.value });
-          }
-        });
-      }
-    } catch (err: any) {}
-  };
-
-  useEffect(() => {
-    fetchRemoteConfig();
-  }, []);
+  const [settings, setSettings] = useState<SiteSettings>({
+    websiteTitle: 'Digital Desh BD',
+    websiteLogo: '',
+    websiteFavicon: '',
+    contactEmail: 'contact@digitaldeshbd.com',
+    contactPhone: '+880 1XXX-XXXXXX',
+    address: 'Dhaka, Bangladesh',
+    maintenanceMode: false,
+    announcementActive: false,
+    announcement: '',
+    heroSliderActive: false,
+    heroImages: [],
+    galleryImages: [],
+    bkashMerchantNumber: '01700000000'
+  });
 
   const toggleModule = (module: ToggableModule) => {
-    const newModules = { ...modules, [module]: !modules[module] };
-    setModules(newModules);
-    if (isSupabaseConfigured) {
-      supabase.from('app_config').upsert({ key: 'modules', value: newModules }).then();
-    }
+    setModules(prev => ({ ...prev, [module]: !prev[module] }));
   };
 
   const toggleSection = (section: LandingSection) => {
-    const newSections = { ...sections, [section]: !sections[section] };
-    setSections(newSections);
-    if (isSupabaseConfigured) {
-      supabase.from('app_config').upsert({ key: 'sections', value: newSections }).then();
-    }
+    setSections(prev => ({ ...prev, [section]: !prev[section] }));
   };
 
   const updateSettings = (key: keyof SiteSettings, value: any) => {
-    const newSettings = { ...settings, [key]: value };
-    setSettings(newSettings);
-    if (isSupabaseConfigured) {
-      supabase.from('app_config').upsert({ key: 'settings', value: newSettings }).then();
-    }
+    setSettings(prev => ({ ...prev, [key]: value }));
   };
 
   return (
@@ -160,10 +81,9 @@ export const SiteConfigProvider: React.FC<{ children: ReactNode }> = ({ children
   );
 };
 
+// Custom hook to access site configuration
 export const useSiteConfig = () => {
   const context = useContext(SiteConfigContext);
-  if (!context) {
-    throw new Error('useSiteConfig must be used within a SiteConfigProvider');
-  }
+  if (!context) throw new Error('useSiteConfig must be used within a SiteConfigProvider');
   return context;
 };
