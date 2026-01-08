@@ -2,9 +2,9 @@
 "use client";
 
 import React, { useState } from 'react';
-import { Menu, X, Globe, ChevronDown, User as UserIcon, Shield, HelpCircle, Bell } from 'lucide-react';
+import { Menu, X, Globe, ChevronDown, User as UserIcon, Shield, HelpCircle, Bell, Bird, Info, ArrowRight } from 'lucide-react';
 import { Button } from '../ui/Button';
-import { User, AppModule } from '../../types';
+import { User, AppModule, UserRole } from '../../types';
 import { useSiteConfig } from '../../contexts/SiteConfigContext';
 
 interface HeaderProps {
@@ -12,7 +12,7 @@ interface HeaderProps {
   onLogin: () => void;
   onRegister: () => void;
   onLogout: () => void;
-  onModuleSelect: (module: AppModule) => void;
+  onModuleSelect: (module: AppModule | string) => void;
   onNavigateHome: () => void;
   isBangla: boolean;
   toggleLanguage: () => void;
@@ -24,7 +24,12 @@ export const Header: React.FC<HeaderProps> = ({
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const { modules, settings } = useSiteConfig();
 
-  const handleModuleClick = (moduleId: AppModule) => {
+  // Show admin only on localhost or if user is Admin
+  const isLocalhost = typeof window !== 'undefined' && 
+    (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1');
+  const showAdminAccess = user?.role === UserRole.ADMIN || isLocalhost;
+
+  const handleModuleClick = (moduleId: AppModule | string) => {
     setMobileMenuOpen(false);
     onModuleSelect(moduleId);
   };
@@ -49,7 +54,7 @@ export const Header: React.FC<HeaderProps> = ({
         <div className="flex justify-between items-center h-full">
           {/* Logo Section */}
           <div className="flex items-center gap-2 cursor-pointer shrink-0 group" onClick={onNavigateHome}>
-            <div className="w-12 h-12 bg-white rounded-lg flex items-center justify-center overflow-hidden border border-gray-50 transition-transform group-hover:scale-105">
+            <div className="w-12 h-12 bg-gray-100 rounded-lg flex items-center justify-center overflow-hidden border border-gray-200 transition-transform group-hover:scale-105">
                 <img 
                   src={settings.websiteLogo || "https://zpsxpqurazjeqviwooky.supabase.co/storage/v1/object/public/images/logo.png"} 
                   className="w-full h-full object-contain" 
@@ -96,6 +101,16 @@ export const Header: React.FC<HeaderProps> = ({
             <button onClick={() => handleModuleClick(AppModule.JANTE_CHAI)} className="px-5 py-2 rounded-full bg-indigo-50 text-indigo-700 font-black text-sm hover:bg-indigo-100 transition-all flex items-center gap-2 shadow-sm">
               <HelpCircle size={16} /> {isBangla ? 'জানতে চাই' : 'Learn'}
             </button>
+
+            {/* Admin Button - Hidden for Public */}
+            {showAdminAccess && (
+              <button 
+                onClick={() => handleModuleClick(AppModule.ADMIN)} 
+                className="px-4 py-2 rounded-full bg-gray-900 text-white font-black text-sm hover:bg-black transition-all shadow-md ml-2 animate-fade-in"
+              >
+                Admin
+              </button>
+            )}
           </div>
 
           {/* Right Controls */}
@@ -115,10 +130,12 @@ export const Header: React.FC<HeaderProps> = ({
                  <button onClick={() => handleModuleClick(AppModule.PROFILE)} className="w-10 h-10 rounded-full overflow-hidden border-2 border-brand-100 ring-2 ring-white shadow-sm hover:opacity-90 transition-opacity">
                    <img src={user.avatar} className="w-full h-full object-cover" alt="User Profile" />
                  </button>
-                 <ChevronDown size={14} className="text-gray-400" />
+                 <ChevronDown size={14} className="text-gray-400 hidden sm:block" />
               </div>
             ) : (
-              <Button onClick={onLogin} size="sm" className="rounded-full font-black px-6 shadow-lg shadow-brand-500/20">{isBangla ? 'লগইন' : 'Login'}</Button>
+              <Button onClick={onLogin} size="sm" className="rounded-lg font-black px-6 shadow-md bg-brand-600 hover:bg-brand-700">
+                {isBangla ? 'লগইন' : 'Login'}
+              </Button>
             )}
 
             <button onClick={() => setMobileMenuOpen(!mobileMenuOpen)} className="lg:hidden p-2 text-gray-600 hover:bg-gray-100 rounded-full transition-colors">
@@ -128,15 +145,65 @@ export const Header: React.FC<HeaderProps> = ({
         </div>
       </div>
 
-      {/* Mobile Menu */}
+      {/* Mobile Menu Drawer */}
       {mobileMenuOpen && (
-        <div className="lg:hidden absolute top-20 left-0 w-full bg-white border-b border-gray-100 shadow-2xl p-6 flex flex-col gap-1 animate-fade-in z-[60]">
-          <button onClick={() => handleModuleClick(AppModule.AMAR_BD)} className="text-left font-black text-emerald-700 py-4 border-b border-gray-50 hover:bg-emerald-50 px-3 rounded-lg transition-colors">আমার বাংলাদেশ</button>
-          <button onClick={() => handleModuleClick(AppModule.AMAR_JELA)} className="text-left font-black text-teal-700 py-4 border-b border-gray-50 hover:bg-teal-50 px-3 rounded-lg transition-colors">আমার জেলা</button>
-          <button onClick={() => handleModuleClick(AppModule.BAZAR_SODAI)} className="text-left font-black text-lime-700 py-4 border-b border-gray-50 hover:bg-lime-50 px-3 rounded-lg transition-colors">বাজার সদাই</button>
-          <button onClick={() => handleModuleClick(AppModule.JANTE_CHAI)} className="text-left font-black text-indigo-700 py-4 border-b border-gray-50 flex items-center gap-2 hover:bg-indigo-50 px-3 rounded-lg transition-colors"><HelpCircle size={18}/> জানতে চাই</button>
-          <button onClick={() => handleModuleClick(AppModule.JOB)} className="text-left font-bold py-4 border-b border-gray-50 hover:bg-gray-50 px-3 rounded-lg transition-colors">চাকরি</button>
-          {!user && <Button onClick={onLogin} variant="outline" className="w-full mt-6 rounded-xl py-4">লগইন</Button>}
+        <div className="lg:hidden fixed inset-0 z-[60] bg-white animate-fade-in flex flex-col h-screen overflow-y-auto">
+          {/* Mobile Header Inside Drawer */}
+          <div className="flex justify-between items-center p-4 border-b border-gray-100">
+            <div className="flex items-center gap-2" onClick={onNavigateHome}>
+               <div className="w-12 h-12 bg-gray-100 rounded-lg flex items-center justify-center overflow-hidden border border-gray-200">
+                  <img src={settings.websiteLogo} className="w-full h-full object-contain" alt="Logo" />
+               </div>
+            </div>
+            <div className="flex items-center gap-3">
+               <button className="p-2 text-gray-400 relative">
+                 <Bell size={24} />
+                 <span className="absolute top-2 right-2 w-2 h-2 bg-red-500 rounded-full border-2 border-white"></span>
+               </button>
+               {!user && (
+                 <Button onClick={onLogin} className="bg-brand-600 hover:bg-brand-700 text-white font-bold px-6 py-2 rounded-lg">লগইন</Button>
+               )}
+               <button onClick={() => setMobileMenuOpen(false)} className="p-2 text-gray-600"><X size={28} /></button>
+            </div>
+          </div>
+
+          {/* Navigation List */}
+          <div className="flex-1 p-6 space-y-1">
+            <button onClick={() => handleModuleClick(AppModule.AMAR_BD)} className="w-full text-left font-black text-[#0b6352] text-lg py-4 border-b border-gray-50 hover:bg-gray-50 transition-colors">আমার বাংলাদেশ</button>
+            <button onClick={() => handleModuleClick(AppModule.AMAR_JELA)} className="w-full text-left font-black text-[#0b6352] text-lg py-4 border-b border-gray-50 hover:bg-gray-50 transition-colors">আমার জেলা</button>
+            <button onClick={() => handleModuleClick(AppModule.BAZAR_SODAI)} className="w-full text-left font-black text-[#0b6352] text-lg py-4 border-b border-gray-50 hover:bg-gray-50 transition-colors">বাজার সদাই</button>
+            <button onClick={() => handleModuleClick(AppModule.JANTE_CHAI)} className="w-full text-left font-black text-[#4f46e5] text-lg py-4 border-b border-gray-50 flex items-center gap-3 hover:bg-gray-50 transition-colors">
+              <HelpCircle size={22} /> জানতে চাই
+            </button>
+            
+            {showAdminAccess && (
+              <div className="py-8 animate-fade-in">
+                 <button onClick={() => handleModuleClick(AppModule.ADMIN)} className="w-full text-left font-black text-gray-900 text-lg hover:bg-gray-50 transition-colors">Admin Access</button>
+              </div>
+            )}
+
+            <div className="pt-4 border-t border-gray-50">
+               {!user && (
+                 <button onClick={onLogin} className="w-full border border-gray-200 text-gray-700 font-bold py-4 rounded-xl text-lg hover:bg-gray-50 transition-all mb-4">লগইন</button>
+               )}
+            </div>
+          </div>
+
+          {/* Action Footer (Large Buttons) */}
+          <div className="p-6 bg-gray-50/50 border-t border-gray-100 space-y-3">
+             <button 
+               onClick={() => handleModuleClick('mithu-ai')} 
+               className="w-full bg-brand-600 hover:bg-brand-700 text-white font-black py-5 rounded-2xl flex items-center justify-center gap-3 shadow-lg shadow-brand-500/20 active:scale-[0.98] transition-all"
+             >
+                <Bird size={24} /> মিঠু এআই এর সাথে চ্যাট
+             </button>
+             <button 
+               onClick={() => { setMobileMenuOpen(false); onNavigateHome(); }} 
+               className="w-full bg-white border border-gray-200 text-gray-700 font-black py-5 rounded-2xl flex items-center justify-center gap-2 hover:bg-gray-50 transition-all"
+             >
+                সেবা সম্পর্কে জানুন
+             </button>
+          </div>
         </div>
       )}
     </nav>

@@ -87,6 +87,13 @@ const App: React.FC = () => {
     return allModuleValues.find(m => m === currentView) || (currentView === 'LANDING' ? 'LANDING' : 'LANDING');
   }, [currentView]);
 
+  // Boolean helper to check if we are in admin mode to hide headers/footers
+  const isAdminView = useMemo(() => {
+    if (typeof window === 'undefined') return activeModule === AppModule.ADMIN;
+    const path = window.location.pathname;
+    return activeModule === AppModule.ADMIN || path.includes('admin') || path.includes('rmadmin');
+  }, [activeModule]);
+
   const renderContent = () => {
     // If accessing AI Chat and not logged in, show Login Page directly
     if (activeModule === 'AI_CHAT' && !user) {
@@ -143,11 +150,11 @@ const App: React.FC = () => {
         </Suspense>
         
         {/* Condition to hide Mithu AI icon on Admin module and AI Chat page */}
-        {activeModule !== AppModule.ADMIN && activeModule !== 'AI_CHAT' && (
+        {!isAdminView && activeModule !== 'AI_CHAT' && (
           <GeminiAssistant currentModule={activeModule as AppModule} isBangla={isBangla} user={user} onLogin={() => setAuthView('login')} />
         )}
 
-        {activeModule !== AppModule.ADMIN && (
+        {!isAdminView && (
           <Footer isBangla={isBangla} toggleLanguage={() => setIsBangla(!isBangla)} onNavigateHome={() => handleNavigate('LANDING')} onModuleSelect={m => handleNavigate(m)} />
         )}
         <ScrollToTop />
@@ -157,8 +164,8 @@ const App: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-white">
-      {/* Hide site header when on Admin Module to show a clean login page */}
-      {activeModule !== AppModule.ADMIN && (
+      {/* Strict hide site header when on Admin paths to show a clean login page */}
+      {!isAdminView && (
         <Header 
           user={user} 
           onLogin={() => setAuthView('login')} 
