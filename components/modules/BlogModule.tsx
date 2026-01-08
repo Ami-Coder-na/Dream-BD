@@ -2,7 +2,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Search, Calendar, User, ArrowRight, Tag, PenTool, X, CheckCircle, Image as ImageIcon, ArrowLeft, Share2, Clock, Printer, Facebook, Linkedin, Twitter, ExternalLink, Upload, RefreshCw, Link as LinkIcon, MessageCircle } from 'lucide-react';
 import { Button } from '../ui/Button';
-import { getOptimizedImageUrl } from '../utils/imageUtils';
+import { getOptimizedImageUrl, compressImage } from '../utils/imageUtils';
 import { useData } from '../../contexts/DataContext';
 import { User as UserType } from '../../types';
 
@@ -50,14 +50,15 @@ export const BlogModule: React.FC<Props> = ({ isBangla, user, onLogin }) => {
       setPostSubmitted(false);
   };
 
-  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setNewBlogData(prev => ({ ...prev, image: reader.result as string }));
-      };
-      reader.readAsDataURL(file);
+      try {
+        const compressed = await compressImage(file);
+        setNewBlogData(prev => ({ ...prev, image: compressed }));
+      } catch (err) {
+        console.error("Blog image compression failed", err);
+      }
     }
   };
 

@@ -1,46 +1,9 @@
+
 import React, { useState, useRef, useMemo, memo, useEffect } from 'react';
 import { HeartPulse, Plus, Search, Edit3, Trash2, X, Upload, Loader2 } from 'lucide-react';
 import { Button } from '../../ui/Button';
 import { useData } from '../../../contexts/DataContext';
-
-/**
- * Image compression utility to save storage space and improve performance
- */
-const compressImage = (file: File): Promise<string> => {
-  return new Promise((resolve) => {
-    const reader = new FileReader();
-    reader.readAsDataURL(file);
-    reader.onload = (event) => {
-      const img = new Image();
-      img.src = event.target?.result as string;
-      img.onload = () => {
-        const canvas = document.createElement('canvas');
-        let width = img.width;
-        let height = img.height;
-        const MAX_WIDTH = 1000;
-        const MAX_HEIGHT = 1000;
-
-        if (width > height) {
-          if (width > MAX_WIDTH) {
-            height *= MAX_WIDTH / width;
-            width = MAX_WIDTH;
-          }
-        } else {
-          if (height > MAX_HEIGHT) {
-            width *= MAX_HEIGHT / height;
-            height = MAX_HEIGHT;
-          }
-        }
-        
-        canvas.width = width;
-        canvas.height = height;
-        const ctx = canvas.getContext('2d');
-        ctx?.drawImage(img, 0, 0, width, height);
-        resolve(canvas.toDataURL('image/jpeg', 0.6));
-      };
-    };
-  });
-};
+import { compressImage } from '../../utils/imageUtils';
 
 const DiseaseFormModal = memo(({ isOpen, onClose, initialData, onSave }: { 
   isOpen: boolean, 
@@ -95,7 +58,7 @@ const DiseaseFormModal = memo(({ isOpen, onClose, initialData, onSave }: {
     if (file) {
       setIsCompressing(true);
       try {
-        const compressed = await compressImage(file);
+        const compressed = await compressImage(file, 1000, 0.6);
         setFormData(prev => ({ ...prev, image: compressed }));
       } catch (err) {
         console.error("Compression failed", err);
@@ -105,14 +68,12 @@ const DiseaseFormModal = memo(({ isOpen, onClose, initialData, onSave }: {
     }
   };
 
-  // UI styles match the screenshot requested
   const inputStyles = "w-full p-4 bg-[#333333] border-none rounded-xl text-white focus:ring-2 focus:ring-brand-500 outline-none transition-all placeholder-gray-500 font-medium text-sm";
   const labelStyles = "block text-[13px] font-bold text-[#1e293b] mb-2";
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fade-in">
       <div className="bg-white w-full max-w-xl rounded-[24px] shadow-2xl overflow-hidden flex flex-col max-h-[90vh] animate-fade-in-up">
-        {/* Header */}
         <div className="px-8 py-6 border-b border-gray-100 flex justify-between items-center">
           <h3 className="font-bold text-xl text-[#0f172a]">{formData.id ? 'Edit Disease' : 'Add Disease'}</h3>
           <button onClick={onClose} className="text-gray-400 hover:text-red-500 transition-colors">

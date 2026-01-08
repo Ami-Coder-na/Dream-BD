@@ -8,6 +8,7 @@ import {
   Droplets, Clock, AlertTriangle, MonitorPlay, Edit3, Trash2, Plus 
 } from 'lucide-react';
 import { useData } from '../contexts/DataContext';
+import { compressImage } from './utils/imageUtils';
 
 interface ProfilePageProps {
   user: User;
@@ -45,14 +46,15 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({ user, onUpdateUser, is
     setFormData(prev => ({ ...prev, [name]: value }));
   };
 
-  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setFormData(prev => ({ ...prev, avatar: reader.result as string }));
-      };
-      reader.readAsDataURL(file);
+      try {
+        const compressed = await compressImage(file, 400, 0.6); // Smaller size for avatar
+        setFormData(prev => ({ ...prev, avatar: compressed }));
+      } catch (err) {
+        console.error("Avatar compression failed", err);
+      }
     }
   };
 

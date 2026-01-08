@@ -39,27 +39,46 @@ const PrivacyModule = lazy(() => import('./components/modules/PrivacyModule').th
 const TermsModule = lazy(() => import('./components/modules/TermsModule').then(module => ({ default: module.TermsModule })));
 const JanteChaiModule = lazy(() => import('./components/modules/JanteChaiModule').then(module => ({ default: module.JanteChaiModule })));
 
-const LoadingFallback = () => (
-  <div className="min-h-screen flex flex-col items-center justify-center bg-white relative overflow-hidden">
-    <div className="relative z-10 flex flex-col items-center">
-      <div className="relative mb-8">
-        <div className="w-24 h-24 bg-gradient-to-br from-brand-600 to-brand-700 rounded-2xl shadow-xl flex items-center justify-center">
-           <span className="text-5xl font-bold text-white">D</span>
+const LoadingFallback = () => {
+  const { settings } = useSiteConfig();
+  return (
+    <div className="min-h-screen flex flex-col items-center justify-center bg-white relative overflow-hidden">
+      <div className="relative z-10 flex flex-col items-center">
+        <div className="relative mb-8">
+          <div className="w-28 h-28 flex items-center justify-center relative">
+            {settings.websiteLogo ? (
+              <img 
+                src={settings.websiteLogo} 
+                alt="Logo" 
+                className="w-full h-full object-contain animate-bounce" 
+              />
+            ) : (
+              <div className="w-24 h-24 bg-gradient-to-br from-brand-600 to-brand-700 rounded-[2rem] shadow-2xl flex items-center justify-center transform rotate-3">
+                 <span className="text-5xl font-black text-white">D</span>
+              </div>
+            )}
+            <div className="absolute -bottom-2 -right-2 w-8 h-8 bg-brand-500 rounded-full border-4 border-white animate-ping"></div>
+          </div>
+        </div>
+        <h2 className="text-2xl font-black text-gray-900 tracking-tighter mb-4">Digital Desh BD</h2>
+        <div className="flex items-center gap-3 bg-white/80 backdrop-blur-sm px-6 py-2.5 rounded-full border border-gray-100 shadow-xl shadow-brand-500/10">
+          <Loader2 className="w-5 h-5 text-brand-600 animate-spin" />
+          <span className="text-brand-700 font-bold text-sm tracking-wide">লোড হচ্ছে...</span>
         </div>
       </div>
-      <div className="flex items-center gap-3 bg-white/80 backdrop-blur-sm px-5 py-2 rounded-full border border-gray-100 shadow-sm">
-        <Loader2 className="w-4 h-4 text-brand-600 animate-spin" />
-        <span className="text-gray-600 font-medium text-sm">লোড হচ্ছে...</span>
-      </div>
+      
+      {/* Decorative background blobs */}
+      <div className="absolute top-1/4 -left-20 w-64 h-64 bg-brand-50 rounded-full mix-blend-multiply filter blur-3xl opacity-30 animate-blob"></div>
+      <div className="absolute bottom-1/4 -right-20 w-64 h-64 bg-blue-50 rounded-full mix-blend-multiply filter blur-3xl opacity-30 animate-blob animation-delay-2000"></div>
     </div>
-  </div>
-);
+  );
+};
 
 const SESSION_KEY = 'digital_desh_bd_user_session';
 const SESSION_DURATION = 12 * 60 * 60 * 1000;
 
 const App: React.FC = () => {
-  const { logVisit, updateUser: syncUserGlobal } = useData();
+  const { logVisit, updateUser: syncUserGlobal, isLoading } = useData();
   const { settings } = useSiteConfig();
   
   const [user, setUser] = useState<User | null>(() => {
@@ -100,13 +119,16 @@ const App: React.FC = () => {
   }, [settings.websiteFavicon]);
 
   useEffect(() => {
+    if (isLoading) return;
+
+    // Always scroll to top when any view state changes
+    window.scrollTo(0, 0);
+
     // Only log visit if not an admin or on admin route
     const isAdmin = user?.role === UserRole.ADMIN || window.location.pathname === '/adminrm';
     if (!isAdmin) {
       logVisit();
     }
-
-    window.scrollTo({ top: 0, behavior: 'instant' });
     
     // Support browser back button
     const handlePopState = () => {
@@ -121,7 +143,11 @@ const App: React.FC = () => {
 
     window.addEventListener('popstate', handlePopState);
     return () => window.removeEventListener('popstate', handlePopState);
-  }, [user]);
+  }, [user, isLoading, activeModule, authView, showAiChat]);
+
+  if (isLoading) {
+    return <LoadingFallback />;
+  }
 
   const handleLoginSuccess = (loggedInUser: User) => {
     localStorage.setItem(SESSION_KEY, JSON.stringify({ user: loggedInUser, timestamp: Date.now() }));

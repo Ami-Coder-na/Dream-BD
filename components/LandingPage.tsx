@@ -174,7 +174,7 @@ export const LandingPage: React.FC<Props> = ({
                 {isBangla ? 'Mithu - Ai' : 'Mithu - Ai'} 
               </Button>
 
-              <Button onClick={() => scrollToSection('about')} variant="outline" size="lg" className={`text-lg px-10 py-4 w-full sm:w-auto ${settings.heroSliderActive ? 'bg-white/10 text-white border-white/30 hover:bg-white/20' : 'bg-white border-gray-300 hover:bg-gray-50'}`}>
+              <Button onClick={() => scrollToSection('about')} variant="outline" size="lg" className={`text-lg px-10 py-4 w-full sm:w-auto !text-white ${settings.heroSliderActive ? 'bg-white/10 border-white/30 hover:bg-white/20' : 'bg-gray-800/20 border-gray-300 hover:bg-gray-800/30'}`}>
                 {isBangla ? 'আরও জানুন' : 'Learn More'}
               </Button>
             </div>

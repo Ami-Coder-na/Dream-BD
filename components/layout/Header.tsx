@@ -57,8 +57,23 @@ export const Header: React.FC<HeaderProps> = ({
   const visibleModules = allModules.filter(m => modules[m.id]);
 
   const handleModuleClick = (moduleId: AppModule) => {
-    onModuleSelect(moduleId);
     setMobileMenuOpen(false);
+    onModuleSelect(moduleId);
+  };
+
+  const handleMobileLogin = () => {
+    setMobileMenuOpen(false);
+    onLogin();
+  };
+
+  const handleMobileLogout = () => {
+    setMobileMenuOpen(false);
+    onLogout();
+  };
+
+  const handleHomeClick = () => {
+    setMobileMenuOpen(false);
+    onNavigateHome();
   };
 
   const unreadCount = notifications.filter(n => !n.read).length;
@@ -95,7 +110,7 @@ export const Header: React.FC<HeaderProps> = ({
           <div className="flex justify-between items-center h-20">
             <div 
               className="flex items-center gap-3 cursor-pointer" 
-              onClick={onNavigateHome}
+              onClick={handleHomeClick}
             >
               {settings.websiteLogo ? (
                 <img src={settings.websiteLogo} alt="Logo" className="h-14 w-auto object-contain" />
@@ -369,7 +384,7 @@ export const Header: React.FC<HeaderProps> = ({
                       <div 
                         key={notif.id} 
                         onClick={() => {
-                          if(notif.moduleId) onModuleSelect(notif.moduleId);
+                          if(notif.moduleId) handleModuleClick(notif.moduleId);
                           setShowNotifications(false);
                         }}
                         className={`p-4 flex gap-3 ${!notif.read ? 'bg-brand-50/20' : ''}`}
@@ -392,7 +407,10 @@ export const Header: React.FC<HeaderProps> = ({
         {mobileMenuOpen && (
           <div className="lg:hidden absolute top-20 left-0 w-full bg-white border-b border-gray-100 p-4 flex flex-col gap-4 shadow-xl h-[calc(100vh-5rem)] overflow-y-auto">
               {user && (
-                <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg mb-2">
+                <div 
+                  onClick={() => handleModuleClick(AppModule.PROFILE)}
+                  className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg mb-2 cursor-pointer hover:bg-gray-100 transition-colors"
+                >
                   <div className="w-10 h-10 rounded-full bg-white border border-gray-200 flex items-center justify-center text-gray-500 overflow-hidden">
                     {user.avatar ? (
                       <img src={user.avatar} alt={user.name} className="w-full h-full object-cover" />
@@ -480,15 +498,15 @@ export const Header: React.FC<HeaderProps> = ({
               )}
               
               <div className="flex gap-4 mt-2">
-                <Button onClick={toggleLanguage} variant="outline" size="sm" className="flex-1">
+                <Button onClick={() => { setMobileMenuOpen(false); toggleLanguage(); }} variant="outline" size="sm" className="flex-1">
                   {isBangla ? 'English' : 'বাংলা'}
                 </Button>
                 {user ? (
-                    <Button onClick={onLogout} variant="danger" size="sm" className="flex-1 bg-red-50 text-red-600 border border-red-200 hover:bg-red-100">
+                    <Button onClick={handleMobileLogout} className="flex-1 !bg-red-600 !text-white !font-bold shadow-lg shadow-red-200 border-none">
                       {isBangla ? 'লগ আউট' : 'Log Out'}
                     </Button>
                 ) : (
-                    <Button onClick={onLogin} className="flex-1">
+                    <Button onClick={handleMobileLogin} className="flex-1">
                       {isBangla ? 'লগইন' : 'Login'}
                     </Button>
                 )}

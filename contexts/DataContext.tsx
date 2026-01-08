@@ -100,6 +100,7 @@ const INITIAL_POETS = [
 ];
 
 export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
+  const [isLoading, setIsLoading] = useState(true);
   const [jobs, setJobs] = useState<any[]>([]);
   const [blogs, setBlogs] = useState<any[]>([]);
   const [requests, setRequests] = useState<any[]>([]);
@@ -156,6 +157,7 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const [todayCvGenerated, setTodayCvGenerated] = useState<number>(() => parseInt(localStorage.getItem('today_cv_generated') || '0'));
 
   const fetchData = async () => {
+    setIsLoading(true);
     if (!isSupabaseConfigured) {
       setJobs(getLocal('db_jobs', []));
       setBlogs(getLocal('db_blogs', []));
@@ -180,6 +182,7 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       setPaymentRequests(getLocal('db_payment_requests', []));
       setTotalCvGenerated(parseInt(localStorage.getItem('total_cv_generated') || '0'));
       setTodayCvGenerated(parseInt(localStorage.getItem('today_cv_generated') || '0'));
+      setIsLoading(false);
       return;
     }
 
@@ -257,7 +260,10 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         loadTable('poets', setPoets),
         loadTable('craft_products', setCraftProducts)
       ]);
-    } catch (globalErr: any) {}
+    } catch (globalErr: any) {
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   useEffect(() => {
@@ -720,7 +726,7 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
   return (
     <DataContext.Provider value={{ 
-      jobs, blogs, requests, blogRequests, wholesaleRequests, grievances, users, messages, donors, marketPrices, retailProducts, wholesaleAds, lawyers, exchangeRates, vocationalCourses, enrolledCourses, districts, donorViewLogs, diseases, aboutUs, privacyPolicy, termsConditions, faqs, poets, craftProducts,
+      isLoading, jobs, blogs, requests, blogRequests, wholesaleRequests, grievances, users, messages, donors, marketPrices, retailProducts, wholesaleAds, lawyers, exchangeRates, vocationalCourses, enrolledCourses, districts, donorViewLogs, diseases, aboutUs, privacyPolicy, termsConditions, faqs, poets, craftProducts,
       pricingPlans, promoCodes, paymentRequests, totalCvGenerated, todayCvGenerated, updatePricingPlans, updatePromoCodes, addPaymentRequest, handlePaymentAction, logCvGeneration,
       addPoet, updatePoet, deletePoet, addCraftProduct, updateCraftProduct, deleteCraftProduct,
       addRequest, addGrievance, updateGrievanceStatus, deleteGrievance, addMessage, markMessageRead, deleteMessage, enrollCourse, seedDistricts, updateDistrict, deleteDistrict, addDonorViewLog, addDisease, updateDisease, deleteDisease, updateAboutUs, updatePrivacyPolicy, updateTermsConditions, updateFaqs,

@@ -16,3 +16,48 @@ export const getOptimizedImageUrl = (url: string, width: number = 800): string =
   
   return url;
 };
+
+/**
+ * Client-side image compression to save database space while maintaining high quality.
+ */
+export const compressImage = (file: File, maxSize: number = 1200, quality: number = 0.7): Promise<string> => {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.readAsDataURL(file);
+    reader.onload = (event) => {
+      const img = new Image();
+      img.src = event.target?.result as string;
+      img.onload = () => {
+        const canvas = document.createElement('canvas');
+        let width = img.width;
+        let height = img.height;
+
+        if (width > height) {
+          if (width > maxSize) {
+            height *= maxSize / width;
+            width = maxSize;
+          }
+        } else {
+          if (height > maxSize) {
+            width *= maxSize / height;
+            height = maxSize;
+          }
+        }
+        
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext('2d');
+        if (ctx) {
+          ctx.imageSmoothingEnabled = true;
+          ctx.imageSmoothingQuality = 'high';
+          ctx.drawImage(img, 0, 0, width, height);
+          resolve(canvas.toDataURL('image/jpeg', quality));
+        } else {
+          reject(new Error('Canvas context not available'));
+        }
+      };
+      img.onerror = () => reject(new Error('Image load failed'));
+    };
+    reader.onerror = () => reject(new Error('File read failed'));
+  });
+};
