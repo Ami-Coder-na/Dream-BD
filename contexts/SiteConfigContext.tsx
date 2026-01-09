@@ -63,7 +63,7 @@ export const SiteConfigProvider: React.FC<{ children: ReactNode }> = ({ children
   const [sections, setSections] = useState<Record<LandingSection, boolean>>(initialSections);
   const [settings, setSettings] = useState<SiteSettings>(initialSettings);
 
-  // Sync with Supabase on Load
+  // Sync with Supabase on Load and Listen for Real-time Updates
   useEffect(() => {
     const fetchGlobalConfig = async () => {
       if (!isSupabaseConfigured) {
@@ -95,6 +95,29 @@ export const SiteConfigProvider: React.FC<{ children: ReactNode }> = ({ children
     };
 
     fetchGlobalConfig();
+
+    // Enable Real-time Subscription
+    if (isSupabaseConfigured) {
+      const channel = supabase
+        .channel('site_config_realtime')
+        .on('postgres_changes', { 
+          event: '*', 
+          schema: 'public', 
+          table: 'site_config' 
+        }, (payload: any) => {
+          if (payload.new) {
+            const { key, value } = payload.new;
+            if (key === 'modules') setModules(value);
+            if (key === 'sections') setSections(value);
+            if (key === 'settings') setSettings(value);
+          }
+        })
+        .subscribe();
+
+      return () => {
+        supabase.removeChannel(channel);
+      };
+    }
   }, []);
 
   const saveToCloud = async (key: string, value: any) => {
