@@ -125,7 +125,6 @@ interface DataContextType {
 
 const DataContext = createContext<DataContextType | undefined>(undefined);
 
-// Instant Sync Load Helper
 const getSyncCache = (key: string, defaultValue: any) => {
   if (typeof window === 'undefined') return defaultValue;
   try {
@@ -137,7 +136,6 @@ const getSyncCache = (key: string, defaultValue: any) => {
 };
 
 export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
-  // --- STATE WITH INSTANT CACHE INIT ---
   const [isLoading, setIsLoading] = useState(false);
   const [users, setUsers] = useState<User[]>(() => getSyncCache('users', []));
   const [jobs, setJobs] = useState<any[]>(() => getSyncCache('jobs', []));
@@ -161,7 +159,6 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const [poets, setPoets] = useState<any[]>(() => getSyncCache('poets', []));
   const [pregnancyInfo, setPregnancyInfo] = useState<any[]>(() => getSyncCache('pregnancy_info', []));
   
-  // Persistence for Plans & Promos
   const [pricingPlans, setPricingPlans] = useState<PricingPlan[]>(() => getSyncCache('pricing_plans', []));
   const [promoCodes, setPromoCodes] = useState<PromoCode[]>(() => getSyncCache('promo_codes', []));
   const [paymentRequests, setPaymentRequests] = useState<PaymentRequest[]>(() => getSyncCache('payment_requests', []));
@@ -253,6 +250,7 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
             else if (key === 'terms_conditions') { setTermsConditions(value); saveCache('terms_conditions', value); }
             else if (key === 'pricing_plans') { setPricingPlans(value); saveCache('pricing_plans', value); }
             else if (key === 'promo_codes') { setPromoCodes(value); saveCache('promo_codes', value); }
+            else if (key === 'payment_requests') { setPaymentRequests(value); saveCache('payment_requests', value); }
           }
         })
         .subscribe();
@@ -266,9 +264,10 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const saveSiteContent = async (key: string, value: any) => {
     if (!isSupabaseConfigured) return;
     try {
-      await supabase.from('site_config').upsert([{ key, value, updated_at: new Date().toISOString() }], { onConflict: 'key' });
+      const { error } = await supabase.from('site_config').upsert([{ key, value, updated_at: new Date().toISOString() }], { onConflict: 'key' });
+      if (error) throw error;
       saveCache(key, value);
-    } catch (e) { console.warn(`Cloud save failed for ${key}`); }
+    } catch (e) { console.warn(`Cloud save failed for ${key}`, e); }
   };
 
   const logVisit = useCallback(async () => {
@@ -522,29 +521,28 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   };
 
   const updatePricingPlans = async (p: PricingPlan[]) => {
-    await saveSiteContent('pricing_plans', p);
     setPricingPlans(p);
+    await saveSiteContent('pricing_plans', p);
   };
   
   const updatePromoCodes = async (c: PromoCode[]) => {
-    await saveSiteContent('promo_codes', c);
     setPromoCodes(c);
+    await saveSiteContent('promo_codes', c);
   };
   
   const addPaymentRequest = async (req: PaymentRequest) => {
-    // Also persistence for payment requests if needed, but for now we update state
-    setPaymentRequests(prev => [req, ...prev]);
     const updatedRequests = [req, ...paymentRequests];
+    setPaymentRequests(updatedRequests);
     await saveSiteContent('payment_requests', updatedRequests);
   };
 
   const handlePaymentAction = async (id: string, action: string) => {
-    const req = paymentRequests.find(r => r.id === id);
+    const req = (paymentRequests || []).find(r => r.id === id);
     if (req && action === 'Approved') {
       const user = users.find(u => u.id === req.userId);
       if (user) await updateUser({ ...user, subscriptionTier: req.tier });
     }
-    const updated = paymentRequests.map(r => r.id === id ? { ...r, status: action as any } : r);
+    const updated = (paymentRequests || []).map(r => r.id === id ? { ...r, status: action as any } : r);
     setPaymentRequests(updated);
     await saveSiteContent('payment_requests', updated);
   };
