@@ -1,6 +1,5 @@
 
 import React, { useState, useEffect } from 'react';
-// Fix: Added Loader2 to lucide-react imports to resolve "Cannot find name 'Loader2'" error.
 import { 
   LayoutDashboard, Users, Settings, Database, Activity, 
   LogOut, Shield, Bell, FileText, ShoppingBag, Trash2, AlertOctagon, 
@@ -242,7 +241,7 @@ export const AdminModule: React.FC<Props> = ({ isBangla, onExit, user }) => {
             <div>
                 <p className="text-gray-500 text-xs font-bold uppercase tracking-wider">Total Visitors</p>
                 <h3 className="text-3xl font-bold text-gray-900 mt-2">{totalVisitors.toLocaleString()}</h3>
-                <p className="text-green-500 text-xs font-bold mt-1 flex items-center gap-1"><TrendingUp size={10} /> +1 New (Live)</p>
+                <p className="text-green-500 text-xs font-bold mt-1 flex items-center gap-1"><TrendingUp size={10} /> Live Stats</p>
             </div>
             <div className="p-4 rounded-2xl bg-indigo-50 text-indigo-600 group-hover:bg-indigo-100 transition-colors">
                 <BarChart3 size={24} />
@@ -253,7 +252,7 @@ export const AdminModule: React.FC<Props> = ({ isBangla, onExit, user }) => {
             <div>
                 <p className="text-gray-500 text-xs font-bold uppercase tracking-wider">Today Visitors</p>
                 <h3 className="text-3xl font-bold text-gray-900 mt-2">{todayVisitors.toLocaleString()}</h3>
-                <p className="text-blue-500 text-xs font-bold mt-1 flex items-center gap-1"><Activity size={10} /> Live Tracking</p>
+                <p className="text-blue-500 text-xs font-bold mt-1 flex items-center gap-1"><Activity size={10} /> {new Date().toLocaleDateString()}</p>
             </div>
             <div className="p-4 rounded-2xl bg-blue-50 text-blue-600 group-hover:bg-blue-100 transition-colors">
                 <Users size={24} />
@@ -265,7 +264,7 @@ export const AdminModule: React.FC<Props> = ({ isBangla, onExit, user }) => {
                 <p className="text-gray-500 text-xs font-bold uppercase tracking-wider">Unread Inbox</p>
                 <h3 className="text-3xl font-bold text-gray-900 mt-2">{unreadMessagesCount}</h3>
                 <p className={`${unreadMessagesCount > 0 ? 'text-indigo-600 animate-pulse' : 'text-gray-400'} text-xs font-bold mt-1`}>
-                  {unreadMessagesCount > 0 ? 'New Contact Messages' : 'No new messages'}
+                  {unreadMessagesCount > 0 ? 'New Contact Messages' : 'All Read'}
                 </p>
             </div>
             <div className={`p-4 rounded-2xl ${unreadMessagesCount > 0 ? 'bg-indigo-600 text-white shadow-lg' : 'bg-gray-50 text-gray-400'} transition-all`}>
@@ -277,7 +276,7 @@ export const AdminModule: React.FC<Props> = ({ isBangla, onExit, user }) => {
             <div>
                 <p className="text-gray-500 text-xs font-bold uppercase tracking-wider">Total Registered</p>
                 <h3 className="text-3xl font-bold text-gray-900 mt-2">{users.length}</h3>
-                <p className="text-blue-500 text-xs font-bold mt-1 flex items-center gap-1"><ArrowUpRight size={10} /> {users.length > 0 ? 'Verified' : 'Growing'}</p>
+                <p className="text-blue-500 text-xs font-bold mt-1 flex items-center gap-1"><ArrowUpRight size={10} /> Verified Citizens</p>
             </div>
             <div className="p-4 rounded-2xl bg-blue-50 text-blue-600 group-hover:bg-blue-100 transition-colors">
                 <Users size={24} />
@@ -290,7 +289,7 @@ export const AdminModule: React.FC<Props> = ({ isBangla, onExit, user }) => {
             <div>
                 <p className="text-gray-500 text-xs font-bold uppercase tracking-wider">Total CV Generated</p>
                 <h3 className="text-3xl font-bold text-gray-900 mt-2">{totalCvGenerated.toLocaleString()}</h3>
-                <p className="text-brand-600 text-xs font-bold mt-1 flex items-center gap-1"><TrendingUp size={10} /> Real-time</p>
+                <p className="text-brand-600 text-xs font-bold mt-1 flex items-center gap-1"><TrendingUp size={10} /> All Time</p>
             </div>
             <div className="p-4 rounded-2xl bg-brand-50 text-brand-600 group-hover:bg-brand-100 transition-colors">
                 <FileCheck size={24} />
@@ -301,7 +300,7 @@ export const AdminModule: React.FC<Props> = ({ isBangla, onExit, user }) => {
             <div>
                 <p className="text-gray-500 text-xs font-bold uppercase tracking-wider">Today CV Generated</p>
                 <h3 className="text-3xl font-bold text-gray-900 mt-2">{todayCvGenerated.toLocaleString()}</h3>
-                <p className="text-brand-600 text-xs font-bold mt-1 flex items-center gap-1"><Activity size={10} /> Live Stats</p>
+                <p className="text-brand-600 text-xs font-bold mt-1 flex items-center gap-1"><Activity size={10} /> {new Date().toLocaleDateString()}</p>
             </div>
             <div className="p-4 rounded-2xl bg-brand-50 text-brand-600 group-hover:bg-brand-100 transition-colors">
                 <FilePlus size={24} />
@@ -320,7 +319,7 @@ export const AdminModule: React.FC<Props> = ({ isBangla, onExit, user }) => {
          </div>
          <div className="bg-gray-800 rounded-2xl p-5 text-white shadow-lg flex items-center gap-4">
             <div className="p-3 bg-white/20 rounded-xl"><RefreshCw size={24} /></div>
-            <div><p className="text-gray-400 text-xs font-bold uppercase">Last Backup</p><h4 className="text-lg font-bold">2 Hours Ago</h4></div>
+            <div><p className="text-gray-400 text-xs font-bold uppercase">Current Status</p><h4 className="text-lg font-bold">Synced Live</h4></div>
          </div>
       </div>
     </div>

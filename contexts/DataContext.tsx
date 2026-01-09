@@ -138,7 +138,7 @@ const getSyncCache = (key: string, defaultValue: any) => {
 
 export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   // --- STATE WITH INSTANT CACHE INIT ---
-  const [isLoading, setIsLoading] = useState(false); // Set false by default because we load from cache instantly
+  const [isLoading, setIsLoading] = useState(false);
   const [users, setUsers] = useState<User[]>(() => getSyncCache('users', []));
   const [jobs, setJobs] = useState<any[]>(() => getSyncCache('jobs', []));
   const [blogs, setBlogs] = useState<any[]>(() => getSyncCache('blogs', []));
@@ -160,9 +160,11 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const [diseases, setDiseases] = useState<any[]>(() => getSyncCache('diseases', []));
   const [poets, setPoets] = useState<any[]>(() => getSyncCache('poets', []));
   const [pregnancyInfo, setPregnancyInfo] = useState<any[]>(() => getSyncCache('pregnancy_info', []));
-  const [pricingPlans, setPricingPlans] = useState<PricingPlan[]>([]);
-  const [promoCodes, setPromoCodes] = useState<PromoCode[]>([]);
-  const [paymentRequests, setPaymentRequests] = useState<PaymentRequest[]>([]);
+  
+  // Persistence for Plans & Promos
+  const [pricingPlans, setPricingPlans] = useState<PricingPlan[]>(() => getSyncCache('pricing_plans', []));
+  const [promoCodes, setPromoCodes] = useState<PromoCode[]>(() => getSyncCache('promo_codes', []));
+  const [paymentRequests, setPaymentRequests] = useState<PaymentRequest[]>(() => getSyncCache('payment_requests', []));
   
   const [totalVisitors, setTotalVisitors] = useState(() => parseInt(localStorage.getItem('stat_total_visitors') || '1'));
   const [todayVisitors, setTodayVisitors] = useState(() => parseInt(localStorage.getItem('stat_today_visitors') || '1'));
@@ -204,12 +206,14 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
             if (item.key === 'about_us') { setAboutUs(item.value); saveCache('about_us', item.value); }
             if (item.key === 'privacy_policy') { setPrivacyPolicy(item.value); saveCache('privacy_policy', item.value); }
             if (item.key === 'terms_conditions') { setTermsConditions(item.value); saveCache('terms_conditions', item.value); }
+            if (item.key === 'pricing_plans') { setPricingPlans(item.value); saveCache('pricing_plans', item.value); }
+            if (item.key === 'promo_codes') { setPromoCodes(item.value); saveCache('promo_codes', item.value); }
+            if (item.key === 'payment_requests') { setPaymentRequests(item.value); saveCache('payment_requests', item.value); }
           });
         }
       } catch (e) { console.warn("Failed to fetch site content config:", e); }
     };
 
-    // Load actual data in background without blocking
     await Promise.allSettled([
       fetchTable('users', setUsers),
       fetchTable('jobs', setJobs),
@@ -247,6 +251,8 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
             if (key === 'about_us') { setAboutUs(value); saveCache('about_us', value); }
             else if (key === 'privacy_policy') { setPrivacyPolicy(value); saveCache('privacy_policy', value); }
             else if (key === 'terms_conditions') { setTermsConditions(value); saveCache('terms_conditions', value); }
+            else if (key === 'pricing_plans') { setPricingPlans(value); saveCache('pricing_plans', value); }
+            else if (key === 'promo_codes') { setPromoCodes(value); saveCache('promo_codes', value); }
           }
         })
         .subscribe();
@@ -515,16 +521,32 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
      setPregnancyInfo(info);
   };
 
-  const updatePricingPlans = async (p: PricingPlan[]) => setPricingPlans(p);
-  const updatePromoCodes = async (c: PromoCode[]) => setPromoCodes(c);
-  const addPaymentRequest = async (req: PaymentRequest) => setPaymentRequests(prev => [req, ...prev]);
+  const updatePricingPlans = async (p: PricingPlan[]) => {
+    await saveSiteContent('pricing_plans', p);
+    setPricingPlans(p);
+  };
+  
+  const updatePromoCodes = async (c: PromoCode[]) => {
+    await saveSiteContent('promo_codes', c);
+    setPromoCodes(c);
+  };
+  
+  const addPaymentRequest = async (req: PaymentRequest) => {
+    // Also persistence for payment requests if needed, but for now we update state
+    setPaymentRequests(prev => [req, ...prev]);
+    const updatedRequests = [req, ...paymentRequests];
+    await saveSiteContent('payment_requests', updatedRequests);
+  };
+
   const handlePaymentAction = async (id: string, action: string) => {
     const req = paymentRequests.find(r => r.id === id);
     if (req && action === 'Approved') {
       const user = users.find(u => u.id === req.userId);
       if (user) await updateUser({ ...user, subscriptionTier: req.tier });
     }
-    setPaymentRequests(prev => prev.map(r => r.id === id ? { ...r, status: action as any } : r));
+    const updated = paymentRequests.map(r => r.id === id ? { ...r, status: action as any } : r);
+    setPaymentRequests(updated);
+    await saveSiteContent('payment_requests', updated);
   };
 
   const addGrievance = async (g: any) => {
