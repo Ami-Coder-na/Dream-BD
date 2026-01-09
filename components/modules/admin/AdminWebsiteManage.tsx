@@ -5,7 +5,7 @@ import React, { useState, useRef } from 'react';
 import { 
   Smartphone, Upload, ImageIcon, Loader2, Power, Image as ImageIcon2, Plus, LayoutGrid,
   Globe, Database, Zap, CheckCircle, Search, Layout, Layers, RefreshCw, Smartphone as MobileIcon,
-  ShieldCheck, Info, Monitor
+  ShieldCheck, Info, Monitor, ToggleLeft, ToggleRight
 } from 'lucide-react';
 import { Button } from '../../ui/Button';
 import { useSiteConfig, ToggableModule, LandingSection } from '../../../contexts/SiteConfigContext';
@@ -62,7 +62,7 @@ const ImageSlot: React.FC<ImageSlotProps> = ({ label, subLabel, currentImage, on
     <div className="flex flex-col items-center gap-2">
       <div 
         onClick={() => fileInputRef.current?.click()}
-        className={`w-full aspect-video rounded-xl border-2 border-dashed flex flex-col items-center justify-center cursor-pointer transition-all overflow-hidden relative group ${currentImage ? 'border-brand-500 bg-brand-50' : 'border-gray-200 bg-gray-50 hover:bg-gray-100'}`}
+        className={`w-full aspect-video rounded-xl border-2 border-dashed flex flex-col items-center justify-center cursor-pointer transition-all overflow-hidden relative group ${currentImage ? 'border-brand-500 bg-transparent' : 'border-gray-200 bg-gray-50 hover:bg-gray-100'}`}
       >
         <div className="absolute top-2 left-2 px-2 py-0.5 bg-brand-600 text-white text-[9px] font-black uppercase rounded shadow-sm z-10">
           {label}
@@ -72,7 +72,7 @@ const ImageSlot: React.FC<ImageSlotProps> = ({ label, subLabel, currentImage, on
         {isUploading ? (
           <Loader2 className="animate-spin text-brand-600" />
         ) : currentImage ? (
-          <img src={currentImage} className="w-full h-full object-cover" />
+          <img src={currentImage} className="w-full h-full object-contain p-2" />
         ) : (
           <>
             <div className="w-10 h-10 rounded-full border-2 border-gray-300 flex items-center justify-center text-gray-300 mb-2 group-hover:border-brand-400 group-hover:text-brand-400 transition-colors">
@@ -169,7 +169,7 @@ export const AdminWebsiteManage = () => {
   return (
     <div className="space-y-10 animate-fade-in max-w-7xl mx-auto pb-20">
       
-      {/* 1. Global System Status (NEW - Matching Screenshot 3) */}
+      {/* 1. Global System Status */}
       <div className="bg-white rounded-3xl p-8 border-2 border-brand-500/30 shadow-xl shadow-brand-500/5 relative overflow-hidden">
         <div className="absolute top-0 left-0 w-full h-1.5 bg-brand-500"></div>
         <div className="flex flex-col md:flex-row justify-between items-center gap-8 relative z-10">
@@ -200,7 +200,7 @@ export const AdminWebsiteManage = () => {
         </div>
       </div>
 
-      {/* 2. Management Grids (NEW - Matching Screenshot 3) */}
+      {/* 2. Management Grids */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
         {/* Module Management Column */}
         <div className="lg:col-span-7 bg-[#f8fafc] rounded-[2rem] border border-gray-100 shadow-sm overflow-hidden">
@@ -240,7 +240,7 @@ export const AdminWebsiteManage = () => {
         </div>
       </div>
 
-      {/* 3. Website Identity (Top Card - Matching Screenshot 1) */}
+      {/* 3. Website Identity */}
       <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
         <div className="p-6 border-b border-gray-100 bg-white flex items-center gap-3">
           <Smartphone className="text-brand-600" size={22} />
@@ -248,8 +248,17 @@ export const AdminWebsiteManage = () => {
         </div>
         <div className="p-8 space-y-8">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-            <div>
-              <label className={labelStyles}>Website Title</label>
+            <div className="space-y-4">
+              <div className="flex justify-between items-end px-1">
+                <label className={labelStyles}>Website Title</label>
+                <button 
+                  onClick={() => updateSettings('showWebsiteTitle', !settings.showWebsiteTitle)}
+                  className={`flex items-center gap-1.5 text-[10px] font-black uppercase transition-colors ${settings.showWebsiteTitle ? 'text-brand-600' : 'text-gray-400'}`}
+                >
+                  {settings.showWebsiteTitle ? <ToggleRight size={18} /> : <ToggleLeft size={18} />}
+                  {settings.showWebsiteTitle ? 'Title On' : 'Title Off'}
+                </button>
+              </div>
               <input 
                 type="text"
                 className={inputStyles}
@@ -275,8 +284,8 @@ export const AdminWebsiteManage = () => {
               <div>
                 <label className={labelStyles}>Logo (Compressed)</label>
                 <div className="flex items-center gap-3">
-                  <div className="w-12 h-12 rounded-xl border border-gray-100 bg-gray-50 flex items-center justify-center overflow-hidden shrink-0">
-                    {settings.websiteLogo ? <img src={settings.websiteLogo} className="w-full h-full object-contain" /> : <ImageIcon className="text-gray-300" size={20} />}
+                  <div className="w-16 h-16 rounded-xl flex items-center justify-center overflow-hidden shrink-0">
+                    {settings.websiteLogo ? <img src={settings.websiteLogo} className="w-full h-full object-contain" /> : <ImageIcon className="text-gray-300" size={24} />}
                   </div>
                   <Button onClick={() => logoInputRef.current?.click()} variant="outline" size="sm" className="h-10 text-[10px] font-black uppercase tracking-widest bg-white">
                     <Upload size={14} className="mr-2"/> Upload
@@ -316,7 +325,21 @@ export const AdminWebsiteManage = () => {
                    <h4 className="text-sm font-bold text-gray-900">System Controls</h4>
                 </div>
                 <ToggleSwitch label="Maintenance Mode" checked={settings.maintenanceMode} onChange={() => updateSettings('maintenanceMode', !settings.maintenanceMode)} color="bg-red-600" />
-                <ToggleSwitch label="Global Announcement" checked={settings.announcementActive} onChange={() => updateSettings('announcementActive', !settings.announcementActive)} />
+                <div className="space-y-3">
+                  <ToggleSwitch label="Global Announcement" checked={settings.announcementActive} onChange={() => updateSettings('announcementActive', !settings.announcementActive)} />
+                  {settings.announcementActive && (
+                    <div className="animate-fade-in-up">
+                      <label className="block text-[9px] font-black text-gray-400 uppercase tracking-widest mb-1.5 ml-1">Announcement Message</label>
+                      <textarea 
+                        className="w-full p-3 bg-white border border-brand-100 rounded-xl focus:ring-4 focus:ring-brand-500/10 outline-none font-bold text-gray-800 text-xs resize-none leading-relaxed"
+                        rows={2}
+                        value={settings.announcement || ''}
+                        onChange={(e) => updateSettings('announcement', e.target.value)}
+                        placeholder="এখানে ওয়েবসাইটের গুরুত্বপূর্ণ নোটিশ লিখুন..."
+                      />
+                    </div>
+                  )}
+                </div>
              </div>
              <div className="lg:col-span-8">
                 <label className={labelStyles}>Office Address</label>
@@ -332,7 +355,7 @@ export const AdminWebsiteManage = () => {
         </div>
       </div>
 
-      {/* 4. Hero Slider Management (Matching Screenshot 2) */}
+      {/* 4. Hero Slider Management */}
       <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
         <div className="p-6 border-b border-gray-100 flex justify-between items-center bg-white">
           <div className="flex items-center gap-3">
@@ -358,7 +381,7 @@ export const AdminWebsiteManage = () => {
         </div>
       </div>
 
-      {/* 5. Gallery Management (Matching Screenshot 2) */}
+      {/* 5. Gallery Management */}
       <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
         <div className="p-6 border-b border-gray-100 flex justify-between items-center bg-white">
           <div className="flex items-center gap-3">

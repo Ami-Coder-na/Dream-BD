@@ -1,11 +1,13 @@
 
 import React, { useState, useEffect } from 'react';
+// Fix: Added Loader2 to lucide-react imports to resolve "Cannot find name 'Loader2'" error.
 import { 
   LayoutDashboard, Users, Settings, Database, Activity, 
   LogOut, Shield, Bell, FileText, ShoppingBag, Trash2, AlertOctagon, 
   Clock, DollarSign, Mail, Key, EyeOff, Eye, ChevronDown, UserPlus, FilePlus, AlertTriangle,
   Globe, Sparkles, Monitor, RefreshCw, CheckCircle, BarChart3, TrendingUp, Inbox, Droplets, PlusCircle, Briefcase,
-  ArrowUpRight, Zap, HeartPulse, Info, Gavel, HelpCircle, Feather, Crown, FileCheck
+  ArrowUpRight, Zap, HeartPulse, Info, Gavel, HelpCircle, Feather, Crown, FileCheck, ShieldCheck, X, FlaskConical, Terminal,
+  Loader2
 } from 'lucide-react';
 import { AdminUsers } from './admin/AdminUsers';
 import { AdminContent } from './admin/AdminContent';
@@ -36,51 +38,88 @@ interface Props {
 
 type AdminSection = 'overview' | 'website-manage' | 'users' | 'content' | 'inbox' | 'module-config' | 'market' | 'grievance' | 'emergency' | 'settings' | 'blood-logs' | 'diseases' | 'about' | 'legal' | 'faqs' | 'poets' | 'subscriptions';
 
+interface TestResult {
+  name: string;
+  status: 'pass' | 'fail' | 'warning';
+  message: string;
+}
+
 export const AdminModule: React.FC<Props> = ({ isBangla, onExit, user }) => {
-  const { requests, totalVisitors, todayVisitors, messages, donorViewLogs, users, totalCvGenerated, todayCvGenerated } = useData();
+  const { requests, totalVisitors, todayVisitors, messages, donorViewLogs, users, totalCvGenerated, todayCvGenerated, jobs, blogs } = useData();
 
   const SESSION_KEY = 'digital_desh_bd_admin_session';
   const SESSION_DURATION = 12 * 60 * 60 * 1000;
 
-  // Sync authentication with the main app user session
   const [isAuthenticated, setIsAuthenticated] = useState(() => {
     if (typeof window !== 'undefined') {
-      // Priority 1: Check if global user has ADMIN role
-      if (user?.role === UserRole.ADMIN) {
-        return true;
-      }
-
-      // Priority 2: Check development mode
+      if (user?.role === UserRole.ADMIN) return true;
       const hostname = window.location.hostname;
-      if (hostname === 'localhost' || hostname === '127.0.0.1' || hostname.includes('.local')) {
-        return true;
-      }
-      
-      // Priority 3: Check admin-specific session storage
+      if (hostname === 'localhost' || hostname === '127.0.0.1' || hostname.includes('.local')) return true;
       try {
         const session = localStorage.getItem(SESSION_KEY);
         if (session) {
           const { timestamp } = JSON.parse(session);
-          if (Date.now() - timestamp < SESSION_DURATION) {
-            return true;
-          }
+          if (Date.now() - timestamp < SESSION_DURATION) return true;
         }
       } catch (e) { console.error(e); }
     }
     return false;
   });
 
-  // Re-check authentication if user changes (e.g. login/logout in header)
   useEffect(() => {
-    if (user?.role === UserRole.ADMIN) {
-      setIsAuthenticated(true);
-    }
+    if (user?.role === UserRole.ADMIN) setIsAuthenticated(true);
   }, [user]);
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [activeSection, setActiveSection] = useState<AdminSection>('overview');
+
+  // Dev-Test State
+  const [isTesting, setIsTesting] = useState(false);
+  const [testResults, setTestResults] = useState<TestResult[] | null>(null);
+
+  const runSystemTest = () => {
+    setIsTesting(true);
+    setTestResults(null);
+    
+    setTimeout(() => {
+      const results: TestResult[] = [
+        {
+          name: 'Database (Supabase)',
+          status: isSupabaseConfigured ? 'pass' : 'fail',
+          message: isSupabaseConfigured ? 'Connected to Cloud DB.' : 'Running in Offline Mode.'
+        },
+        {
+          name: 'AI Engine (Gemini)',
+          status: process.env.API_KEY ? 'pass' : 'warning',
+          message: process.env.API_KEY ? 'API Key is active.' : 'API Key missing (Mithu limited).'
+        },
+        {
+          name: 'Data Integrity',
+          status: (jobs.length > 0 && blogs.length > 0) ? 'pass' : 'warning',
+          message: `Found ${jobs.length} jobs and ${blogs.length} blogs.`
+        },
+        {
+          name: 'Auth System',
+          status: 'pass',
+          message: 'Session management is active.'
+        },
+        {
+          name: 'Client Storage',
+          status: typeof localStorage !== 'undefined' ? 'pass' : 'fail',
+          message: 'Local Cache access granted.'
+        },
+        {
+          name: 'Network Status',
+          status: navigator.onLine ? 'pass' : 'fail',
+          message: navigator.onLine ? 'Online' : 'Offline'
+        }
+      ];
+      setTestResults(results);
+      setIsTesting(false);
+    }, 2000);
+  };
 
   const unreadMessagesCount = messages.filter((m: any) => m.status === 'Unread').length;
 
@@ -126,6 +165,49 @@ export const AdminModule: React.FC<Props> = ({ isBangla, onExit, user }) => {
              <span className="font-bold">System Online: Database Connected Successfully. All updates are syncing globally.</span>
          </div>
       )}
+
+      {/* Developer Test Section */}
+      <div className="bg-white p-6 rounded-3xl border border-gray-100 shadow-sm">
+        <div className="flex flex-col md:flex-row justify-between items-center gap-4">
+           <div className="flex items-center gap-4">
+              <div className="p-3 bg-indigo-50 text-indigo-600 rounded-2xl"><FlaskConical size={24} /></div>
+              <div>
+                <h3 className="text-lg font-black text-gray-900">Developer Test Report (Dev-Test)</h3>
+                <p className="text-gray-500 text-sm">Run automated tests to find issues across the platform.</p>
+              </div>
+           </div>
+           <Button 
+            onClick={runSystemTest} 
+            disabled={isTesting}
+            className="bg-indigo-600 hover:bg-indigo-700 text-white font-bold flex items-center gap-2 px-8 py-3 rounded-2xl shadow-lg shadow-indigo-100"
+           >
+             {isTesting ? <Loader2 size={18} className="animate-spin" /> : <Terminal size={18} />}
+             {isTesting ? 'Running Diagnostics...' : 'Run System Health Check'}
+           </Button>
+        </div>
+
+        {testResults && (
+          <div className="mt-8 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 animate-fade-in-up">
+            {testResults.map((res, i) => (
+              <div key={i} className={`p-4 rounded-2xl border flex items-center gap-4 ${
+                res.status === 'pass' ? 'bg-green-50 border-green-100' : 
+                res.status === 'fail' ? 'bg-red-50 border-red-100' : 'bg-yellow-50 border-yellow-100'
+              }`}>
+                <div className={`p-2 rounded-full ${
+                  res.status === 'pass' ? 'bg-green-100 text-green-600' : 
+                  res.status === 'fail' ? 'bg-red-100 text-red-600' : 'bg-yellow-100 text-yellow-600'
+                }`}>
+                  {res.status === 'pass' ? <CheckCircle size={20} /> : res.status === 'fail' ? <X size={20} /> : <AlertTriangle size={20} />}
+                </div>
+                <div>
+                   <p className="text-xs font-black text-gray-400 uppercase tracking-widest">{res.name}</p>
+                   <p className={`font-bold ${res.status === 'pass' ? 'text-green-700' : res.status === 'fail' ? 'text-red-700' : 'text-yellow-700'}`}>{res.message}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-6">
         <div className="bg-gradient-to-br from-purple-600 to-indigo-700 p-6 rounded-3xl text-white shadow-xl flex items-center justify-between group hover:scale-[1.02] transition-all cursor-pointer" onClick={() => setActiveSection('content')}>

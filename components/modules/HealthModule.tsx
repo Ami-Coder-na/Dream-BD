@@ -4,7 +4,7 @@ import {
   HeartPulse, Calendar, Phone, MapPin, Star, UserPlus, 
   Thermometer, Activity, Baby, Utensils, AlertCircle, 
   Search, ChevronRight, Droplets, ShieldCheck, Stethoscope,
-  Info, Clock, ChevronDown, Check, Building2, X, Eye, CheckCircle, Heart, Siren, Pill, CreditCard, User, Fingerprint, Sparkles
+  Info, Clock, ChevronDown, Check, Building2, X, Eye, CheckCircle, Heart, Siren, Pill, CreditCard, User, Fingerprint, Sparkles, UserCheck
 } from 'lucide-react';
 import { Button } from '../ui/Button';
 import { getOptimizedImageUrl } from '../utils/imageUtils';
@@ -34,7 +34,6 @@ const HOSPITALS_DB = [
   { id: 6, name: 'United Hospital', address: 'Plot 15, Road 71, Gulshan', phone: '10666' },
 ];
 
-// --- FALLBACK PREGNANCY DATA ---
 const PREGNANCY_WEEKS_FALLBACK: Record<number, any> = {
   1: { babyBn: 'নিষেক প্রক্রিয়া শুরু হয়।', babyEn: 'Fertilization process starts.', momBn: 'পিরিয়ড বন্ধ হয়, হালকা ক্লান্তি আসতে পারে।', momEn: 'Periods stop, light fatigue may occur.' },
   4: { babyBn: 'ভ্রূণ জরায়ুতে স্থাপিত হয়। এটি পোস্ত দানার মতো ছোট।', babyEn: 'Embryo implants. Tiny like a poppy seed.', momBn: 'স্তনে ব্যথা বা বমি বমি ভাব হতে পারে।', momEn: 'Breast tenderness or morning sickness.' },
@@ -55,6 +54,10 @@ export const HealthModule: React.FC<Props> = ({ isBangla }) => {
   const [hospitalDistrict, setHospitalDistrict] = useState('Dhaka');
   const [pregnancyWeek, setPregnancyWeek] = useState(8);
   const [activeModal, setActiveModal] = useState<'donate' | 'view_number' | 'health_card' | null>(null);
+
+  // Blood Donor Registration State
+  const [donorRegistered, setDonorRegistered] = useState(false);
+  const [donorForm, setDonorForm] = useState({ name: '', phone: '', group: 'A+', district: 'Dhaka', lastDonation: '' });
 
   // Blood View Flow State
   const [viewingDonor, setViewingDonor] = useState<any>(null);
@@ -91,9 +94,12 @@ export const HealthModule: React.FC<Props> = ({ isBangla }) => {
     setCardRegistered(true);
   };
 
-  // Helper to get closest defined week data from DB or Fallback
+  const handleDonorRegister = (e: React.FormEvent) => {
+    e.preventDefault();
+    setDonorRegistered(true);
+  };
+
   const getWeekData = (week: number) => {
-     // Check if we have dynamic data from DB
      if (pregnancyInfo && pregnancyInfo.length > 0) {
         let closest = pregnancyInfo[0];
         for (const info of pregnancyInfo) {
@@ -107,8 +113,6 @@ export const HealthModule: React.FC<Props> = ({ isBangla }) => {
            momEn: closest.mom_en
         };
      }
-     
-     // Fallback to local constant
      const keys = Object.keys(PREGNANCY_WEEKS_FALLBACK).map(Number).sort((a, b) => a - b);
      let closestKey = keys[0];
      for (const k of keys) {
@@ -272,7 +276,7 @@ export const HealthModule: React.FC<Props> = ({ isBangla }) => {
           <div className="bg-red-50 p-5 rounded-2xl border border-red-100 text-center">
              <UserPlus size={24} className="mx-auto mb-3 text-red-500" />
              <h4 className="font-bold text-red-900 mb-1">{isBangla ? 'রক্তদাতা হোন' : 'Become a Donor'}</h4>
-             <Button onClick={() => setActiveModal('donate')} className="w-full bg-red-600 hover:bg-red-700 text-white text-xs h-9 mt-3">{isBangla ? 'নিবন্ধন করুন' : 'Register Now'}</Button>
+             <Button onClick={() => { setDonorRegistered(false); setActiveModal('donate'); }} className="w-full bg-red-600 hover:bg-red-700 text-white text-xs h-9 mt-3">{isBangla ? 'নিবন্ধন করুন' : 'Register Now'}</Button>
           </div>
         </aside>
         <main className="w-full lg:w-3/4">
@@ -478,6 +482,82 @@ export const HealthModule: React.FC<Props> = ({ isBangla }) => {
           {activeTab === 'lifestyle' && renderLifestyle()}
         </div>
 
+        {/* Donor Registration Modal */}
+        {activeModal === 'donate' && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm animate-fade-in" onClick={() => setActiveModal(null)}>
+            <div className="bg-white w-full max-w-lg rounded-[2.5rem] shadow-2xl overflow-hidden animate-fade-in-up" onClick={e => e.stopPropagation()}>
+               <div className="bg-red-600 p-6 flex justify-between items-center text-white">
+                  <h3 className="font-bold text-xl flex items-center gap-3"><Heart size={24}/> {isBangla ? 'রক্তদাতা হিসেবে নিবন্ধন' : 'Register as Donor'}</h3>
+                  <button onClick={() => setActiveModal(null)} className="p-2 hover:bg-white/20 rounded-full transition-all"><X size={24}/></button>
+               </div>
+               <div className="p-8">
+                  {donorRegistered ? (
+                    <div className="animate-fade-in text-center py-10">
+                       <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6 text-green-600">
+                          <CheckCircle size={48} className="animate-bounce" />
+                       </div>
+                       <h3 className="text-2xl font-black text-gray-900 mb-2">{isBangla ? 'নিবন্ধন সফল হয়েছে!' : 'Registration Success!'}</h3>
+                       <p className="text-gray-500 font-medium mb-8">{isBangla ? 'রক্তদাতা হিসেবে যুক্ত হওয়ার জন্য আপনাকে ধন্যবাদ। আপনার মহানুভবতা জীবন বাঁচাতে পারে।' : 'Thank you for joining as a donor. Your kindness can save lives.'}</p>
+                       <Button onClick={() => setActiveModal(null)} className="w-full bg-gray-900 text-white py-4 rounded-2xl shadow-lg">ঠিক আছে</Button>
+                    </div>
+                  ) : (
+                    <form onSubmit={handleDonorRegister} className="space-y-5">
+                       <div className="bg-red-50 p-4 rounded-2xl border border-red-100 flex gap-3 mb-2">
+                          <Info size={24} className="text-red-500 shrink-0" />
+                          <p className="text-xs text-red-800 leading-relaxed font-medium">
+                            {isBangla ? 'নিবন্ধনের পর আপনার রক্তদানের তথ্য জনসমক্ষে প্রদর্শিত হবে যাতে প্রয়োজনে কেউ আপনার সাথে যোগাযোগ করতে পারে।' : 'Your donor information will be publicly visible so that those in need can contact you.'}
+                          </p>
+                       </div>
+                       
+                       <div>
+                          <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1 mb-1">{isBangla ? 'পূর্ণ নাম' : 'Full Name'}</label>
+                          <div className="relative">
+                             <User className="absolute left-3 top-3.5 text-gray-400" size={18} />
+                             <input required type="text" className="w-full pl-10 pr-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-red-500 outline-none font-bold text-gray-800" value={donorForm.name} onChange={e => setDonorForm({...donorForm, name: e.target.value})} placeholder="Rahim Ahmed" />
+                          </div>
+                       </div>
+
+                       <div className="grid grid-cols-2 gap-4">
+                          <div>
+                             <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1 mb-1">{isBangla ? 'রক্তের গ্রুপ' : 'Blood Group'}</label>
+                             <select className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-red-500 outline-none font-bold appearance-none cursor-pointer text-black" value={donorForm.group} onChange={e => setDonorForm({...donorForm, group: e.target.value})}>
+                                {BLOOD_GROUPS.map(g => <option key={g} value={g}>{g}</option>)}
+                             </select>
+                          </div>
+                          <div>
+                             <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1 mb-1">{isBangla ? 'জেলা' : 'District'}</label>
+                             <select className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-red-500 outline-none font-bold appearance-none cursor-pointer text-black" value={donorForm.district} onChange={e => setDonorForm({...donorForm, district: e.target.value})}>
+                                {DISTRICT_LIST.map(d => <option key={d} value={d}>{d}</option>)}
+                             </select>
+                          </div>
+                       </div>
+
+                       <div>
+                          <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1 mb-1">{isBangla ? 'মোবাইল নম্বর' : 'Phone Number'}</label>
+                          <div className="relative">
+                             <Phone className="absolute left-3 top-3.5 text-gray-400" size={18} />
+                             <input required type="tel" className="w-full pl-10 pr-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-red-500 outline-none font-bold text-gray-800" value={donorForm.phone} onChange={e => setDonorForm({...donorForm, phone: e.target.value})} placeholder="017..." />
+                          </div>
+                       </div>
+
+                       <div>
+                          <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1 mb-1">{isBangla ? 'শেষ রক্তদানের তারিখ' : 'Last Donation Date'}</label>
+                          <div className="relative">
+                             <Calendar className="absolute left-3 top-3.5 text-gray-400" size={18} />
+                             <input type="date" className="w-full pl-10 pr-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-red-500 outline-none font-bold text-gray-800" value={donorForm.lastDonation} onChange={e => setDonorForm({...donorForm, lastDonation: e.target.value})} />
+                          </div>
+                       </div>
+
+                       <Button type="submit" className="w-full bg-red-600 hover:bg-red-700 text-white font-black py-4 rounded-2xl shadow-xl shadow-red-200 text-lg flex items-center justify-center gap-3 mt-4">
+                          <UserCheck size={24} /> {isBangla ? 'নিবন্ধন সম্পন্ন করুন' : 'Complete Registration'}
+                       </Button>
+                    </form>
+                  )}
+               </div>
+            </div>
+          </div>
+        )}
+
         {/* Health Card Modal */}
         {activeModal === 'health_card' && (
           <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm animate-fade-in" onClick={() => setActiveModal(null)}>
@@ -525,18 +605,18 @@ export const HealthModule: React.FC<Props> = ({ isBangla }) => {
                           <label className="block text-xs font-bold text-gray-500 uppercase ml-1 mb-1">{isBangla ? 'পূর্ণ নাম' : 'Full Name'}</label>
                           <div className="relative">
                              <User className="absolute left-3 top-3 text-gray-400" size={18} />
-                             <input required type="text" className="w-full pl-10 pr-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-orange-500 outline-none font-medium" value={cardInfo.name} onChange={e => setCardInfo({...cardInfo, name: e.target.value})} placeholder="Rahim Ahmed" />
+                             <input required type="text" className="w-full pl-10 pr-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-orange-500 outline-none font-medium text-black" value={cardInfo.name} onChange={e => setCardInfo({...cardInfo, name: e.target.value})} placeholder="Rahim Ahmed" />
                           </div>
                        </div>
 
                        <div className="grid grid-cols-2 gap-4">
                           <div>
                              <label className="block text-xs font-bold text-gray-500 uppercase ml-1 mb-1">{isBangla ? 'বয়স' : 'Age'}</label>
-                             <input required type="number" className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-orange-500 outline-none font-medium" value={cardInfo.age} onChange={e => setCardInfo({...cardInfo, age: e.target.value})} placeholder="25" />
+                             <input required type="number" className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-orange-500 outline-none font-medium text-black" value={cardInfo.age} onChange={e => setCardInfo({...cardInfo, age: e.target.value})} placeholder="25" />
                           </div>
                           <div>
                              <label className="block text-xs font-bold text-gray-500 uppercase ml-1 mb-1">{isBangla ? 'রক্তের গ্রুপ' : 'Blood Group'}</label>
-                             <select className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-orange-500 outline-none font-medium appearance-none cursor-pointer" value={cardInfo.blood} onChange={e => setCardInfo({...cardInfo, blood: e.target.value})}>
+                             <select className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-orange-500 outline-none font-medium appearance-none cursor-pointer text-black" value={cardInfo.blood} onChange={e => setCardInfo({...cardInfo, blood: e.target.value})}>
                                 {BLOOD_GROUPS.map(g => <option key={g} value={g}>{g}</option>)}
                              </select>
                           </div>
@@ -546,7 +626,7 @@ export const HealthModule: React.FC<Props> = ({ isBangla }) => {
                           <label className="block text-xs font-bold text-gray-500 uppercase ml-1 mb-1">{isBangla ? 'মোবাইল নম্বর' : 'Phone Number'}</label>
                           <div className="relative">
                              <Phone className="absolute left-3 top-3 text-gray-400" size={18} />
-                             <input required type="tel" className="w-full pl-10 pr-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-orange-500 outline-none font-medium" value={cardInfo.phone} onChange={e => setCardInfo({...cardInfo, phone: e.target.value})} placeholder="017..." />
+                             <input required type="tel" className="w-full pl-10 pr-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-orange-500 outline-none font-medium text-black" value={cardInfo.phone} onChange={e => setCardInfo({...cardInfo, phone: e.target.value})} placeholder="017..." />
                           </div>
                        </div>
 

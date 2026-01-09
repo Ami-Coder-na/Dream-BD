@@ -9,6 +9,7 @@ export type LandingSection = 'hero' | 'about' | 'features' | 'craft' | 'agri' | 
 
 export interface SiteSettings {
   websiteTitle: string;
+  showWebsiteTitle: boolean;
   websiteLogo: string;
   websiteFavicon: string;
   contactEmail: string;
@@ -44,6 +45,7 @@ const initialSections: Record<LandingSection, boolean> = {
 
 const initialSettings: SiteSettings = {
   websiteTitle: 'Digital Desh BD',
+  showWebsiteTitle: true,
   websiteLogo: 'https://zpsxpqurazjeqviwooky.supabase.co/storage/v1/object/public/images/logo.png',
   websiteFavicon: '',
   contactEmail: 'contact@digitaldeshbd.com',
@@ -59,44 +61,63 @@ const initialSettings: SiteSettings = {
 };
 
 export const SiteConfigProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
-  const [modules, setModules] = useState<Record<ToggableModule, boolean>>(initialModules);
-  const [sections, setSections] = useState<Record<LandingSection, boolean>>(initialSections);
-  const [settings, setSettings] = useState<SiteSettings>(initialSettings);
+  // Use immediate local storage check for fastest possible layout
+  const [modules, setModules] = useState<Record<ToggableModule, boolean>>(() => {
+    if (typeof window !== 'undefined') {
+      const m = localStorage.getItem('site_modules');
+      return m ? JSON.parse(m) : initialModules;
+    }
+    return initialModules;
+  });
 
-  // Sync with Supabase on Load and Listen for Real-time Updates
+  const [sections, setSections] = useState<Record<LandingSection, boolean>>(() => {
+    if (typeof window !== 'undefined') {
+      const s = localStorage.getItem('site_sections');
+      return s ? JSON.parse(s) : initialSections;
+    }
+    return initialSections;
+  });
+
+  const [settings, setSettings] = useState<SiteSettings>(() => {
+    if (typeof window !== 'undefined') {
+      const st = localStorage.getItem('site_settings');
+      return st ? JSON.parse(st) : initialSettings;
+    }
+    return initialSettings;
+  });
+
+  const fetchGlobalConfig = useCallback(async () => {
+    if (!isSupabaseConfigured) return;
+
+    try {
+      const { data, error } = await supabase
+        .from('site_config')
+        .select('*');
+
+      if (data && !error) {
+        data.forEach(item => {
+          if (item.key === 'modules') {
+            setModules(item.value);
+            localStorage.setItem('site_modules', JSON.stringify(item.value));
+          }
+          else if (item.key === 'sections') {
+            setSections(item.value);
+            localStorage.setItem('site_sections', JSON.stringify(item.value));
+          }
+          else if (item.key === 'settings') {
+            setSettings(item.value);
+            localStorage.setItem('site_settings', JSON.stringify(item.value));
+          }
+        });
+      }
+    } catch (err) {
+      console.warn("Global config background fetch failed.");
+    }
+  }, []);
+
   useEffect(() => {
-    const fetchGlobalConfig = async () => {
-      if (!isSupabaseConfigured) {
-        // Fallback to local storage if offline
-        const m = localStorage.getItem('site_modules');
-        const s = localStorage.getItem('site_sections');
-        const st = localStorage.getItem('site_settings');
-        if (m) setModules(JSON.parse(m));
-        if (s) setSections(JSON.parse(s));
-        if (st) setSettings(JSON.parse(st));
-        return;
-      }
-
-      try {
-        const { data, error } = await supabase
-          .from('site_config')
-          .select('*');
-
-        if (data && !error) {
-          data.forEach(item => {
-            if (item.key === 'modules') setModules(item.value);
-            if (item.key === 'sections') setSections(item.value);
-            if (item.key === 'settings') setSettings(item.value);
-          });
-        }
-      } catch (err) {
-        console.error("Global config fetch error:", err);
-      }
-    };
-
     fetchGlobalConfig();
 
-    // Enable Real-time Subscription
     if (isSupabaseConfigured) {
       const channel = supabase
         .channel('site_config_realtime')
@@ -107,9 +128,18 @@ export const SiteConfigProvider: React.FC<{ children: ReactNode }> = ({ children
         }, (payload: any) => {
           if (payload.new) {
             const { key, value } = payload.new;
-            if (key === 'modules') setModules(value);
-            if (key === 'sections') setSections(value);
-            if (key === 'settings') setSettings(value);
+            if (key === 'modules') {
+              setModules(value);
+              localStorage.setItem('site_modules', JSON.stringify(value));
+            }
+            else if (key === 'sections') {
+              setSections(value);
+              localStorage.setItem('site_sections', JSON.stringify(value));
+            }
+            else if (key === 'settings') {
+              setSettings(value);
+              localStorage.setItem('site_settings', JSON.stringify(value));
+            }
           }
         })
         .subscribe();
@@ -118,20 +148,25 @@ export const SiteConfigProvider: React.FC<{ children: ReactNode }> = ({ children
         supabase.removeChannel(channel);
       };
     }
-  }, []);
+  }, [fetchGlobalConfig]);
 
   const saveToCloud = async (key: string, value: any) => {
-    if (isSupabaseConfigured) {
+    // Update local storage first for instant feedback
+    localStorage.setItem(`site_${key}`, JSON.stringify(value));
+    
+    if (isSupabaseConfigured && window.navigator.onLine) {
       try {
         await supabase
           .from('site_config')
-          .upsert([{ key, value, updated_at: new Date() }], { onConflict: 'key' });
+          .upsert([{ 
+            key, 
+            value, 
+            updated_at: new Date().toISOString() 
+          }], { onConflict: 'key' });
       } catch (err) {
-        console.error("Cloud save failed:", err);
+        console.warn("Cloud sync failed.");
       }
     }
-    // Always backup to localStorage for offline resilience
-    localStorage.setItem(`site_${key}`, JSON.stringify(value));
   };
 
   const toggleModule = (module: ToggableModule) => {

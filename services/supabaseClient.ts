@@ -1,3 +1,4 @@
+
 import { createClient } from '@supabase/supabase-js';
 
 // --- GLOBAL CONFIGURATION ---
@@ -64,8 +65,17 @@ const createSafeClient = () => {
   
   try {
     return createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
-      auth: { persistSession: true, autoRefreshToken: true },
-      global: { headers: { 'x-application-name': 'shonali-desh' } }
+      auth: { 
+        persistSession: true, 
+        autoRefreshToken: true,
+        detectSessionInUrl: false // Speed up init by skipping URL session check if not using OAuth
+      },
+      global: { 
+        headers: { 'x-application-name': 'shonali-desh' }
+      },
+      db: {
+        schema: 'public'
+      }
     });
   } catch (e) {
     console.error("Supabase Init Error:", e);

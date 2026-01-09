@@ -12,8 +12,38 @@ import { Header } from './components/layout/Header';
 import { Footer } from './components/layout/Footer';
 import { ErrorBoundary } from './components/ErrorBoundary';
 import { ScrollToTop } from './components/ui/ScrollToTop';
-import { Loader2 } from 'lucide-react';
+import { Loader2, Bell, Settings as SettingsIcon, Bird } from 'lucide-react';
 import { useData } from './contexts/DataContext';
+import { useSiteConfig } from './contexts/SiteConfigContext';
+
+const LoadingFallback = () => {
+  const { settings } = useSiteConfig();
+  return (
+    <div className="min-h-screen flex flex-col items-center justify-center bg-white">
+      <div className="relative mb-8">
+        <div className="absolute inset-0 bg-brand-500/20 rounded-full shonali-loader-pulse"></div>
+        <div className="relative w-24 h-24 bg-white rounded-full flex items-center justify-center border-4 border-brand-500 shadow-xl z-10 overflow-hidden">
+          {settings.websiteLogo ? (
+            <img src={settings.websiteLogo} className="w-16 h-16 object-contain" alt="Loading" />
+          ) : (
+            <Bird className="text-brand-600 w-12 h-12" />
+          )}
+        </div>
+        <div className="absolute -bottom-2 -right-2 w-8 h-8 bg-brand-600 rounded-full flex items-center justify-center border-2 border-white shadow-lg animate-spin">
+           <div className="w-1 h-4 bg-white rounded-full"></div>
+        </div>
+      </div>
+      <h2 className="text-xl font-black text-gray-800 tracking-tighter animate-pulse uppercase">
+        সোনালী দেশ
+      </h2>
+      <div className="mt-4 flex gap-1">
+        <div className="w-2 h-2 bg-brand-500 rounded-full animate-bounce" style={{ animationDelay: '0s' }}></div>
+        <div className="w-2 h-2 bg-brand-500 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
+        <div className="w-2 h-2 bg-brand-500 rounded-full animate-bounce" style={{ animationDelay: '0.4s' }}></div>
+      </div>
+    </div>
+  );
+};
 
 // Lazy Load All Modules
 const JobModule = lazy(() => import('./components/modules/JobModule').then(m => ({ default: m.JobModule })));
@@ -40,15 +70,9 @@ const PrivacyModule = lazy(() => import('./components/modules/PrivacyModule').th
 const TermsModule = lazy(() => import('./components/modules/TermsModule').then(m => ({ default: m.TermsModule })));
 const JanteChaiModule = lazy(() => import('./components/modules/JanteChaiModule').then(m => ({ default: m.JanteChaiModule })));
 
-const LoadingFallback = () => (
-  <div className="min-h-screen flex flex-col items-center justify-center bg-white">
-    <Loader2 className="w-12 h-12 text-brand-600 animate-spin mb-4" />
-    <p className="text-brand-700 font-bold">লোড হচ্ছে...</p>
-  </div>
-);
-
 const App: React.FC = () => {
   const { logVisit } = useData();
+  const { settings } = useSiteConfig();
   const [currentView, setCurrentView] = useState('LANDING');
   const [user, setUser] = useState<User | null>(null);
   const [isBangla, setIsBangla] = useState(true);
@@ -72,7 +96,6 @@ const App: React.FC = () => {
   }, [logVisit]);
 
   const handleNavigate = useCallback((viewPath: string) => {
-    // Robustly clean path for state routing
     const cleanPath = viewPath.replace(/^\/|\/$/g, '') || 'LANDING';
     setCurrentView(cleanPath);
     setAuthView('none');
@@ -87,15 +110,56 @@ const App: React.FC = () => {
     return allModuleValues.find(m => m === currentView) || (currentView === 'LANDING' ? 'LANDING' : 'LANDING');
   }, [currentView]);
 
-  // Boolean helper to check if we are in admin mode to hide headers/footers
+  // SEO: Dynamic Page Titles
+  useEffect(() => {
+    const siteTitle = settings.websiteTitle || "Digital Desh BD";
+    let pageTitle = siteTitle;
+
+    switch(activeModule) {
+      case AppModule.AGRI: pageTitle = isBangla ? `স্মার্ট কৃষি সেবা - ${siteTitle}` : `Smart Agri Services - ${siteTitle}`; break;
+      case AppModule.HEALTH: pageTitle = isBangla ? `জরুরি স্বাস্থ্য সেবা - ${siteTitle}` : `Emergency Health Services - ${siteTitle}`; break;
+      case AppModule.JOB: pageTitle = isBangla ? `চাকরির খবর ও ক্যারিয়ার - ${siteTitle}` : `Job Portal & Career - ${siteTitle}`; break;
+      case AppModule.EDU: pageTitle = isBangla ? `অনলাইন শিক্ষা ও দক্ষতা - ${siteTitle}` : `Online Education - ${siteTitle}`; break;
+      case AppModule.AMAR_BD: pageTitle = isBangla ? `আমার বাংলাদেশ পর্যটন - ${siteTitle}` : `Beautiful Bangladesh - ${siteTitle}`; break;
+      case AppModule.JANTE_CHAI: pageTitle = isBangla ? `জানতে চাই (সাহিত্য ও ইতিহাস) - ${siteTitle}` : `Jante Chai (Literature) - ${siteTitle}`; break;
+      case AppModule.ADMIN: pageTitle = `Admin Dashboard - ${siteTitle}`; break;
+      case 'AI_CHAT': pageTitle = isBangla ? `মিঠু এআই সহকারী - ${siteTitle}` : `Mithu AI Assistant - ${siteTitle}`; break;
+      default: pageTitle = isBangla ? `${siteTitle} - বাংলাদেশের ডিজিটাল সেবা পোর্টাল` : `${siteTitle} - Digital Services of Bangladesh`;
+    }
+    
+    document.title = pageTitle;
+  }, [activeModule, isBangla, settings.websiteTitle]);
+
   const isAdminView = useMemo(() => {
     if (typeof window === 'undefined') return activeModule === AppModule.ADMIN;
     const path = window.location.pathname;
     return activeModule === AppModule.ADMIN || path.includes('admin') || path.includes('rmadmin');
   }, [activeModule]);
 
+  const isChatView = currentView === 'mithu-ai' || activeModule === 'AI_CHAT';
+
+  if (settings.maintenanceMode && !isAdminView) {
+    return (
+      <div className="min-h-screen flex flex-col items-center justify-center bg-white p-6 text-center animate-fade-in">
+        <div className="w-24 h-24 bg-red-50 rounded-full flex items-center justify-center text-red-600 mb-6 animate-pulse">
+          <SettingsIcon size={48} />
+        </div>
+        <h1 className="text-3xl font-black text-gray-900 mb-2">
+          {isBangla ? 'রক্ষণাবেক্ষণ চলছে' : 'Maintenance in Progress'}
+        </h1>
+        <p className="text-gray-500 max-md font-medium leading-relaxed">
+          {isBangla 
+            ? 'আমরা ওয়েবসাইটটি আরও উন্নত করার কাজ করছি। খুব শীঘ্রই আমরা ফিরে আসব। আমাদের সাথেই থাকুন।' 
+            : 'We are currently improving the website for a better experience. We will be back shortly.'}
+        </p>
+        <div className="mt-12 pt-8 border-t border-gray-100 w-full max-w-xs">
+          <p className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em]">{settings.websiteTitle}</p>
+        </div>
+      </div>
+    );
+  }
+
   const renderContent = () => {
-    // If accessing AI Chat and not logged in, show Login Page directly
     if (activeModule === 'AI_CHAT' && !user) {
       return <LoginPage onLoginSuccess={u => { setUser(u); setAuthView('none'); localStorage.setItem('digital_desh_bd_user_session', JSON.stringify({ user: u })); }} onNavigateToSignUp={() => setAuthView('signup')} onBack={() => handleNavigate('LANDING')} isBangla={isBangla} />;
     }
@@ -149,12 +213,11 @@ const App: React.FC = () => {
           })()}
         </Suspense>
         
-        {/* Condition to hide Mithu AI icon on Admin module and AI Chat page */}
-        {!isAdminView && activeModule !== 'AI_CHAT' && (
+        {!isAdminView && !isChatView && (
           <GeminiAssistant currentModule={activeModule as AppModule} isBangla={isBangla} user={user} onLogin={() => setAuthView('login')} />
         )}
 
-        {!isAdminView && (
+        {!isAdminView && !isChatView && (
           <Footer isBangla={isBangla} toggleLanguage={() => setIsBangla(!isBangla)} onNavigateHome={() => handleNavigate('LANDING')} onModuleSelect={m => handleNavigate(m)} />
         )}
         <ScrollToTop />
@@ -164,8 +227,16 @@ const App: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-white">
-      {/* Strict hide site header when on Admin paths to show a clean login page */}
-      {!isAdminView && (
+      {settings.announcementActive && settings.announcement && !isAdminView && (
+        <div className="bg-amber-400 text-black py-2.5 px-4 text-center font-black text-xs md:text-sm relative z-[60] border-b border-amber-500 shadow-sm animate-fade-in">
+           <div className="max-w-7xl mx-auto flex items-center justify-center gap-2">
+              <Bell size={16} className="shrink-0 animate-bounce" />
+              <span>{settings.announcement}</span>
+           </div>
+        </div>
+      )}
+
+      {!isAdminView && !isChatView && (
         <Header 
           user={user} 
           onLogin={() => setAuthView('login')} 
