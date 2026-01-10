@@ -98,7 +98,7 @@ export const Header: React.FC<HeaderProps> = ({
               {isBangla ? 'ব্লগ' : 'Blog'}
             </button>
 
-            <button onClick={() => handleModuleClick(AppModule.JANTE_CHAI)} className="px-5 py-2 rounded-full bg-indigo-50 text-indigo-700 font-black text-sm hover:bg-indigo-100 transition-all flex items-center gap-2 shadow-sm">
+            <button onClick={() => handleModuleClick(AppModule.JANTE_CHAI)} className="px-5 py-2 rounded-full bg-indigo-50 text-indigo-700 font-black text-sm hover:bg-indigo-100 transition-all flex items-center gap-2 shadow-sm mr-2">
               <HelpCircle size={16} /> {isBangla ? 'জানতে চাই' : 'Learn'}
             </button>
           </div>

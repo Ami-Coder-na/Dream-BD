@@ -93,7 +93,7 @@ export const JobModule: React.FC<Props> = ({ isBangla, user, onLogin }) => {
     skills: ['']
   });
 
-  const [postSubmitted, setPostSubmitted] = useState(false);
+  const [postSubmitted, setReportSubmitted] = useState(false);
   const [newJobData, setNewJobData] = useState({
       title: '',
       company: '',
@@ -148,7 +148,7 @@ export const JobModule: React.FC<Props> = ({ isBangla, user, onLogin }) => {
   const handlePostClick = () => {
       if (!user) { onLogin?.(); return; }
       setShowPostModal(true);
-      setPostSubmitted(false);
+      setReportSubmitted(false);
   };
 
   const handleCvGeneratorClick = () => {
@@ -199,7 +199,7 @@ export const JobModule: React.FC<Props> = ({ isBangla, user, onLogin }) => {
         postedby: user?.name || 'Guest', 
     };
     addRequest(request);
-    setPostSubmitted(true);
+    setReportSubmitted(true);
     setNewJobData({ title: '', company: '', description: '', location: '', salary: '', type: 'Full Time', deadline: '', category: 'Private', level: 'Entry' });
   };
 
@@ -293,7 +293,7 @@ export const JobModule: React.FC<Props> = ({ isBangla, user, onLogin }) => {
           <main className="lg:col-span-3 space-y-6">
             <div className="bg-white p-2 rounded-2xl shadow-sm border border-gray-200 flex items-center focus-within:ring-2 focus-within:ring-brand-500/20 transition-all">
               <Search className="text-gray-400 ml-4" size={20} />
-              <input type="text" value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} placeholder={isBangla ? 'পদের নাম, কোম্পানি বা স্থান খুঁজুন...' : 'Search jobs...'} className="w-full px-4 py-3 bg-transparent border-none outline-none text-gray-800 placeholder-gray-400" />
+              <input type="text" value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} placeholder={isBangla ? 'পদের নাম, কোম্পানি বা স্থান খুঁজুন...' : 'Search jobs...'} className="w-full px-4 py-3 bg-transparent border-none outline-none text-black font-bold placeholder-gray-400" />
               <Button className="rounded-xl px-6 m-1 hidden sm:inline-flex">{isBangla ? 'খুঁজুন' : 'Search'}</Button>
             </div>
             <div className="space-y-4">
@@ -356,7 +356,7 @@ export const JobModule: React.FC<Props> = ({ isBangla, user, onLogin }) => {
                   <div className="bg-gray-50 p-3 rounded-xl border border-gray-100 text-center"><p className="text-[10px] font-bold text-gray-400 uppercase mb-1">LOCATION</p><p className="font-bold text-gray-800 text-sm">{selectedJob.location}</p></div>
                   <div className="bg-red-50 p-3 rounded-xl border border-red-100 text-center"><p className="text-[10px] font-bold text-red-400 uppercase mb-1">DEADLINE</p><p className="font-bold text-red-600 text-sm">{selectedJob.deadline}</p></div>
                </div>
-               <div className="prose prose-sm max-w-none text-gray-700 leading-relaxed font-medium bg-gray-50/50 p-6 rounded-2xl border border-gray-100 whitespace-pre-wrap">{selectedJob.description}</div>
+               <div className="prose prose-sm max-w-none text-black leading-relaxed font-medium bg-gray-50/50 p-6 rounded-2xl border border-gray-100 whitespace-pre-wrap">{selectedJob.description}</div>
             </div>
             <div className="p-6 border-t border-gray-100 bg-gray-50 flex gap-4 shrink-0">
                <button onClick={(e) => handleCopyJobLink(e, selectedJob.id)} className={`flex-1 flex items-center justify-center gap-2 font-black py-4 rounded-2xl transition-all ${jobCopyStatus === selectedJob.id ? 'bg-green-600 text-white' : 'bg-white border-2 border-gray-200 text-gray-700 hover:bg-gray-100'}`}>
@@ -392,26 +392,64 @@ export const JobModule: React.FC<Props> = ({ isBangla, user, onLogin }) => {
                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                           <div>
                             <label className="block text-[10px] font-black text-gray-400 uppercase mb-1.5 ml-1">{isBangla ? 'পদের নাম' : 'Job Title'} *</label>
-                            <input required className="w-full p-4 bg-gray-50 border border-gray-200 rounded-xl font-bold outline-none focus:ring-2 focus:ring-brand-500/20" value={newJobData.title} onChange={e => setNewJobData({...newJobData, title: e.target.value})} />
+                            <input required className="w-full p-4 bg-gray-50 border border-gray-200 rounded-xl font-bold outline-none focus:ring-2 focus:ring-brand-500/20 text-black" value={newJobData.title} onChange={e => setNewJobData({...newJobData, title: e.target.value})} placeholder={isBangla ? 'উদা: সিনিয়র সফটওয়্যার ইঞ্জিনিয়ার' : 'e.g. Senior Software Engineer'} />
                           </div>
                           <div>
                             <label className="block text-[10px] font-black text-gray-400 uppercase mb-1.5 ml-1">{isBangla ? 'প্রতিষ্ঠানের নাম' : 'Company Name'} *</label>
-                            <input required className="w-full p-4 bg-gray-50 border border-gray-200 rounded-xl font-bold outline-none focus:ring-2 focus:ring-brand-500/20" value={newJobData.company} onChange={e => setNewJobData({...newJobData, company: e.target.value})} />
+                            <input required className="w-full p-4 bg-gray-50 border border-gray-200 rounded-xl font-bold outline-none focus:ring-2 focus:ring-brand-500/20 text-black" value={newJobData.company} onChange={e => setNewJobData({...newJobData, company: e.target.value})} placeholder={isBangla ? 'উদা: বাংলাদেশ ব্যাংক' : 'e.g. Bangladesh Bank'} />
                           </div>
                        </div>
+                       
+                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                          <div>
+                            <label className="block text-[10px] font-black text-gray-400 uppercase mb-1.5 ml-1">{isBangla ? 'ক্যাটাগরি' : 'Category'} *</label>
+                            <select className="w-full p-4 bg-gray-50 border border-gray-200 rounded-xl font-bold outline-none focus:ring-2 focus:ring-brand-500/20 appearance-none text-black" value={newJobData.category} onChange={e => setNewJobData({...newJobData, category: e.target.value})}>
+                              <option className="text-black" value="Government">{isBangla ? 'সরকারি' : 'Government'}</option>
+                              <option className="text-black" value="Private">{isBangla ? 'বেসরকারি কোম্পানি' : 'Private Company'}</option>
+                              <option className="text-black" value="NGO">{isBangla ? 'এনজিও' : 'NGO'}</option>
+                              <option className="text-black" value="Autonomous">{isBangla ? 'স্বায়ত্বশাসিত' : 'Autonomous Body'}</option>
+                              <option className="text-black" value="Public University">{isBangla ? 'পাবলিক ভার্সিটি' : 'Public University'}</option>
+                            </select>
+                          </div>
+                          <div>
+                            <label className="block text-[10px] font-black text-gray-400 uppercase mb-1.5 ml-1">{isBangla ? 'অভিজ্ঞতার লেভেল' : 'Level'} *</label>
+                            <select className="w-full p-4 bg-gray-50 border border-gray-200 rounded-xl font-bold outline-none focus:ring-2 focus:ring-brand-500/20 appearance-none text-black" value={newJobData.level} onChange={e => setNewJobData({...newJobData, level: e.target.value})}>
+                              <option className="text-black" value="Entry">{isBangla ? 'এন্ট্রি লেভেল' : 'Entry Level'}</option>
+                              <option className="text-black" value="Mid">{isBangla ? 'মিড লেভেল' : 'Mid Level'}</option>
+                              <option className="text-black" value="Senior">{isBangla ? 'সিনিয়র / এক্সিকিউটিভ' : 'Senior / Executive'}</option>
+                            </select>
+                          </div>
+                       </div>
+
+                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                          <div>
+                            <label className="block text-[10px] font-black text-gray-400 uppercase mb-1.5 ml-1">{isBangla ? 'কাজের ধরন' : 'Job Type'} *</label>
+                            <select className="w-full p-4 bg-gray-50 border border-gray-200 rounded-xl font-bold outline-none focus:ring-2 focus:ring-brand-500/20 appearance-none text-black" value={newJobData.type} onChange={e => setNewJobData({...newJobData, type: e.target.value})}>
+                              <option className="text-black" value="Full Time">{isBangla ? 'ফুল টাইম' : 'Full Time'}</option>
+                              <option className="text-black" value="Part Time">{isBangla ? 'পার্ট টাইম' : 'Part Time'}</option>
+                              <option className="text-black" value="Contract">{isBangla ? 'চুক্তিভিত্তিক' : 'Contract'}</option>
+                              <option className="text-black" value="Remote">{isBangla ? 'রিমোট / বাসা থেকে' : 'Remote'}</option>
+                            </select>
+                          </div>
+                          <div>
+                            <label className="block text-[10px] font-black text-gray-400 uppercase mb-1.5 ml-1">{isBangla ? 'অবস্থান (Location)' : 'Location'} *</label>
+                            <input required className="w-full p-4 bg-gray-50 border border-gray-200 rounded-xl font-bold outline-none focus:ring-2 focus:ring-brand-500/20 text-black" value={newJobData.location} onChange={e => setNewJobData({...newJobData, location: e.target.value})} placeholder={isBangla ? 'উদা: ঢাকা' : 'e.g. Dhaka'} />
+                          </div>
+                       </div>
+
                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                           <div>
                             <label className="block text-[10px] font-black text-gray-400 uppercase mb-1.5 ml-1">{isBangla ? 'বেতন' : 'Salary'}</label>
-                            <input className="w-full p-4 bg-gray-50 border border-gray-200 rounded-xl font-bold" placeholder="৳ 20,000" value={newJobData.salary} onChange={e => setNewJobData({...newJobData, salary: e.target.value})} />
+                            <input className="w-full p-4 bg-gray-50 border border-gray-200 rounded-xl font-bold outline-none focus:ring-2 focus:ring-brand-500/20 text-black" placeholder="৳ 20,000" value={newJobData.salary} onChange={e => setNewJobData({...newJobData, salary: e.target.value})} />
                           </div>
                           <div>
-                            <label className="block text-[10px] font-black text-gray-400 uppercase mb-1.5 ml-1">{isBangla ? 'ডেডলাইন' : 'Deadline'} *</label>
-                            <input required type="date" className="w-full p-4 bg-gray-50 border border-gray-200 rounded-xl font-bold" value={newJobData.deadline} onChange={e => setNewJobData({...newJobData, deadline: e.target.value})} />
+                            <label className="block text-[10px] font-black text-gray-400 uppercase mb-1.5 ml-1">{isBangla ? 'আবেদনের শেষ তারিখ' : 'Deadline'} *</label>
+                            <input required type="date" className="w-full p-4 bg-gray-50 border border-gray-200 rounded-xl font-bold outline-none focus:ring-2 focus:ring-brand-500/20 text-black" value={newJobData.deadline} onChange={e => setNewJobData({...newJobData, deadline: e.target.value})} />
                           </div>
                        </div>
                        <div>
-                          <label className="block text-[10px] font-black text-gray-400 uppercase mb-1.5 ml-1">{isBangla ? 'বিবরণ' : 'Description'} *</label>
-                          <textarea required rows={5} className="w-full p-4 bg-gray-50 border border-gray-200 rounded-xl font-medium leading-relaxed resize-none" value={newJobData.description} onChange={e => setNewJobData({...newJobData, description: e.target.value})}></textarea>
+                          <label className="block text-[10px] font-black text-gray-400 uppercase mb-1.5 ml-1">{isBangla ? 'বিবরণ ও প্রয়োজনীয়তা' : 'Description & Requirements'} *</label>
+                          <textarea required rows={5} className="w-full p-4 bg-gray-50 border border-gray-200 rounded-xl font-medium leading-relaxed resize-none outline-none focus:ring-2 focus:ring-brand-500/20 text-black" value={newJobData.description} onChange={e => setNewJobData({...newJobData, description: e.target.value})} placeholder={isBangla ? 'শিক্ষাগত যোগ্যতা, অভিজ্ঞতা এবং অন্যান্য শর্তাবলী লিখুন...' : 'List educational requirements, experience, and key responsibilities...'}></textarea>
                        </div>
                        <Button type="submit" className="w-full bg-brand-600 hover:bg-brand-700 text-white font-black py-5 rounded-2xl shadow-xl text-lg flex items-center justify-center gap-3 mt-4">
                           <Send size={24} /> {isBangla ? 'রিকোয়েস্ট পাঠান' : 'Submit Request'}
@@ -445,10 +483,10 @@ export const JobModule: React.FC<Props> = ({ isBangla, user, onLogin }) => {
                            <h3 className="mt-4 font-black text-gray-900">{isBangla ? 'ব্যক্তিগত তথ্য' : 'Personal Info'}</h3>
                         </div>
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                           <input className="w-full p-4 bg-gray-50 border border-gray-200 rounded-xl font-bold" value={cvData.name} onChange={e => setCvData({...cvData, name: e.target.value})} placeholder="Full Name" />
-                           <input className="w-full p-4 bg-gray-50 border border-gray-200 rounded-xl font-bold" value={cvData.title} onChange={e => setCvData({...cvData, title: e.target.value})} placeholder="Professional Title" />
+                           <input className="w-full p-4 bg-gray-50 border border-gray-200 rounded-xl font-bold text-black" value={cvData.name} onChange={e => setCvData({...cvData, name: e.target.value})} placeholder="Full Name" />
+                           <input className="w-full p-4 bg-gray-50 border border-gray-200 rounded-xl font-bold text-black" value={cvData.title} onChange={e => setCvData({...cvData, title: e.target.value})} placeholder="Professional Title" />
                         </div>
-                        <textarea rows={4} className="w-full p-4 bg-gray-50 border border-gray-200 rounded-xl font-medium" value={cvData.summary} onChange={e => setCvData({...cvData, summary: e.target.value})} placeholder="Short Summary"></textarea>
+                        <textarea rows={4} className="w-full p-4 bg-gray-50 border border-gray-200 rounded-xl font-medium text-black" value={cvData.summary} onChange={e => setCvData({...cvData, summary: e.target.value})} placeholder="Short Summary"></textarea>
                      </div>
                    )}
                    {cvStep === 2 && (
@@ -458,8 +496,8 @@ export const JobModule: React.FC<Props> = ({ isBangla, user, onLogin }) => {
                            <div className="space-y-4">
                               {cvData.experience.map((exp, i) => (
                                 <div key={i} className="p-4 bg-gray-50 rounded-2xl border border-gray-200 space-y-3">
-                                   <input className="w-full bg-white p-2 rounded-lg border border-gray-100 font-bold text-sm" placeholder="Company" value={exp.company} onChange={e => { const n = [...cvData.experience]; n[i].company = e.target.value; setCvData({...cvData, experience: n}); }} />
-                                   <input className="w-full bg-white p-2 rounded-lg border border-gray-100 text-sm font-bold" placeholder="Role" value={exp.role} onChange={e => { const n = [...cvData.experience]; n[i].role = e.target.value; setCvData({...cvData, experience: n}); }} />
+                                   <input className="w-full bg-white p-2 rounded-lg border border-gray-100 font-bold text-sm text-black" placeholder="Company" value={exp.company} onChange={e => { const n = [...cvData.experience]; n[i].company = e.target.value; setCvData({...cvData, experience: n}); }} />
+                                   <input className="w-full bg-white p-2 rounded-lg border border-gray-100 text-sm font-bold text-black" placeholder="Role" value={exp.role} onChange={e => { const n = [...cvData.experience]; n[i].role = e.target.value; setCvData({...cvData, experience: n}); }} />
                                 </div>
                               ))}
                            </div>
@@ -469,8 +507,8 @@ export const JobModule: React.FC<Props> = ({ isBangla, user, onLogin }) => {
                            <div className="space-y-4">
                               {cvData.education.map((edu, i) => (
                                 <div key={i} className="p-4 bg-gray-50 rounded-2xl border border-gray-200 space-y-3">
-                                   <input className="w-full bg-white p-2 rounded-lg border border-gray-100 font-bold text-sm" placeholder="School/Uni" value={edu.school} onChange={e => { const n = [...cvData.education]; n[i].school = e.target.value; setCvData({...cvData, education: n}); }} />
-                                   <input className="w-full bg-white p-2 rounded-lg border border-gray-100 text-sm font-bold" placeholder="Degree" value={edu.degree} onChange={e => { const n = [...cvData.education]; n[i].degree = e.target.value; setCvData({...cvData, education: n}); }} />
+                                   <input className="w-full bg-white p-2 rounded-lg border border-gray-100 font-bold text-sm text-black" placeholder="School/Uni" value={edu.school} onChange={e => { const n = [...cvData.education]; n[i].school = e.target.value; setCvData({...cvData, education: n}); }} />
+                                   <input className="w-full bg-white p-2 rounded-lg border border-gray-100 text-sm font-bold text-black" placeholder="Degree" value={edu.degree} onChange={e => { const n = [...cvData.education]; n[i].degree = e.target.value; setCvData({...cvData, education: n}); }} />
                                 </div>
                               ))}
                            </div>
@@ -506,7 +544,7 @@ export const JobModule: React.FC<Props> = ({ isBangla, user, onLogin }) => {
                 </div>
              </div>
              <div className="p-6 border-t border-gray-100 bg-gray-50 flex justify-between items-center shrink-0">
-                <Button variant="outline" disabled={cvStep === 1} onClick={() => setCvStep(prev => prev - 1)} className="px-10 rounded-xl font-black text-xs uppercase">Back</Button>
+                <Button variant="outline" disabled={cvStep === 1} onClick={() => setCvStep(prev => prev - 1)} className="px-10 rounded-xl font-black text-xs uppercase text-black">Back</Button>
                 {cvStep < 3 ? (
                   <Button onClick={() => setCvStep(prev => prev + 1)} className="bg-brand-600 text-white px-10 rounded-xl font-black text-xs uppercase shadow-lg shadow-brand-200">Next Step</Button>
                 ) : (
