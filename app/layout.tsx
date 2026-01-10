@@ -51,6 +51,15 @@ export default function RootLayout({
         <link rel="icon" href="/favicon.ico" />
         <link href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@300;400;500;600;700&family=Noto+Sans+Bengali:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
         
+        {/* Environment Shim for Mobile */}
+        <script dangerouslySetInnerHTML={{
+          __html: `
+            window.process = window.process || {};
+            window.process.env = window.process.env || { NODE_ENV: 'production' };
+            window.global = window.global || window;
+          `
+        }} />
+
         {/* Organization Schema for Google Search */}
         <script
           type="application/ld+json"
