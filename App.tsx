@@ -79,10 +79,19 @@ const App: React.FC = () => {
   const [authView, setAuthView] = useState<'none' | 'login' | 'signup'>('none');
 
   useEffect(() => {
+    // DEV TEST: Defensive parsing of session
     try {
       const saved = localStorage.getItem('digital_desh_bd_user_session');
-      if (saved && saved !== "undefined") setUser(JSON.parse(saved).user);
-    } catch (e) { console.error(e); }
+      if (saved && saved !== "undefined" && saved !== "null") {
+        const parsed = JSON.parse(saved);
+        if (parsed && typeof parsed === 'object' && parsed.user) {
+          setUser(parsed.user);
+        }
+      }
+    } catch (e) { 
+      console.warn("Failed to load user session, clearing corrupt data.");
+      localStorage.removeItem('digital_desh_bd_user_session');
+    }
     
     // URL Detection for admin
     if (typeof window !== 'undefined') {

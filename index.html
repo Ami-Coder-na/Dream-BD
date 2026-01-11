@@ -12,24 +12,24 @@
         window.process = { env: { NODE_ENV: 'production', API_KEY: '' } };
         window.global = window;
         
-        // DEV TEST FIX: Clear bad 'undefined' entries from storage
+        // DEV TEST FIX: Aggressive cleanup of bad data
         try {
-          for (var i = 0; i < localStorage.length; i++) {
-            var key = localStorage.key(i);
-            var value = localStorage.getItem(key);
-            if (value === "undefined" || value === "null" || value === "[object Object]") {
+          Object.keys(localStorage).forEach(function(key) {
+            var val = localStorage.getItem(key);
+            if (val === "undefined" || val === "null" || val === "[object Object]" || val === "" || val === "{}") {
               localStorage.removeItem(key);
             }
-          }
+          });
         } catch(e) {}
 
         window.onerror = function(msg, url, line, col, error) {
           console.error("App Runtime Error:", msg);
           var root = document.getElementById('root');
           if (root && root.innerHTML === '') {
-            root.innerHTML = '<div style="padding:20px; font-family:sans-serif; text-align:center; color:#16a34a;">' +
-              '<h3>সিস্টেম রিলোড হচ্ছে...</h3>' +
-              '<button onclick="localStorage.clear(); window.location.reload();" style="margin-top:10px; padding:10px 20px; background:#16a34a; color:white; border:none; border-radius:8px;">ক্লিয়ার করে স্টার্ট করুন</button>' +
+            root.innerHTML = '<div style="padding:40px; font-family:sans-serif; text-align:center; color:#16a34a;">' +
+              '<h3 style="margin-bottom:10px;">সিস্টেম রিলোড হচ্ছে...</h3>' +
+              '<p style="color:#666; font-size:14px; margin-bottom:20px;">ব্রাউজারে ত্রুটিপূর্ণ ডাটা পাওয়া গেছে।</p>' +
+              '<button onclick="localStorage.clear(); window.location.reload();" style="padding:12px 24px; background:#16a34a; color:white; border:none; border-radius:12px; font-weight:bold; cursor:pointer; box-shadow:0 4px 12px rgba(22,163,74,0.2);">ডাটা ক্লিয়ার করে অ্যাপ চালু করুন</button>' +
               '</div>';
           }
           return false;

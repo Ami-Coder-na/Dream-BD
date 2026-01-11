@@ -65,7 +65,10 @@ export const SiteConfigProvider: React.FC<{ children: ReactNode }> = ({ children
     if (typeof window !== 'undefined') {
       try {
         const m = localStorage.getItem('site_modules');
-        if (m && m !== "undefined" && m !== "null") return JSON.parse(m);
+        if (m && m !== "undefined" && m !== "null") {
+          const parsed = JSON.parse(m);
+          if (parsed && typeof parsed === 'object') return parsed;
+        }
       } catch (e) {}
     }
     return initialModules;
@@ -75,7 +78,10 @@ export const SiteConfigProvider: React.FC<{ children: ReactNode }> = ({ children
     if (typeof window !== 'undefined') {
       try {
         const s = localStorage.getItem('site_sections');
-        if (s && s !== "undefined" && s !== "null") return JSON.parse(s);
+        if (s && s !== "undefined" && s !== "null") {
+          const parsed = JSON.parse(s);
+          if (parsed && typeof parsed === 'object') return parsed;
+        }
       } catch (e) {}
     }
     return initialSections;
@@ -86,7 +92,10 @@ export const SiteConfigProvider: React.FC<{ children: ReactNode }> = ({ children
       try {
         const st = localStorage.getItem('site_settings');
         if (st && st !== "undefined" && st !== "null") {
-          return { ...initialSettings, ...JSON.parse(st) };
+          const parsed = JSON.parse(st);
+          if (parsed && typeof parsed === 'object') {
+            return { ...initialSettings, ...parsed };
+          }
         }
       } catch (e) {}
     }
