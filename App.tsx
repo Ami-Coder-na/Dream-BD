@@ -18,6 +18,9 @@ import { useSiteConfig } from './contexts/SiteConfigContext';
 
 const LoadingFallback = () => {
   const { settings } = useSiteConfig();
+  // Error #31 Fix: Explicitly ensure title is a string
+  const siteTitle = typeof settings?.websiteTitle === 'string' ? settings.websiteTitle : 'সোনালী দেশ';
+  
   return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-white">
       <div className="relative mb-8">
@@ -34,7 +37,7 @@ const LoadingFallback = () => {
         </div>
       </div>
       <h2 className="text-xl font-black text-gray-800 tracking-tighter animate-pulse uppercase">
-        {settings?.websiteTitle || 'সোনালী দেশ'}
+        {siteTitle}
       </h2>
       <div className="mt-4 flex gap-1">
         <div className="w-2 h-2 bg-brand-500 rounded-full animate-bounce" style={{ animationDelay: '0s' }}></div>
@@ -121,7 +124,7 @@ const App: React.FC = () => {
 
   // SEO: Dynamic Page Titles
   useEffect(() => {
-    const siteTitle = settings?.websiteTitle || "Digital Desh BD";
+    const siteTitle = (typeof settings?.websiteTitle === 'string') ? settings.websiteTitle : "Digital Desh BD";
     let pageTitle = siteTitle;
 
     switch(activeModule) {
@@ -148,6 +151,7 @@ const App: React.FC = () => {
   const isChatView = currentView === 'mithu-ai' || activeModule === 'AI_CHAT';
 
   if (settings?.maintenanceMode && !isAdminView) {
+    const maintenanceTitle = typeof settings?.websiteTitle === 'string' ? settings.websiteTitle : 'সোনালী দেশ';
     return (
       <div className="min-h-screen flex flex-col items-center justify-center bg-white p-6 text-center animate-fade-in">
         <div className="w-24 h-24 bg-red-50 rounded-full flex items-center justify-center text-red-600 mb-6 animate-pulse">
@@ -162,7 +166,7 @@ const App: React.FC = () => {
             : 'We are currently improving the website for a better experience. We will be back shortly.'}
         </p>
         <div className="mt-12 pt-8 border-t border-gray-100 w-full max-w-xs">
-          <p className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em]">{settings?.websiteTitle}</p>
+          <p className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em]">{maintenanceTitle}</p>
         </div>
       </div>
     );
@@ -236,7 +240,7 @@ const App: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-white">
-      {settings?.announcementActive && settings?.announcement && !isAdminView && (
+      {settings?.announcementActive && (typeof settings.announcement === 'string') && !isAdminView && (
         <div className="bg-amber-400 text-black py-2.5 px-4 text-center font-black text-xs md:text-sm relative z-[60] border-b border-amber-500 shadow-sm animate-fade-in">
            <div className="max-w-7xl mx-auto flex items-center justify-center gap-2">
               <Bell size={16} className="shrink-0 animate-bounce" />

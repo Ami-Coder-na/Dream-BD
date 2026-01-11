@@ -1,4 +1,3 @@
-
 "use client";
 import React, { createContext, useState, useContext, useEffect, ReactNode, useCallback } from 'react';
 import { supabase, isSupabaseConfigured } from '../services/supabaseClient';
@@ -129,12 +128,13 @@ const getSyncCache = (key: string, defaultValue: any) => {
   if (typeof window === 'undefined') return defaultValue;
   try {
     const cached = localStorage.getItem(`db_cache_${key}`);
-    // Fix: Ensure we don't parse "undefined" string literal
-    if (cached && cached !== "undefined" && cached !== "null") {
-      return JSON.parse(cached);
+    if (cached && cached !== "undefined" && cached !== "null" && cached !== "[object Object]") {
+      const parsed = JSON.parse(cached);
+      return parsed !== null ? parsed : defaultValue;
     }
   } catch (e) {
     console.warn(`Cache parsing failed for ${key}`);
+    localStorage.removeItem(`db_cache_${key}`);
   }
   return defaultValue;
 };
@@ -169,19 +169,19 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   
   const [totalVisitors, setTotalVisitors] = useState(() => {
     const v = localStorage.getItem('stat_total_visitors');
-    return v && v !== "undefined" ? parseInt(v) : 1;
+    return (v && v !== "undefined" && v !== "null") ? parseInt(v) : 1;
   });
   const [todayVisitors, setTodayVisitors] = useState(() => {
     const v = localStorage.getItem('stat_today_visitors');
-    return v && v !== "undefined" ? parseInt(v) : 1;
+    return (v && v !== "undefined" && v !== "null") ? parseInt(v) : 1;
   });
   const [totalCvGenerated, setTotalCvGenerated] = useState(() => {
     const v = localStorage.getItem('stat_total_cvs');
-    return v && v !== "undefined" ? parseInt(v) : 0;
+    return (v && v !== "undefined" && v !== "null") ? parseInt(v) : 0;
   });
   const [todayCvGenerated, setTodayCvGenerated] = useState(() => {
     const v = localStorage.getItem('stat_today_cvs');
-    return v && v !== "undefined" ? parseInt(v) : 0;
+    return (v && v !== "undefined" && v !== "null") ? parseInt(v) : 0;
   });
 
   const [grievances, setGrievances] = useState<any[]>([]);
@@ -192,13 +192,14 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
   const saveCache = (key: string, data: any) => {
     try {
-      if (data === undefined) return;
+      if (data === undefined || data === null) return;
       localStorage.setItem(`db_cache_${key}`, JSON.stringify(data));
     } catch (e) { console.warn(`Cache save failed for ${key}`); }
   };
 
   const fetchInitialData = useCallback(async () => {
     if (!isSupabaseConfigured) return;
+    setIsLoading(true);
 
     const fetchTable = async (table: string, setter: (data: any[]) => void, orderCol: string = 'created_at') => {
       try {
@@ -228,29 +229,33 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       } catch (e) { console.warn("Failed to fetch site content config:", e); }
     };
 
-    await Promise.allSettled([
-      fetchTable('users', setUsers),
-      fetchTable('jobs', setJobs),
-      fetchTable('blogs', setBlogs),
-      fetchTable('wholesale_ads', setWholesaleAds),
-      fetchTable('requests', setRequests),
-      fetchTable('blog_requests', setBlogRequests),
-      fetchTable('wholesale_requests', setWholesaleRequests),
-      fetchTable('market_prices', setMarketPrices),
-      fetchTable('retail_products', setRetailProducts),
-      fetchTable('donors', setDonors),
-      fetchTable('contact_messages', setMessages),
-      fetchTable('faqs', setFaqs),
-      fetchTable('districts', setDistricts, 'nameen'),
-      fetchTable('diseases', setDiseases),
-      fetchTable('poets', setPoets),
-      fetchTable('craft_products', setCraftProducts),
-      fetchTable('exchange_rates', setExchangeRates),
-      fetchTable('vocational_courses', setVocationalCourses),
-      fetchTable('lawyers', setLawyers),
-      fetchTable('pregnancy_info', setPregnancyInfo, 'week'),
-      fetchSiteContent()
-    ]);
+    try {
+      await Promise.allSettled([
+        fetchTable('users', setUsers),
+        fetchTable('jobs', setJobs),
+        fetchTable('blogs', setBlogs),
+        fetchTable('wholesale_ads', setWholesaleAds),
+        fetchTable('requests', setRequests),
+        fetchTable('blog_requests', setBlogRequests),
+        fetchTable('wholesale_requests', setWholesaleRequests),
+        fetchTable('market_prices', setMarketPrices),
+        fetchTable('retail_products', setRetailProducts),
+        fetchTable('donors', setDonors),
+        fetchTable('contact_messages', setMessages),
+        fetchTable('faqs', setFaqs),
+        fetchTable('districts', setDistricts, 'nameen'),
+        fetchTable('diseases', setDiseases),
+        fetchTable('poets', setPoets),
+        fetchTable('craft_products', setCraftProducts),
+        fetchTable('exchange_rates', setExchangeRates),
+        fetchTable('vocational_courses', setVocationalCourses),
+        fetchTable('lawyers', setLawyers),
+        fetchTable('pregnancy_info', setPregnancyInfo, 'week'),
+        fetchSiteContent()
+      ]);
+    } finally {
+      setIsLoading(false);
+    }
   }, []);
 
   useEffect(() => {
@@ -295,8 +300,8 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     const vTotal = localStorage.getItem('stat_total_visitors');
     const vToday = localStorage.getItem('stat_today_visitors');
     
-    const currentTotal = vTotal && vTotal !== "undefined" ? parseInt(vTotal) : 0;
-    const currentToday = lastLoggedDate === today && vToday && vToday !== "undefined" ? parseInt(vToday) : 0;
+    const currentTotal = (vTotal && vTotal !== "undefined" && vTotal !== "null") ? parseInt(vTotal) : 0;
+    const currentToday = (lastLoggedDate === today && vToday && vToday !== "undefined" && vToday !== "null") ? parseInt(vToday) : 0;
 
     const nextTotal = currentTotal + 1;
     const nextToday = currentToday + 1;

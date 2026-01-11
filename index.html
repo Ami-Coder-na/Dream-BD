@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="bn">
   <head>
@@ -34,6 +33,18 @@
           }
           return false;
         };
+
+        // Failsafe for stuck loading screen
+        setTimeout(function() {
+          var root = document.getElementById('root');
+          if (root && root.innerHTML === '') {
+             console.warn("App taking too long to load, showing manual recovery.");
+             var recovery = document.createElement('div');
+             recovery.style.cssText = "position:fixed; bottom:20px; left:50%; transform:translateX(-50%); z-index:9999;";
+             recovery.innerHTML = '<button onclick="window.location.reload(true)" style="padding:10px 20px; background:#f97316; color:white; border:none; border-radius:30px; font-weight:bold; cursor:pointer; font-size:12px; opacity:0.8;">পুনরায় লোড করুন (Force Reload)</button>';
+             document.body.appendChild(recovery);
+          }
+        }, 8000);
       })();
     </script>
 
@@ -48,9 +59,9 @@
         "react-dom": "https://esm.sh/react-dom@18.3.1",
         "react-dom/": "https://esm.sh/react-dom@18.3.1/",
         "react-dom/client": "https://esm.sh/react-dom@18.3.1/client",
-        "lucide-react": "https://esm.sh/lucide-react@0.344.0",
+        "lucide-react": "https://esm.sh/lucide-react@0.469.0?external=react,react-dom",
         "@google/genai": "https://esm.sh/@google/genai@1.33.0",
-        "@supabase/supabase-js": "https://esm.sh/@supabase/supabase-js@2",
+        "@supabase/supabase-js": "https://esm.sh/@supabase/supabase-js@2?external=react,react-dom",
         "vite": "https://esm.sh/vite@^7.3.1",
         "@vitejs/plugin-react": "https://esm.sh/@vitejs/plugin-react@^5.1.2",
         "next/": "https://esm.sh/next@^16.1.1/",

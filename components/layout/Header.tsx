@@ -44,6 +44,9 @@ export const Header: React.FC<HeaderProps> = ({
     { id: AppModule.VOCATIONAL, title: isBangla ? 'কারিগরি' : 'Vocational' },
   ].filter(s => modules[s.id]);
 
+  // Error #31 Fix: Defensive string check
+  const siteTitleString = typeof settings?.websiteTitle === 'string' ? settings.websiteTitle : 'Digital Desh BD';
+
   return (
     <nav className="sticky top-0 z-50 bg-white/95 backdrop-blur-md border-b border-gray-100 h-20">
       <div className="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8 h-full">
@@ -60,7 +63,7 @@ export const Header: React.FC<HeaderProps> = ({
             </div>
             {settings?.showWebsiteTitle && (
               <span className="text-xl font-black text-gray-800 hidden xl:block uppercase tracking-tighter animate-fade-in">
-                {settings.websiteTitle || 'Digital DeshBD'}
+                {siteTitleString}
               </span>
             )}
           </div>
@@ -151,7 +154,7 @@ export const Header: React.FC<HeaderProps> = ({
                </div>
                {settings?.showWebsiteTitle && (
                  <span className="font-black text-gray-800 text-lg uppercase tracking-tighter">
-                   {settings.websiteTitle}
+                   {siteTitleString}
                  </span>
                )}
             </div>
