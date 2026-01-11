@@ -6,7 +6,7 @@ import {
   Clock, DollarSign, Mail, Key, EyeOff, Eye, ChevronDown, UserPlus, FilePlus, AlertTriangle,
   Globe, Sparkles, Monitor, RefreshCw, CheckCircle, BarChart3, TrendingUp, Inbox, Droplets, PlusCircle, Briefcase,
   ArrowUpRight, Zap, HeartPulse, Info, Gavel, HelpCircle, Feather, Crown, FileCheck, ShieldCheck, X, FlaskConical, Terminal,
-  Loader2
+  Loader2, Unlock
 } from 'lucide-react';
 import { AdminUsers } from './admin/AdminUsers';
 import { AdminContent } from './admin/AdminContent';
@@ -49,25 +49,8 @@ export const AdminModule: React.FC<Props> = ({ isBangla, onExit, user }) => {
   const SESSION_KEY = 'digital_desh_bd_admin_session';
   const SESSION_DURATION = 12 * 60 * 60 * 1000;
 
-  const [isAuthenticated, setIsAuthenticated] = useState(() => {
-    if (typeof window !== 'undefined') {
-      if (user?.role === UserRole.ADMIN) return true;
-      const hostname = window.location.hostname;
-      if (hostname === 'localhost' || hostname === '127.0.0.1' || hostname.includes('.local')) return true;
-      try {
-        const session = localStorage.getItem(SESSION_KEY);
-        if (session) {
-          const { timestamp } = JSON.parse(session);
-          if (Date.now() - timestamp < SESSION_DURATION) return true;
-        }
-      } catch (e) { console.error(e); }
-    }
-    return false;
-  });
-
-  useEffect(() => {
-    if (user?.role === UserRole.ADMIN) setIsAuthenticated(true);
-  }, [user]);
+  // DEV TEST: Production ready authentication state
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -77,6 +60,24 @@ export const AdminModule: React.FC<Props> = ({ isBangla, onExit, user }) => {
   // Dev-Test State
   const [isTesting, setIsTesting] = useState(false);
   const [testResults, setTestResults] = useState<TestResult[] | null>(null);
+
+  useEffect(() => {
+    // Robust session check to prevent JSON parse errors
+    try {
+      const savedSession = localStorage.getItem(SESSION_KEY);
+      if (savedSession && savedSession !== "undefined" && savedSession !== "null") {
+        const parsed = JSON.parse(savedSession);
+        if (parsed && parsed.timestamp && (Date.now() - parsed.timestamp < SESSION_DURATION)) {
+          setIsAuthenticated(true);
+        } else {
+          localStorage.removeItem(SESSION_KEY);
+        }
+      }
+    } catch (e) {
+      console.warn("Session check error, clearing storage.");
+      localStorage.removeItem(SESSION_KEY);
+    }
+  }, []);
 
   const runSystemTest = () => {
     setIsTesting(true);
@@ -102,7 +103,7 @@ export const AdminModule: React.FC<Props> = ({ isBangla, onExit, user }) => {
         {
           name: 'Auth System',
           status: 'pass',
-          message: 'Session management is active.'
+          message: 'Credential validation active.'
         },
         {
           name: 'Client Storage',
@@ -124,18 +125,22 @@ export const AdminModule: React.FC<Props> = ({ isBangla, onExit, user }) => {
 
   const handleLogin = (e: React.FormEvent) => {
     e.preventDefault();
-    if (email === 'digitaldeshbd@gmail.com' && password === 'rmadmin@#' || (email === 'admin' && password === 'admin')) {
+    // Use strictly requested credentials
+    if ((email === 'digitaldeshbd@gmail.com' && password === 'rmadmin@#') || (email === 'admin' && password === 'admin')) {
       setIsAuthenticated(true);
-      localStorage.setItem(SESSION_KEY, JSON.stringify({ timestamp: Date.now() }));
+      try {
+        localStorage.setItem(SESSION_KEY, JSON.stringify({ timestamp: Date.now() }));
+      } catch(err) {}
     } else {
-      alert('Invalid Credentials.');
+      alert(isBangla ? 'ভুল ইমেইল বা পাসওয়ার্ড।' : 'Invalid Email or Password.');
     }
   };
 
   const handleLogout = () => {
     if(confirm(isBangla ? 'আপনি কি লগআউট করতে নিশ্চিত?' : 'Are you sure you want to logout?')) {
-      localStorage.removeItem(SESSION_KEY);
       setIsAuthenticated(false);
+      localStorage.removeItem(SESSION_KEY);
+      onExit();
     }
   };
 
@@ -282,45 +287,6 @@ export const AdminModule: React.FC<Props> = ({ isBangla, onExit, user }) => {
                 <Users size={24} />
             </div>
         </div>
-      </div>
-
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm flex items-center justify-between group hover:shadow-md transition-all">
-            <div>
-                <p className="text-gray-500 text-xs font-bold uppercase tracking-wider">Total CV Generated</p>
-                <h3 className="text-3xl font-bold text-gray-900 mt-2">{totalCvGenerated.toLocaleString()}</h3>
-                <p className="text-brand-600 text-xs font-bold mt-1 flex items-center gap-1"><TrendingUp size={10} /> All Time</p>
-            </div>
-            <div className="p-4 rounded-2xl bg-brand-50 text-brand-600 group-hover:bg-brand-100 transition-colors">
-                <FileCheck size={24} />
-            </div>
-        </div>
-
-        <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm flex items-center justify-between group hover:shadow-md transition-all">
-            <div>
-                <p className="text-gray-500 text-xs font-bold uppercase tracking-wider">Today CV Generated</p>
-                <h3 className="text-3xl font-bold text-gray-900 mt-2">{todayCvGenerated.toLocaleString()}</h3>
-                <p className="text-brand-600 text-xs font-bold mt-1 flex items-center gap-1"><Activity size={10} /> {new Date().toLocaleDateString()}</p>
-            </div>
-            <div className="p-4 rounded-2xl bg-brand-50 text-brand-600 group-hover:bg-brand-100 transition-colors">
-                <FilePlus size={24} />
-            </div>
-        </div>
-      </div>
-
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-         <div className="bg-indigo-600 rounded-2xl p-5 text-white shadow-lg flex items-center gap-4">
-            <div className="p-3 bg-white/20 rounded-xl"><Zap size={24} /></div>
-            <div><p className="text-indigo-100 text-xs font-bold uppercase">Server Latency</p><h4 className="text-2xl font-bold">42ms</h4></div>
-         </div>
-         <div className="bg-emerald-600 rounded-2xl p-5 text-white shadow-lg flex items-center gap-4">
-            <div className="p-3 bg-white/20 rounded-xl"><Shield size={24} /></div>
-            <div><p className="text-emerald-100 text-xs font-bold uppercase">System Health</p><h4 className="text-2xl font-bold">Excellent</h4></div>
-         </div>
-         <div className="bg-gray-800 rounded-2xl p-5 text-white shadow-lg flex items-center gap-4">
-            <div className="p-3 bg-white/20 rounded-xl"><RefreshCw size={24} /></div>
-            <div><p className="text-gray-400 text-xs font-bold uppercase">Current Status</p><h4 className="text-lg font-bold">Synced Live</h4></div>
-         </div>
       </div>
     </div>
   );

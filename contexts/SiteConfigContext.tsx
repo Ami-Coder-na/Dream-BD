@@ -61,27 +61,34 @@ const initialSettings: SiteSettings = {
 };
 
 export const SiteConfigProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
-  // Use immediate local storage check for fastest possible layout
   const [modules, setModules] = useState<Record<ToggableModule, boolean>>(() => {
     if (typeof window !== 'undefined') {
-      const m = localStorage.getItem('site_modules');
-      return m ? JSON.parse(m) : initialModules;
+      try {
+        const m = localStorage.getItem('site_modules');
+        if (m && m !== "undefined" && m !== "null") return JSON.parse(m);
+      } catch (e) {}
     }
     return initialModules;
   });
 
   const [sections, setSections] = useState<Record<LandingSection, boolean>>(() => {
     if (typeof window !== 'undefined') {
-      const s = localStorage.getItem('site_sections');
-      return s ? JSON.parse(s) : initialSections;
+      try {
+        const s = localStorage.getItem('site_sections');
+        if (s && s !== "undefined" && s !== "null") return JSON.parse(s);
+      } catch (e) {}
     }
     return initialSections;
   });
 
   const [settings, setSettings] = useState<SiteSettings>(() => {
     if (typeof window !== 'undefined') {
-      const st = localStorage.getItem('site_settings');
-      return st ? JSON.parse(st) : initialSettings;
+      try {
+        const st = localStorage.getItem('site_settings');
+        if (st && st !== "undefined" && st !== "null") {
+          return { ...initialSettings, ...JSON.parse(st) };
+        }
+      } catch (e) {}
     }
     return initialSettings;
   });
@@ -105,8 +112,9 @@ export const SiteConfigProvider: React.FC<{ children: ReactNode }> = ({ children
             localStorage.setItem('site_sections', JSON.stringify(item.value));
           }
           else if (item.key === 'settings') {
-            setSettings(item.value);
-            localStorage.setItem('site_settings', JSON.stringify(item.value));
+            const mergedSettings = { ...initialSettings, ...item.value };
+            setSettings(mergedSettings);
+            localStorage.setItem('site_settings', JSON.stringify(mergedSettings));
           }
         });
       }
@@ -137,8 +145,9 @@ export const SiteConfigProvider: React.FC<{ children: ReactNode }> = ({ children
               localStorage.setItem('site_sections', JSON.stringify(value));
             }
             else if (key === 'settings') {
-              setSettings(value);
-              localStorage.setItem('site_settings', JSON.stringify(value));
+              const merged = { ...initialSettings, ...value };
+              setSettings(merged);
+              localStorage.setItem('site_settings', JSON.stringify(merged));
             }
           }
         })
@@ -151,7 +160,7 @@ export const SiteConfigProvider: React.FC<{ children: ReactNode }> = ({ children
   }, [fetchGlobalConfig]);
 
   const saveToCloud = async (key: string, value: any) => {
-    // Update local storage first for instant feedback
+    if (value === undefined) return;
     localStorage.setItem(`site_${key}`, JSON.stringify(value));
     
     if (isSupabaseConfigured && window.navigator.onLine) {
@@ -187,7 +196,7 @@ export const SiteConfigProvider: React.FC<{ children: ReactNode }> = ({ children
 
   const updateSettings = (key: keyof SiteSettings, value: any) => {
     setSettings(prev => {
-      const next = { ...prev, [key]: value };
+      const next = { ...initialSettings, ...prev, [key]: value };
       saveToCloud('settings', next);
       return next;
     });

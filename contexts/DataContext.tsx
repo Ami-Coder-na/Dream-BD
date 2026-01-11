@@ -129,10 +129,14 @@ const getSyncCache = (key: string, defaultValue: any) => {
   if (typeof window === 'undefined') return defaultValue;
   try {
     const cached = localStorage.getItem(`db_cache_${key}`);
-    return cached ? JSON.parse(cached) : defaultValue;
+    // Fix: Ensure we don't parse "undefined" string literal
+    if (cached && cached !== "undefined" && cached !== "null") {
+      return JSON.parse(cached);
+    }
   } catch (e) {
-    return defaultValue;
+    console.warn(`Cache parsing failed for ${key}`);
   }
+  return defaultValue;
 };
 
 export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
@@ -163,10 +167,22 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const [promoCodes, setPromoCodes] = useState<PromoCode[]>(() => getSyncCache('promo_codes', []));
   const [paymentRequests, setPaymentRequests] = useState<PaymentRequest[]>(() => getSyncCache('payment_requests', []));
   
-  const [totalVisitors, setTotalVisitors] = useState(() => parseInt(localStorage.getItem('stat_total_visitors') || '1'));
-  const [todayVisitors, setTodayVisitors] = useState(() => parseInt(localStorage.getItem('stat_today_visitors') || '1'));
-  const [totalCvGenerated, setTotalCvGenerated] = useState(() => parseInt(localStorage.getItem('stat_total_cvs') || '0'));
-  const [todayCvGenerated, setTodayCvGenerated] = useState(() => parseInt(localStorage.getItem('stat_today_cvs') || '0'));
+  const [totalVisitors, setTotalVisitors] = useState(() => {
+    const v = localStorage.getItem('stat_total_visitors');
+    return v && v !== "undefined" ? parseInt(v) : 1;
+  });
+  const [todayVisitors, setTodayVisitors] = useState(() => {
+    const v = localStorage.getItem('stat_today_visitors');
+    return v && v !== "undefined" ? parseInt(v) : 1;
+  });
+  const [totalCvGenerated, setTotalCvGenerated] = useState(() => {
+    const v = localStorage.getItem('stat_total_cvs');
+    return v && v !== "undefined" ? parseInt(v) : 0;
+  });
+  const [todayCvGenerated, setTodayCvGenerated] = useState(() => {
+    const v = localStorage.getItem('stat_today_cvs');
+    return v && v !== "undefined" ? parseInt(v) : 0;
+  });
 
   const [grievances, setGrievances] = useState<any[]>([]);
   const [lawyers, setLawyers] = useState<any[]>(() => getSyncCache('lawyers', []));
@@ -176,6 +192,7 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
   const saveCache = (key: string, data: any) => {
     try {
+      if (data === undefined) return;
       localStorage.setItem(`db_cache_${key}`, JSON.stringify(data));
     } catch (e) { console.warn(`Cache save failed for ${key}`); }
   };
@@ -275,8 +292,11 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     const sessionKey = 'last_logged_visit_date';
     const lastLoggedDate = localStorage.getItem(sessionKey);
     
-    const currentTotal = parseInt(localStorage.getItem('stat_total_visitors') || '0');
-    const currentToday = lastLoggedDate === today ? parseInt(localStorage.getItem('stat_today_visitors') || '0') : 0;
+    const vTotal = localStorage.getItem('stat_total_visitors');
+    const vToday = localStorage.getItem('stat_today_visitors');
+    
+    const currentTotal = vTotal && vTotal !== "undefined" ? parseInt(vTotal) : 0;
+    const currentToday = lastLoggedDate === today && vToday && vToday !== "undefined" ? parseInt(vToday) : 0;
 
     const nextTotal = currentTotal + 1;
     const nextToday = currentToday + 1;

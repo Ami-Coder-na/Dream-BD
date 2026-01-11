@@ -2,7 +2,7 @@
 "use client";
 
 import React, { useState } from 'react';
-import { Menu, X, Globe, ChevronDown, User as UserIcon, Shield, HelpCircle, Bell, Bird, Info, ArrowRight, Briefcase, FileText, LayoutGrid, MapPin } from 'lucide-react';
+import { Menu, X, Globe, ChevronDown, User as UserIcon, Shield, HelpCircle, Bell, Bird, Info, ArrowRight, Briefcase, FileText, LayoutGrid, MapPin, Lock } from 'lucide-react';
 import { Button } from '../ui/Button';
 import { User, AppModule, UserRole } from '../../types';
 import { useSiteConfig } from '../../contexts/SiteConfigContext';
@@ -52,13 +52,13 @@ export const Header: React.FC<HeaderProps> = ({
           <div className="flex items-center gap-3 cursor-pointer shrink-0 group" onClick={onNavigateHome}>
             <div className="h-16 w-auto flex items-center justify-center transition-transform group-hover:scale-105">
                 <img 
-                  src={settings.websiteLogo || "https://zpsxpqurazjeqviwooky.supabase.co/storage/v1/object/public/images/logo.png"} 
+                  src={settings?.websiteLogo || "https://zpsxpqurazjeqviwooky.supabase.co/storage/v1/object/public/images/logo.png"} 
                   className="h-full w-auto object-contain" 
                   alt="Site Logo" 
                   onError={(e) => e.currentTarget.src = "https://placehold.co/150x150?text=D"} 
                 />
             </div>
-            {settings.showWebsiteTitle && (
+            {settings?.showWebsiteTitle && (
               <span className="text-xl font-black text-gray-800 hidden xl:block uppercase tracking-tighter animate-fade-in">
                 {settings.websiteTitle || 'Digital DeshBD'}
               </span>
@@ -143,13 +143,13 @@ export const Header: React.FC<HeaderProps> = ({
             <div className="flex items-center gap-3" onClick={() => { setMobileMenuOpen(false); onNavigateHome(); }}>
                <div className="h-14 w-auto flex items-center justify-center">
                   <img 
-                    src={settings.websiteLogo || "https://zpsxpqurazjeqviwooky.supabase.co/storage/v1/object/public/images/logo.png"} 
+                    src={settings?.websiteLogo || "https://zpsxpqurazjeqviwooky.supabase.co/storage/v1/object/public/images/logo.png"} 
                     className="h-full w-auto object-contain" 
                     alt="Logo" 
                     onError={(e) => e.currentTarget.src = "https://placehold.co/150x150?text=D"} 
                   />
                </div>
-               {settings.showWebsiteTitle && (
+               {settings?.showWebsiteTitle && (
                  <span className="font-black text-gray-800 text-lg uppercase tracking-tighter">
                    {settings.websiteTitle}
                  </span>

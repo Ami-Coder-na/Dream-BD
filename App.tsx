@@ -23,7 +23,7 @@ const LoadingFallback = () => {
       <div className="relative mb-8">
         <div className="absolute inset-0 bg-brand-500/20 rounded-full shonali-loader-pulse"></div>
         <div className="relative w-24 h-24 bg-white rounded-full flex items-center justify-center border-4 border-brand-500 shadow-xl z-10 overflow-hidden">
-          {settings.websiteLogo ? (
+          {settings?.websiteLogo ? (
             <img src={settings.websiteLogo} className="w-16 h-16 object-contain" alt="Loading" />
           ) : (
             <Bird className="text-brand-600 w-12 h-12" />
@@ -34,7 +34,7 @@ const LoadingFallback = () => {
         </div>
       </div>
       <h2 className="text-xl font-black text-gray-800 tracking-tighter animate-pulse uppercase">
-        সোনালী দেশ
+        {settings?.websiteTitle || 'সোনালী দেশ'}
       </h2>
       <div className="mt-4 flex gap-1">
         <div className="w-2 h-2 bg-brand-500 rounded-full animate-bounce" style={{ animationDelay: '0s' }}></div>
@@ -81,7 +81,7 @@ const App: React.FC = () => {
   useEffect(() => {
     try {
       const saved = localStorage.getItem('digital_desh_bd_user_session');
-      if (saved) setUser(JSON.parse(saved).user);
+      if (saved && saved !== "undefined") setUser(JSON.parse(saved).user);
     } catch (e) { console.error(e); }
     
     // URL Detection for admin
@@ -112,7 +112,7 @@ const App: React.FC = () => {
 
   // SEO: Dynamic Page Titles
   useEffect(() => {
-    const siteTitle = settings.websiteTitle || "Digital Desh BD";
+    const siteTitle = settings?.websiteTitle || "Digital Desh BD";
     let pageTitle = siteTitle;
 
     switch(activeModule) {
@@ -128,7 +128,7 @@ const App: React.FC = () => {
     }
     
     document.title = pageTitle;
-  }, [activeModule, isBangla, settings.websiteTitle]);
+  }, [activeModule, isBangla, settings?.websiteTitle]);
 
   const isAdminView = useMemo(() => {
     if (typeof window === 'undefined') return activeModule === AppModule.ADMIN;
@@ -138,7 +138,7 @@ const App: React.FC = () => {
 
   const isChatView = currentView === 'mithu-ai' || activeModule === 'AI_CHAT';
 
-  if (settings.maintenanceMode && !isAdminView) {
+  if (settings?.maintenanceMode && !isAdminView) {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center bg-white p-6 text-center animate-fade-in">
         <div className="w-24 h-24 bg-red-50 rounded-full flex items-center justify-center text-red-600 mb-6 animate-pulse">
@@ -153,7 +153,7 @@ const App: React.FC = () => {
             : 'We are currently improving the website for a better experience. We will be back shortly.'}
         </p>
         <div className="mt-12 pt-8 border-t border-gray-100 w-full max-w-xs">
-          <p className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em]">{settings.websiteTitle}</p>
+          <p className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em]">{settings?.websiteTitle}</p>
         </div>
       </div>
     );
@@ -227,7 +227,7 @@ const App: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-white">
-      {settings.announcementActive && settings.announcement && !isAdminView && (
+      {settings?.announcementActive && settings?.announcement && !isAdminView && (
         <div className="bg-amber-400 text-black py-2.5 px-4 text-center font-black text-xs md:text-sm relative z-[60] border-b border-amber-500 shadow-sm animate-fade-in">
            <div className="max-w-7xl mx-auto flex items-center justify-center gap-2">
               <Bell size={16} className="shrink-0 animate-bounce" />
