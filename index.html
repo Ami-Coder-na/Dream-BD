@@ -6,25 +6,37 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
     <title>Digital Desh BD - বাংলাদেশের সেরা ডিজিটাল সেবা পোর্টাল | কৃষি, স্বাস্থ্য ও শিক্ষা</title>
     
-    <!-- 1. CRITICAL: Immediate Environment Shim (Executes first) -->
+    <!-- 1. CRITICAL: Immediate Environment Shim -->
     <script>
       (function() {
         window.process = { env: { NODE_ENV: 'production', API_KEY: '' } };
         window.global = window;
         
-        // Mobile White Screen Debugger
+        // Cache management: Clear any stray error flags
         window.onerror = function(msg, url, line, col, error) {
-          console.error("FATAL_ERROR:", msg);
-          // show info for debugging on phone if needed
+          var root = document.getElementById('root');
+          if (root && root.innerHTML === '') {
+            root.innerHTML = '<div style="padding:40px; color:red; font-family:sans-serif; text-align:center;">' +
+              '<h3>লোডিং সমস্যা (App Load Error)</h3>' +
+              '<p style="font-size:12px; color:#666;">' + msg + '</p>' +
+              '<button onclick="window.location.reload(true)" style="margin-top:20px; padding:10px 20px; background:#16a34a; color:white; border:none; border-radius:8px; font-weight:bold;">ক্যাশ ক্লিয়ার করুন (Hard Reload)</button>' +
+              '</div>';
+          }
           return false;
         };
       })();
     </script>
 
-    <!-- 2. CRITICAL: ES Module Shims for Mobile Support (Synchronous) -->
+    <!-- 2. ES Module Polyfill Config (Forced Shim Mode for Mobile Cache Fix) -->
+    <script>
+      window.esmsOptions = { 
+        shimMode: true, 
+        polyfillEnable: ['css-modules', 'json-modules'] 
+      };
+    </script>
     <script src="https://ga.jspm.io/npm:es-module-shims@1.10.0/dist/es-module-shims.js"></script>
 
-    <script type="importmap">
+    <script type="importmap-shim">
     {
       "imports": {
         "react": "https://esm.sh/react@18.3.1",
@@ -62,14 +74,51 @@
     
     <style>
       body { text-rendering: optimizeLegibility; -webkit-font-smoothing: antialiased; overflow-x: hidden; background-color: #ffffff; }
-      .custom-scrollbar::-webkit-scrollbar { width: 6px; }
-      .custom-scrollbar::-webkit-scrollbar-thumb { background: #16a34a; border-radius: 10px; }
+      #root:empty::after { 
+        content: "ডিজিটাল দেশ লোড হচ্ছে..."; 
+        position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); 
+        color: #16a34a; font-weight: bold; font-family: sans-serif; 
+        animation: pulse 2s infinite;
+      }
+      @keyframes pulse { 0% { opacity: 0.5; } 50% { opacity: 1; } 100% { opacity: 0.5; } }
       img { -webkit-user-drag: none; pointer-events: none; }
-      #root:empty::after { content: "ডিজিটাল দেশ লোড হচ্ছে..."; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); color: #16a34a; font-weight: bold; font-family: sans-serif; }
     </style>
-  </head>
+  <script type="importmap">
+{
+  "imports": {
+    "react/": "https://esm.sh/react@^19.2.3/",
+    "react": "https://esm.sh/react@^19.2.3",
+    "react-dom/": "https://esm.sh/react-dom@^19.2.3/",
+    "@google/genai": "https://esm.sh/@google/genai@^1.35.0",
+    "lucide-react": "https://esm.sh/lucide-react@^0.562.0",
+    "vite": "https://esm.sh/vite@^7.3.1",
+    "@vitejs/plugin-react": "https://esm.sh/@vitejs/plugin-react@^5.1.2",
+    "@supabase/supabase-js": "https://esm.sh/@supabase/supabase-js@^2.90.1",
+    "next": "https://esm.sh/next@^16.1.1",
+    "next/": "https://esm.sh/next@^16.1.1/"
+  }
+}
+</script>
+</head>
   <body>
     <div id="root"></div>
-    <script type="module" src="/index.tsx" crossorigin></script>
+    <!-- 3. Cache Busting: Added unique version to prevent stale cache loading -->
+    <script type="module-shim" src="/index.tsx?v=1.0.2" crossorigin></script>
+    
+    <script>
+      // Force immediate focus to help some mobile browsers prioritize script execution
+      window.focus();
+      
+      // Extended Timeout observer for slower mobile networks
+      setTimeout(function() {
+        var root = document.getElementById('root');
+        if (root && root.innerHTML === '') {
+          root.innerHTML = '<div style="padding:40px; text-align:center; font-family:sans-serif;">' +
+            '<p style="color:#666;">লোড হতে বেশি সময় নিচ্ছে (Slow Connection)...</p>' +
+            '<button onclick="window.location.reload(true)" style="padding:10px 20px; background:#16a34a; color:white; border:none; border-radius:8px; font-weight:bold; cursor:pointer;">রিফ্রেশ করুন</button>' +
+            '</div>';
+        }
+      }, 10000);
+    </script>
   </body>
 </html>
