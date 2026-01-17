@@ -16,6 +16,9 @@ export const metadata: Metadata = {
   alternates: {
     canonical: 'https://digitaldeshbd.com',
   },
+  verification: {
+    google: 'Gflhyh1ek3bvLRUbzKcAcOUbhH88bVFFK-8XCZsl1Yo',
+  },
   openGraph: {
     title: 'Digital Desh BD - স্মার্ট বাংলাদেশের সমন্বিত ডিজিটাল সমাধান',
     description: 'কৃষি, স্বাস্থ্য, শিক্ষা ও পরিবহন সেবা এখন আপনার হাতের মুঠোয়। ডিজিটাল বাংলাদেশের এক নতুন দিগন্ত।',
