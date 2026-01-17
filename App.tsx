@@ -74,8 +74,9 @@ const TermsModule = lazy(() => import('./components/modules/TermsModule').then(m
 const JanteChaiModule = lazy(() => import('./components/modules/JanteChaiModule').then(m => ({ default: m.JanteChaiModule })));
 
 const App: React.FC = () => {
-  const { logVisit } = useData();
+  const { logVisit, isLoading } = useData();
   const { settings } = useSiteConfig();
+  const [isMounted, setIsMounted] = useState(false);
   
   // Initialize view based on URL to prevent flashing or wrong initial render
   const [currentView, setCurrentView] = useState(() => {
@@ -92,6 +93,8 @@ const App: React.FC = () => {
   const [authView, setAuthView] = useState<'none' | 'login' | 'signup'>('none');
 
   useEffect(() => {
+    setIsMounted(true);
+    
     // URL Cleanup: If accidentally at /lander, visually reset to root without reloading
     if (typeof window !== 'undefined' && window.location.pathname === '/lander') {
        window.history.replaceState(null, '', '/');
@@ -156,6 +159,11 @@ const App: React.FC = () => {
   }, [activeModule]);
 
   const isChatView = currentView === 'mithu-ai' || activeModule === 'AI_CHAT';
+
+  // Prevent Hydration Mismatch: Do not render content until client-side mount is complete
+  if (!isMounted) {
+    return <LoadingFallback />;
+  }
 
   if (settings?.maintenanceMode && !isAdminView) {
     const maintenanceTitle = typeof settings?.websiteTitle === 'string' ? settings.websiteTitle : 'সোনালী দেশ';
@@ -247,6 +255,13 @@ const App: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-white">
+      {/* Global Data Loading Indicator (Top Bar) */}
+      {isLoading && (
+        <div className="fixed top-0 left-0 w-full h-1 bg-gray-100 z-[100] overflow-hidden">
+           <div className="h-full bg-brand-600 animate-pulse w-full origin-left"></div>
+        </div>
+      )}
+
       {settings?.announcementActive && (typeof settings.announcement === 'string') && !isAdminView && (
         <div className="bg-amber-400 text-black py-2.5 px-4 text-center font-black text-xs md:text-sm relative z-[60] border-b border-amber-500 shadow-sm animate-fade-in">
            <div className="max-w-7xl mx-auto flex items-center justify-center gap-2">

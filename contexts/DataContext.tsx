@@ -1,3 +1,4 @@
+
 "use client";
 import React, { createContext, useState, useContext, useEffect, ReactNode, useCallback } from 'react';
 import { supabase, isSupabaseConfigured } from '../services/supabaseClient';
@@ -230,20 +231,26 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     };
 
     try {
-      await Promise.allSettled([
+      // Strategy: Prioritize Critical Data for faster UI response
+      
+      // Batch 1: Critical & Visible Content
+      await Promise.all([
+        fetchSiteContent(),
         fetchTable('users', setUsers),
         fetchTable('jobs', setJobs),
         fetchTable('blogs', setBlogs),
-        fetchTable('wholesale_ads', setWholesaleAds),
-        fetchTable('requests', setRequests),
-        fetchTable('blog_requests', setBlogRequests),
-        fetchTable('wholesale_requests', setWholesaleRequests),
         fetchTable('market_prices', setMarketPrices),
+        fetchTable('districts', setDistricts, 'nameen')
+      ]);
+
+      // Unblock UI after critical data is loaded
+      setIsLoading(false);
+
+      // Batch 2: Module Specific & Secondary Content (Background)
+      await Promise.allSettled([
+        fetchTable('wholesale_ads', setWholesaleAds),
         fetchTable('retail_products', setRetailProducts),
         fetchTable('donors', setDonors),
-        fetchTable('contact_messages', setMessages),
-        fetchTable('faqs', setFaqs),
-        fetchTable('districts', setDistricts, 'nameen'),
         fetchTable('diseases', setDiseases),
         fetchTable('poets', setPoets),
         fetchTable('craft_products', setCraftProducts),
@@ -251,9 +258,20 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         fetchTable('vocational_courses', setVocationalCourses),
         fetchTable('lawyers', setLawyers),
         fetchTable('pregnancy_info', setPregnancyInfo, 'week'),
-        fetchSiteContent()
+        fetchTable('faqs', setFaqs)
       ]);
-    } finally {
+
+      // Batch 3: Admin & Heavy Data (Background)
+      await Promise.allSettled([
+        fetchTable('requests', setRequests),
+        fetchTable('blog_requests', setBlogRequests),
+        fetchTable('wholesale_requests', setWholesaleRequests),
+        fetchTable('contact_messages', setMessages),
+        fetchTable('donor_view_logs', setDonorViewLogs)
+      ]);
+
+    } catch (e) {
+      console.error("Data fetch error:", e);
       setIsLoading(false);
     }
   }, []);
