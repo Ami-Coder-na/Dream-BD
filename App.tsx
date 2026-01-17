@@ -76,12 +76,27 @@ const JanteChaiModule = lazy(() => import('./components/modules/JanteChaiModule'
 const App: React.FC = () => {
   const { logVisit } = useData();
   const { settings } = useSiteConfig();
-  const [currentView, setCurrentView] = useState('LANDING');
+  
+  // Initialize view based on URL to prevent flashing or wrong initial render
+  const [currentView, setCurrentView] = useState(() => {
+    if (typeof window !== 'undefined') {
+      const path = window.location.pathname;
+      if (path === '/lander' || path === '/') return 'LANDING';
+      if (path === '/rmadmin' || path === '/adminrm' || path === '/admin') return 'admin';
+    }
+    return 'LANDING';
+  });
+
   const [user, setUser] = useState<User | null>(null);
   const [isBangla, setIsBangla] = useState(true);
   const [authView, setAuthView] = useState<'none' | 'login' | 'signup'>('none');
 
   useEffect(() => {
+    // URL Cleanup: If accidentally at /lander, visually reset to root without reloading
+    if (typeof window !== 'undefined' && window.location.pathname === '/lander') {
+       window.history.replaceState(null, '', '/');
+    }
+
     // DEV TEST: Defensive parsing of session
     try {
       const saved = localStorage.getItem('digital_desh_bd_user_session');
@@ -96,14 +111,6 @@ const App: React.FC = () => {
       localStorage.removeItem('digital_desh_bd_user_session');
     }
     
-    // URL Detection for admin
-    if (typeof window !== 'undefined') {
-      const path = window.location.pathname;
-      if (path === '/rmadmin' || path === '/adminrm' || path === '/admin') {
-        setCurrentView('admin');
-      }
-    }
-
     logVisit();
   }, [logVisit]);
 
