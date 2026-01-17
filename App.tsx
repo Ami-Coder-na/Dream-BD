@@ -94,6 +94,7 @@ const App: React.FC = () => {
 
   useEffect(() => {
     setIsMounted(true);
+    console.log("App Version: v2.2 (Instant Load)");
     
     // URL Cleanup: If accidentally at /lander, visually reset to root without reloading
     if (typeof window !== 'undefined' && window.location.pathname === '/lander') {

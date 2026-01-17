@@ -125,6 +125,7 @@ interface DataContextType {
 
 const DataContext = createContext<DataContextType | undefined>(undefined);
 
+// Safe cache retrieval for SSR/Next.js environment
 const getSyncCache = (key: string, defaultValue: any) => {
   if (typeof window === 'undefined') return defaultValue;
   try {
@@ -135,13 +136,22 @@ const getSyncCache = (key: string, defaultValue: any) => {
     }
   } catch (e) {
     console.warn(`Cache parsing failed for ${key}`);
-    localStorage.removeItem(`db_cache_${key}`);
+    // localStorage.removeItem(`db_cache_${key}`); // Don't delete immediately to prevent loops
   }
   return defaultValue;
 };
 
+// Safe statistic retrieval
+const getStatCache = (key: string, defaultVal: number) => {
+  if (typeof window === 'undefined') return defaultVal;
+  const v = localStorage.getItem(key);
+  return (v && v !== "undefined" && v !== "null") ? parseInt(v) : defaultVal;
+};
+
 export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(true); // Start true, turn off quickly
+  
+  // Initialize state with cache or defaults (Cache-First Strategy)
   const [users, setUsers] = useState<User[]>(() => getSyncCache('users', []));
   const [jobs, setJobs] = useState<any[]>(() => getSyncCache('jobs', []));
   const [blogs, setBlogs] = useState<any[]>(() => getSyncCache('blogs', []));
@@ -157,9 +167,11 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const [messages, setMessages] = useState<any[]>(() => getSyncCache('contact_messages', []));
   const [faqs, setFaqs] = useState<any[]>(() => getSyncCache('faqs', []));
   const [districts, setDistricts] = useState<any[]>(() => getSyncCache('districts', []));
+  
   const [aboutUs, setAboutUs] = useState(() => getSyncCache('about_us', { titleBn: 'সোনালী দেশ', titleEn: 'Shonali Desh', contentBn: '', contentEn: '', missionBn: '', missionEn: '', visionBn: '', visionEn: '' }));
   const [privacyPolicy, setPrivacyPolicy] = useState(() => getSyncCache('privacy_policy', { contentBn: '', contentEn: '' }));
   const [termsConditions, setTermsConditions] = useState(() => getSyncCache('terms_conditions', { contentBn: '', contentEn: '' }));
+  
   const [diseases, setDiseases] = useState<any[]>(() => getSyncCache('diseases', []));
   const [poets, setPoets] = useState<any[]>(() => getSyncCache('poets', []));
   const [pregnancyInfo, setPregnancyInfo] = useState<any[]>(() => getSyncCache('pregnancy_info', []));
@@ -168,22 +180,10 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const [promoCodes, setPromoCodes] = useState<PromoCode[]>(() => getSyncCache('promo_codes', []));
   const [paymentRequests, setPaymentRequests] = useState<PaymentRequest[]>(() => getSyncCache('payment_requests', []));
   
-  const [totalVisitors, setTotalVisitors] = useState(() => {
-    const v = localStorage.getItem('stat_total_visitors');
-    return (v && v !== "undefined" && v !== "null") ? parseInt(v) : 1;
-  });
-  const [todayVisitors, setTodayVisitors] = useState(() => {
-    const v = localStorage.getItem('stat_today_visitors');
-    return (v && v !== "undefined" && v !== "null") ? parseInt(v) : 1;
-  });
-  const [totalCvGenerated, setTotalCvGenerated] = useState(() => {
-    const v = localStorage.getItem('stat_total_cvs');
-    return (v && v !== "undefined" && v !== "null") ? parseInt(v) : 0;
-  });
-  const [todayCvGenerated, setTodayCvGenerated] = useState(() => {
-    const v = localStorage.getItem('stat_today_cvs');
-    return (v && v !== "undefined" && v !== "null") ? parseInt(v) : 0;
-  });
+  const [totalVisitors, setTotalVisitors] = useState(() => getStatCache('stat_total_visitors', 1));
+  const [todayVisitors, setTodayVisitors] = useState(() => getStatCache('stat_today_visitors', 1));
+  const [totalCvGenerated, setTotalCvGenerated] = useState(() => getStatCache('stat_total_cvs', 0));
+  const [todayCvGenerated, setTodayCvGenerated] = useState(() => getStatCache('stat_today_cvs', 0));
 
   const [grievances, setGrievances] = useState<any[]>([]);
   const [lawyers, setLawyers] = useState<any[]>(() => getSyncCache('lawyers', []));
@@ -193,15 +193,18 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
   const saveCache = (key: string, data: any) => {
     try {
-      if (data === undefined || data === null) return;
+      if (typeof window === 'undefined' || data === undefined || data === null) return;
       localStorage.setItem(`db_cache_${key}`, JSON.stringify(data));
     } catch (e) { console.warn(`Cache save failed for ${key}`); }
   };
 
   const fetchInitialData = useCallback(async () => {
-    if (!isSupabaseConfigured) return;
-    setIsLoading(true);
+    if (!isSupabaseConfigured) {
+        setIsLoading(false); // If offline, stop loading immediately
+        return;
+    }
 
+    // Helper for non-blocking fetch
     const fetchTable = async (table: string, setter: (data: any[]) => void, orderCol: string = 'created_at') => {
       try {
         const { data, error } = await supabase.from(table).select('*').order(orderCol, { ascending: table === 'districts' || table === 'pregnancy_info' });
@@ -210,7 +213,7 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
           saveCache(table, data);
         }
       } catch (e) {
-        console.warn(`Failed to fetch ${table}:`, e);
+        console.warn(`Failed to fetch ${table} in background:`, e);
       }
     };
 
@@ -227,27 +230,24 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
             if (item.key === 'payment_requests') { setPaymentRequests(item.value); saveCache('payment_requests', item.value); }
           });
         }
-      } catch (e) { console.warn("Failed to fetch site content config:", e); }
+      } catch (e) { console.warn("Failed to fetch site config:", e); }
     };
 
     try {
-      // Strategy: Prioritize Critical Data for faster UI response
+      // PHASE 1: Critical Config (Blocking for minimal time)
+      await fetchSiteContent();
       
-      // Batch 1: Critical & Visible Content
-      await Promise.all([
-        fetchSiteContent(),
+      // RELEASE UI IMMEDIATELY
+      setIsLoading(false);
+
+      // PHASE 2: Fetch Data in Background (Fire and Forget)
+      // We don't await these to block UI, we let them populate as they arrive.
+      const fetchPromises = [
         fetchTable('users', setUsers),
         fetchTable('jobs', setJobs),
         fetchTable('blogs', setBlogs),
         fetchTable('market_prices', setMarketPrices),
-        fetchTable('districts', setDistricts, 'nameen')
-      ]);
-
-      // Unblock UI after critical data is loaded
-      setIsLoading(false);
-
-      // Batch 2: Module Specific & Secondary Content (Background)
-      await Promise.allSettled([
+        fetchTable('districts', setDistricts, 'nameen'),
         fetchTable('wholesale_ads', setWholesaleAds),
         fetchTable('retail_products', setRetailProducts),
         fetchTable('donors', setDonors),
@@ -258,17 +258,16 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         fetchTable('vocational_courses', setVocationalCourses),
         fetchTable('lawyers', setLawyers),
         fetchTable('pregnancy_info', setPregnancyInfo, 'week'),
-        fetchTable('faqs', setFaqs)
-      ]);
-
-      // Batch 3: Admin & Heavy Data (Background)
-      await Promise.allSettled([
+        fetchTable('faqs', setFaqs),
         fetchTable('requests', setRequests),
         fetchTable('blog_requests', setBlogRequests),
         fetchTable('wholesale_requests', setWholesaleRequests),
         fetchTable('contact_messages', setMessages),
         fetchTable('donor_view_logs', setDonorViewLogs)
-      ]);
+      ];
+      
+      // Use allSettled to ensure one failure doesn't stop others (though we aren't awaiting it for UI)
+      Promise.allSettled(fetchPromises);
 
     } catch (e) {
       console.error("Data fetch error:", e);
@@ -276,6 +275,7 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     }
   }, []);
 
+  // Real-time listener for site config
   useEffect(() => {
     fetchInitialData();
 
@@ -311,6 +311,8 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   };
 
   const logVisit = useCallback(async () => {
+    if (typeof window === 'undefined') return;
+    
     const today = new Date().toISOString().split('T')[0];
     const sessionKey = 'last_logged_visit_date';
     const lastLoggedDate = localStorage.getItem(sessionKey);
@@ -343,6 +345,7 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   }, []);
 
   const logCvGeneration = () => { 
+    if (typeof window === 'undefined') return;
     const nextTotal = totalCvGenerated + 1;
     const nextToday = todayCvGenerated + 1;
     setTotalCvGenerated(nextTotal); 
@@ -352,10 +355,11 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   };
 
   const wrapSupabase = async (action: () => Promise<any>) => {
-    if (!isSupabaseConfigured || !window.navigator.onLine) return;
+    if (!isSupabaseConfigured || (typeof window !== 'undefined' && !window.navigator.onLine)) return;
     try { await action(); } catch (e) { console.warn("Supabase action failed."); }
   };
 
+  // --- CRUD Operations ---
   const addUser = async (u: any) => {
     await wrapSupabase(() => supabase.from('users').insert([u]));
     setUsers(prev => [...prev, u]);
@@ -519,19 +523,6 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
   const seedDistricts = async () => {};
 
-  const updateAboutUs = async (d: any) => {
-    await saveSiteContent('about_us', d);
-    setAboutUs(d);
-  };
-  const updatePrivacyPolicy = async (d: any) => {
-    await saveSiteContent('privacy_policy', d);
-    setPrivacyPolicy(d);
-  };
-  const updateTermsConditions = async (d: any) => {
-    await saveSiteContent('terms_conditions', d);
-    setTermsConditions(d);
-  };
-
   const addDisease = async (d: any) => {
     await wrapSupabase(() => supabase.from('diseases').insert([d]));
     setDiseases(prev => [...prev, d]);
@@ -641,6 +632,21 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const deleteCraftProduct = async (id: number) => {
     await wrapSupabase(() => supabase.from('craft_products').delete().eq('id', id));
     setCraftProducts(prev => prev.filter(item => item.id !== id));
+  };
+
+  const updateAboutUs = async (data: any) => {
+    setAboutUs(data);
+    await saveSiteContent('about_us', data);
+  };
+
+  const updatePrivacyPolicy = async (data: any) => {
+    setPrivacyPolicy(data);
+    await saveSiteContent('privacy_policy', data);
+  };
+
+  const updateTermsConditions = async (data: any) => {
+    setTermsConditions(data);
+    await saveSiteContent('terms_conditions', data);
   };
 
   return (
