@@ -1,4 +1,11 @@
+
 {
+  "rewrites": [
+    {
+      "source": "/adminrm",
+      "destination": "/"
+    }
+  ],
   "redirects": [
     {
       "source": "/lander",
