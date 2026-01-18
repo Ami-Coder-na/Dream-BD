@@ -18,7 +18,6 @@ import { useSiteConfig } from './contexts/SiteConfigContext';
 
 const LoadingFallback = () => {
   const { settings } = useSiteConfig();
-  // Error #31 Fix: Explicitly ensure title is a string
   const siteTitle = typeof settings?.websiteTitle === 'string' ? settings.websiteTitle : 'সোনালী দেশ';
   
   return (
@@ -32,18 +31,10 @@ const LoadingFallback = () => {
             <Bird className="text-brand-600 w-12 h-12" />
           )}
         </div>
-        <div className="absolute -bottom-2 -right-2 w-8 h-8 bg-brand-600 rounded-full flex items-center justify-center border-2 border-white shadow-lg animate-spin">
-           <div className="w-1 h-4 bg-white rounded-full"></div>
-        </div>
       </div>
       <h2 className="text-xl font-black text-gray-800 tracking-tighter animate-pulse uppercase">
         {siteTitle}
       </h2>
-      <div className="mt-4 flex gap-1">
-        <div className="w-2 h-2 bg-brand-500 rounded-full animate-bounce" style={{ animationDelay: '0s' }}></div>
-        <div className="w-2 h-2 bg-brand-500 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
-        <div className="w-2 h-2 bg-brand-500 rounded-full animate-bounce" style={{ animationDelay: '0.4s' }}></div>
-      </div>
     </div>
   );
 };
@@ -81,9 +72,8 @@ const App: React.FC = () => {
   // Initialize view based on URL to prevent flashing or wrong initial render
   const [currentView, setCurrentView] = useState(() => {
     if (typeof window !== 'undefined') {
-      const path = window.location.pathname;
-      if (path === '/lander' || path === '/') return 'LANDING';
-      if (path === '/rmadmin' || path === '/adminrm' || path === '/admin') return 'admin';
+      const path = window.location.pathname.replace(/\/$/, '') || '/';
+      if (path === '/adminrm') return 'admin';
     }
     return 'LANDING';
   });
@@ -94,14 +84,13 @@ const App: React.FC = () => {
 
   useEffect(() => {
     setIsMounted(true);
-    console.log("App Version: v2.2 (Instant Load)");
+    console.log("App Version: v2.5 (Stable Admin)");
     
     // URL Cleanup: If accidentally at /lander, visually reset to root without reloading
     if (typeof window !== 'undefined' && window.location.pathname === '/lander') {
        window.history.replaceState(null, '', '/');
     }
 
-    // DEV TEST: Defensive parsing of session
     try {
       const saved = localStorage.getItem('digital_desh_bd_user_session');
       if (saved && saved !== "undefined" && saved !== "null") {
@@ -111,7 +100,6 @@ const App: React.FC = () => {
         }
       }
     } catch (e) { 
-      console.warn("Failed to load user session, clearing corrupt data.");
       localStorage.removeItem('digital_desh_bd_user_session');
     }
     
@@ -126,46 +114,25 @@ const App: React.FC = () => {
   }, []);
 
   const activeModule = useMemo(() => {
-    if (currentView === 'admin' || currentView === 'adminrm' || currentView === 'rmadmin') return AppModule.ADMIN;
+    // STRICT CHECK: Only allow admin view if the state matches explicitly
+    if (currentView === 'admin') return AppModule.ADMIN;
     if (currentView === 'mithu-ai') return 'AI_CHAT';
     
     const allModuleValues = Object.values(AppModule);
     return allModuleValues.find(m => m === currentView) || (currentView === 'LANDING' ? 'LANDING' : 'LANDING');
   }, [currentView]);
 
-  // SEO: Dynamic Page Titles
-  useEffect(() => {
-    const siteTitle = (typeof settings?.websiteTitle === 'string') ? settings.websiteTitle : "Digital Desh BD";
-    let pageTitle = siteTitle;
-
-    switch(activeModule) {
-      case AppModule.AGRI: pageTitle = isBangla ? `স্মার্ট কৃষি সেবা - ${siteTitle}` : `Smart Agri Services - ${siteTitle}`; break;
-      case AppModule.HEALTH: pageTitle = isBangla ? `জরুরি স্বাস্থ্য সেবা - ${siteTitle}` : `Emergency Health Services - ${siteTitle}`; break;
-      case AppModule.JOB: pageTitle = isBangla ? `চাকরির খবর ও ক্যারিয়ার - ${siteTitle}` : `Job Portal & Career - ${siteTitle}`; break;
-      case AppModule.EDU: pageTitle = isBangla ? `অনলাইন শিক্ষা ও দক্ষতা - ${siteTitle}` : `Online Education - ${siteTitle}`; break;
-      case AppModule.AMAR_BD: pageTitle = isBangla ? `আমার বাংলাদেশ পর্যটন - ${siteTitle}` : `Beautiful Bangladesh - ${siteTitle}`; break;
-      case AppModule.JANTE_CHAI: pageTitle = isBangla ? `জানতে চাই (সাহিত্য ও ইতিহাস) - ${siteTitle}` : `Jante Chai (Literature) - ${siteTitle}`; break;
-      case AppModule.ADMIN: pageTitle = `Admin Dashboard - ${siteTitle}`; break;
-      case 'AI_CHAT': pageTitle = isBangla ? `মিঠু এআই সহকারী - ${siteTitle}` : `Mithu AI Assistant - ${siteTitle}`; break;
-      default: pageTitle = isBangla ? `${siteTitle} - বাংলাদেশের ডিজিটাল সেবা পোর্টাল` : `${siteTitle} - Digital Services of Bangladesh`;
-    }
-    
-    document.title = pageTitle;
-  }, [activeModule, isBangla, settings?.websiteTitle]);
-
   const isAdminView = useMemo(() => {
-    if (typeof window === 'undefined') return activeModule === AppModule.ADMIN;
-    const path = window.location.pathname;
-    return activeModule === AppModule.ADMIN || path.includes('admin') || path.includes('rmadmin');
+    return activeModule === AppModule.ADMIN;
   }, [activeModule]);
 
   const isChatView = currentView === 'mithu-ai' || activeModule === 'AI_CHAT';
 
-  // Prevent Hydration Mismatch: Do not render content until client-side mount is complete
   if (!isMounted) {
     return <LoadingFallback />;
   }
 
+  // Only show maintenance mode if NOT admin and maintenance is active
   if (settings?.maintenanceMode && !isAdminView) {
     const maintenanceTitle = typeof settings?.websiteTitle === 'string' ? settings.websiteTitle : 'সোনালী দেশ';
     return (
@@ -202,7 +169,8 @@ const App: React.FC = () => {
         <Suspense fallback={<LoadingFallback />}>
           {(() => {
             switch (activeModule) {
-              case AppModule.ADMIN: return <AdminModule isBangla={isBangla} onExit={() => handleNavigate('LANDING')} user={user} />;
+              case AppModule.ADMIN: 
+                return <AdminModule isBangla={isBangla} onExit={() => { window.location.href = '/'; }} user={user} />;
               case AppModule.PROFILE: return user ? <ProfilePage user={user} onUpdateUser={setUser} isBangla={isBangla} /> : null;
               case AppModule.JOB: return <JobModule isBangla={isBangla} user={user} onLogin={() => setAuthView('login')} />;
               case AppModule.BLOG: return <BlogModule isBangla={isBangla} user={user} onLogin={() => setAuthView('login')} />;
