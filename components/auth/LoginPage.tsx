@@ -50,6 +50,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({
 
     try {
       // Secure Login: Query DB directly for specific user match
+      // This prevents downloading the entire user list to the client
       const { data: registeredUser, error: dbError } = await supabase
         .from('users')
         .select('*')
