@@ -5,7 +5,7 @@ import { Button } from './ui/Button';
 import { 
   User as UserIcon, Mail, Phone, MapPin, Briefcase, Camera, Save, X, 
   Settings, Shield, Bell, CheckCircle, List, BookOpen, FileText, Truck, 
-  Droplets, Clock, AlertTriangle, MonitorPlay, Edit3, Trash2, Plus 
+  Droplets, Clock, AlertTriangle, MonitorPlay, Edit3, Trash2, Plus, LogOut 
 } from 'lucide-react';
 import { useData } from '../contexts/DataContext';
 import { compressImage } from './utils/imageUtils';
@@ -14,9 +14,10 @@ interface ProfilePageProps {
   user: User;
   onUpdateUser: (updatedUser: User) => void;
   isBangla: boolean;
+  onLogout: () => void;
 }
 
-export const ProfilePage: React.FC<ProfilePageProps> = ({ user, onUpdateUser, isBangla }) => {
+export const ProfilePage: React.FC<ProfilePageProps> = ({ user, onUpdateUser, isBangla, onLogout }) => {
   const { 
     jobs, blogs, wholesaleAds, donors, enrolledCourses,
     deleteJob, updateJob,
@@ -201,9 +202,14 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({ user, onUpdateUser, is
                   </p>
                 </div>
                 {!isEditing && (
-                  <Button onClick={() => setIsEditing(true)} className="px-8 font-bold">
-                    {isBangla ? 'তথ্য পরিবর্তন করুন' : 'Edit Profile'}
-                  </Button>
+                  <div className="flex flex-col sm:flex-row gap-2">
+                    <Button onClick={() => setIsEditing(true)} className="px-8 font-bold">
+                      {isBangla ? 'তথ্য পরিবর্তন করুন' : 'Edit Profile'}
+                    </Button>
+                    <Button onClick={onLogout} variant="danger" className="px-6 font-bold flex items-center gap-2">
+                       <LogOut size={18} /> {isBangla ? 'লগআউট' : 'Logout'}
+                    </Button>
+                  </div>
                 )}
               </div>
 
@@ -466,7 +472,8 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({ user, onUpdateUser, is
                <div className="p-3 bg-indigo-50 rounded-2xl text-indigo-600"><Shield size={28} /></div>
                <div>
                  <h3 className="text-2xl font-black text-gray-900 tracking-tight">{isBangla ? 'নিরাপত্তা' : 'Security'}</h3>
-                 <p className="text-sm text-gray-500 font-medium">{isBangla ? 'আপনার পাসওয়ার্ড পরিবর্তন করুন এবং একাউন্ট সুরক্ষিত রাখুন' : 'Change your password and secure your account'}</p>
+                 <p className="text-sm text-gray-500 font-medium">{isBangla ? 'আপনার পাসওয়ার্ড পরিবর্তন করুন এবং একাউন্ট সুরক্ষিত রাখুন' : 'Change your password and secure your account'}
+                 </p>
                </div>
              </div>
              <div className="space-y-6 max-w-md">
@@ -577,7 +584,7 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({ user, onUpdateUser, is
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div>
-                            <label className="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-1.5 ml-1">{isBangla ? 'বেতন' : 'Salary Range'}</label>
+                            <label className="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-1.5 ml-1">{isBangla ? 'বেতন' : 'Salary Range'} *</label>
                             <input type="text" className="w-full px-5 py-3.5 border-2 border-gray-100 rounded-2xl focus:ring-4 focus:ring-brand-500/10 focus:border-brand-500 outline-none font-bold" value={editItem.salary || ''} onChange={e => setEditItem({...editItem, salary: e.target.value})} placeholder="e.g. 20k-30k" />
                         </div>
                         <div>

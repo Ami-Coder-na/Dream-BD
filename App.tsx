@@ -171,7 +171,7 @@ const App: React.FC = () => {
             switch (activeModule) {
               case AppModule.ADMIN: 
                 return <AdminModule isBangla={isBangla} onExit={() => { window.location.href = '/'; }} user={user} />;
-              case AppModule.PROFILE: return user ? <ProfilePage user={user} onUpdateUser={setUser} isBangla={isBangla} /> : null;
+              case AppModule.PROFILE: return user ? <ProfilePage user={user} onUpdateUser={setUser} isBangla={isBangla} onLogout={() => { setUser(null); localStorage.removeItem('digital_desh_bd_user_session'); handleNavigate('LANDING'); }} /> : null;
               case AppModule.JOB: return <JobModule isBangla={isBangla} user={user} onLogin={() => setAuthView('login')} />;
               case AppModule.BLOG: return <BlogModule isBangla={isBangla} user={user} onLogin={() => setAuthView('login')} />;
               case AppModule.AMAR_BD: return <AmarBdModule isBangla={isBangla} onModuleSelect={m => handleNavigate(m)} />;
@@ -245,7 +245,7 @@ const App: React.FC = () => {
           user={user} 
           onLogin={() => setAuthView('login')} 
           onRegister={() => setAuthView('signup')} 
-          onLogout={() => { setUser(null); localStorage.removeItem('digital_desh_bd_user_session'); }}
+          onLogout={() => { setUser(null); localStorage.removeItem('digital_desh_bd_user_session'); handleNavigate('LANDING'); }}
           onModuleSelect={m => handleNavigate(m)}
           onNavigateHome={() => handleNavigate('LANDING')}
           isBangla={isBangla}
