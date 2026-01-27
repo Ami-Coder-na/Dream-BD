@@ -44,7 +44,7 @@ interface TestResult {
 }
 
 export const AdminModule: React.FC<Props> = ({ isBangla, onExit, user }) => {
-  const { requests, totalVisitors, todayVisitors, messages, donorViewLogs, users, totalCvGenerated, todayCvGenerated, jobs, blogs } = useData();
+  const { requests, totalVisitors, todayVisitors, messages, donorViewLogs, users, totalCvGenerated, todayCvGenerated, jobs, blogs, fetchUsers } = useData();
 
   const SESSION_KEY = 'digital_desh_bd_admin_session';
   const SESSION_DURATION = 12 * 60 * 60 * 1000;
@@ -78,6 +78,13 @@ export const AdminModule: React.FC<Props> = ({ isBangla, onExit, user }) => {
       localStorage.removeItem(SESSION_KEY);
     }
   }, []);
+
+  // Security: Fetch users only when admin is authenticated
+  useEffect(() => {
+    if (isAuthenticated) {
+        fetchUsers();
+    }
+  }, [isAuthenticated, fetchUsers]);
 
   const runSystemTest = () => {
     setIsTesting(true);

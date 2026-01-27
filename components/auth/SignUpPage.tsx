@@ -1,9 +1,10 @@
 
 import React, { useState } from 'react';
-import { Mail, Lock, User, Briefcase, ArrowLeft, Eye, EyeOff, ChevronDown } from 'lucide-react';
+import { Mail, Lock, User, Briefcase, ArrowLeft, Eye, EyeOff, ChevronDown, Loader2 } from 'lucide-react';
 import { Button } from '../ui/Button';
 import { UserRole } from '../../types';
 import { useData } from '../../contexts/DataContext';
+import { supabase } from '../../services/supabaseClient';
 
 interface SignUpPageProps {
   onSignUpSuccess: (user: any) => void;
@@ -18,7 +19,7 @@ export const SignUpPage: React.FC<SignUpPageProps> = ({
   onBack,
   isBangla 
 }) => {
-  const { addUser, users } = useData(); 
+  const { addUser } = useData(); 
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -26,7 +27,7 @@ export const SignUpPage: React.FC<SignUpPageProps> = ({
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
 
-  const handleSignUp = (e: React.FormEvent) => {
+  const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
 
@@ -39,46 +40,47 @@ export const SignUpPage: React.FC<SignUpPageProps> = ({
       return;
     }
 
-    // Robust Duplicate email check
-    const isDuplicate = (users || []).some((u: any) => 
-      u.email && u.email.trim().toLowerCase() === trimmedEmail
-    );
+    try {
+      // Robust Duplicate email check: Query DB directly
+      const { data: existingUser, error } = await supabase
+        .from('users')
+        .select('email')
+        .eq('email', trimmedEmail)
+        .maybeSingle();
 
-    if (isDuplicate) {
-      alert(isBangla 
-        ? 'এই জিমেইল দিয়ে ইতোমধ্যে একটি অ্যাকাউন্ট তৈরি করা হয়েছে। অন্য জিমেইল ব্যবহার করুন অথবা লগইন করুন।' 
-        : 'An account already exists with this Gmail. Please use a different one or log in.'
-      );
-      setLoading(false);
-      return;
-    }
-
-    const newUser = {
-        id: `u${Date.now()}`,
-        name: name.trim(),
-        email: trimmedEmail,
-        password: password, 
-        role: role,
-        avatar: `https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&q=80&w=150`,
-        status: 'Active',
-        date: new Date().toLocaleDateString()
-    };
-
-    // Simulate API delay
-    setTimeout(async () => {
-      try {
-        await addUser(newUser);
-        onSignUpSuccess(newUser);
-      } catch (err) {
-        alert(isBangla ? 'অ্যাকাউন্ট তৈরিতে সমস্যা হয়েছে।' : 'Error creating account.');
-      } finally {
+      if (existingUser) {
+        alert(isBangla 
+          ? 'এই জিমেইল দিয়ে ইতোমধ্যে একটি অ্যাকাউন্ট তৈরি করা হয়েছে। অন্য জিমেইল ব্যবহার করুন অথবা লগইন করুন।' 
+          : 'An account already exists with this Gmail. Please use a different one or log in.'
+        );
         setLoading(false);
+        return;
       }
-    }, 1000);
+
+      const newUser = {
+          id: `u${Date.now()}`,
+          name: name.trim(),
+          email: trimmedEmail,
+          password: password, 
+          role: role,
+          avatar: `https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&q=80&w=150`,
+          status: 'Active',
+          date: new Date().toLocaleDateString()
+      };
+
+      await addUser(newUser);
+      onSignUpSuccess(newUser);
+
+    } catch (err) {
+      console.error(err);
+      alert(isBangla ? 'অ্যাকাউন্ট তৈরিতে সমস্যা হয়েছে।' : 'Error creating account.');
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-brand-50 via-white to-brand-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8 font-sans">
+    <div className="min-h-screen bg-gradient-to-br from-brand-50 via-white to-brand-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8 font-sans animate-fade-in">
       <div className="sm:mx-auto sm:w-full sm:max-w-md text-center">
         <div className="mx-auto w-16 h-16 bg-gradient-to-br from-brand-500 to-brand-600 rounded-2xl flex items-center justify-center text-white font-bold text-3xl shadow-lg transform -rotate-3 hover:rotate-0 transition-transform duration-300 cursor-pointer">
           D
@@ -204,6 +206,7 @@ export const SignUpPage: React.FC<SignUpPageProps> = ({
                 className="w-full flex justify-center py-3 px-4 border border-transparent rounded-xl shadow-lg shadow-brand-500/30 text-sm font-bold text-white bg-brand-600 hover:bg-brand-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-brand-500 transition-all duration-200 hover:scale-[1.02]"
                 disabled={loading}
               >
+                {loading ? <Loader2 className="animate-spin mr-2" size={18} /> : null}
                 {loading ? (isBangla ? 'অ্যাকাউন্ট তৈরি হচ্ছে...' : 'Creating Account...') : (isBangla ? 'অ্যাকাউন্ট তৈরি করুন' : 'Create Account')}
               </Button>
             </div>

@@ -7,6 +7,7 @@ import { User, UserRole, SubscriptionTier, PricingPlan, PromoCode, PaymentReques
 interface DataContextType {
   isLoading: boolean;
   users: User[];
+  fetchUsers: () => Promise<void>; // Added for admin security
   addUser: (user: any) => Promise<void>;
   updateUser: (user: User) => Promise<void>;
   updateUserStatus: (id: string, status: string) => Promise<void>;
@@ -136,7 +137,6 @@ const getSyncCache = (key: string, defaultValue: any) => {
     }
   } catch (e) {
     console.warn(`Cache parsing failed for ${key}`);
-    // localStorage.removeItem(`db_cache_${key}`); // Don't delete immediately to prevent loops
   }
   return defaultValue;
 };
@@ -149,10 +149,10 @@ const getStatCache = (key: string, defaultVal: number) => {
 };
 
 export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
-  const [isLoading, setIsLoading] = useState(true); // Start true, turn off quickly
+  const [isLoading, setIsLoading] = useState(true); 
   
   // Initialize state with cache or defaults (Cache-First Strategy)
-  const [users, setUsers] = useState<User[]>(() => getSyncCache('users', []));
+  const [users, setUsers] = useState<User[]>([]); // SECURITY FIX: Start empty, do not cache users
   const [jobs, setJobs] = useState<any[]>(() => getSyncCache('jobs', []));
   const [blogs, setBlogs] = useState<any[]>(() => getSyncCache('blogs', []));
   const [wholesaleAds, setWholesaleAds] = useState<any[]>(() => getSyncCache('wholesale_ads', []));
@@ -198,13 +198,23 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     } catch (e) { console.warn(`Cache save failed for ${key}`); }
   };
 
+  // SECURITY: Explicit function to fetch users ONLY when needed (e.g., Admin Login)
+  const fetchUsers = async () => {
+    if (!isSupabaseConfigured) return;
+    try {
+      const { data, error } = await supabase.from('users').select('*').order('created_at', { ascending: false });
+      if (!error && data) {
+        setUsers(data);
+      }
+    } catch (e) { console.warn("Failed to fetch users:", e); }
+  };
+
   const fetchInitialData = useCallback(async () => {
     if (!isSupabaseConfigured) {
-        setIsLoading(false); // If offline, stop loading immediately
+        setIsLoading(false); 
         return;
     }
 
-    // Helper for non-blocking fetch
     const fetchTable = async (table: string, setter: (data: any[]) => void, orderCol: string = 'created_at') => {
       try {
         const { data, error } = await supabase.from(table).select('*').order(orderCol, { ascending: table === 'districts' || table === 'pregnancy_info' });
@@ -234,16 +244,11 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     };
 
     try {
-      // PHASE 1: Critical Config (Blocking for minimal time)
       await fetchSiteContent();
-      
-      // RELEASE UI IMMEDIATELY
       setIsLoading(false);
 
-      // PHASE 2: Fetch Data in Background (Fire and Forget)
-      // We don't await these to block UI, we let them populate as they arrive.
+      // SECURITY FIX: Removed 'users' from this list to prevent auto-loading
       const fetchPromises = [
-        fetchTable('users', setUsers),
         fetchTable('jobs', setJobs),
         fetchTable('blogs', setBlogs),
         fetchTable('market_prices', setMarketPrices),
@@ -265,8 +270,6 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         fetchTable('contact_messages', setMessages),
         fetchTable('donor_view_logs', setDonorViewLogs)
       ];
-      
-      // Use allSettled to ensure one failure doesn't stop others (though we aren't awaiting it for UI)
       Promise.allSettled(fetchPromises);
 
     } catch (e) {
@@ -275,13 +278,11 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     }
   }, []);
 
-  // Real-time listener for site config
+  // Real-time listener
   useEffect(() => {
     fetchInitialData();
-
     if (isSupabaseConfigured) {
-      const channel = supabase
-        .channel('data_context_realtime')
+      const channel = supabase.channel('data_context_realtime')
         .on('postgres_changes', { event: '*', schema: 'public', table: 'site_config' }, (payload: any) => {
           if (payload.new) {
             const { key, value } = payload.new;
@@ -294,10 +295,7 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
           }
         })
         .subscribe();
-
-      return () => {
-        supabase.removeChannel(channel);
-      };
+      return () => { supabase.removeChannel(channel); };
     }
   }, [fetchInitialData]);
 
@@ -385,6 +383,7 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     setUsers(prev => prev.map(u => u.email === email ? { ...u, password: pass } : u));
   };
 
+  // ... (Other CRUD operations remain same but ensure they use wrapSupabase) ...
   const addJob = async (j: any) => {
     const jobData = { ...j, status: 'Active', posteddate: j.posteddate || new Date().toLocaleDateString() };
     await wrapSupabase(() => supabase.from('jobs').insert([jobData]));
@@ -652,7 +651,7 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   return (
     <DataContext.Provider value={{
       isLoading,
-      users, addUser, updateUser, updateUserStatus, deleteUser, resetPassword,
+      users, fetchUsers, addUser, updateUser, updateUserStatus, deleteUser, resetPassword,
       jobs, addJob, updateJob, deleteJob,
       blogs, addBlog, updateBlog, deleteBlog,
       wholesaleAds, addWholesaleAd, updateWholesaleAd, deleteWholesaleAd,

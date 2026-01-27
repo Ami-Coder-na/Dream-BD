@@ -3,6 +3,7 @@ import React, { useState } from 'react';
 import { Mail, Lock, ArrowLeft, Eye, EyeOff, CheckCircle, Sparkles, AlertCircle, KeyRound, ArrowRight } from 'lucide-react';
 import { Button } from '../ui/Button';
 import { useData } from '../../contexts/DataContext';
+import { supabase } from '../../services/supabaseClient';
 
 interface LoginPageProps {
   onLoginSuccess: (user: any) => void;
@@ -19,7 +20,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({
   onBack,
   isBangla 
 }) => {
-  const { users, resetPassword } = useData(); // Get users and reset function
+  const { resetPassword } = useData(); 
   const [currentView, setCurrentView] = useState<AuthView>('login');
   
   // Login State
@@ -39,7 +40,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({
   const [confirmPassword, setConfirmPassword] = useState('');
 
   // --- LOGIN LOGIC ---
-  const handleLogin = (e: React.FormEvent) => {
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
     setLoading(true);
@@ -47,13 +48,14 @@ export const LoginPage: React.FC<LoginPageProps> = ({
     const trimmedEmail = email.trim();
     const trimmedPassword = password.trim();
 
-    // Simulate API delay
-    setTimeout(() => {
-      // Check against registered users in Context
-      const registeredUser = users.find((u: any) => 
-        u.email.toLowerCase() === trimmedEmail.toLowerCase() && 
-        u.password === trimmedPassword
-      );
+    try {
+      // Secure Login: Query DB directly for specific user match
+      const { data: registeredUser, error: dbError } = await supabase
+        .from('users')
+        .select('*')
+        .eq('email', trimmedEmail)
+        .eq('password', trimmedPassword)
+        .maybeSingle();
 
       if (registeredUser) {
         if (registeredUser.status === 'Suspended') {
@@ -62,39 +64,44 @@ export const LoginPage: React.FC<LoginPageProps> = ({
             onLoginSuccess(registeredUser);
         }
       } else {
-        const emailExists = users.some((u: any) => u.email.toLowerCase() === trimmedEmail.toLowerCase());
-        
-        if (emailExists) {
-           setError(isBangla ? 'ভুল পাসওয়ার্ড। অনুগ্রহ করে আবার চেষ্টা করুন।' : 'Incorrect password. Please try again.');
-        } else {
-           setError(isBangla ? 'এই ইমেইল দিয়ে কোন অ্যাকাউন্ট পাওয়া যায়নি।' : 'No account found with this email.');
-        }
+        setError(isBangla ? 'ভুল ইমেইল বা পাসওয়ার্ড।' : 'Invalid email or password.');
       }
+    } catch (err) {
+      console.error(err);
+      setError(isBangla ? 'লগইন করতে সমস্যা হচ্ছে।' : 'Login failed. Please check connection.');
+    } finally {
       setLoading(false);
-    }, 800);
+    }
   };
 
   // --- FORGOT PASSWORD: STEP 1 (VERIFY EMAIL) ---
-  const handleVerifyEmail = (e: React.FormEvent) => {
+  const handleVerifyEmail = async (e: React.FormEvent) => {
     e.preventDefault();
     setResetStatus('loading');
     setResetMessage('');
 
     const trimmedEmail = resetEmail.trim();
 
-    setTimeout(() => {
-        const userExists = users.some((u: any) => u.email.toLowerCase() === trimmedEmail.toLowerCase());
+    try {
+        const { data } = await supabase
+          .from('users')
+          .select('email')
+          .eq('email', trimmedEmail)
+          .maybeSingle();
 
-        if (userExists) {
-            setResetStatus('success'); // In this flow, success means found
-            setCurrentView('set_new_password'); // Move to next step immediately
+        if (data) {
+            setResetStatus('success');
+            setCurrentView('set_new_password');
         } else {
             setResetStatus('error');
             setResetMessage(isBangla 
                 ? 'এই ইমেইল ঠিকানাটি আমাদের সিস্টেমে নিবন্ধিত নয়।' 
                 : 'This email address is not registered in our system.');
         }
-    }, 1000);
+    } catch (err) {
+        setResetStatus('error');
+        setResetMessage('Network error');
+    }
   };
 
   // --- FORGOT PASSWORD: STEP 2 (SET NEW PASSWORD) ---
