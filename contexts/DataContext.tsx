@@ -7,7 +7,8 @@ import { User, UserRole, SubscriptionTier, PricingPlan, PromoCode, PaymentReques
 interface DataContextType {
   isLoading: boolean;
   users: User[];
-  fetchUsers: () => Promise<void>; // Added for admin security
+  fetchUsers: () => Promise<void>;
+  clearUsers: () => void; // Added for security cleanup
   addUser: (user: any) => Promise<void>;
   updateUser: (user: User) => Promise<void>;
   updateUserStatus: (id: string, status: string) => Promise<void>;
@@ -126,7 +127,6 @@ interface DataContextType {
 
 const DataContext = createContext<DataContextType | undefined>(undefined);
 
-// Safe cache retrieval for SSR/Next.js environment
 const getSyncCache = (key: string, defaultValue: any) => {
   if (typeof window === 'undefined') return defaultValue;
   try {
@@ -141,7 +141,6 @@ const getSyncCache = (key: string, defaultValue: any) => {
   return defaultValue;
 };
 
-// Safe statistic retrieval
 const getStatCache = (key: string, defaultVal: number) => {
   if (typeof window === 'undefined') return defaultVal;
   const v = localStorage.getItem(key);
@@ -151,8 +150,7 @@ const getStatCache = (key: string, defaultVal: number) => {
 export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const [isLoading, setIsLoading] = useState(true); 
   
-  // Initialize state with cache or defaults (Cache-First Strategy)
-  const [users, setUsers] = useState<User[]>([]); // SECURITY FIX: Start empty, do not cache users
+  const [users, setUsers] = useState<User[]>([]); 
   
   // SECURITY CRITICAL: Force remove any lingering user data from local storage
   if (typeof window !== 'undefined') {
@@ -204,15 +202,24 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     } catch (e) { console.warn(`Cache save failed for ${key}`); }
   };
 
-  // SECURITY: Explicit function to fetch users ONLY when needed (e.g., Admin Login)
+  // SECURITY FIX: Select ONLY safe columns. Do NOT select '*'.
+  // This prevents sensitive fields like 'api_key' or 'password' from being loaded into the shared user list.
   const fetchUsers = async () => {
     if (!isSupabaseConfigured) return;
     try {
-      const { data, error } = await supabase.from('users').select('*').order('created_at', { ascending: false });
+      const { data, error } = await supabase
+        .from('users')
+        .select('id, name, email, role, avatar, phone, location, status, date, subscriptionTier, imageUploadCount')
+        .order('created_at', { ascending: false });
+      
       if (!error && data) {
-        setUsers(data);
+        setUsers(data as User[]);
       }
     } catch (e) { console.warn("Failed to fetch users:", e); }
+  };
+
+  const clearUsers = () => {
+    setUsers([]);
   };
 
   const fetchInitialData = useCallback(async () => {
@@ -253,7 +260,6 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       await fetchSiteContent();
       setIsLoading(false);
 
-      // SECURITY FIX: Removed 'users' from this list to prevent auto-loading
       const fetchPromises = [
         fetchTable('jobs', setJobs),
         fetchTable('blogs', setBlogs),
@@ -284,10 +290,8 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     }
   }, []);
 
-  // Real-time listener
   useEffect(() => {
     fetchInitialData();
-    // Ensure cleanup of db_cache_users
     if (typeof window !== 'undefined') {
         localStorage.removeItem('db_cache_users');
     }
@@ -368,7 +372,6 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     try { await action(); } catch (e) { console.warn("Supabase action failed."); }
   };
 
-  // --- CRUD Operations ---
   const addUser = async (u: any) => {
     await wrapSupabase(() => supabase.from('users').insert([u]));
     setUsers(prev => [...prev, u]);
@@ -394,7 +397,6 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     setUsers(prev => prev.map(u => u.email === email ? { ...u, password: pass } : u));
   };
 
-  // ... (Other CRUD operations remain same but ensure they use wrapSupabase) ...
   const addJob = async (j: any) => {
     const jobData = { ...j, status: 'Active', posteddate: j.posteddate || new Date().toLocaleDateString() };
     await wrapSupabase(() => supabase.from('jobs').insert([jobData]));
@@ -662,7 +664,7 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   return (
     <DataContext.Provider value={{
       isLoading,
-      users, fetchUsers, addUser, updateUser, updateUserStatus, deleteUser, resetPassword,
+      users, fetchUsers, clearUsers, addUser, updateUser, updateUserStatus, deleteUser, resetPassword,
       jobs, addJob, updateJob, deleteJob,
       blogs, addBlog, updateBlog, deleteBlog,
       wholesaleAds, addWholesaleAd, updateWholesaleAd, deleteWholesaleAd,

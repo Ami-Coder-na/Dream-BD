@@ -44,7 +44,7 @@ interface TestResult {
 }
 
 export const AdminModule: React.FC<Props> = ({ isBangla, onExit, user }) => {
-  const { requests, totalVisitors, todayVisitors, messages, donorViewLogs, users, totalCvGenerated, todayCvGenerated, jobs, blogs, fetchUsers } = useData();
+  const { requests, totalVisitors, todayVisitors, messages, donorViewLogs, users, totalCvGenerated, todayCvGenerated, jobs, blogs, fetchUsers, clearUsers } = useData();
 
   const SESSION_KEY = 'digital_desh_bd_admin_session';
   const SESSION_DURATION = 12 * 60 * 60 * 1000;
@@ -147,6 +147,7 @@ export const AdminModule: React.FC<Props> = ({ isBangla, onExit, user }) => {
     if(confirm(isBangla ? 'আপনি কি লগআউট করতে নিশ্চিত?' : 'Are you sure you want to logout?')) {
       setIsAuthenticated(false);
       localStorage.removeItem(SESSION_KEY);
+      clearUsers(); // Security Fix: Clear users list from memory on logout
       onExit();
     }
   };
