@@ -153,6 +153,12 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   
   // Initialize state with cache or defaults (Cache-First Strategy)
   const [users, setUsers] = useState<User[]>([]); // SECURITY FIX: Start empty, do not cache users
+  
+  // SECURITY CRITICAL: Force remove any lingering user data from local storage
+  if (typeof window !== 'undefined') {
+    localStorage.removeItem('db_cache_users');
+  }
+
   const [jobs, setJobs] = useState<any[]>(() => getSyncCache('jobs', []));
   const [blogs, setBlogs] = useState<any[]>(() => getSyncCache('blogs', []));
   const [wholesaleAds, setWholesaleAds] = useState<any[]>(() => getSyncCache('wholesale_ads', []));
@@ -281,6 +287,11 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   // Real-time listener
   useEffect(() => {
     fetchInitialData();
+    // Ensure cleanup of db_cache_users
+    if (typeof window !== 'undefined') {
+        localStorage.removeItem('db_cache_users');
+    }
+    
     if (isSupabaseConfigured) {
       const channel = supabase.channel('data_context_realtime')
         .on('postgres_changes', { event: '*', schema: 'public', table: 'site_config' }, (payload: any) => {
