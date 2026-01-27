@@ -202,10 +202,19 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     } catch (e) { console.warn(`Cache save failed for ${key}`); }
   };
 
-  // SECURITY FIX: Select ONLY safe columns. Do NOT select '*'.
-  // This prevents sensitive fields like 'api_key' or 'password' from being loaded into the shared user list.
+  // SECURITY FIX: Restricted to Admin Session ONLY
+  // This prevents regular users from fetching the full user list
   const fetchUsers = async () => {
     if (!isSupabaseConfigured) return;
+    
+    // STRICT CHECK: Admin session must exist
+    const adminSession = localStorage.getItem('digital_desh_bd_admin_session');
+    if (!adminSession) {
+        // Silently fail for non-admins to prevent error spam, or log warn
+        // console.warn("Fetch Users Blocked: Admin session not found.");
+        return;
+    }
+
     try {
       const { data, error } = await supabase
         .from('users')
@@ -374,12 +383,29 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
   const addUser = async (u: any) => {
     await wrapSupabase(() => supabase.from('users').insert([u]));
-    setUsers(prev => [...prev, u]);
+    // Only update local list if admin (optional, but consistent)
+    // For signup, we don't necessarily need to see all users in context
+    if (localStorage.getItem('digital_desh_bd_admin_session')) {
+       setUsers(prev => [...prev, u]);
+    }
   };
 
   const updateUser = async (u: User) => {
     await wrapSupabase(() => supabase.from('users').update(u).eq('id', u.id));
     setUsers(prev => prev.map(item => item.id === u.id ? u : item));
+    
+    // Sync with local session if it's the current user
+    if (typeof window !== 'undefined') {
+        const sessionStr = localStorage.getItem('digital_desh_bd_user_session');
+        if (sessionStr) {
+            try {
+                const session = JSON.parse(sessionStr);
+                if (session.user && session.user.id === u.id) {
+                    localStorage.setItem('digital_desh_bd_user_session', JSON.stringify({ ...session, user: u }));
+                }
+            } catch(e) {}
+        }
+    }
   };
 
   const updateUserStatus = async (id: string, s: string) => {

