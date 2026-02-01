@@ -14,7 +14,7 @@ interface Props {
 interface DistrictData {
   nameBn: string;
   nameEn: string;
-  spots: string[];
+  spots: any[]; // Changed to support {en, bn} objects or strings
 }
 
 interface DivisionData {
@@ -87,19 +87,19 @@ const tourismData: DivisionData[] = [
     nameBn: 'ঢাকা বিভাগ',
     nameEn: 'Dhaka Division',
     districts: [
-      { nameBn: 'ঢাকা', nameEn: 'Dhaka', spots: ['Lalbagh Fort', 'Ahsan Manzil', 'National Parliament', 'Dhakeshwari Temple', 'Shaheed Minar'] },
-      { nameBn: 'গাজীপুর', nameEn: 'Gazipur', spots: ['Bhawal National Park', 'Safari Park', 'Nuhash Polli', 'Turag River'] },
-      { nameBn: 'নারায়ণগঞ্জ', nameEn: 'Narayanganj', spots: ['Sonargaon (Panam City)', 'Folk Art Museum', 'Mary Anderson Floating Restaurant'] },
-      { nameBn: 'মুন্সীগঞ্জ', nameEn: 'Munshiganj', spots: ['Idrakpur Fort', 'Baba Adam Mosque', 'Arial Beel', 'Padma Bridge View Point'] },
-      { nameBn: 'নরসিংদী', nameEn: 'Narsingdi', spots: ['Wari-Bateshwar Ruins', 'Dream Holiday Park', 'Ghorashal'] },
-      { nameBn: 'মানিকগঞ্জ', nameEn: 'Manikganj', spots: ['Baliati Palace', 'Teota Zamindar Bari', 'Aricha Ghat'] },
-      { nameBn: 'টাঙ্গাইল', nameEn: 'Tangail', spots: ['Mohera Jamindar Bari', 'Madhupur National Park', 'Atiya Mosque', '201 Dome Mosque'] },
-      { nameBn: 'কিশোরগঞ্জ', nameEn: 'Kishoreganj', spots: ['Nikli Haor', 'Jangalbari Fort', 'Egarosindur', 'Sholakia Eidgah'] },
-      { nameBn: 'ফরিদুর', nameEn: 'Faridpur', spots: ['River Research Institute', 'Kanaipur Zamindar Bari', 'Pallikabi Jasimuddin Home'] },
-      { nameBn: 'গোপালগঞ্জ', nameEn: 'Gopalganj', spots: ['Mausoleum of Bangabandhu', 'Ulpur Zamindar Bari', 'Modhumoti River'] },
-      { nameBn: 'মাদারীপুর', nameEn: 'Madaripur', spots: ['Shakuni Lake', 'Raza Ram Khal', 'Senapati Dighi'] },
-      { nameBn: 'শরীয়তপুর', nameEn: 'Shariatpur', spots: ['Fateh Jangpur Fort', 'Modern Fantasy Kingdom', 'River Padma'] },
-      { nameBn: 'राजবাড়ী', nameEn: 'Rajbari', spots: ['Goalanda Ghat', 'Jor Bangla Temple', 'Gododhi'] }
+      { nameBn: 'ঢাকা', nameEn: 'Dhaka', spots: [{en: 'Lalbagh Fort', bn: 'লালবাগ কেল্লা'}, {en: 'Ahsan Manzil', bn: 'আহসান মঞ্জিল'}, {en: 'National Parliament', bn: 'জাতীয় সংসদ ভবন'}, {en: 'Dhakeshwari Temple', bn: 'ঢাকেশ্বরী মন্দির'}, {en: 'Shaheed Minar', bn: 'শহীদ মিনার'}] },
+      { nameBn: 'গাজীপুর', nameEn: 'Gazipur', spots: [{en: 'Bhawal National Park', bn: 'ভাওয়াল জাতীয় উদ্যান'}, {en: 'Safari Park', bn: 'সাফারি পার্ক'}, {en: 'Nuhash Polli', bn: 'নুহাশ পল্লী'}, {en: 'Turag River', bn: 'তুরাগ নদী'}] },
+      { nameBn: 'নারায়ণগঞ্জ', nameEn: 'Narayanganj', spots: [{en: 'Sonargaon (Panam City)', bn: 'সোনারগাঁও (পানাম নগর)'}, {en: 'Folk Art Museum', bn: 'লোকশিল্প জাদুঘর'}, {en: 'Mary Anderson Floating Restaurant', bn: 'মেরি এন্ডারসন ভাসমান রেস্তোরাঁ'}] },
+      { nameBn: 'মুন্সীগঞ্জ', nameEn: 'Munshiganj', spots: [{en: 'Idrakpur Fort', bn: 'ইদ্রাকপুর কেল্লা'}, {en: 'Baba Adam Mosque', bn: 'বাবা আদম মসজিদ'}, {en: 'Arial Beel', bn: 'আড়িয়াল বিল'}, {en: 'Padma Bridge View Point', bn: 'পদ্মা সেতু ভিউ পয়েন্ট'}] },
+      { nameBn: 'নরসিংদী', nameEn: 'Narsingdi', spots: [{en: 'Wari-Bateshwar Ruins', bn: 'উয়ারী-বটেশ্বর'}, {en: 'Dream Holiday Park', bn: 'ড্রিম হলিডে পার্ক'}, {en: 'Ghorashal', bn: 'ঘোড়াশাল'}] },
+      { nameBn: 'মানিকগঞ্জ', nameEn: 'Manikganj', spots: [{en: 'Baliati Palace', bn: 'বালিয়াটি প্রাসাদ'}, {en: 'Teota Zamindar Bari', bn: 'তেউতা জমিদার বাড়ি'}, {en: 'Aricha Ghat', bn: 'আরিচা ঘাট'}] },
+      { nameBn: 'টাঙ্গাইল', nameEn: 'Tangail', spots: [{en: 'Mohera Jamindar Bari', bn: 'মহেরা জমিদার বাড়ি'}, {en: 'Madhupur National Park', bn: 'মধুপুর জাতীয় উদ্যান'}, {en: 'Atiya Mosque', bn: 'আতিয়া মসজিদ'}, {en: '201 Dome Mosque', bn: '২০১ গম্বুজ মসজিদ'}] },
+      { nameBn: 'কিশোরগঞ্জ', nameEn: 'Kishoreganj', spots: [{en: 'Nikli Haor', bn: 'নিকলী হাওর'}, {en: 'Jangalbari Fort', bn: 'জঙ্গলবাড়ি দুর্গ'}, {en: 'Egarosindur', bn: 'এগারসিন্দুর'}, {en: 'Sholakia Eidgah', bn: 'শোলাকিয়া ঈদগাহ'}] },
+      { nameBn: 'ফরিদুর', nameEn: 'Faridpur', spots: [{en: 'River Research Institute', bn: 'নদী গবেষণা ইনস্টিটিউট'}, {en: 'Kanaipur Zamindar Bari', bn: 'কানাইপুর জমিদার বাড়ি'}, {en: 'Pallikabi Jasimuddin Home', bn: 'পল্লীকবি জসীমউদ্দীনের বাড়ি'}] },
+      { nameBn: 'গোপালগঞ্জ', nameEn: 'Gopalganj', spots: [{en: 'Mausoleum of Bangabandhu', bn: 'বঙ্গবন্ধুর সমাধি সৌধ'}, {en: 'Ulpur Zamindar Bari', bn: 'উলপুর জমিদার বাড়ি'}, {en: 'Modhumoti River', bn: ' মধুমতি নদী'}] },
+      { nameBn: 'মাদারীপুর', nameEn: 'Madaripur', spots: [{en: 'Shakuni Lake', bn: 'শকুনি লেক'}, {en: 'Raza Ram Khal', bn: 'রাজা রাম খাল'}, {en: 'Senapati Dighi', bn: 'সেনাপতি দিঘি'}] },
+      { nameBn: 'শরীয়তপুর', nameEn: 'Shariatpur', spots: [{en: 'Fateh Jangpur Fort', bn: 'ফতেহজংপুর দুর্গ'}, {en: 'Modern Fantasy Kingdom', bn: 'মডার্ন ফ্যান্টাসি কিংডম'}, {en: 'River Padma', bn: 'পদ্মা নদী'}] },
+      { nameBn: 'রাজবাড়ী', nameEn: 'Rajbari', spots: [{en: 'Goalanda Ghat', bn: 'গোয়ালন্দ ঘাট'}, {en: 'Jor Bangla Temple', bn: 'জোড় বাংলা মন্দির'}, {en: 'Gododhi', bn: 'গদধি'}] }
     ]
   },
   {
@@ -107,17 +107,17 @@ const tourismData: DivisionData[] = [
     nameBn: 'চট্টগ্রাম বিভাগ',
     nameEn: 'Chattogram Division',
     districts: [
-      { nameBn: 'চট্টগ্রাম', nameEn: 'Chattogram', spots: ['Patenga Beach', 'Foy\'s Lake', 'Ethnological Museum', 'War Cemetery', 'Guliakhali Beach'] },
-      { nameBn: 'কক্সবাজার', nameEn: 'Cox\'s Bazar', spots: ['Longest Sea Beach', 'Himchari', 'Inani Beach', 'Saint Martin\'s Island', 'Radiant Fish World'] },
-      { nameBn: 'কুমিল্লা', nameEn: 'Comilla', spots: ['Shalban Vihara', 'Mainamati Ruins', 'Dharmasagar Dighi', 'War Cemetery'] },
-      { nameBn: 'ব্রাহ্মণবাড়িয়া', nameEn: 'Brahmanbaria', spots: ['Arifil Mosque', 'Titas Gas Field', 'Ulchapara Mosque'] },
-      { nameBn: 'চাঁদপুর', nameEn: 'Chandpur', spots: ['Mohona (Padma-Meghna-Dakatia)', 'Rokto Dhara', 'Mini Cox\'s Bazar'] },
-      { nameBn: 'নোয়াখালী', nameEn: 'Noakhali', spots: ['Nijhum Dwip', 'Bajra Shahi Mosque', 'Gandhi Ashram'] },
-      { nameBn: 'লক্ষ্মীপুর', nameEn: 'Lakshmipur', spots: ['Dalal Bazar Zamindar Bari', 'Khoa Sagar Dighi', 'Ramgati'] },
-      { nameBn: 'ফেনী', nameEn: 'Feni', spots: ['Muhuri Project', 'Bijoy Singh Dighi', 'Chandgazi Mosque'] },
-      { nameBn: 'খাগড়াছড়ি', nameEn: 'Khagrachari', spots: ['Alutila Cave', 'Risang Waterfall', 'Hanging Bridge', 'Sajek Valley (Route)'] },
-      { nameBn: 'রাঙ্গামাটি', nameEn: 'Rangamati', spots: ['Kaptai Lake', 'Hanging Bridge', 'Shuvolong Waterfall', 'Polwel Park', 'Sajek Valley'] },
-      { nameBn: 'বান্দরবান', nameEn: 'Bandarban', spots: ['Nilagiri', 'Boga Lake', 'Golden Temple', 'Nafakhum', 'Chimbuk Hill'] }
+      { nameBn: 'চট্টগ্রাম', nameEn: 'Chattogram', spots: [{en: 'Patenga Beach', bn: 'পতেঙ্গা সমুদ্র সৈকত'}, {en: "Foy's Lake", bn: 'ফয়েজ লেক'}, {en: 'Ethnological Museum', bn: 'জাতি তাত্ত্বিক জাদুঘর'}, {en: 'War Cemetery', bn: 'ওয়ার সিমেট্রি'}, {en: 'Guliakhali Beach', bn: 'গুলিয়াখালী বিচ'}] },
+      { nameBn: 'কক্সবাজার', nameEn: 'Cox\'s Bazar', spots: [{en: 'Longest Sea Beach', bn: 'দীর্ঘতম সমুদ্র সৈকত'}, {en: 'Himchari', bn: 'হিমছড়ি'}, {en: 'Inani Beach', bn: 'ইনানী বিচ'}, {en: "Saint Martin's Island", bn: 'সেন্ট মার্টিন দ্বীপ'}, {en: 'Radiant Fish World', bn: 'রেডিয়েন্ট ফিশ ওয়ার্ল্ড'}] },
+      { nameBn: 'কুমিল্লা', nameEn: 'Comilla', spots: [{en: 'Shalban Vihara', bn: 'শালবন বিহার'}, {en: 'Mainamati Ruins', bn: 'ময়নামতি ধ্বংসাবশেষ'}, {en: 'Dharmasagar Dighi', bn: 'ধর্মসাগর দিঘী'}, {en: 'War Cemetery', bn: 'ওয়ার সিমেট্রি'}] },
+      { nameBn: 'ব্রাহ্মণবাড়িয়া', nameEn: 'Brahmanbaria', spots: [{en: 'Arifil Mosque', bn: 'আরিফিল মসজিদ'}, {en: 'Titas Gas Field', bn: 'তিতাস গ্যাস ক্ষেত্র'}, {en: 'Ulchapara Mosque', bn: 'উলচাপাড়া মসজিদ'}] },
+      { nameBn: 'চাঁদপুর', nameEn: 'Chandpur', spots: [{en: 'Mohona (Padma-Meghna-Dakatia)', bn: 'মোহনা (তিন নদীর মিলনস্থল)'}, {en: 'Rokto Dhara', bn: 'রক্তধারা স্মৃতিসৌধ'}, {en: "Mini Cox's Bazar", bn: 'মিনি কক্সবাজার'}] },
+      { nameBn: 'নোয়াখালী', nameEn: 'Noakhali', spots: [{en: 'Nijhum Dwip', bn: 'নিঝুম দ্বীপ'}, {en: 'Bajra Shahi Mosque', bn: 'বজরা শাহী মসজিদ'}, {en: 'Gandhi Ashram', bn: 'গান্ধী আশ্রম'}] },
+      { nameBn: 'লক্ষ্মীপুর', nameEn: 'Lakshmipur', spots: [{en: 'Dalal Bazar Zamindar Bari', bn: 'দালাল বাজার জমিদার বাড়ি'}, {en: 'Khoa Sagar Dighi', bn: 'খোয়া সাগর দিঘী'}, {en: 'Ramgati', bn: 'রামগতি'}] },
+      { nameBn: 'ফেনী', nameEn: 'Feni', spots: [{en: 'Muhuri Project', bn: 'মুহুরী প্রজেক্ট'}, {en: 'Bijoy Singh Dighi', bn: 'বিজয় সিংহ দিঘী'}, {en: 'Chandgazi Mosque', bn: 'চাঁদগাজী মসজিদ'}] },
+      { nameBn: 'খাগড়াছড়ি', nameEn: 'Khagrachari', spots: [{en: 'Alutila Cave', bn: 'আলুটিলা গুহা'}, {en: 'Risang Waterfall', bn: 'রিছাং ঝর্ণা'}, {en: 'Hanging Bridge', bn: 'ঝুলন্ত সেতু'}, {en: 'Sajek Valley (Route)', bn: 'সাজেক ভ্যালি (রুট)'}] },
+      { nameBn: 'রাঙ্গামাটি', nameEn: 'Rangamati', spots: [{en: 'Kaptai Lake', bn: 'কাপ্তাই হ্রদ'}, {en: 'Hanging Bridge', bn: 'ঝুলন্ত সেতু'}, {en: 'Shuvolong Waterfall', bn: 'শুভলং ঝর্ণা'}, {en: 'Polwel Park', bn: 'পলওয়েল পার্ক'}, {en: 'Sajek Valley', bn: 'সাজেক ভ্যালি'}] },
+      { nameBn: 'বান্দরবান', nameEn: 'Bandarban', spots: [{en: 'Nilagiri', bn: 'নীলাচল'}, {en: 'Boga Lake', bn: 'বগা লেক'}, {en: 'Golden Temple', bn: 'স্বর্ণ মন্দির'}, {en: 'Nafakhum', bn: 'নাফাখুম'}, {en: 'Chimbuk Hill', bn: 'চিম্বুক পাহাড়'}] }
     ]
   },
   {
@@ -125,10 +125,10 @@ const tourismData: DivisionData[] = [
     nameBn: 'সিলেট বিভাগ',
     nameEn: 'Sylhet Division',
     districts: [
-      { nameBn: 'সিলেট', nameEn: 'Sylhet', spots: ['Jaflong', 'Ratargul Swamp Forest', 'Bichnakandi', 'Shahjalal Mazar', 'Lalakhal'] },
-      { nameBn: 'মৌলভীবাজার', nameEn: 'Moulvibazar', spots: ['Lawachara National Park', 'Madhabkunda Waterfall', 'Srimangal Tea Gardens', 'Hum Hum Waterfall'] },
-      { nameBn: 'হবিগঞ্জ', nameEn: 'Habiganj', spots: ['Satchari National Park', 'Greenland Park', 'Remaskona'] },
-      { nameBn: 'সুনামগঞ্জ', nameEn: 'Sunamganj', spots: ['Tanguar Haor', 'Shimul Bagan', 'Niladri Lake', 'Hason Raja Museum'] }
+      { nameBn: 'সিলেট', nameEn: 'Sylhet', spots: [{en: 'Jaflong', bn: 'জাফলং'}, {en: 'Ratargul Swamp Forest', bn: 'রাতারগুল সোয়াম্প ফরেস্ট'}, {en: 'Bichnakandi', bn: 'বিছনাকান্দি'}, {en: 'Shahjalal Mazar', bn: 'শাহজালাল মাজার'}, {en: 'Lalakhal', bn: 'লালাখাল'}] },
+      { nameBn: 'মৌলভীবাজার', nameEn: 'Moulvibazar', spots: [{en: 'Lawachara National Park', bn: 'লাউয়াছড়া জাতীয় উদ্যান'}, {en: 'Madhabkunda Waterfall', bn: 'মাধবকুন্ড ঝর্ণা'}, {en: 'Srimangal Tea Gardens', bn: 'শ্রীমঙ্গল চা বাগান'}, {en: 'Hum Hum Waterfall', bn: 'হামহাম ঝর্ণা'}] },
+      { nameBn: 'হবিগঞ্জ', nameEn: 'Habiganj', spots: [{en: 'Satchari National Park', bn: 'সাতছড়ি জাতীয় উদ্যান'}, {en: 'Greenland Park', bn: 'গ্রিনল্যান্ড পার্ক'}, {en: 'Remaskona', bn: 'রেমা-কালেঙ্গা'}] },
+      { nameBn: 'সুনামগঞ্জ', nameEn: 'Sunamganj', spots: [{en: 'Tanguar Haor', bn: 'টাঙ্গুয়ার হাওর'}, {en: 'Shimul Bagan', bn: 'শিমুল বাগান'}, {en: 'Niladri Lake', bn: 'নীলাদ্রি লেক'}, {en: 'Hason Raja Museum', bn: 'হাসন রাজা জাদুঘর'}] }
     ]
   },
   {
@@ -136,16 +136,16 @@ const tourismData: DivisionData[] = [
     nameBn: 'খুলনা বিভাগ',
     nameEn: 'Khulna Division',
     districts: [
-      { nameBn: 'খুলনা', nameEn: 'Khulna', spots: ['Sundarbans', 'Rupsha Bridge', 'Sixty Dome Mosque (Nearby)', 'Khan Jahan Ali Bridge'] },
-      { nameBn: 'বাগেরহাট', nameEn: 'Bagerhat', spots: ['Shat Gombujuj Masjid', 'Khan Jahan Ali Mazar', 'Sundarbans (Karamjal)'] },
-      { nameBn: 'সাতক্ষীরা', nameEn: 'Satkhira', spots: ['Sundarbans (Kalagachia)', 'Mandarbariya Beach', 'Mozaffar Garden'] },
-      { nameBn: 'যশোর', nameEn: 'Jessore', spots: ['Michael Madhusudan Dutta Home', 'Benapole Border', 'Jess Garden Park'] },
-      { nameBn: 'মাগুরা', nameEn: 'Magura', spots: ['Sreepur Zamindar Bari', 'Siddheshwari Mot'] },
-      { nameBn: 'ঝিনাইদহ', nameEn: 'Jhenaidah', spots: ['Johor Dighi', 'Miar Dalan', 'Naldanga Temple'] },
-      { nameBn: 'নড়াইল', nameEn: 'Narail', spots: ['SM Sultan Complex', 'Niribili Picnic Spot', 'Chitra River'] },
-      { nameBn: 'কুষ্টিয়া', nameEn: 'Kushtia', spots: ['Lalon Shah Mazar', 'Shilaidaha Kuthibari', 'Hardinge Bridge'] },
-      { nameBn: 'চুয়াডাঙ্গা', nameEn: 'Chuadanga', spots: ['Police Park', 'Keru & Co', 'Gholdari Mosque'] },
-      { nameBn: 'মেহেরপুর', nameEn: 'Meherpur', spots: ['Mujibnagar Memorial', 'Amjhupi Kuthibari'] }
+      { nameBn: 'খুলনা', nameEn: 'Khulna', spots: [{en: 'Sundarbans', bn: 'সুন্দরবন'}, {en: 'Rupsha Bridge', bn: 'রূপসা সেতু'}, {en: 'Sixty Dome Mosque (Nearby)', bn: 'ষাট গম্বুজ মসজিদ (কাছেই)'}, {en: 'Khan Jahan Ali Bridge', bn: 'খান জাহান আলী সেতু'}] },
+      { nameBn: 'বাগেরহাট', nameEn: 'Bagerhat', spots: [{en: 'Shat Gombujuj Masjid', bn: 'ষাট গম্বুজ মসজিদ'}, {en: 'Khan Jahan Ali Mazar', bn: 'খান জাহান আলী মাজার'}, {en: 'Sundarbans (Karamjal)', bn: 'সুন্দরবন (করমজল)'}] },
+      { nameBn: 'সাতক্ষীরা', nameEn: 'Satkhira', spots: [{en: 'Sundarbans (Kalagachia)', bn: 'সুন্দরবন (কলাগাছিয়া)'}, {en: 'Mandarbariya Beach', bn: 'মান্দারবাড়িয়া সমুদ্র সৈকত'}, {en: 'Mozaffar Garden', bn: 'মোজাফফর গার্ডেন'}] },
+      { nameBn: 'যশোর', nameEn: 'Jessore', spots: [{en: 'Michael Madhusudan Dutta Home', bn: 'মাইকেল মধুসূদন দত্তের বাড়ি'}, {en: 'Benapole Border', bn: 'বেনাপোল বর্ডার'}, {en: 'Jess Garden Park', bn: 'জেস গার্ডেন পার্ক'}] },
+      { nameBn: 'মাগুরা', nameEn: 'Magura', spots: [{en: 'Sreepur Zamindar Bari', bn: 'শ্রীপুর জমিদার বাড়ি'}, {en: 'Siddheshwari Mot', bn: 'সিদ্ধেশ্বরী মঠ'}] },
+      { nameBn: 'ঝিনাইদহ', nameEn: 'Jhenaidah', spots: [{en: 'Johor Dighi', bn: 'জোহর দিঘী'}, {en: 'Miar Dalan', bn: 'মিয়ার দালান'}, {en: 'Naldanga Temple', bn: 'নলডাঙ্গা মন্দির'}] },
+      { nameBn: 'নড়াইল', nameEn: 'Narail', spots: [{en: 'SM Sultan Complex', bn: 'এস এম সুলতান কমপ্লেক্স'}, {en: 'Niribili Picnic Spot', bn: 'নিরিবিলি পিকনিক স্পট'}, {en: 'Chitra River', bn: 'চিত্রা নদী'}] },
+      { nameBn: 'কুষ্টিয়া', nameEn: 'Kushtia', spots: [{en: 'Lalon Shah Mazar', bn: 'লালন শাহ মাজার'}, {en: 'Shilaidaha Kuthibari', bn: 'শিলাইদহ কুঠিবাড়ি'}, {en: 'Hardinge Bridge', bn: 'হার্ডিঞ্জ ব্রিজ'}] },
+      { nameBn: 'চুয়াডাঙ্গা', nameEn: 'Chuadanga', spots: [{en: 'Police Park', bn: 'পুলিশ পার্ক'}, {en: 'Keru & Co', bn: 'কেরু এন্ড কোম্পানি'}, {en: 'Gholdari Mosque', bn: 'ঘোলদাড়ি মসজিদ'}] },
+      { nameBn: 'মেহেরপুর', nameEn: 'Meherpur', spots: [{en: 'Mujibnagar Memorial', bn: 'মুজিবনগর স্মৃতিসৌধ'}, {en: 'Amjhupi Kuthibari', bn: 'আমঝুপি কুঠিবাড়ি'}] }
     ]
   },
   {
@@ -153,14 +153,14 @@ const tourismData: DivisionData[] = [
     nameBn: 'রাজশাহী বিভাগ',
     nameEn: 'Rajshahi Division',
     districts: [
-      { nameBn: 'রাজশাহী', nameEn: 'Rajshahi', spots: ['Varendra Research Museum', 'Bagha Mosque', 'Puthia Temple Complex', 'Padma Garden'] },
-      { nameBn: 'বগুড়া', nameEn: 'Bogra', spots: ['Mahasthangarh', 'Behular Bashor Ghar', 'Vasubihara', 'Museum'] },
-      { nameBn: 'পাবনা', nameEn: 'Pabna', spots: ['Paksey Hardinge Bridge', 'Tarash Bhaban', 'Gajnar Beel'] },
-      { nameBn: 'সিরাজগঞ্জ', nameEn: 'Sirajganj', spots: ['Jamuna Bridge', 'Navaratna Temple', 'Rabindra Kuthibari'] },
-      { nameBn: 'নাটোর', nameEn: 'Natore', spots: ['Natore Rajbari', 'Uttara Gonobhaban', 'Chalan Beel'] },
-      { nameBn: 'নওগাঁ', nameEn: 'Naogaon', spots: ['Paharpur Buddhist Vihara', 'Kusumba Mosque', 'Jobai Beel'] },
-      { nameBn: 'চাঁপাইনবাবগঞ্জ', nameEn: 'Chapainawabganj', spots: ['Choto Sona Mosque', 'Mango Orchards', 'Mahananda River View'] },
-      { nameBn: 'জয়পুরহাট', nameEn: 'Joypurhat', spots: ['Nandail Dighi', 'Baro Shivalaya', 'Lockma Rajbari'] }
+      { nameBn: 'রাজশাহী', nameEn: 'Rajshahi', spots: [{en: 'Varendra Research Museum', bn: 'বরেন্দ্র গবেষণা জাদুঘর'}, {en: 'Bagha Mosque', bn: 'বাঘা মসজিদ'}, {en: 'Puthia Temple Complex', bn: 'পুঠিয়া মন্দির চত্বর'}, {en: 'Padma Garden', bn: 'পদ্মা গার্ডেন'}] },
+      { nameBn: 'বগুড়া', nameEn: 'Bogra', spots: [{en: 'Mahasthangarh', bn: 'মহাস্থানগড়'}, {en: 'Behular Bashor Ghar', bn: 'বেহুলার বাসর ঘর'}, {en: 'Vasubihara', bn: 'ভাসু বিহার'}, {en: 'Museum', bn: 'জাদুঘর'}] },
+      { nameBn: 'পাবনা', nameEn: 'Pabna', spots: [{en: 'Paksey Hardinge Bridge', bn: 'পাকশী হার্ডিঞ্জ ব্রিজ'}, {en: 'Tarash Bhaban', bn: 'তাড়াশ ভবন'}, {en: 'Gajnar Beel', bn: 'গাজনার বিল'}] },
+      { nameBn: 'সিরাজগঞ্জ', nameEn: 'Sirajganj', spots: [{en: 'Jamuna Bridge', bn: 'যমুনা সেতু'}, {en: 'Navaratna Temple', bn: 'নবরত্ন মন্দির'}, {en: 'Rabindra Kuthibari', bn: 'রবীন্দ্র কুঠিবাড়ি'}] },
+      { nameBn: 'নাটোর', nameEn: 'Natore', spots: [{en: 'Natore Rajbari', bn: 'নাটোর রাজবাড়ি'}, {en: 'Uttara Gonobhaban', bn: 'উত্তরা গণভবন'}, {en: 'Chalan Beel', bn: 'চলন বিল'}] },
+      { nameBn: 'নওগাঁ', nameEn: 'Naogaon', spots: [{en: 'Paharpur Buddhist Vihara', bn: 'পাহাড়পুর বৌদ্ধ বিহার'}, {en: 'Kusumba Mosque', bn: 'কুসুম্বা মসজিদ'}, {en: 'Jobai Beel', bn: 'জবই বিল'}] },
+      { nameBn: 'চাঁপাইনবাবগঞ্জ', nameEn: 'Chapainawabganj', spots: [{en: 'Choto Sona Mosque', bn: 'ছোট সোনা মসজিদ'}, {en: 'Mango Orchards', bn: 'আম বাগান'}, {en: 'Mahananda River View', bn: 'মহানন্দা নদীর দৃশ্য'}] },
+      { nameBn: 'জয়পুরহাট', nameEn: 'Joypurhat', spots: [{en: 'Nandail Dighi', bn: 'নান্দাইল দিঘী'}, {en: 'Baro Shivalaya', bn: 'বারো শিবালয়'}, {en: 'Lockma Rajbari', bn: 'লকমা রাজবাড়ি'}] }
     ]
   },
   {
@@ -168,12 +168,12 @@ const tourismData: DivisionData[] = [
     nameBn: 'বরিশাল বিভাগ',
     nameEn: 'Barisal Division',
     districts: [
-      { nameBn: 'বরিশাল', nameEn: 'Barisal', spots: ['Durga Sagar Dighi', 'Guthia Mosque', 'Floating Guava Market (Bhimruli)'] },
-      { nameBn: 'পটুয়াখালী', nameEn: 'Patuakhali', spots: ['Kuakata Sea Beach', 'Fatrar Chor', 'Lebur Chor', 'Shutki Palli'] },
-      { nameBn: 'ভোলা', nameEn: 'Bhola', spots: ['Monpura Island', 'Char Kukri Mukri', 'Jacob Watch Tower'] },
-      { nameBn: 'পিরোজপুর', nameEn: 'Pirojpur', spots: ['Rayerkathi Zamindar Bari', 'Hularhat', 'Baleshwar River'] },
-      { nameBn: 'বরগুনা', nameEn: 'Barguna', spots: ['Bibichini Mosque', 'Haringhata Forest', 'Sonakata'] },
-      { nameBn: 'ঝালকাঠি', nameEn: 'Jhalokati', spots: ['Kirtipasha Zamindar Bari', 'Floating Markets (Backwaters)'] }
+      { nameBn: 'বরিশাল', nameEn: 'Barisal', spots: [{en: 'Durga Sagar Dighi', bn: 'দুর্গাসাগর দিঘী'}, {en: 'Guthia Mosque', bn: 'গুঠিয়া মসজিদ'}, {en: 'Floating Guava Market (Bhimruli)', bn: 'ভাসমান পেয়ারা বাজার (ভীমরুলি)'}] },
+      { nameBn: 'পটুয়াখালী', nameEn: 'Patuakhali', spots: [{en: 'Kuakata Sea Beach', bn: 'কুয়াকাটা সমুদ্র সৈকত'}, {en: 'Fatrar Chor', bn: 'ফাতরার চর'}, {en: 'Lebur Chor', bn: 'লেবুর চর'}, {en: 'Shutki Palli', bn: 'শুঁটকি পল্লী'}] },
+      { nameBn: 'ভোলা', nameEn: 'Bhola', spots: [{en: 'Monpura Island', bn: 'মনপুরা দ্বীপ'}, {en: 'Char Kukri Mukri', bn: 'চর কুকরি মুকরি'}, {en: 'Jacob Watch Tower', bn: 'জ্যাকব ওয়াচ টাওয়ার'}] },
+      { nameBn: 'পিরোজপুর', nameEn: 'Pirojpur', spots: [{en: 'Rayerkathi Zamindar Bari', bn: 'রায়েরকাঠি জমিদার বাড়ি'}, {en: 'Hularhat', bn: 'হুলারহাট'}, {en: 'Baleshwar River', bn: 'বলেশ্বর নদী'}] },
+      { nameBn: 'বরগুনা', nameEn: 'Barguna', spots: [{en: 'Bibichini Mosque', bn: 'বিবিচিনি মসজিদ'}, {en: 'Haringhata Forest', bn: 'হরিণঘাটা বন'}, {en: 'Sonakata', bn: 'সোনাকাটা'}] },
+      { nameBn: 'ঝালকাঠি', nameEn: 'Jhalokati', spots: [{en: 'Kirtipasha Zamindar Bari', bn: 'কীর্তিপাশা জমিদার বাড়ি'}, {en: 'Floating Markets (Backwaters)', bn: 'ভাসমান বাজার'}] }
     ]
   },
   {
@@ -181,14 +181,14 @@ const tourismData: DivisionData[] = [
     nameBn: 'রংপুর বিভাগ',
     nameEn: 'Rangpur Division',
     districts: [
-      { nameBn: 'রংপুর', nameEn: 'Rangpur', spots: ['Tajhat Palace', 'Vinna Jogot', 'Chikli Beel', 'Begum Rokeya University'] },
-      { nameBn: 'দিনাজপুর', nameEn: 'Dinajpur', spots: ['Kantajew Temple', 'Ramsagar Dighi', 'Swapnapuri', 'Nayabad Mosque'] },
-      { nameBn: 'গাইবান্ধা', nameEn: 'Gaibandha', spots: ['Balashi Ghat', 'Friendship Centre', 'Dreamland'] },
-      { nameBn: 'কুড়িগ্রাম', nameEn: 'Kurigram', spots: ['Dharla Bridge', 'Chilmari Port', 'Shahi Mosque'] },
-      { nameBn: 'নীলফামারী', nameEn: 'Nilphamari', spots: ['Nilsagar', 'Teesta Barrage', 'Chini Mosque'] },
-      { nameBn: 'লালমনিরহাট', nameEn: 'Lalmonirhat', spots: ['Tin Bigha Corridor', 'Teesta Barrage Park', 'Mogolhat'] },
-      { nameBn: 'ঠাকুরগাঁও', nameEn: 'Thakurgaon', spots: ['Baliadangi Mango Tree', 'Fun City', 'River Tangon'] },
-      { nameBn: 'পঞ্চগড়', nameEn: 'Panchagarh', spots: ['Kanchenjunga View Point', 'Tetulia Zero Point', 'Banglabandha Port', 'Tea Gardens'] }
+      { nameBn: 'রংপুর', nameEn: 'Rangpur', spots: [{en: 'Tajhat Palace', bn: 'তাজহাট জমিদার বাড়ি'}, {en: 'Vinna Jogot', bn: 'ভিন্ন জগত'}, {en: 'Chikli Beel', bn: 'চিকলি বিল'}, {en: 'Begum Rokeya University', bn: 'বেগম রোকেয়া বিশ্ববিদ্যালয়'}] },
+      { nameBn: 'দিনাজপুর', nameEn: 'Dinajpur', spots: [{en: 'Kantajew Temple', bn: 'কান্তজীউ মন্দির'}, {en: 'Ramsagar Dighi', bn: 'রামসাগর দিঘী'}, {en: 'Swapnapuri', bn: 'স্বপ্নপুরী'}, {en: 'Nayabad Mosque', bn: 'নয়াবাদ মসজিদ'}] },
+      { nameBn: 'গাইবান্ধা', nameEn: 'Gaibandha', spots: [{en: 'Balashi Ghat', bn: 'বালাসী ঘাট'}, {en: 'Friendship Centre', bn: 'ফ্রেন্ডশিপ সেন্টার'}, {en: 'Dreamland', bn: 'ড্রিমল্যান্ড'}] },
+      { nameBn: 'কুড়িগ্রাম', nameEn: 'Kurigram', spots: [{en: 'Dharla Bridge', bn: 'ধরলা সেতু'}, {en: 'Chilmari Port', bn: 'চিলমারী বন্দর'}, {en: 'Shahi Mosque', bn: 'শাহী মসজিদ'}] },
+      { nameBn: 'নীলফামারী', nameEn: 'Nilphamari', spots: [{en: 'Nilsagar', bn: 'নীলসাগর'}, {en: 'Teesta Barrage', bn: 'তিস্তা ব্যারেজ'}, {en: 'Chini Mosque', bn: 'চিনি মসজিদ'}] },
+      { nameBn: 'লালমনিরহাট', nameEn: 'Lalmonirhat', spots: [{en: 'Tin Bigha Corridor', bn: 'তিন বিঘা করিডোর'}, {en: 'Teesta Barrage Park', bn: 'তিস্তা ব্যারেজ পার্ক'}, {en: 'Mogolhat', bn: 'মোগলহাট'}] },
+      { nameBn: 'ঠাকুরগাঁও', nameEn: 'Thakurgaon', spots: [{en: 'Baliadangi Mango Tree', bn: 'বালিয়াডাঙ্গী সূর্যপুরী আমগাছ'}, {en: 'Fun City', bn: 'ফন সিটি'}, {en: 'River Tangon', bn: 'টাঙ্গন নদী'}] },
+      { nameBn: 'পঞ্চগড়', nameEn: 'Panchagarh', spots: [{en: 'Kanchenjunga View Point', bn: 'কাঞ্চনজঙ্ঘা ভিউ পয়েন্ট'}, {en: 'Tetulia Zero Point', bn: 'তেঁতুলিয়া জিরো পয়েন্ট'}, {en: 'Banglabandha Port', bn: 'বাংলাবান্ধা স্থলবন্দর'}, {en: 'Tea Gardens', bn: 'চা বাগান'}] }
     ]
   },
   {
@@ -196,10 +196,10 @@ const tourismData: DivisionData[] = [
     nameBn: 'ময়মনসিংহ বিভাগ',
     nameEn: 'Mymensingh Division',
     districts: [
-      { nameBn: 'ময়মনসিংহ', nameEn: 'Mymensingh', spots: ['Shashi Lodge', 'Bangladesh Agricultural University', 'Muktigacha Zamindar Bari', 'Shilpacharya Zainul Abedin Sangrahashala'] },
-      { nameBn: 'নেত্রকোনা', nameEn: 'Netrokona', spots: ['Birishiri (China Matir Pahar)', 'Someshwari River', 'Durgapur'] },
-      { nameBn: 'শেরপুর', nameEn: 'Sherpur', spots: ['Ghazni Abakash', 'Madhutila Eco Park', 'Garo Hill Tracks'] },
-      { nameBn: 'জামালপুর', nameEn: 'Jamalpur', spots: ['Lauk Chapra', 'Gandhi Ashram', 'Jamuna Fertilizer Factory Area'] }
+      { nameBn: 'ময়মনসিংহ', nameEn: 'Mymensingh', spots: [{en: 'Shashi Lodge', bn: 'শশী লজ'}, {en: 'Bangladesh Agricultural University', bn: 'বাংলাদেশ কৃষি বিশ্ববিদ্যালয়'}, {en: 'Muktigacha Zamindar Bari', bn: 'মুক্তাগাছা জমিদার বাড়ি'}, {en: 'Shilpacharya Zainul Abedin Sangrahashala', bn: 'শিল্পাচার্য জয়নুল আবেদিন সংগ্রহশালা'}] },
+      { nameBn: 'নেত্রকোনা', nameEn: 'Netrokona', spots: [{en: 'Birishiri (China Matir Pahar)', bn: 'বিরিশিরি (চীনা মাটির পাহাড়)'}, {en: 'Someshwari River', bn: 'সোমেশ্বরী নদী'}, {en: 'Durgapur', bn: 'দুর্গাপুর'}] },
+      { nameBn: 'শেরপুর', nameEn: 'Sherpur', spots: [{en: 'Ghazni Abakash', bn: 'গজনী অবকাশ'}, {en: 'Madhutila Eco Park', bn: 'মধুটিলা ইকোপার্ক'}, {en: 'Garo Hill Tracks', bn: 'গারো পাহাড়'}] },
+      { nameBn: 'জামালপুর', nameEn: 'Jamalpur', spots: [{en: 'Lauk Chapra', bn: 'লাউয়াচাপড়া'}, {en: 'Gandhi Ashram', bn: 'গান্ধী আশ্রম'}, {en: 'Jamuna Fertilizer Factory Area', bn: 'যমুনা সার কারখানা এলাকা'}] }
     ]
   }
 ];
@@ -215,6 +215,7 @@ const divisionColors: Record<string, string> = {
   mymensingh: 'bg-purple-600 border-purple-600 text-white',
 };
 
+// ... (Rest of the file remains same, just skipping to the Modal render part to save output space) ...
 // --- HOLIDAY DATA (Updated for 2026) ---
 const GOVT_HOLIDAYS = [
   { month: 1, date: '21 Feb', nameBn: 'শহীদ দিবস ও আন্তর্জাতিক মাতৃভাষা দিবস', nameEn: 'Shaheed Day & Int. Mother Language Day', type: 'National' },
@@ -816,10 +817,10 @@ export const AmarBdModule: React.FC<Props> = ({ isBangla, onModuleSelect }) => {
                       {isBangla ? 'জনপ্রিয় স্থানসমূহ' : 'Popular Spots'}
                     </p>
                     <ul className="space-y-2">
-                      {(item.district?.spots || []).slice(0, 3).map((spot: string, sIdx: number) => (
+                      {(item.district?.spots || []).slice(0, 3).map((spot: any, sIdx: number) => (
                         <li key={sIdx} className="flex items-start gap-2 text-sm text-gray-600">
                           <span className="w-1.5 h-1.5 rounded-full bg-green-400 mt-1.5 shrink-0"></span>
-                          <span className="line-clamp-1">{spot}</span>
+                          <span className="line-clamp-1">{typeof spot === 'string' ? spot : (isBangla ? (spot.bn || spot.en) : (spot.en || spot.bn))}</span>
                         </li>
                       ))}
                       {(item.district?.spots || []).length === 0 && (
@@ -881,12 +882,14 @@ export const AmarBdModule: React.FC<Props> = ({ isBangla, onModuleSelect }) => {
               </h3>
               
               <div className="space-y-3">
-                {(selectedDistrictForDetails.district?.spots || []).map((spot: string, idx: number) => (
+                {(selectedDistrictForDetails.district?.spots || []).map((spot: any, idx: number) => (
                   <div key={idx} className="flex items-center gap-3 p-3 rounded-xl hover:bg-gray-50 border border-transparent hover:border-gray-200 transition-all cursor-pointer group">
                     <span className="w-8 h-8 rounded-full bg-green-100 text-green-700 flex items-center justify-center font-bold text-sm">
                       {idx + 1}
                     </span>
-                    <span className="text-gray-700 font-medium group-hover:text-green-700">{spot}</span>
+                    <span className="text-gray-700 font-medium group-hover:text-green-700">
+                      {typeof spot === 'string' ? spot : (isBangla ? (spot.bn || spot.en) : (spot.en || spot.bn))}
+                    </span>
                   </div>
                 ))}
                 {(selectedDistrictForDetails.district?.spots || []).length === 0 && (

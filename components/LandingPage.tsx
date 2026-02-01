@@ -1,12 +1,12 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { 
   ShoppingBag, Sprout, BookOpen, HeartPulse, 
   Bus, Trash2, Fish, AlertOctagon, CheckCircle, Star, Bird,
   ArrowRight, MapPin, Calendar, ShieldAlert, TrendingUp, CloudRain, Phone, Activity,
   UserPlus, LayoutGrid, Shield, Building2, Landmark, Truck, Globe,
   CloudSun, Stethoscope, Recycle, Navigation, Clock, Fuel, ChevronDown, Camera,
-  Smile, Sparkles, MoveRight, Siren, Droplets
+  Smile, Sparkles, MoveRight, Siren, Droplets, Moon, Sunrise, Sunset
 } from 'lucide-react';
 import { Button } from './ui/Button';
 import { User, AppModule, Notification } from '../types';
@@ -54,6 +54,9 @@ export const LandingPage: React.FC<Props> = ({
   const [toDistrict, setToDistrict] = useState('');
   const [distanceResult, setDistanceResult] = useState<{km: number, time: string, fare: number} | null>(null);
   const [calculating, setCalculating] = useState(false);
+
+  // Ramadan Location State
+  const [ramadanDistrict, setRamadanDistrict] = useState('Dhaka');
 
   const headlines = [
     {
@@ -117,6 +120,61 @@ export const LandingPage: React.FC<Props> = ({
   };
 
   const districts = ['Dhaka', 'Chittagong', 'Sylhet', 'Rajshahi', 'Khulna', 'Barisal', 'Rangpur', 'Mymensingh', 'Comilla', 'Cox\'s Bazar'];
+
+  // All 64 Districts for Ramadan
+  const allDistricts = [
+    'Bagerhat', 'Bandarban', 'Barguna', 'Barisal', 'Bhola', 'Bogra', 'Brahmanbaria', 'Chandpur', 'Chapainawabganj', 'Chittagong', 'Chuadanga', 'Comilla', 'Cox\'s Bazar', 'Dhaka', 'Dinajpur', 'Faridpur', 'Feni', 'Gaibandha', 'Gazipur', 'Gopalganj', 'Habiganj', 'Jamalpur', 'Jessore', 'Jhalokati', 'Jhenaidah', 'Joypurhat', 'Khagrachari', 'Khulna', 'Kishoreganj', 'Kurigram', 'Kushtia', 'Lakshmipur', 'Lalmonirhat', 'Madaripur', 'Magura', 'Manikganj', 'Meherpur', 'Moulvibazar', 'Munshiganj', 'Mymensingh', 'Naogaon', 'Narail', 'Narayanganj', 'Narsingdi', 'Natore', 'Netrokona', 'Nilphamari', 'Noakhali', 'Pabna', 'Panchagarh', 'Patuakhali', 'Pirojpur', 'Rajbari', 'Rajshahi', 'Rangamati', 'Rangpur', 'Satkhira', 'Shariatpur', 'Sherpur', 'Sirajganj', 'Sunamganj', 'Sylhet', 'Tangail', 'Thakurgaon'
+  ];
+
+  // Ramadan Schedule Generator
+  const ramadanSchedule = useMemo(() => {
+    const DISTRICT_OFFSETS: Record<string, number> = {
+        'Dhaka': 0, 'Gazipur': 0, 'Narayanganj': -1, 'Munshiganj': -1, 'Manikganj': +3, 'Narsingdi': -2,
+        'Kishoreganj': -2, 'Tangail': +2, 'Faridpur': +3, 'Madaripur': +2, 'Shariatpur': +2, 'Gopalganj': +4,
+        'Rajbari': +4, 'Chittagong': -5, 'Cox\'s Bazar': -6, 'Comilla': -4, 'Chandpur': -3, 'Brahmanbaria': -3,
+        'Noakhali': -4, 'Feni': -4, 'Lakshmipur': -4, 'Rangamati': -6, 'Khagrachari': -6, 'Bandarban': -6,
+        'Sylhet': -6, 'Moulvibazar': -5, 'Habiganj': -4, 'Sunamganj': -5,
+        'Rajshahi': +7, 'Chapainawabganj': +8, 'Natore': +6, 'Naogaon': +7, 'Pabna': +6, 'Sirajganj': +4,
+        'Bogra': +6, 'Joypurhat': +7,
+        'Rangpur': +9, 'Dinajpur': +10, 'Panchagarh': +11, 'Thakurgaon': +11, 'Nilphamari': +10, 'Lalmonirhat': +9,
+        'Kurigram': +9, 'Gaibandha': +8,
+        'Khulna': +5, 'Bagerhat': +4, 'Satkhira': +6, 'Jessore': +6, 'Jhenaidah': +6, 'Magura': +5,
+        'Narail': +4, 'Kushtia': +6, 'Chuadanga': +7, 'Meherpur': +8,
+        'Barisal': +1, 'Jhalokati': +2, 'Pirojpur': +3, 'Patuakhali': +1, 'Barguna': +2, 'Bhola': 0,
+        'Mymensingh': +2, 'Jamalpur': +4, 'Sherpur': +4, 'Netrokona': +1
+    };
+
+    const offset = DISTRICT_OFFSETS[ramadanDistrict] || 0;
+    const startDate = new Date('2026-02-18'); // Tentative start
+    const schedule = [];
+    
+    for (let i = 0; i < 30; i++) {
+      const current = new Date(startDate);
+      current.setDate(startDate.getDate() + i);
+      
+      // Base times for Dhaka on Day 1 (Approx for Feb 18)
+      // Sehri ends: 5:12 AM 
+      // Iftar starts: 5:55 PM
+      // Adjusting roughly 1 minute per day (Sehri earlier, Iftar later)
+      
+      const sehriTime = new Date(current);
+      sehriTime.setHours(5, 12, 0, 0);
+      sehriTime.setMinutes(sehriTime.getMinutes() - i + offset);
+      
+      const iftarTime = new Date(current);
+      iftarTime.setHours(17, 55, 0, 0);
+      iftarTime.setMinutes(iftarTime.getMinutes() + i + offset);
+
+      schedule.push({
+        roza: i + 1,
+        date: current.toLocaleDateString(isBangla ? 'bn-BD' : 'en-US', { day: 'numeric', month: 'long' }),
+        day: current.toLocaleDateString(isBangla ? 'bn-BD' : 'en-US', { weekday: 'long' }),
+        sehri: sehriTime.toLocaleTimeString(isBangla ? 'bn-BD' : 'en-US', { hour: '2-digit', minute: '2-digit', hour12: true }),
+        iftar: iftarTime.toLocaleTimeString(isBangla ? 'bn-BD' : 'en-US', { hour: '2-digit', minute: '2-digit', hour12: true })
+      });
+    }
+    return schedule;
+  }, [isBangla, ramadanDistrict]);
 
   return (
     <div className="min-h-screen bg-white font-sans text-gray-900 flex flex-col">
@@ -195,6 +253,123 @@ export const LandingPage: React.FC<Props> = ({
           </div>
         </section>
       )}
+
+      {/* Ramadan 2026 Section */}
+      <section className="py-16 bg-gradient-to-br from-[#0f172a] via-[#1e293b] to-[#0f172a] text-white relative overflow-hidden">
+        <div className="absolute top-0 right-0 text-white/5 transform translate-x-1/3 -translate-y-1/3">
+          <Moon size={400} strokeWidth={0.5} />
+        </div>
+        
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+          <div className="flex flex-col md:flex-row justify-between items-end mb-12 gap-6 relative z-10">
+            <div className="text-center md:text-left w-full md:w-auto">
+                <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-emerald-500/20 text-emerald-300 text-sm font-bold mb-4 border border-emerald-500/30">
+                  <Moon size={16} />
+                  {isBangla ? 'পবিত্র মাহে রমজান' : 'Holy Ramadan 2026'}
+                </div>
+                <h2 className="text-3xl md:text-5xl font-black mb-2 tracking-tight text-white">
+                  {isBangla ? 'রমজান ক্যালেন্ডার ২০২৬' : 'Ramadan Calendar 2026'}
+                </h2>
+                <p className="text-gray-400 max-w-xl text-lg">
+                  {isBangla ? 'আপনার জেলার সেহরি ও ইফতারের সঠিক সময়সূচি' : 'Accurate Sehri & Iftar schedule for your district'}
+                </p>
+            </div>
+
+            <div className="bg-white/10 backdrop-blur-md p-4 rounded-2xl border border-white/10 w-full md:w-72 shadow-xl">
+               <label className="text-xs text-emerald-400 font-bold uppercase mb-2 flex items-center gap-2 tracking-widest">
+                 <MapPin size={14} /> {isBangla ? 'আপনার জেলা নির্বাচন করুন' : 'Select Your District'}
+               </label>
+               <div className="relative">
+                 <select 
+                   value={ramadanDistrict} 
+                   onChange={(e) => setRamadanDistrict(e.target.value)}
+                   className="w-full bg-gray-900/80 text-white pl-4 pr-10 py-3 rounded-xl border border-emerald-500/30 focus:outline-none focus:ring-2 focus:ring-emerald-500 font-bold appearance-none cursor-pointer hover:bg-gray-900 transition-colors custom-scrollbar"
+                 >
+                   {allDistricts.sort().map(d => <option key={d} value={d} className="bg-gray-900">{d}</option>)}
+                 </select>
+                 <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 text-emerald-500 pointer-events-none" size={18} />
+               </div>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            {/* Today's / Next Highlight */}
+            <div className="bg-white/10 backdrop-blur-md rounded-[2.5rem] p-8 border border-white/10 flex flex-col justify-center items-center text-center shadow-2xl relative overflow-hidden group">
+               <div className="absolute inset-0 bg-gradient-to-b from-emerald-500/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
+               <h3 className="text-xl font-bold text-emerald-300 mb-2 uppercase tracking-widest">{isBangla ? 'প্রথম রোজা' : '1st Ramadan'}</h3>
+               <h1 className="text-5xl font-black text-white mb-6">{ramadanSchedule[0].date}</h1>
+               
+               <div className="w-full grid grid-cols-2 gap-4">
+                  <div className="bg-black/30 p-4 rounded-2xl border border-white/10">
+                     <div className="flex items-center justify-center gap-2 text-orange-300 mb-1">
+                       <Sunrise size={20} /> <span className="text-xs font-bold uppercase">{isBangla ? 'সেহরি শেষ' : 'Sehri End'}</span>
+                     </div>
+                     <p className="text-2xl font-bold">{ramadanSchedule[0].sehri}</p>
+                  </div>
+                  <div className="bg-black/30 p-4 rounded-2xl border border-white/10">
+                     <div className="flex items-center justify-center gap-2 text-indigo-300 mb-1">
+                       <Sunset size={20} /> <span className="text-xs font-bold uppercase">{isBangla ? 'ইফতার শুরু' : 'Iftar Start'}</span>
+                     </div>
+                     <p className="text-2xl font-bold">{ramadanSchedule[0].iftar}</p>
+                  </div>
+               </div>
+
+               {/* Duas Section */}
+               <div className="mt-6 w-full space-y-3">
+                  <div className="bg-black/30 p-4 rounded-2xl border border-white/10">
+                     <p className="text-xs font-bold text-emerald-300 uppercase mb-1">{isBangla ? 'রোজা রাখার নিয়ত (সেহরি)' : 'Sehri Dua'}</p>
+                     <p className="text-lg font-serif text-white/90 mb-1">نَوَيْتُ اَنْ اُصُوْمَ غَدًا مِّنْ شَهْرِ رَمْضَانَ الْمُبَارَكِ</p>
+                     <p className="text-xs text-gray-300">{isBangla ? 'নাওয়াইতু আন আছুমা গাদাম মিন শাহরি রমাজানাল মুবারাক' : 'Nawaitu an asuma gadam min shahri ramadanal mubarak'}</p>
+                  </div>
+                  
+                  <div className="bg-black/30 p-4 rounded-2xl border border-white/10">
+                     <p className="text-xs font-bold text-emerald-300 uppercase mb-1">{isBangla ? 'ইফতারের দোয়া' : 'Iftar Dua'}</p>
+                     <p className="text-lg font-serif text-white/90 mb-1">اَللَّهُمَّ لَكَ صُمْتُ وَعَلَى رِزْقِكَ اَفْطَرْتُ</p>
+                     <p className="text-xs text-gray-300">{isBangla ? 'আল্লাহুম্মা লাকা ছুমতু ওয়া আলা রিযক্বিকা আফতারতু' : 'Allahumma laka sumtu wa ala rizqika aftartu'}</p>
+                  </div>
+               </div>
+            </div>
+
+            {/* Calendar List */}
+            <div className="lg:col-span-2 bg-white rounded-[2.5rem] p-6 md:p-8 text-gray-900 shadow-xl overflow-hidden flex flex-col max-h-[650px]">
+               <div className="flex justify-between items-center mb-6">
+                  <h3 className="font-bold text-xl flex items-center gap-2">
+                    <Calendar size={20} className="text-emerald-600" /> {isBangla ? 'পুরো মাসের সময়সূচি' : 'Full Month Schedule'}
+                  </h3>
+                  <span className="text-xs font-bold bg-emerald-100 text-emerald-700 px-3 py-1 rounded-full">২০২৬</span>
+               </div>
+               
+               <div className="overflow-y-auto custom-scrollbar flex-1 pr-2">
+                  <div className="grid grid-cols-1 gap-3">
+                     {ramadanSchedule.map((day, idx) => (
+                       <div key={idx} className={`flex items-center justify-between p-4 rounded-xl border ${idx === 0 ? 'bg-emerald-50 border-emerald-200' : 'bg-gray-50 border-gray-100 hover:border-emerald-100 transition-colors'}`}>
+                          <div className="flex items-center gap-4">
+                             <div className={`w-10 h-10 rounded-full flex items-center justify-center font-bold text-sm ${idx === 0 ? 'bg-emerald-600 text-white' : 'bg-gray-200 text-gray-600'}`}>
+                               {day.roza}
+                             </div>
+                             <div>
+                                <p className="font-bold text-gray-900">{day.date}</p>
+                                <p className="text-xs text-gray-500">{day.day}</p>
+                             </div>
+                          </div>
+                          <div className="text-right flex gap-4 md:gap-8">
+                             <div>
+                                <p className="text-[10px] font-black text-gray-400 uppercase">{isBangla ? 'সেহরি' : 'Sehri'}</p>
+                                <p className="font-bold text-gray-800">{day.sehri}</p>
+                             </div>
+                             <div>
+                                <p className="text-[10px] font-black text-gray-400 uppercase">{isBangla ? 'ইফতার' : 'Iftar'}</p>
+                                <p className="font-bold text-emerald-600">{day.iftar}</p>
+                             </div>
+                          </div>
+                       </div>
+                     ))}
+                  </div>
+               </div>
+            </div>
+          </div>
+        </div>
+      </section>
 
       {/* Services Grid (SEO Optimized) */}
       {sections.features && (
@@ -406,7 +581,7 @@ export const LandingPage: React.FC<Props> = ({
                        </div>
                     </div>
                     <Button onClick={handleCalculateDistance} disabled={calculating} className="w-full py-4 rounded-2xl bg-brand-600 hover:bg-brand-700 font-black text-lg shadow-xl shadow-brand-500/20">
-                       {calculating ? (isBangla ? 'হিসাব হচ্ছে...' : 'Calculating...') : (isBangla ? 'দূরত্ব ও ভাড়া দেখুন' : 'Check Distance & Fare')}
+                       {calculating ? (isBangla ? 'হিসাবচ্ছে...' : 'Calculating...') : (isBangla ? 'দূরত্ব ও ভাড়া দেখুন' : 'Check Distance & Fare')}
                     </Button>
                  </div>
               </div>

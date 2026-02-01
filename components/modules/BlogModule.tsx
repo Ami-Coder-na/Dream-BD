@@ -186,7 +186,10 @@ export const BlogModule: React.FC<Props> = ({ isBangla, user, onLogin }) => {
                 <div className="flex items-center gap-2"><Calendar size={16} className="text-emerald-500" /><span>{selectedPost.date}</span></div>
                 <div className="flex items-center gap-2"><Clock size={16} className="text-emerald-500" /><span>{selectedPost.readtime || selectedPost.readTime}</span></div>
               </div>
-              <div className="prose prose-lg prose-emerald max-w-none text-gray-700 leading-relaxed" dangerouslySetInnerHTML={{ __html: selectedPost.content || '' }} />
+              <div 
+                className="prose prose-lg prose-emerald max-w-none text-gray-700 leading-relaxed whitespace-pre-wrap font-medium" 
+                dangerouslySetInnerHTML={{ __html: selectedPost.content || '' }} 
+              />
             </div>
           </article>
         </div>
