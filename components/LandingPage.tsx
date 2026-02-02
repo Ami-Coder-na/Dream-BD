@@ -58,6 +58,16 @@ export const LandingPage: React.FC<Props> = ({
   // Ramadan Location State
   const [ramadanDistrict, setRamadanDistrict] = useState('Dhaka');
 
+  // Real-time Clock State
+  const [currentTime, setCurrentTime] = useState(new Date());
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setCurrentTime(new Date());
+    }, 1000);
+    return () => clearInterval(timer);
+  }, []);
+
   const headlines = [
     {
       bn: <>এক প্ল্যাটফর্মে <span className={`${settings.heroSliderActive ? 'text-brand-400' : 'text-brand-600'}`}>কৃষি, শিক্ষা, স্বাস্থ্য ও পরিবহন</span> সেবা</>,
@@ -296,6 +306,17 @@ export const LandingPage: React.FC<Props> = ({
             {/* Today's / Next Highlight */}
             <div className="bg-white/10 backdrop-blur-md rounded-[2.5rem] p-8 border border-white/10 flex flex-col justify-center items-center text-center shadow-2xl relative overflow-hidden group">
                <div className="absolute inset-0 bg-gradient-to-b from-emerald-500/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
+               
+               {/* Real-time Clock */}
+               <div className="w-full border-b border-white/10 pb-6 mb-6">
+                  <p className="text-emerald-300 font-bold text-lg mb-1">
+                    {currentTime.toLocaleDateString(isBangla ? 'bn-BD' : 'en-US', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}
+                  </p>
+                  <p className="text-3xl md:text-4xl font-black text-white tracking-widest">
+                    {currentTime.toLocaleTimeString(isBangla ? 'bn-BD' : 'en-US', { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: true })}
+                  </p>
+               </div>
+
                <h3 className="text-xl font-bold text-emerald-300 mb-2 uppercase tracking-widest">{isBangla ? 'প্রথম রোজা' : '1st Ramadan'}</h3>
                <h1 className="text-5xl font-black text-white mb-6">{ramadanSchedule[0].date}</h1>
                
@@ -318,14 +339,14 @@ export const LandingPage: React.FC<Props> = ({
                <div className="mt-6 w-full space-y-3">
                   <div className="bg-black/30 p-4 rounded-2xl border border-white/10">
                      <p className="text-xs font-bold text-emerald-300 uppercase mb-1">{isBangla ? 'রোজা রাখার নিয়ত (সেহরি)' : 'Sehri Dua'}</p>
-                     <p className="text-lg font-serif text-white/90 mb-1">نَوَيْتُ اَنْ اُصُوْمَ غَدًا مِّنْ شَهْرِ رَمْضَانَ الْمُبَارَكِ</p>
-                     <p className="text-xs text-gray-300">{isBangla ? 'নাওয়াইতু আন আছুমা গাদাম মিন শাহরি রমাজানাল মুবারাক' : 'Nawaitu an asuma gadam min shahri ramadanal mubarak'}</p>
+                     <p className="text-lg font-serif text-white/90 mb-1">نَوَيْتُ اَنْ اُصُوْمَ غَدًا مِّنْ شَهْرِ رَمْضَانَ الْمُبَارَكِ فَرْضًا لَكَ يَا اللهُ فَتَقَبَّل مَنِّي اِنَّكَ اَنْتَ السَّمِيْعُ الْعَلِيْم</p>
+                     <p className="text-xs text-gray-300">{isBangla ? 'নাওয়াইতু আন আছুমা গাদাম, মিন শাহরি রমাদানাল মুবারাক; ফারদাল্লাকা ইয়া আল্লাহু, ফাতাকাব্বাল মিন্নি ইন্নিকা আনতাস সামিউল আলিম।' : 'Nawaitu an asuma gadam min shahri ramadanal mubarak; Fardallaka ya Allahu, fatakabbal minni innika antas samiul alim.'}</p>
                   </div>
                   
                   <div className="bg-black/30 p-4 rounded-2xl border border-white/10">
                      <p className="text-xs font-bold text-emerald-300 uppercase mb-1">{isBangla ? 'ইফতারের দোয়া' : 'Iftar Dua'}</p>
-                     <p className="text-lg font-serif text-white/90 mb-1">اَللَّهُمَّ لَكَ صُمْتُ وَعَلَى رِزْقِكَ اَفْطَرْتُ</p>
-                     <p className="text-xs text-gray-300">{isBangla ? 'আল্লাহুম্মা লাকা ছুমতু ওয়া আলা রিযক্বিকা আফতারতু' : 'Allahumma laka sumtu wa ala rizqika aftartu'}</p>
+                     <p className="text-lg font-serif text-white/90 mb-1">اَللَّهُمَّ لَكَ صُمْتُ وَعَلَى رِزْقِكَ اَفْطَرْتُ بِرَحْمَتِكَ يَا اَرْحَمَ الرَّاحِمِيْنَ</p>
+                     <p className="text-xs text-gray-300">{isBangla ? 'আল্লাহুম্মা লাকা ছুমতু ওয়া আলা রিযক্বিকা ওয়া আফতারতু বিরাহমাতিকা ইয়া আরহামার রাহিমিন।' : 'Allahumma laka sumtu wa ala rizqika wa aftartu bi-rahmatika ya arhamar rahimin.'}</p>
                   </div>
                </div>
             </div>
