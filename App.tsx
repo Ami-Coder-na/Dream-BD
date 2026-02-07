@@ -63,6 +63,8 @@ const AboutModule = lazy(() => import('./components/modules/AboutModule').then(m
 const PrivacyModule = lazy(() => import('./components/modules/PrivacyModule').then(m => ({ default: m.PrivacyModule })));
 const TermsModule = lazy(() => import('./components/modules/TermsModule').then(m => ({ default: m.TermsModule })));
 const JanteChaiModule = lazy(() => import('./components/modules/JanteChaiModule').then(m => ({ default: m.JanteChaiModule })));
+const NidPrintModule = lazy(() => import('./components/modules/NidPrintModule').then(m => ({ default: m.NidPrintModule })));
+const PhotoStudioModule = lazy(() => import('./components/modules/PhotoStudioModule').then(m => ({ default: m.PhotoStudioModule })));
 
 const App: React.FC = () => {
   const { logVisit, isLoading } = useData();
@@ -113,20 +115,23 @@ const App: React.FC = () => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }, []);
 
+  const [viewModule, viewParam] = (currentView || '').split(':');
+
   const activeModule = useMemo(() => {
     // STRICT CHECK: Only allow admin view if the state matches explicitly
-    if (currentView === 'admin') return AppModule.ADMIN;
-    if (currentView === 'mithu-ai') return 'AI_CHAT';
+    if (viewModule === 'admin') return AppModule.ADMIN;
+    if (viewModule === 'mithu-ai') return 'AI_CHAT';
     
     const allModuleValues = Object.values(AppModule);
-    return allModuleValues.find(m => m === currentView) || (currentView === 'LANDING' ? 'LANDING' : 'LANDING');
-  }, [currentView]);
+    return allModuleValues.find(m => m === viewModule) || (viewModule === 'LANDING' ? 'LANDING' : 'LANDING');
+  }, [viewModule]);
 
   const isAdminView = useMemo(() => {
     return activeModule === AppModule.ADMIN;
   }, [activeModule]);
 
   const isChatView = currentView === 'mithu-ai' || activeModule === 'AI_CHAT';
+  const isToolView = activeModule === AppModule.NID_PRINT || activeModule === AppModule.PHOTO_STUDIO;
 
   if (!isMounted) {
     return <LoadingFallback />;
@@ -172,27 +177,29 @@ const App: React.FC = () => {
               case AppModule.ADMIN: 
                 return <AdminModule isBangla={isBangla} onExit={() => { window.location.href = '/'; }} user={user} />;
               case AppModule.PROFILE: return user ? <ProfilePage user={user} onUpdateUser={setUser} isBangla={isBangla} onLogout={() => { setUser(null); localStorage.removeItem('digital_desh_bd_user_session'); handleNavigate('LANDING'); }} /> : null;
-              case AppModule.JOB: return <JobModule isBangla={isBangla} user={user} onLogin={() => setAuthView('login')} />;
+              case AppModule.JOB: return <JobModule isBangla={isBangla} user={user} onLogin={() => setAuthView('login')} initialView={viewParam} />;
               case AppModule.BLOG: return <BlogModule isBangla={isBangla} user={user} onLogin={() => setAuthView('login')} />;
               case AppModule.AMAR_BD: return <AmarBdModule isBangla={isBangla} onModuleSelect={m => handleNavigate(m)} />;
               case AppModule.AMAR_JELA: return <AmarJelaModule isBangla={isBangla} />;
-              case AppModule.AGRI: return <AgriModule isBangla={isBangla} user={user} onLogin={() => setAuthView('login')} />;
+              case AppModule.AGRI: return <AgriModule isBangla={isBangla} user={user} onLogin={() => setAuthView('login')} initialTab={viewParam} />;
               case AppModule.HEALTH: return <HealthModule isBangla={isBangla} />;
               case AppModule.EDU: return <EduModule isBangla={isBangla} user={user} />;
               case AppModule.TRANSPORT: return <TransportModule isBangla={isBangla} />;
               case AppModule.CRAFT: return <CraftModule isBangla={isBangla} />;
               case AppModule.BAZAR_SODAI: return <BazarSodaiModule isBangla={isBangla} user={user} onLogin={() => setAuthView('login')} />;
               case AppModule.WASTE: return <WasteModule isBangla={isBangla} user={user} onLogin={() => setAuthView('login')} />;
-              case AppModule.FISHERY: return <FisheryModule isBangla={isBangla} />;
+              case AppModule.FISHERY: return <FisheryModule isBangla={isBangla} initialTab={viewParam} />;
               case AppModule.DISASTER: return <DisasterModule isBangla={isBangla} />;
               case AppModule.LEGAL: return <LegalModule isBangla={isBangla} />;
-              case AppModule.EXPAT: return <ExpatModule isBangla={isBangla} />;
+              case AppModule.EXPAT: return <ExpatModule isBangla={isBangla} initialTab={viewParam} />;
               case AppModule.VOCATIONAL: return <VocationalModule isBangla={isBangla} user={user} onLogin={() => setAuthView('login')} />;
               case AppModule.JANTE_CHAI: return <JanteChaiModule isBangla={isBangla} />;
               case AppModule.CONTACT: return <ContactModule isBangla={isBangla} />;
               case AppModule.ABOUT: return <AboutModule isBangla={isBangla} />;
               case AppModule.PRIVACY: return <PrivacyModule isBangla={isBangla} />;
               case AppModule.TERMS: return <TermsModule isBangla={isBangla} />;
+              case AppModule.NID_PRINT: return <NidPrintModule isBangla={isBangla} />;
+              case AppModule.PHOTO_STUDIO: return <PhotoStudioModule isBangla={isBangla} />;
               case 'LANDING':
               default: return (
                 <LandingPage 
@@ -214,7 +221,7 @@ const App: React.FC = () => {
           <GeminiAssistant currentModule={activeModule as AppModule} isBangla={isBangla} user={user} onLogin={() => setAuthView('login')} />
         )}
 
-        {!isAdminView && !isChatView && (
+        {!isAdminView && !isChatView && !isToolView && (
           <Footer isBangla={isBangla} toggleLanguage={() => setIsBangla(!isBangla)} onNavigateHome={() => handleNavigate('LANDING')} onModuleSelect={m => handleNavigate(m)} />
         )}
         <ScrollToTop />

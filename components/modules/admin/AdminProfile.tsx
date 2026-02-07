@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   User, Lock, Activity, Shield, Save, Mail, Phone, 
   MapPin, Camera, Key, Clock, CheckCircle, AlertCircle, Edit3, X
@@ -11,15 +11,23 @@ export const AdminProfile = () => {
   const [isEditing, setIsEditing] = useState(false);
   const [loading, setLoading] = useState(false);
 
-  // Mock Admin Data
-  const [adminData, setAdminData] = useState({
-    name: 'Super Admin',
-    email: 'admin@dreambd.com',
-    phone: '+880 1711 000000',
-    role: 'Super Administrator',
-    location: 'Dhaka, Bangladesh',
-    avatar: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?auto=format&fit=crop&q=80&w=150',
-    joined: 'Jan 2023'
+  // Initialize from LocalStorage to persist changes
+  const [adminData, setAdminData] = useState(() => {
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem('admin_profile_data');
+      if (saved) {
+        try { return JSON.parse(saved); } catch(e) {}
+      }
+    }
+    return {
+      name: 'Super Admin',
+      email: 'admin@dreambd.com',
+      phone: '+880 1711 000000',
+      role: 'Super Administrator',
+      location: 'Dhaka, Bangladesh',
+      avatar: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?auto=format&fit=crop&q=80&w=150',
+      joined: 'Jan 2023'
+    };
   });
 
   // Mock Activity Data
@@ -43,11 +51,15 @@ export const AdminProfile = () => {
   const handleSave = (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
+    
+    // Save to Local Storage
+    localStorage.setItem('admin_profile_data', JSON.stringify(adminData));
+
     setTimeout(() => {
       setLoading(false);
       setIsEditing(false);
       alert('Profile updated successfully!');
-    }, 1000);
+    }, 800);
   };
 
   const handlePasswordChange = (e: React.FormEvent) => {

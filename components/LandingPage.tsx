@@ -6,12 +6,14 @@ import {
   ArrowRight, MapPin, Calendar, ShieldAlert, TrendingUp, CloudRain, Phone, Activity,
   UserPlus, LayoutGrid, Shield, Building2, Landmark, Truck, Globe,
   CloudSun, Stethoscope, Recycle, Navigation, Clock, Fuel, ChevronDown, Camera,
-  Smile, Sparkles, MoveRight, Siren, Droplets, Moon, Sunrise, Sunset
+  Smile, Sparkles, MoveRight, Siren, Droplets, Moon, Sunrise, Sunset,
+  Search, Filter, Eye, Zap, Crown, FileText, CreditCard, Image as ImageIcon, Briefcase, ExternalLink, X, RefreshCw
 } from 'lucide-react';
 import { Button } from './ui/Button';
 import { User, AppModule, Notification } from '../types';
 import { MOCK_PRODUCTS } from '../constants';
 import { useSiteConfig } from '../contexts/SiteConfigContext';
+import { useData } from '../contexts/DataContext';
 
 interface Props {
   user?: User | null;
@@ -42,6 +44,7 @@ export const LandingPage: React.FC<Props> = ({
 }) => {
   
   const { sections, modules, settings } = useSiteConfig();
+  const { serviceLinks, serviceCategories } = useData();
 
   // Rotating Headline State
   const [currentHeadlineIndex, setCurrentHeadlineIndex] = useState(0);
@@ -54,6 +57,14 @@ export const LandingPage: React.FC<Props> = ({
   const [toDistrict, setToDistrict] = useState('');
   const [distanceResult, setDistanceResult] = useState<{km: number, time: string, fare: number} | null>(null);
   const [calculating, setCalculating] = useState(false);
+
+  // Service Directory State
+  const [serviceSearch, setServiceSearch] = useState('');
+  const [selectedTag, setSelectedTag] = useState('All');
+
+  // In-App Browser State
+  const [browserUrl, setBrowserUrl] = useState<string | null>(null);
+  const [browserTitle, setBrowserTitle] = useState('');
 
   // Ramadan Location State
   const [ramadanDistrict, setRamadanDistrict] = useState('Dhaka');
@@ -129,6 +140,28 @@ export const LandingPage: React.FC<Props> = ({
     }, 800);
   };
 
+  const filteredServices = useMemo(() => {
+    return (serviceLinks || []).filter((service: any) => {
+      const matchesSearch = (service.titleBn.toLowerCase().includes(serviceSearch.toLowerCase()) || 
+                             service.titleEn.toLowerCase().includes(serviceSearch.toLowerCase()));
+      // We assume service.category stores the ID of the category (e.g., 'NID', 'Birth Reg')
+      // If service.category stores English title, it still works if IDs match English titles.
+      const matchesTag = selectedTag === 'All' || service.category === selectedTag;
+      return matchesSearch && matchesTag;
+    });
+  }, [serviceSearch, selectedTag, serviceLinks]);
+
+  const handleServiceClick = (service: any) => {
+    if (service.link) {
+      // Use internal browser view
+      setBrowserTitle(isBangla ? service.titleBn : service.titleEn);
+      setBrowserUrl(service.link);
+    } else if (service.module) {
+      // Internal Module
+      onModuleSelect(service.module);
+    }
+  };
+
   const districts = ['Dhaka', 'Chittagong', 'Sylhet', 'Rajshahi', 'Khulna', 'Barisal', 'Rangpur', 'Mymensingh', 'Comilla', 'Cox\'s Bazar'];
 
   // All 64 Districts for Ramadan
@@ -162,11 +195,6 @@ export const LandingPage: React.FC<Props> = ({
       const current = new Date(startDate);
       current.setDate(startDate.getDate() + i);
       
-      // Base times for Dhaka on Day 1 (Approx for Feb 18)
-      // Sehri ends: 5:12 AM 
-      // Iftar starts: 5:55 PM
-      // Adjusting roughly 1 minute per day (Sehri earlier, Iftar later)
-      
       const sehriTime = new Date(current);
       sehriTime.setHours(5, 12, 0, 0);
       sehriTime.setMinutes(sehriTime.getMinutes() - i + offset);
@@ -185,6 +213,65 @@ export const LandingPage: React.FC<Props> = ({
     }
     return schedule;
   }, [isBangla, ramadanDistrict]);
+
+  // --- BROWSER VIEW RENDER ---
+  if (browserUrl) {
+    return (
+      <div className="fixed inset-0 z-[100] bg-white flex flex-col animate-fade-in font-sans">
+        {/* Browser Header */}
+        <div className="h-16 border-b border-gray-200 flex items-center px-4 justify-between bg-white shadow-sm shrink-0">
+           <div className="flex items-center gap-3">
+              <button 
+                onClick={() => setBrowserUrl(null)} 
+                className="p-2 hover:bg-gray-100 rounded-full transition-colors"
+                title={isBangla ? 'বন্ধ করুন' : 'Close'}
+              >
+                <X size={24} className="text-gray-600" />
+              </button>
+              <div className="flex flex-col">
+                 <span className="font-bold text-gray-900 text-sm line-clamp-1">{browserTitle}</span>
+                 <span className="text-xs text-gray-400 line-clamp-1">{browserUrl}</span>
+              </div>
+           </div>
+           <div className="flex items-center gap-2">
+              <button 
+                onClick={() => { const iframe = document.getElementById('service-frame') as HTMLIFrameElement; if(iframe) iframe.src = browserUrl; }} 
+                className="p-2 hover:bg-gray-100 rounded-full text-gray-500"
+                title={isBangla ? 'রিলোড' : 'Reload'}
+              >
+                <RefreshCw size={18} />
+              </button>
+              <a 
+                href={browserUrl} 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="flex items-center gap-2 px-3 py-1.5 bg-brand-50 text-brand-700 rounded-lg text-xs font-bold hover:bg-brand-100 transition-colors"
+              >
+                {isBangla ? 'ব্রাউজারে খুলুন' : 'Open in Browser'} <ExternalLink size={14} />
+              </a>
+           </div>
+        </div>
+        
+        {/* Iframe Container */}
+        <div className="flex-1 w-full bg-gray-50 relative">
+           <iframe 
+             id="service-frame"
+             src={browserUrl} 
+             className="w-full h-full border-0"
+             sandbox="allow-same-origin allow-scripts allow-forms allow-popups"
+             title={browserTitle}
+           />
+           {/* Fallback/Loader Layer (Visible if iframe is slow or blocked, but simple overlay here) */}
+           <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-[-1]">
+              <div className="text-center text-gray-400">
+                 <p className="mb-2">Loading...</p>
+                 <p className="text-xs">If content doesn't appear, use "Open in Browser"</p>
+              </div>
+           </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-white font-sans text-gray-900 flex flex-col">
@@ -392,38 +479,93 @@ export const LandingPage: React.FC<Props> = ({
         </div>
       </section>
 
-      {/* Services Grid (SEO Optimized) */}
+      {/* Modern Service Directory Section */}
       {sections.features && (
-        <section id="features" className="py-24 bg-gray-50">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="text-center mb-16">
-              <h2 className="text-3xl md:text-5xl font-black text-gray-900 mb-4">{isBangla ? 'জনপ্রিয় সেবাসমূহ' : 'Popular Services'}</h2>
-              <p className="text-gray-500 text-lg font-medium">{isBangla ? 'আপনার প্রয়োজনীয় সেবাটি নির্বাচন করুন' : 'Select the service you need'}</p>
+        <section id="features" className="py-24 bg-white text-gray-900 relative overflow-hidden">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+            <div className="mb-10">
+              <div className="relative mb-8 max-w-xl mx-auto">
+                <input 
+                  type="text" 
+                  value={serviceSearch}
+                  onChange={(e) => setServiceSearch(e.target.value)}
+                  placeholder={isBangla ? 'কাজের টাইটেল বা ডেসক্রিপশন দিয়ে খুঁজুন...' : 'Search by service title or description...'}
+                  className="w-full bg-white border border-gray-200 text-gray-900 text-base rounded-full py-3 pl-12 pr-4 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent placeholder-gray-400 transition-all shadow-sm"
+                />
+                <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={20} />
+              </div>
+
+              {/* Filter Chips */}
+              <div className="flex gap-3 overflow-x-auto pb-4 no-scrollbar justify-center">
+                {serviceCategories.map((cat: any) => (
+                  <button
+                    key={cat.id}
+                    onClick={() => setSelectedTag(cat.id)}
+                    className={`px-5 py-2 rounded-full text-sm font-bold whitespace-nowrap transition-all border ${
+                      selectedTag === cat.id 
+                        ? 'bg-slate-900 text-white border-slate-900 shadow-md' 
+                        : 'bg-white text-gray-500 border-gray-200 hover:bg-gray-50 hover:text-gray-900'
+                    }`}
+                  >
+                    {isBangla ? cat.titleBn : cat.titleEn}
+                  </button>
+                ))}
+              </div>
             </div>
-            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 md:gap-8">
-              {[
-                { id: AppModule.AGRI, titleBn: 'স্মার্ট কৃষি', titleEn: 'Smart Agri', icon: <Sprout size={32} />, color: 'bg-green-100 text-green-700' },
-                { id: AppModule.HEALTH, titleBn: 'স্বাস্থ্য সেবা', titleEn: 'Health Care', icon: <HeartPulse size={32} />, color: 'bg-red-100 text-red-700' },
-                { id: AppModule.EDU, titleBn: 'অনলাইন শিক্ষা', titleEn: 'Online Education', icon: <BookOpen size={32} />, color: 'bg-blue-100 text-blue-700' },
-                { id: AppModule.TRANSPORT, titleBn: 'পরিবহন ও রুট', titleEn: 'Transport', icon: <Bus size={32} />, color: 'bg-indigo-100 text-indigo-700' },
-                { id: AppModule.CRAFT, titleBn: 'কারুশিল্প বাজার', titleEn: 'Craft Market', icon: <ShoppingBag size={32} />, color: 'bg-orange-100 text-orange-700' },
-                { id: AppModule.FISHERY, titleBn: 'মৎস্য চাষ', titleEn: 'Fishery', icon: <Fish size={32} />, color: 'bg-cyan-100 text-cyan-700' },
-                { id: AppModule.JOB, titleBn: 'চাকরি ও ক্যারিয়ার', titleEn: 'Jobs & Careers', icon: <Building2 size={32} />, color: 'bg-purple-100 text-purple-700' },
-                { id: AppModule.WASTE, titleBn: 'বর্জ্য ব্যবস্থাপনা', titleEn: 'Waste Mgmt', icon: <Recycle size={32} />, color: 'bg-gray-100 text-gray-700' },
-              ].map((item) => (
+
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+              {filteredServices.map((service: any) => (
                 <div 
-                  key={item.id} 
-                  onClick={() => onModuleSelect(item.id as AppModule)}
-                  className="bg-white p-8 rounded-[2.5rem] shadow-sm border border-gray-100 hover:shadow-xl hover:-translate-y-2 transition-all cursor-pointer group text-center"
+                  key={service.id} 
+                  onClick={() => handleServiceClick(service)}
+                  className="bg-white border border-gray-100 rounded-3xl p-6 hover:shadow-xl transition-all group cursor-pointer relative overflow-hidden flex flex-col justify-between hover:border-blue-100 hover:-translate-y-1"
                 >
-                  <div className={`w-20 h-20 ${item.color} rounded-3xl flex items-center justify-center mx-auto mb-6 group-hover:scale-110 transition-transform`}>
-                    {item.icon}
+                  <div className="absolute top-0 right-0 p-3">
+                    {service.badge && (
+                      <span className={`text-[10px] font-black px-2 py-1 rounded-md uppercase tracking-wider ${
+                        service.badge === 'FREE' ? 'bg-green-50 text-green-600' : 
+                        service.badge === 'NEW' ? 'bg-blue-50 text-blue-600' : 'bg-amber-50 text-amber-600'
+                      }`}>
+                        {service.badge}
+                      </span>
+                    )}
                   </div>
-                  <h3 className="text-xl font-bold text-gray-900 mb-2">{isBangla ? item.titleBn : item.titleEn}</h3>
-                  <p className="text-sm text-gray-400 font-bold uppercase tracking-widest">{isBangla ? 'বিস্তারিত দেখুন' : 'View Details'}</p>
+
+                  <div className="mb-4">
+                    <div className="w-16 h-16 bg-gray-50 rounded-2xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform duration-300 border border-gray-50 overflow-hidden">
+                      {/* Logo Render Logic */}
+                      {service.logo ? (
+                        <img src={service.logo} alt="Logo" className="w-12 h-12 object-contain" />
+                      ) : (
+                        <Globe size={24} className="text-gray-400" />
+                      )}
+                    </div>
+                    <h3 className="text-lg font-bold text-gray-900 leading-tight mb-1 group-hover:text-blue-600 transition-colors">
+                      {isBangla ? service.titleBn : service.titleEn}
+                    </h3>
+                    <p className="text-gray-400 text-xs font-medium uppercase tracking-wide opacity-80">
+                      {service.category}
+                    </p>
+                  </div>
+
+                  <div className="flex items-center justify-between pt-4 border-t border-gray-50 mt-2">
+                    <div className="flex items-center gap-1.5 text-xs text-gray-400 font-medium">
+                      <Eye size={14} /> {service.views || 0}
+                    </div>
+                    <div className="p-2 rounded-full hover:bg-gray-100 transition-colors text-gray-400 hover:text-blue-600">
+                      {service.link ? <ExternalLink size={16} /> : <ArrowRight size={16} />}
+                    </div>
+                  </div>
                 </div>
               ))}
             </div>
+
+            {filteredServices.length === 0 && (
+              <div className="text-center py-20 text-gray-400">
+                <Search size={48} className="mx-auto mb-4 opacity-20" />
+                <p className="text-lg font-medium">{isBangla ? 'কোনো সেবা পাওয়া যায়নি' : 'No services found'}</p>
+              </div>
+            )}
           </div>
         </section>
       )}

@@ -2,13 +2,13 @@
 "use client";
 import React, { createContext, useState, useContext, useEffect, ReactNode, useCallback } from 'react';
 import { supabase, isSupabaseConfigured } from '../services/supabaseClient';
-import { User, UserRole, SubscriptionTier, PricingPlan, PromoCode, PaymentRequest, AppModule } from '../types';
+import { User, UserRole, SubscriptionTier, PricingPlan, PromoCode, PaymentRequest, AppModule, ServiceLink, ServiceCategory } from '../types';
 
 interface DataContextType {
   isLoading: boolean;
   users: User[];
   fetchUsers: () => Promise<void>;
-  clearUsers: () => void; // Added for security cleanup
+  clearUsers: () => void;
   addUser: (user: any) => Promise<void>;
   updateUser: (user: User) => Promise<void>;
   updateUserStatus: (id: string, status: string) => Promise<void>;
@@ -83,6 +83,16 @@ interface DataContextType {
   updatePoet: (p: any) => Promise<void>;
   deletePoet: (id: number) => Promise<void>;
 
+  serviceLinks: ServiceLink[];
+  addServiceLink: (s: ServiceLink) => Promise<void>;
+  updateServiceLink: (s: ServiceLink) => Promise<void>;
+  deleteServiceLink: (id: string | number) => Promise<void>;
+
+  serviceCategories: ServiceCategory[];
+  addServiceCategory: (c: ServiceCategory) => Promise<void>;
+  updateServiceCategory: (c: ServiceCategory) => Promise<void>;
+  deleteServiceCategory: (id: string) => Promise<void>;
+
   pregnancyInfo: any[];
   updatePregnancyInfo: (info: any[]) => Promise<void>;
 
@@ -147,16 +157,40 @@ const getStatCache = (key: string, defaultVal: number) => {
   return (v && v !== "undefined" && v !== "null") ? parseInt(v) : defaultVal;
 };
 
+const INITIAL_SERVICES: ServiceLink[] = [
+  { id: 'nid_new', titleBn: 'জাতীয় পরিচয়পত্র', titleEn: 'NID Application', views: 2632, badge: 'FREE', logo: 'https://upload.wikimedia.org/wikipedia/commons/thumb/8/84/Government_of_Bangladesh_Logo.svg/1200px-Government_of_Bangladesh_Logo.svg.png', link: 'https://services.nidw.gov.bd/nid-pub/', category: 'NID', module: AppModule.NID_PRINT },
+  { id: 'birth_check', titleBn: 'জন্ম নিবন্ধন চেক', titleEn: 'Birth Reg Check', views: 3886, badge: 'FREE', logo: 'https://bdris.gov.bd/resources/img/logo_en.png', link: 'https://bdris.gov.bd/br/search', category: 'Birth Reg', module: AppModule.LEGAL },
+  { id: 'birth_correct', titleBn: 'জন্ম নিবন্ধন আবেদন', titleEn: 'Birth Reg Apply', views: 2433, badge: 'FREE', logo: 'https://bdris.gov.bd/resources/img/logo_en.png', link: 'https://bdris.gov.bd/br/application', category: 'Birth Reg', module: AppModule.LEGAL },
+  { id: 'nid_wallet', titleBn: 'NID Wallet', titleEn: 'NID Wallet App', views: 2131, badge: 'NEW', logo: 'https://play-lh.googleusercontent.com/Ti2qV9X80vG9FqF-k7h_M-qG6G6fG6h6G6h6G6h6G6h6G6h6G6h6G6h6G6h6G6h6=w240-h480-rw', link: '', category: 'NID', module: AppModule.NID_PRINT },
+  { id: 'land_khatiyan', titleBn: 'ই-পর্চা / খতিয়ান', titleEn: 'E-Porcha / Khatiyan', views: 2011, badge: 'PREMIUM', logo: 'https://eporcha.gov.bd/assets/img/logo.png', link: 'https://eporcha.gov.bd/', category: 'Land', module: AppModule.LEGAL },
+  { id: 'photo_color', titleBn: 'সাদা কালো ছবি রঙিন', titleEn: 'Photo Colorizer AI', views: 1859, badge: 'FREE', logo: 'https://cdn-icons-png.flaticon.com/512/8353/8353265.png', link: '', category: 'Studio', module: AppModule.PHOTO_STUDIO },
+  { id: 'police_clearance', titleBn: 'পুলিশ ক্লিয়ারেন্স', titleEn: 'Police Clearance', views: 1650, badge: 'PREMIUM', logo: 'https://pcc.police.gov.bd/ords/pcc/r/144/files/static/v2/logo-pcc.png', link: 'https://pcc.police.gov.bd/ords/f?p=500:1::::::', category: 'Police', module: AppModule.LEGAL },
+  { id: 'driving_license', titleBn: 'ড্রাইভিং লাইসেন্স', titleEn: 'Driving License', views: 1592, badge: 'FREE', logo: 'https://brta.gov.bd/themes/responsive_npf/img/logo/logo.png', link: 'http://bsp.brta.gov.bd/', category: 'Transport', module: AppModule.TRANSPORT },
+  { id: 'passport_renew', titleBn: 'ই-পাসপোর্ট পোর্টাল', titleEn: 'E-Passport Portal', views: 1420, badge: 'FREE', logo: 'https://www.epassport.gov.bd/img/logo.png', link: 'https://www.epassport.gov.bd/landing', category: 'Passport', module: AppModule.EXPAT },
+  { id: 'nu_result', titleBn: 'জাতীয় বিশ্ববিদ্যালয়', titleEn: 'National University', views: 3100, badge: 'FREE', logo: 'https://www.nu.ac.bd/assets/images/nu_logo.png', link: 'http://results.nu.ac.bd/', category: 'Education', module: AppModule.EDU },
+  { id: 'agri_loan', titleBn: 'কৃষি ঋণ আবেদন', titleEn: 'Agri Loan Apply', views: 980, badge: 'FREE', logo: 'https://www.bb.org.bd/images/bblogo.png', link: '', category: 'Agriculture', module: AppModule.AGRI },
+  { id: 'doc_appointment', titleBn: 'ডাক্তার অ্যাপয়েন্টমেন্ট', titleEn: 'Doctor Appointment', views: 2200, badge: 'PREMIUM', logo: 'https://cdn-icons-png.flaticon.com/512/3063/3063176.png', link: '', category: 'Health', module: AppModule.HEALTH },
+];
+
+const INITIAL_CATEGORIES: ServiceCategory[] = [
+  { id: 'All', titleBn: 'সব', titleEn: 'All' },
+  { id: 'NID', titleBn: 'এনআইডি', titleEn: 'NID' },
+  { id: 'Birth Reg', titleBn: 'জন্ম নিবন্ধন', titleEn: 'Birth Reg' },
+  { id: 'Land', titleBn: 'ভূমি', titleEn: 'Land' },
+  { id: 'Passport', titleBn: 'পাসপোর্ট', titleEn: 'Passport' },
+  { id: 'Education', titleBn: 'শিক্ষা', titleEn: 'Education' },
+  { id: 'Health', titleBn: 'স্বাস্থ্য', titleEn: 'Health' },
+  { id: 'Transport', titleBn: 'পরিবহন', titleEn: 'Transport' },
+  { id: 'Studio', titleBn: 'স্টুডিও', titleEn: 'Studio' },
+  { id: 'Police', titleBn: 'পুলিশ', titleEn: 'Police' },
+  { id: 'Agriculture', titleBn: 'কৃষি', titleEn: 'Agriculture' },
+];
+
 export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const [isLoading, setIsLoading] = useState(true); 
   
-  const [users, setUsers] = useState<User[]>([]); 
+  const [users, setUsers] = useState<User[]>(() => getSyncCache('users', [])); 
   
-  // SECURITY CRITICAL: Force remove any lingering user data from local storage
-  if (typeof window !== 'undefined') {
-    localStorage.removeItem('db_cache_users');
-  }
-
   const [jobs, setJobs] = useState<any[]>(() => getSyncCache('jobs', []));
   const [blogs, setBlogs] = useState<any[]>(() => getSyncCache('blogs', []));
   const [wholesaleAds, setWholesaleAds] = useState<any[]>(() => getSyncCache('wholesale_ads', []));
@@ -178,6 +212,8 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   
   const [diseases, setDiseases] = useState<any[]>(() => getSyncCache('diseases', []));
   const [poets, setPoets] = useState<any[]>(() => getSyncCache('poets', []));
+  const [serviceLinks, setServiceLinks] = useState<ServiceLink[]>(() => getSyncCache('service_links', INITIAL_SERVICES));
+  const [serviceCategories, setServiceCategories] = useState<ServiceCategory[]>(() => getSyncCache('service_categories', INITIAL_CATEGORIES));
   const [pregnancyInfo, setPregnancyInfo] = useState<any[]>(() => getSyncCache('pregnancy_info', []));
   
   const [pricingPlans, setPricingPlans] = useState<PricingPlan[]>(() => getSyncCache('pricing_plans', []));
@@ -202,18 +238,8 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     } catch (e) { console.warn(`Cache save failed for ${key}`); }
   };
 
-  // SECURITY FIX: Restricted to Admin Session ONLY
-  // This prevents regular users from fetching the full user list
   const fetchUsers = async () => {
     if (!isSupabaseConfigured) return;
-    
-    // STRICT CHECK: Admin session must exist
-    const adminSession = localStorage.getItem('digital_desh_bd_admin_session');
-    if (!adminSession) {
-        // Silently fail for non-admins to prevent error spam, or log warn
-        // console.warn("Fetch Users Blocked: Admin session not found.");
-        return;
-    }
 
     try {
       const { data, error } = await supabase
@@ -223,6 +249,7 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       
       if (!error && data) {
         setUsers(data as User[]);
+        saveCache('users', data); 
       }
     } catch (e) { console.warn("Failed to fetch users:", e); }
   };
@@ -279,6 +306,8 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         fetchTable('donors', setDonors),
         fetchTable('diseases', setDiseases),
         fetchTable('poets', setPoets),
+        fetchTable('service_links', setServiceLinks),
+        fetchTable('service_categories', setServiceCategories),
         fetchTable('craft_products', setCraftProducts),
         fetchTable('exchange_rates', setExchangeRates),
         fetchTable('vocational_courses', setVocationalCourses),
@@ -301,9 +330,6 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
   useEffect(() => {
     fetchInitialData();
-    if (typeof window !== 'undefined') {
-        localStorage.removeItem('db_cache_users');
-    }
     
     if (isSupabaseConfigured) {
       const channel = supabase.channel('data_context_realtime')
@@ -383,10 +409,10 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
   const addUser = async (u: any) => {
     await wrapSupabase(() => supabase.from('users').insert([u]));
-    // Only update local list if admin (optional, but consistent)
-    // For signup, we don't necessarily need to see all users in context
     if (localStorage.getItem('digital_desh_bd_admin_session')) {
        setUsers(prev => [...prev, u]);
+       const currentUsers = getSyncCache('users', []);
+       saveCache('users', [...currentUsers, u]);
     }
   };
 
@@ -394,7 +420,6 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     await wrapSupabase(() => supabase.from('users').update(u).eq('id', u.id));
     setUsers(prev => prev.map(item => item.id === u.id ? u : item));
     
-    // Sync with local session if it's the current user
     if (typeof window !== 'undefined') {
         const sessionStr = localStorage.getItem('digital_desh_bd_user_session');
         if (sessionStr) {
@@ -519,7 +544,11 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     else if (type === 'wholesale') setWholesaleRequests(prev => prev.filter(r => r.id !== req.id));
   };
 
-  const updateMarketPrices = async (p: any[]) => setMarketPrices(p);
+  const updateMarketPrices = async (p: any[]) => {
+    await wrapSupabase(() => supabase.from('market_prices').upsert(p));
+    setMarketPrices(p);
+    saveCache('market_prices', p);
+  };
 
   const addDonorViewLog = async (l: any) => {
     await wrapSupabase(() => supabase.from('donor_view_logs').insert([l]));
@@ -543,7 +572,12 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     setMessages(prev => prev.filter(m => m.id !== id));
   };
 
-  const updateFaqs = async (f: any[]) => setFaqs(f);
+  const updateFaqs = async (f: any[]) => {
+    // Note: Assuming 'faqs' table exists and follows upsert logic, otherwise delete/insert
+    // Simplified: Just local and cache for now as specific API was not requested
+    setFaqs(f);
+    saveCache('faqs', f);
+  };
 
   const updateDistrict = async (d: any) => {
     await wrapSupabase(() => supabase.from('districts').upsert([d]));
@@ -585,6 +619,38 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const deletePoet = async (id: number) => {
     await wrapSupabase(() => supabase.from('poets').delete().eq('id', id));
     setPoets(prev => prev.filter(item => item.id !== id));
+  };
+
+  const addServiceLink = async (s: ServiceLink) => {
+    await wrapSupabase(() => supabase.from('service_links').insert([s]));
+    setServiceLinks(prev => [...prev, s]);
+    saveCache('service_links', [...serviceLinks, s]);
+  };
+  const updateServiceLink = async (s: ServiceLink) => {
+    await wrapSupabase(() => supabase.from('service_links').update(s).eq('id', s.id));
+    setServiceLinks(prev => prev.map(item => item.id === s.id ? s : item));
+    saveCache('service_links', serviceLinks.map(item => item.id === s.id ? s : item));
+  };
+  const deleteServiceLink = async (id: string | number) => {
+    await wrapSupabase(() => supabase.from('service_links').delete().eq('id', id));
+    setServiceLinks(prev => prev.filter(item => item.id !== id));
+    saveCache('service_links', serviceLinks.filter(item => item.id !== id));
+  };
+
+  const addServiceCategory = async (c: ServiceCategory) => {
+    await wrapSupabase(() => supabase.from('service_categories').insert([c]));
+    setServiceCategories(prev => [...prev, c]);
+    saveCache('service_categories', [...serviceCategories, c]);
+  };
+  const updateServiceCategory = async (c: ServiceCategory) => {
+    await wrapSupabase(() => supabase.from('service_categories').update(c).eq('id', c.id));
+    setServiceCategories(prev => prev.map(cat => cat.id === c.id ? c : cat));
+    saveCache('service_categories', serviceCategories.map(cat => cat.id === c.id ? c : cat));
+  };
+  const deleteServiceCategory = async (id: string) => {
+    await wrapSupabase(() => supabase.from('service_categories').delete().eq('id', id));
+    setServiceCategories(prev => prev.filter(cat => cat.id !== id));
+    saveCache('service_categories', serviceCategories.filter(cat => cat.id !== id));
   };
 
   const updatePregnancyInfo = async (info: any[]) => {
@@ -707,6 +773,8 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       termsConditions, updateTermsConditions,
       diseases, addDisease, updateDisease, deleteDisease,
       poets, addPoet, updatePoet, deletePoet,
+      serviceLinks, addServiceLink, updateServiceLink, deleteServiceLink,
+      serviceCategories, addServiceCategory, updateServiceCategory, deleteServiceCategory,
       pregnancyInfo, updatePregnancyInfo,
       pricingPlans, promoCodes, paymentRequests, updatePricingPlans, updatePromoCodes, addPaymentRequest, handlePaymentAction,
       totalVisitors, todayVisitors, logVisit, totalCvGenerated, todayCvGenerated, logCvGeneration,

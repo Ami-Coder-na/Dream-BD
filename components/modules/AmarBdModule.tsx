@@ -215,7 +215,6 @@ const divisionColors: Record<string, string> = {
   mymensingh: 'bg-purple-600 border-purple-600 text-white',
 };
 
-// ... (Rest of the file remains same, just skipping to the Modal render part to save output space) ...
 // --- HOLIDAY DATA (Updated for 2026) ---
 const GOVT_HOLIDAYS = [
   { month: 1, date: '21 Feb', nameBn: 'শহীদ দিবস ও আন্তর্জাতিক মাতৃভাষা দিবস', nameEn: 'Shaheed Day & Int. Mother Language Day', type: 'National' },
@@ -325,7 +324,8 @@ export const AmarBdModule: React.FC<Props> = ({ isBangla, onModuleSelect }) => {
 
           <div className="flex flex-col lg:flex-row gap-8">
             <div className="w-full lg:w-1/4 bg-white rounded-2xl shadow-sm border border-gray-100 p-2 h-fit">
-              <p className="text-xs font-bold text-gray-400 uppercase p-3">{isBangla ? 'বিভাগ নির্বাচন করুন' : 'Select Division'}</p>
+              <p className="text-xs font-bold text-gray-400 uppercase p-3">{isBangla ? 'বিভাগ নির্বাচন করুন' : 'Select Division'}
+              </p>
               <div className="space-y-1">
                 {tourismData.map(div => (
                   <button
@@ -420,8 +420,25 @@ export const AmarBdModule: React.FC<Props> = ({ isBangla, onModuleSelect }) => {
     const days = [];
     const today = new Date();
 
+    const getMonthSpan = (date: Date, calendar: string, locale: string) => {
+       try {
+         const start = new Date(date.getFullYear(), date.getMonth(), 1);
+         const end = new Date(date.getFullYear(), date.getMonth() + 1, 0);
+         const f1 = new Intl.DateTimeFormat(locale + '-u-ca-' + calendar, { month: 'long' }).format(start);
+         const f2 = new Intl.DateTimeFormat(locale + '-u-ca-' + calendar, { month: 'long' }).format(end);
+         const y = new Intl.DateTimeFormat(locale + '-u-ca-' + calendar, { year: 'numeric' }).format(end);
+         if (f1 === f2) return `${f1} ${y}`;
+         return `${f1} - ${f2} ${y}`;
+       } catch (e) {
+         return '';
+       }
+    };
+
+    const banglaText = getMonthSpan(currentDate, 'beng', 'bn-BD');
+    const hijriText = getMonthSpan(currentDate, 'islamic-umalqura', isBangla ? 'bn-BD' : 'en-US');
+
     for (let i = 0; i < firstDay; i++) {
-      days.push(<div key={`empty-${i}`} className="h-14 sm:h-20 bg-gray-50/50 border border-gray-100"></div>);
+      days.push(<div key={`empty-${i}`} className="h-20 sm:h-28 bg-gray-50/30 border border-gray-100"></div>);
     }
 
     for (let i = 1; i <= daysInMonth; i++) {
@@ -430,11 +447,25 @@ export const AmarBdModule: React.FC<Props> = ({ isBangla, onModuleSelect }) => {
       const monthNamesShort = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
       const specificHoliday = GOVT_HOLIDAYS.find(h => h.date === `${i} ${monthNamesShort[currentMonthIndex]}` || h.date.startsWith(`${i} `) && h.month === currentMonthIndex);
 
+      const cellDate = new Date(currentDate.getFullYear(), currentDate.getMonth(), i);
+      let bnDay = '', arDay = '';
+      try {
+        bnDay = new Intl.DateTimeFormat('bn-BD-u-ca-beng', { day: 'numeric' }).format(cellDate);
+        arDay = new Intl.DateTimeFormat('bn-BD-u-ca-islamic-umalqura', { day: 'numeric' }).format(cellDate);
+      } catch(e) {}
+
       days.push(
-        <div key={i} className={`h-14 sm:h-20 border border-gray-100 p-1 sm:p-2 relative group hover:bg-gray-50 transition-colors ${isToday ? 'bg-blue-50' : ''}`}>
-          <span className={`text-sm font-bold w-6 h-6 flex items-center justify-center rounded-full ${isToday ? 'bg-blue-600 text-white' : specificHoliday ? 'text-red-600' : 'text-gray-700'}`}>
-            {i}
-          </span>
+        <div key={i} className={`h-20 sm:h-28 border border-gray-100 p-2 relative group hover:bg-red-50/10 transition-colors ${isToday ? 'bg-blue-50' : ''}`}>
+          <div className="flex justify-between items-start">
+             <span className={`text-lg font-bold w-8 h-8 flex items-center justify-center rounded-full ${isToday ? 'bg-blue-600 text-white' : specificHoliday ? 'text-red-600' : 'text-gray-700'}`}>
+               {i}
+             </span>
+             <div className="text-[10px] text-gray-400 text-right leading-tight opacity-70">
+               <div>{bnDay}</div>
+               <div className="mt-0.5">{arDay}</div>
+             </div>
+          </div>
+          
           {specificHoliday && (
             <div className="absolute bottom-1 left-1 right-1">
               <div className="h-1.5 w-full bg-red-400 rounded-full"></div>
@@ -449,22 +480,23 @@ export const AmarBdModule: React.FC<Props> = ({ isBangla, onModuleSelect }) => {
 
     return (
       <div className="bg-white rounded-2xl shadow-lg border border-gray-100 overflow-hidden">
-        <div className="p-4 bg-gradient-to-r from-red-600 to-red-500 text-white flex justify-between items-center">
-          <button onClick={() => changeMonth(-1)} className="p-2 hover:bg-white/20 rounded-full"><ChevronLeft size={20}/></button>
+        <div className="p-6 bg-[#DC2626] text-white flex justify-between items-center">
+          <button onClick={() => changeMonth(-1)} className="p-2 hover:bg-white/20 rounded-full transition-colors"><ChevronLeft size={24}/></button>
           <div className="text-center">
-            <h3 className="text-xl font-bold">
+            <h3 className="text-3xl font-bold mb-1">
               {currentDate.toLocaleString(isBangla ? 'bn-BD' : 'en-US', { month: 'long', year: 'numeric' })}
             </h3>
-            <p className="text-xs text-red-100 opacity-90">
-              {isBangla ? 'বাংলা: ' : 'Bangla: '} {getBanglaMonthName(currentDate.getMonth())} - {getBanglaMonthName((currentDate.getMonth() + 1) % 12)}
-            </p>
+            <div className="flex flex-col gap-0.5 text-red-100 font-medium text-sm">
+               <p>{isBangla ? 'বাংলা: ' : 'Bangla: '} {banglaText}</p>
+               <p>{isBangla ? 'আরবি: ' : 'Arabic: '} {hijriText}</p>
+            </div>
           </div>
-          <button onClick={() => changeMonth(1)} className="p-2 hover:bg-white/20 rounded-full"><ChevronRight size={20}/></button>
+          <button onClick={() => changeMonth(1)} className="p-2 hover:bg-white/20 rounded-full transition-colors"><ChevronRight size={24}/></button>
         </div>
 
         <div className="grid grid-cols-7 text-center bg-gray-50 border-b border-gray-100">
           {(isBangla ? ['রবি', 'সোম', 'মঙ্গল', 'বুধ', 'বৃহঃ', 'শুক্র', 'শনি'] : ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']).map((d, i) => (
-            <div key={i} className={`py-2 text-xs font-bold uppercase ${i === 5 || i === 6 ? 'text-red-500' : 'text-gray-500'}`}>
+            <div key={i} className={`py-3 text-xs font-black uppercase tracking-wider ${i === 5 || i === 6 ? 'text-red-500' : 'text-gray-500'}`}>
               {d}
             </div>
           ))}
@@ -783,7 +815,7 @@ export const AmarBdModule: React.FC<Props> = ({ isBangla, onModuleSelect }) => {
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   placeholder={isBangla ? 'জেলা খুঁজুন...' : 'Search District...'}
-                  className="w-full pl-10 pr-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-green-500/20 focus:border-green-500 transition-all"
+                  className="w-full pl-10 pr-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-green-500/20 focus:border-green-500 transition-all text-black"
                 />
               </div>
             </div>

@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   Fish, Droplets, Activity, TrendingUp, AlertCircle, 
   Calculator, BookOpen, Scale, Gavel, Stethoscope, 
@@ -11,6 +11,7 @@ import { getOptimizedImageUrl } from '../utils/imageUtils';
 
 interface Props {
   isBangla: boolean;
+  initialTab?: string;
 }
 
 type FisheryTab = 'market' | 'encyclopedia' | 'tools' | 'govt';
@@ -22,7 +23,7 @@ const MARKET_PRICES = [
   { id: 2, nameBn: 'কাতল', nameEn: 'Katol', price: '320', unit: 'kg', trend: 'stable', change: '0' },
   { id: 3, nameBn: 'তেলাপিয়া', nameEn: 'Tilapia', price: '180', unit: 'kg', trend: 'down', change: '-5' },
   { id: 4, nameBn: 'পাঙ্গাস', nameEn: 'Pangas', price: '140', unit: 'kg', trend: 'up', change: '+2' },
-  { id: 5, nameBn: 'চিংড়ি (গলদা)', nameEn: 'Prawn (Golda)', price: '800', unit: 'kg', trend: 'up', change: '+50' },
+  { id: 5, nameBn: 'চিংড়ি (গলদা)', nameEn: 'Prawn (Golda)', price: '800', unit: 'kg', trend: 'up', change: '+50' },
   { id: 6, nameBn: 'পাবদা', nameEn: 'Pabda', price: '450', unit: 'kg', trend: 'down', change: '-20' },
 ];
 
@@ -47,7 +48,7 @@ const FISH_GUIDES = [
   },
   {
     id: 3,
-    titleBn: 'চিংড়ি ঘের ব্যবস্থাপনা',
+    titleBn: 'চিংড়ি ঘের ব্যবস্থাপনা',
     titleEn: 'Shrimp Enclosure Mgmt',
     type: 'Commercial',
     image: 'https://images.unsplash.com/photo-1628189873998-25f00e95a947',
@@ -125,9 +126,15 @@ const GOVT_SERVICES = [
   }
 ];
 
-export const FisheryModule: React.FC<Props> = ({ isBangla }) => {
+export const FisheryModule: React.FC<Props> = ({ isBangla, initialTab }) => {
   const [activeTab, setActiveTab] = useState<FisheryTab>('market');
   
+  useEffect(() => {
+    if (initialTab && ['market', 'encyclopedia', 'tools', 'govt'].includes(initialTab)) {
+      setActiveTab(initialTab as FisheryTab);
+    }
+  }, [initialTab]);
+
   // Calculator State
   const [calcSpecies, setCalcSpecies] = useState('Rui');
   const [calcCount, setCalcCount] = useState('');
@@ -144,10 +151,47 @@ export const FisheryModule: React.FC<Props> = ({ isBangla }) => {
     const weight = parseFloat(calcWeight); // grams
     if (!count || !weight) return;
 
-    let percentage = 0.03; // Default 3%
-    if (calcSpecies === 'Rui') percentage = 0.03;
-    else if (calcSpecies === 'Tilapia') percentage = 0.04;
-    else if (calcSpecies === 'Catfish') percentage = 0.05;
+    // Scientific Feeding Rate Logic based on Body Weight (BW)
+    // Fry (<5g): 10% of BW
+    // Fingerling (5-20g): 6-8% of BW
+    // Juvenile (20-100g): 4-5% of BW
+    // Grower (100-500g): 2-3% of BW
+    // Adult (>500g): 1.5-2% of BW
+
+    let percentage = 0.02; // Default 2% for adult fish
+
+    if (weight < 5) percentage = 0.10;
+    else if (weight < 20) percentage = 0.08;
+    else if (weight < 50) percentage = 0.05;
+    else if (weight < 100) percentage = 0.04;
+    else if (weight < 500) percentage = 0.03;
+    else percentage = 0.02;
+
+    // Adjustments for Species
+    switch(calcSpecies) {
+        case 'Tilapia': 
+        case 'Koi':
+            percentage *= 1.2; // High metabolism
+            break;
+        case 'Pangas':
+            percentage *= 1.3; // Very fast growth
+            break;
+        case 'ShingMagur':
+        case 'Pabda':
+            percentage *= 1.1; // High protein requirement
+            break;
+        case 'Chingri':
+            percentage *= 0.9; // Benthic feeder, different feed density
+            break;
+        case 'SilverCarp':
+        case 'GrassCarp':
+        case 'Sarputi':
+            percentage *= 1.0; // Standard carp rate
+            break;
+        default:
+            percentage *= 1.0; // Rui/Katol/Mrigal
+            break;
+    }
 
     const totalBiomassKg = (count * weight) / 1000;
     const dailyFeedKg = totalBiomassKg * percentage;
@@ -333,11 +377,17 @@ export const FisheryModule: React.FC<Props> = ({ isBangla }) => {
               <select 
                 value={calcSpecies}
                 onChange={(e) => setCalcSpecies(e.target.value)}
-                className="w-full p-3 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-cyan-500"
+                className="w-full p-4 bg-white border-2 border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-cyan-500 text-gray-900 font-bold shadow-sm cursor-pointer"
               >
-                <option value="Rui">Rui / Katol</option>
-                <option value="Tilapia">Tilapia</option>
-                <option value="Catfish">Catfish (Pangash/Magur)</option>
+                <option value="Rui">{isBangla ? 'রুই / কাতল / মৃগেল (Carp)' : 'Rui / Katol / Mrigal (Carp)'}</option>
+                <option value="SilverCarp">{isBangla ? 'সিলভার কার্প / বিগহেড' : 'Silver Carp / Bighead'}</option>
+                <option value="GrassCarp">{isBangla ? 'গ্রাস কার্প' : 'Grass Carp'}</option>
+                <option value="Tilapia">{isBangla ? 'তেলাপিয়া / কৈ (Tilapia/Koi)' : 'Tilapia / Koi'}</option>
+                <option value="Pangas">{isBangla ? 'পাঙ্গাস (Pangas)' : 'Pangas'}</option>
+                <option value="ShingMagur">{isBangla ? 'শিং / মাগুর (Catfish)' : 'Shing / Magur (Catfish)'}</option>
+                <option value="Pabda">{isBangla ? 'পাবদা / গুলশা' : 'Pabda / Gulsha'}</option>
+                <option value="Sarputi">{isBangla ? 'সরপুঁটি' : 'Sarputi'}</option>
+                <option value="Chingri">{isBangla ? 'গলদা / বাগদা চিংড়ি (Shrimp)' : 'Golda / Bagda (Shrimp)'}</option>
               </select>
             </div>
             <div>
@@ -346,8 +396,8 @@ export const FisheryModule: React.FC<Props> = ({ isBangla }) => {
                 type="number" 
                 value={calcCount}
                 onChange={(e) => setCalcCount(e.target.value)}
-                placeholder="Ex: 500"
-                className="w-full p-3 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-cyan-500"
+                placeholder="Ex: 1000"
+                className="w-full p-4 bg-white border-2 border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-cyan-500 text-gray-900 font-bold shadow-sm placeholder-gray-400"
               />
             </div>
             <div>
@@ -356,11 +406,11 @@ export const FisheryModule: React.FC<Props> = ({ isBangla }) => {
                 type="number" 
                 value={calcWeight}
                 onChange={(e) => setCalcWeight(e.target.value)}
-                placeholder="Ex: 150"
-                className="w-full p-3 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-cyan-500"
+                placeholder="Ex: 250"
+                className="w-full p-4 bg-white border-2 border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-cyan-500 text-gray-900 font-bold shadow-sm placeholder-gray-400"
               />
             </div>
-            <Button onClick={calculateFeed} className="w-full bg-cyan-600 hover:bg-cyan-700">
+            <Button onClick={calculateFeed} className="w-full bg-cyan-600 hover:bg-cyan-700 font-black text-lg py-4 rounded-xl shadow-md">
               {isBangla ? 'হিসাব করুন' : 'Calculate'}
             </Button>
           </div>
@@ -368,16 +418,16 @@ export const FisheryModule: React.FC<Props> = ({ isBangla }) => {
           <div className="bg-cyan-50 rounded-xl p-6 flex flex-col items-center justify-center text-center border border-cyan-100">
             {feedResult ? (
               <>
-                <p className="text-cyan-800 font-medium mb-2">{isBangla ? 'দৈনিক প্রয়োজনীয় খাবার' : 'Daily Feed Required'}</p>
-                <h4 className="text-5xl font-bold text-cyan-600 mb-2">{feedResult} <span className="text-lg text-cyan-500">kg</span></h4>
-                <p className="text-xs text-cyan-700 mt-2 bg-white/50 px-3 py-1 rounded-full">
+                <p className="text-cyan-800 font-medium mb-2 uppercase tracking-wide">{isBangla ? 'দৈনিক প্রয়োজনীয় খাবার' : 'Daily Feed Required'}</p>
+                <h4 className="text-6xl font-black text-cyan-600 mb-2">{feedResult} <span className="text-lg text-cyan-500 font-bold">kg</span></h4>
+                <p className="text-sm text-cyan-700 mt-4 bg-white px-4 py-2 rounded-lg font-bold border border-cyan-200 shadow-sm">
                   {isBangla ? 'সকালে ৫০% ও বিকেলে ৫০% দিন' : 'Give 50% in morning & 50% in evening'}
                 </p>
               </>
             ) : (
               <div className="text-cyan-400">
                 <Info size={48} className="mx-auto mb-2 opacity-50" />
-                <p className="text-sm">{isBangla ? 'তথ্য দিয়ে হিসাব বাটন চাপুন' : 'Enter details and press calculate'}</p>
+                <p className="text-sm font-medium">{isBangla ? 'তথ্য দিয়ে হিসাব বাটন চাপুন' : 'Enter details and press calculate'}</p>
               </div>
             )}
           </div>

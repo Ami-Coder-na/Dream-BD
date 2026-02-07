@@ -41,7 +41,27 @@ export enum AppModule {
   EXPAT = 'expat',
   VOCATIONAL = 'vocational',
   JANTE_CHAI = 'jante_chai',
-  SUBSCRIPTION = 'subscription'
+  SUBSCRIPTION = 'subscription',
+  NID_PRINT = 'nid_print',
+  PHOTO_STUDIO = 'photo_studio'
+}
+
+export interface ServiceCategory {
+  id: string;
+  titleBn: string;
+  titleEn: string;
+}
+
+export interface ServiceLink {
+  id: string | number;
+  titleBn: string;
+  titleEn: string;
+  link: string;
+  logo: string;
+  category: string;
+  badge?: string;
+  views?: number;
+  module?: AppModule;
 }
 
 export interface User {

@@ -1,8 +1,5 @@
-
-"use client";
-
 import React, { useState } from 'react';
-import { Menu, X, Globe, ChevronDown, User as UserIcon, Shield, HelpCircle, Bell, Bird, Info, ArrowRight, Briefcase, FileText, LayoutGrid, MapPin, Lock } from 'lucide-react';
+import { Menu, X, Globe, ChevronDown, User as UserIcon, Shield, HelpCircle, Bell, Bird, Info, ArrowRight, Briefcase, FileText, LayoutGrid, MapPin, Lock, Home, Calculator, CreditCard, Camera } from 'lucide-react';
 import { Button } from '../ui/Button';
 import { User, AppModule, UserRole } from '../../types';
 import { useSiteConfig } from '../../contexts/SiteConfigContext';
@@ -23,6 +20,7 @@ export const Header: React.FC<HeaderProps> = ({
 }) => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [mobileServicesOpen, setMobileServicesOpen] = useState(false);
+  const [mobileToolsOpen, setMobileToolsOpen] = useState(false);
   const { modules, settings } = useSiteConfig();
 
   const handleModuleClick = (moduleId: AppModule | string) => {
@@ -32,6 +30,7 @@ export const Header: React.FC<HeaderProps> = ({
 
   const allServices = [
     { id: AppModule.CRAFT, title: isBangla ? 'কারুশিল্প' : 'Crafts' },
+    { id: AppModule.BAZAR_SODAI, title: isBangla ? 'বাজার সদাই' : 'Bazar Sodai' },
     { id: AppModule.AGRI, title: isBangla ? 'কৃষি' : 'Agriculture' },
     { id: AppModule.HEALTH, title: isBangla ? 'স্বাস্থ্য' : 'Health' },
     { id: AppModule.EDU, title: isBangla ? 'শিক্ষা' : 'Education' },
@@ -43,6 +42,16 @@ export const Header: React.FC<HeaderProps> = ({
     { id: AppModule.EXPAT, title: isBangla ? 'প্রবাসী' : 'Expat' },
     { id: AppModule.VOCATIONAL, title: isBangla ? 'কারিগরি' : 'Vocational' },
   ].filter(s => modules[s.id]);
+
+  const toolsMenu = [
+    { id: AppModule.LEGAL, title: isBangla ? 'ভূমি ক্যালকুলেটর' : 'Land Calculator' },
+    { id: `${AppModule.AGRI}:calculator`, title: isBangla ? 'কৃষি ক্যালকুলেটর' : 'Agri Calculator' },
+    { id: `${AppModule.FISHERY}:tools`, title: isBangla ? 'খাদ্য ক্যালকুলেটর' : 'Feed Calculator' },
+    { id: `${AppModule.EXPAT}:remit`, title: isBangla ? 'মুদ্রা কনভার্টার' : 'Currency Converter' },
+    { id: AppModule.NID_PRINT, title: isBangla ? 'NID প্রিন্ট' : 'NID Print' },
+    { id: AppModule.PHOTO_STUDIO, title: isBangla ? 'ফটো স্টুডিও' : 'Photo Studio' },
+    { id: `${AppModule.JOB}:cv_generator`, title: isBangla ? 'সিভি জেনারেটর' : 'CV Generator' },
+  ];
 
   // Error #31 Fix: Defensive string check
   const siteTitleString = typeof settings?.websiteTitle === 'string' ? settings.websiteTitle : 'Digital Desh BD';
@@ -70,6 +79,18 @@ export const Header: React.FC<HeaderProps> = ({
 
           {/* Desktop Nav */}
           <div className="hidden lg:flex items-center gap-1 xl:gap-3">
+            {/* Admin Button - Always Visible for Testing */}
+            <button 
+              onClick={() => handleModuleClick(AppModule.ADMIN)} 
+              className="px-4 py-2 text-sm font-bold text-white bg-red-600 hover:bg-red-700 rounded-lg shadow-md transition-colors flex items-center gap-2 animate-fade-in"
+            >
+              <Shield size={16} /> ADMIN
+            </button>
+
+            <button onClick={onNavigateHome} className="px-3 py-2 text-sm font-bold text-gray-600 hover:text-brand-600 transition-colors">
+              {isBangla ? 'হোম' : 'Home'}
+            </button>
+
             <button onClick={() => handleModuleClick(AppModule.AMAR_BD)} className="px-4 py-2 rounded-full bg-emerald-50 text-emerald-700 font-bold text-sm hover:bg-emerald-100 transition-all flex items-center gap-2">
               <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span> {isBangla ? 'আমার বাংলাদেশ' : 'Amar BD'}
             </button>
@@ -89,9 +110,16 @@ export const Header: React.FC<HeaderProps> = ({
               </div>
             </div>
 
-            <button onClick={() => handleModuleClick(AppModule.BAZAR_SODAI)} className="px-4 py-2 rounded-full bg-lime-50 text-lime-700 font-bold text-sm hover:bg-lime-100 transition-all">
-               {isBangla ? 'বাজার সদাই' : 'Bazar Sodai'}
-            </button>
+            <div className="relative group">
+              <button className="flex items-center gap-1 px-3 py-2 text-sm font-bold text-gray-600 hover:text-brand-600 transition-colors">
+                {isBangla ? 'টুলস' : 'Tools'} <ChevronDown size={14} />
+              </button>
+              <div className="absolute top-full left-0 w-56 bg-white shadow-2xl rounded-2xl border border-gray-100 py-3 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all translate-y-2 group-hover:translate-y-0">
+                {toolsMenu.map(t => (
+                  <button key={t.id} onClick={() => handleModuleClick(t.id)} className="w-full text-left px-5 py-2.5 text-sm text-gray-700 hover:bg-brand-50 hover:text-brand-700 font-medium">{t.title}</button>
+                ))}
+              </div>
+            </div>
 
             <button onClick={() => handleModuleClick(AppModule.JOB)} className="px-3 py-2 text-sm font-bold text-gray-600 hover:text-brand-600 transition-colors">
               {isBangla ? 'চাকরি' : 'Jobs'}
@@ -184,7 +212,16 @@ export const Header: React.FC<HeaderProps> = ({
                 </div>
               )}
 
-              <button onClick={() => handleModuleClick(AppModule.AMAR_BD)} className="w-full text-left font-black text-[#0b6352] text-lg py-4 px-2 border-b border-gray-50 flex items-center gap-3"> <LayoutGrid size={22}/> {isBangla ? 'আমার বাংলাদেশ' : 'Amar BD'}</button>
+              {/* Dev Admin Button Mobile - Always Visible */}
+              <button onClick={() => handleModuleClick(AppModule.ADMIN)} className="w-full text-left font-black text-white bg-red-600 hover:bg-red-700 text-lg py-4 px-4 rounded-xl flex items-center gap-3 shadow-md mb-2">
+                 <Shield size={22}/> ADMIN PANEL
+              </button>
+
+              <button onClick={() => { setMobileMenuOpen(false); onNavigateHome(); }} className="w-full text-left font-black text-gray-800 text-lg py-4 px-2 border-b border-gray-50 flex items-center gap-3 hover:bg-gray-50">
+                 <Home size={22}/> {isBangla ? 'হোম' : 'Home'}
+              </button>
+
+              <button onClick={() => handleModuleClick(AppModule.AMAR_BD)} className="w-full text-left font-black text-[#0b6352] text-lg py-4 px-2 border-b border-gray-50 flex items-center gap-3"> <LayoutGrid size={22}/> {isBangla ? 'আমার বাংলাদেশ' : 'Amar BD'} - </button>
               <button onClick={() => handleModuleClick(AppModule.AMAR_JELA)} className="w-full text-left font-black text-[#0b6352] text-lg py-4 px-2 border-b border-gray-50 flex items-center gap-3"> <MapPin size={22}/> {isBangla ? 'আমার জেলা' : 'Amar Jela'}</button>
               
               {/* Expandable Services */}
@@ -210,7 +247,29 @@ export const Header: React.FC<HeaderProps> = ({
                 )}
               </div>
 
-              <button onClick={() => handleModuleClick(AppModule.BAZAR_SODAI)} className="w-full text-left font-black text-[#0b6352] text-lg py-4 px-2 border-b border-gray-50 flex items-center gap-3"> <LayoutGrid size={22}/> {isBangla ? 'বাজার সদাই' : 'Bazar Sodai'}</button>
+              {/* Expandable Tools */}
+              <div className="border-b border-gray-50">
+                <button 
+                  onClick={() => setMobileToolsOpen(!mobileToolsOpen)} 
+                  className={`w-full text-left font-black text-gray-700 text-lg py-4 px-2 flex items-center justify-between transition-colors ${mobileToolsOpen ? 'bg-gray-50' : ''}`}
+                >
+                  <div className="flex items-center gap-3">
+                    <Calculator size={22} /> {isBangla ? 'টুলস' : 'Tools'}
+                  </div>
+                  <ChevronDown size={20} className={`transform transition-transform ${mobileToolsOpen ? 'rotate-180' : ''}`} />
+                </button>
+                
+                {mobileToolsOpen && (
+                  <div className="bg-gray-50/50 p-2 grid grid-cols-2 gap-2 animate-fade-in-up">
+                    {toolsMenu.map(t => (
+                      <button key={t.id} onClick={() => handleModuleClick(t.id)} className="text-left p-3 rounded-xl bg-white border border-gray-100 text-sm font-bold text-gray-700 hover:bg-gray-100">
+                        {t.title}
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+
               <button onClick={() => handleModuleClick(AppModule.JOB)} className="w-full text-left font-black text-gray-700 text-lg py-4 px-2 border-b border-gray-50 flex items-center gap-3"> <Briefcase size={22}/> {isBangla ? 'চাকরি' : 'Jobs'}</button>
               <button onClick={() => handleModuleClick(AppModule.BLOG)} className="w-full text-left font-black text-gray-700 text-lg py-4 px-2 border-b border-gray-50 flex items-center gap-3"> <FileText size={22}/> {isBangla ? 'ব্লগ' : 'Blog'}</button>
               <button onClick={() => handleModuleClick(AppModule.JANTE_CHAI)} className="w-full text-left font-black text-[#4f46e5] text-lg py-4 px-2 flex items-center gap-3 border-b border-gray-50">

@@ -1,8 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
-  AlertOctagon, Map, PhoneCall, ShieldAlert, CloudLightning, Home, 
-  Waves, Activity, TriangleAlert, CheckCircle, Navigation, Camera, 
-  FileText, ChevronRight, Phone, Siren, Info, MapPin, Upload, X
+  AlertOctagon, PhoneCall, ShieldAlert, CloudLightning, 
+  Waves, Activity, FileText, Phone, MapPin, Clock, Search, ChevronDown
 } from 'lucide-react';
 import { Button } from '../ui/Button';
 
@@ -10,7 +9,7 @@ interface Props {
   isBangla: boolean;
 }
 
-type Tab = 'dashboard' | 'shelters' | 'guide' | 'report' | 'contacts';
+type Tab = 'dashboard' | 'guide' | 'contacts';
 type DisasterType = 'cyclone' | 'flood' | 'earthquake';
 type Phase = 'before' | 'during' | 'after';
 
@@ -40,12 +39,6 @@ const ALERTS = {
     time: '2 days ago'
   }
 };
-
-const SHELTERS = [
-  { id: 1, nameBn: 'মডেল স্কুল আশ্রয়কেন্দ্র', nameEn: 'Model School Shelter', distance: '0.5 km', capacity: 500, type: 'Cyclone' },
-  { id: 2, nameBn: 'ইউনিয়ন পরিষদ কমপ্লেক্স', nameEn: 'Union Council Complex', distance: '1.2 km', capacity: 300, type: 'Flood' },
-  { id: 3, nameBn: 'পাকা মসজিদ (দোতলা)', nameEn: 'Concrete Mosque (2nd Fl)', distance: '0.8 km', capacity: 200, type: 'General' },
-];
 
 const GUIDELINES = {
   cyclone: {
@@ -106,129 +99,104 @@ export const DisasterModule: React.FC<Props> = ({ isBangla }) => {
   const [activeTab, setActiveTab] = useState<Tab>('dashboard');
   const [guideType, setGuideType] = useState<DisasterType>('cyclone');
   const [guidePhase, setGuidePhase] = useState<Phase>('before');
-  
-  // Report Form State
-  const [reportSubmitted, setReportSubmitted] = useState(false);
-  const [reportImage, setReportImage] = useState<string | null>(null);
+  const [earthquakes, setEarthquakes] = useState<any[]>([]);
+  const [loadingQuakes, setLoadingQuakes] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [visibleCount, setVisibleCount] = useState(6);
 
-  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setReportImage(reader.result as string);
+  useEffect(() => {
+    if (activeTab === 'dashboard') {
+      const fetchQuakes = async () => {
+        setLoadingQuakes(true);
+        try {
+          // Fetch earthquakes > 4.0 mag in the last 7 days, surrounding Bangladesh (approx 23.8, 90.4) within 2000km
+          const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString();
+          const url = `https://earthquake.usgs.gov/fdsnws/event/1/query?format=geojson&starttime=${sevenDaysAgo}&minmagnitude=4&latitude=23.8103&longitude=90.4125&maxradiuskm=2000&orderby=time&limit=50`;
+          
+          const response = await fetch(url);
+          const data = await response.json();
+          setEarthquakes(data.features || []);
+        } catch (error) {
+          console.error("Failed to fetch earthquakes", error);
+        } finally {
+          setLoadingQuakes(false);
+        }
       };
-      reader.readAsDataURL(file);
+      fetchQuakes();
     }
-  };
+  }, [activeTab]);
 
-  const handleReportSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    setReportSubmitted(true);
-    setTimeout(() => {
-      setReportSubmitted(false);
-      setReportImage(null);
-    }, 3000);
+  const filteredQuakes = earthquakes.filter(eq => 
+    eq.properties.place.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
+  const displayedQuakes = filteredQuakes.slice(0, visibleCount);
+
+  const handleSeeMore = () => {
+    setVisibleCount(prev => prev + 6);
   };
 
   const renderDashboard = () => (
     <div className="space-y-6 animate-fade-in">
-      <div className="bg-red-600 text-white rounded-2xl p-6 shadow-lg shadow-red-200 border-4 border-red-500 flex flex-col md:flex-row items-center gap-6 text-center md:text-left relative overflow-hidden">
-        <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full -mr-16 -mt-16 animate-pulse"></div>
-        <div className="p-4 bg-white/20 rounded-full relative z-10">
-           <AlertOctagon size={48} className="animate-bounce" />
-        </div>
-        <div className="flex-1 relative z-10">
-          <div className="flex items-center justify-center md:justify-start gap-2 mb-2">
-            <span className="bg-white text-red-600 text-xs font-bold px-2 py-1 rounded uppercase animate-pulse">
-              {isBangla ? 'সতর্ক সংকেত' : 'Warning Signal'}
-            </span>
-            <span className="text-red-100 text-xs">{ALERTS.cyclone.updateTime}</span>
-          </div>
-          <h2 className="text-3xl font-extrabold uppercase tracking-wider mb-2 leading-tight">
-            {isBangla ? `${ALERTS.cyclone.nameBn} - সংকেত ৪` : `${ALERTS.cyclone.nameEn} - Signal 4`}
-          </h2>
-          <p className="text-red-100 text-lg">
-            {isBangla ? ALERTS.cyclone.locationBn : ALERTS.cyclone.locationEn}
-          </p>
-        </div>
-      </div>
+      {/* Live Earthquake Tracker */}
+      <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
+         <h3 className="text-xl font-bold text-gray-900 mb-6 flex items-center gap-2">
+           <Activity className="text-orange-600" />
+           {isBangla ? 'সাম্প্রতিক ভূমিকম্প (লাইভ আপডেট)' : 'Recent Earthquakes (Live Update)'}
+         </h3>
+         
+         <div className="mb-6 relative">
+            <input 
+              type="text" 
+              placeholder={isBangla ? "দেশ বা জায়গার নাম দিয়ে খুঁজুন..." : "Search by country or place..."}
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="w-full pl-10 pr-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 outline-none transition-all font-medium"
+            />
+            <Search className="absolute left-3 top-3.5 text-gray-400" size={20} />
+         </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        <div className="bg-blue-50 border border-blue-100 rounded-2xl p-5 flex items-center gap-4">
-           <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center text-blue-600 shrink-0">
-             <Waves size={24} />
+         {loadingQuakes ? (
+           <div className="py-12 text-center text-gray-400 animate-pulse flex flex-col items-center">
+             <Activity className="mb-2 animate-spin" />
+             <p>{isBangla ? 'তথ্য লোড হচ্ছে...' : 'Loading live data...'}</p>
            </div>
-           <div>
-             <h4 className="font-bold text-blue-900">{isBangla ? 'বন্যা পরিস্থিতি' : 'Flood Status'}</h4>
-             <p className="text-sm font-bold text-red-500 mt-1">
-               {isBangla ? ALERTS.flood.statusBn : ALERTS.flood.statusEn}
-             </p>
-             <p className="text-xs text-blue-600 mt-1">
-               Level: {ALERTS.flood.level} ({ALERTS.flood.trend})
-             </p>
-           </div>
-        </div>
-
-        <div className="bg-orange-50 border border-orange-100 rounded-2xl p-5 flex items-center gap-4">
-           <div className="w-12 h-12 bg-orange-100 rounded-full flex items-center justify-center text-orange-600 shrink-0">
-             <Activity size={24} />
-           </div>
-           <div>
-             <h4 className="font-bold text-orange-900">{isBangla ? 'ভূমিকম্প আপডেট' : 'Earthquake Update'}</h4>
-             <p className="text-sm text-gray-600 mt-1">
-               {isBangla ? `শেষ: ${ALERTS.earthquake.lastBn}` : `Last: ${ALERTS.earthquake.lastEn}`}
-             </p>
-             <p className="text-xs text-orange-600 mt-1">{ALERTS.earthquake.time}</p>
-           </div>
-        </div>
-
-        <div className="bg-green-50 border border-green-100 rounded-2xl p-5 flex items-center gap-4">
-           <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center text-green-600 shrink-0">
-             <MapPin size={24} />
-           </div>
-           <div>
-             <h4 className="font-bold text-green-900">{isBangla ? 'আপনার অবস্থান' : 'Your Location'}</h4>
-             <p className="text-sm text-gray-600 mt-1">Dhaka (Safe Zone)</p>
-             <p className="text-xs text-green-600 mt-1">{isBangla ? 'বর্তমানে কোনো ঝুঁকি নেই' : 'Currently no major risk'}</p>
-           </div>
-        </div>
-      </div>
-    </div>
-  );
-
-  const renderShelters = () => (
-    <div className="space-y-6 animate-fade-in">
-      <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
-        <div className="bg-gray-100 h-64 w-full flex items-center justify-center relative">
-           <Map size={48} className="text-gray-400" />
-           <span className="absolute bottom-2 right-2 bg-white px-2 py-1 text-xs rounded shadow">Map Placeholder</span>
-        </div>
-        <div className="p-6">
-          <h3 className="font-bold text-gray-900 mb-4 flex items-center gap-2">
-            <Home size={20} className="text-green-600" />
-            {isBangla ? 'নিকটস্থ আশ্রয়কেন্দ্র তালিকা' : 'Nearby Shelter List'}
-          </h3>
-          <div className="space-y-3">
-            {SHELTERS.map((shelter) => (
-              <div key={shelter.id} className="flex flex-col sm:flex-row justify-between items-start sm:items-center p-4 bg-gray-50 rounded-xl border border-gray-100 hover:border-green-200 transition-colors">
-                <div>
-                  <h4 className="font-bold text-gray-800">{isBangla ? shelter.nameBn : shelter.nameEn}</h4>
-                  <div className="flex gap-3 text-xs text-gray-500 mt-1">
-                    <span className="bg-white px-2 py-0.5 rounded border">{shelter.type}</span>
-                    <span>Cap: {shelter.capacity}</span>
-                  </div>
+         ) : displayedQuakes.length > 0 ? (
+           <>
+             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+               {displayedQuakes.map((eq) => (
+                 <div key={eq.id} className="flex items-center gap-4 p-4 rounded-xl border border-orange-100 bg-orange-50 hover:bg-orange-100 transition-colors">
+                   <div className={`w-12 h-12 rounded-full flex items-center justify-center text-white font-bold text-lg shadow-sm shrink-0 ${eq.properties.mag >= 5 ? 'bg-red-500' : 'bg-orange-500'}`}>
+                     {eq.properties.mag.toFixed(1)}
+                   </div>
+                   <div className="min-w-0">
+                     <h4 className="font-bold text-gray-900 text-sm truncate" title={eq.properties.place}>{eq.properties.place}</h4>
+                     <p className="text-xs text-gray-500 mt-1 flex items-center gap-1">
+                       <Clock size={10} />
+                       {new Date(eq.properties.time).toLocaleString(isBangla ? 'bn-BD' : 'en-US')}
+                     </p>
+                   </div>
+                 </div>
+               ))}
+             </div>
+             
+             {visibleCount < filteredQuakes.length && (
+                <div className="mt-6 text-center">
+                   <Button onClick={handleSeeMore} variant="outline" className="text-orange-600 border-orange-200 hover:bg-orange-50">
+                      {isBangla ? 'আরও দেখুন' : 'See More'} <ChevronDown size={16} className="ml-1" />
+                   </Button>
                 </div>
-                <div className="flex items-center gap-3 mt-3 sm:mt-0 w-full sm:w-auto">
-                  <span className="text-green-600 font-bold text-sm whitespace-nowrap">{shelter.distance}</span>
-                  <Button size="sm" className="bg-green-600 hover:bg-green-700 w-full sm:w-auto">
-                     <Navigation size={14} className="mr-1" /> {isBangla ? 'পথ' : 'Route'}
-                  </Button>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
+             )}
+           </>
+         ) : (
+           <div className="py-10 text-center bg-gray-50 rounded-xl border border-dashed border-gray-200 text-gray-500">
+             <Activity className="mx-auto mb-2 opacity-20" size={32} />
+             <p>{isBangla ? 'কোন তথ্য পাওয়া যায়নি।' : 'No data found matching your search.'}</p>
+           </div>
+         )}
+         <p className="text-[10px] text-gray-400 mt-4 text-right italic">
+            Source: USGS (United States Geological Survey)
+         </p>
       </div>
     </div>
   );
@@ -298,8 +266,6 @@ export const DisasterModule: React.FC<Props> = ({ isBangla }) => {
             {[
               { id: 'dashboard', icon: <Activity size={16} />, labelBn: 'ড্যাশবোর্ড', labelEn: 'Dashboard' },
               { id: 'guide', icon: <FileText size={16} />, labelBn: 'গাইড', labelEn: 'Guide' },
-              { id: 'shelters', icon: <Home size={16} />, labelBn: 'আশ্রয়কেন্দ্র', labelEn: 'Shelters' },
-              { id: 'report', icon: <Camera size={16} />, labelBn: 'রিপোর্ট', labelEn: 'Report' },
               { id: 'contacts', icon: <PhoneCall size={16} />, labelBn: 'যোগাযোগ', labelEn: 'Contacts' },
             ].map(tab => (
               <button
@@ -320,14 +286,7 @@ export const DisasterModule: React.FC<Props> = ({ isBangla }) => {
 
         <div className="min-h-[400px]">
           {activeTab === 'dashboard' && renderDashboard()}
-          {activeTab === 'shelters' && renderShelters()}
           {activeTab === 'guide' && renderGuide()}
-          {activeTab === 'report' && (
-            <div className="bg-white p-10 rounded-2xl shadow-sm border border-gray-100 text-center animate-fade-in">
-               <Camera size={48} className="mx-auto mb-4 text-gray-300" />
-               <p className="text-gray-500 font-bold">{isBangla ? 'রিপোর্ট সিস্টেম শীঘ্রই আসছে' : 'Reporting system coming soon'}</p>
-            </div>
-          )}
           {activeTab === 'contacts' && (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 animate-fade-in">
               {EMERGENCY_CONTACTS.map((c, i) => (

@@ -1,11 +1,10 @@
-
 import React, { useState, useMemo, useRef, useEffect } from 'react';
 import { 
   Briefcase, MapPin, Clock, DollarSign, Search, X, CheckCircle, Calendar, 
   Building2, Filter, ChevronDown, RefreshCw, PlusCircle, Send, Globe, 
   Info, FileText, Download, User as UserIcon, Mail, Phone, Link as LinkIcon,
   Trash2, Plus, Layout, Type as TypeIcon, Camera, Globe2, Share2, Banknote, Loader2, Bird, Printer,
-  AlignLeft, GraduationCap
+  AlignLeft, GraduationCap, ArrowLeft, PenTool
 } from 'lucide-react';
 import { Button } from '../ui/Button';
 import { useData } from '../../contexts/DataContext';
@@ -16,6 +15,7 @@ interface Props {
   isBangla: boolean;
   user?: User | null;
   onLogin?: () => void;
+  initialView?: string;
 }
 
 type JobCategory = 'Government' | 'Private' | 'NGO' | 'International' | 'Autonomous' | 'Local Government' | 'Public University';
@@ -60,8 +60,11 @@ const categoryLabels: Record<string, { bn: string; en: string }> = {
   'International': { bn: 'আন্তর্জাতিক', en: 'International' },
 };
 
-export const JobModule: React.FC<Props> = ({ isBangla, user, onLogin }) => {
+export const JobModule: React.FC<Props> = ({ isBangla, user, onLogin, initialView }) => {
   const { jobs, addRequest, logCvGeneration, isLoading } = useData();
+  const [activeView, setActiveView] = useState<'list' | 'cv_generator'>('list');
+  const [cvTab, setCvTab] = useState<'personal' | 'experience' | 'education'>('personal');
+  
   const [selectedJob, setSelectedJob] = useState<any | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [jobCopyStatus, setJobCopyStatus] = useState<number | null>(null);
@@ -72,10 +75,6 @@ export const JobModule: React.FC<Props> = ({ isBangla, user, onLogin }) => {
   const [showMobileFilters, setShowMobileFilters] = useState(false);
 
   const [showPostModal, setShowPostModal] = useState(false);
-  const [showCvModal, setShowCvModal] = useState(false);
-  const [cvStep, setCvStep] = useState(1);
-  const [cvTemplate, setCvTemplate] = useState<'executive' | 'modern' | 'classic'>('executive');
-
   const cvPhotoInputRef = useRef<HTMLInputElement>(null);
 
   const [cvData, setCvData] = useState<CvData>({
@@ -105,6 +104,16 @@ export const JobModule: React.FC<Props> = ({ isBangla, user, onLogin }) => {
       category: 'Private',
       level: 'Entry'
   });
+
+  useEffect(() => {
+    if (initialView === 'cv_generator') {
+      if (!user && onLogin) {
+        onLogin();
+      } else {
+        setActiveView('cv_generator');
+      }
+    }
+  }, [initialView, user, onLogin]);
 
   useEffect(() => {
     try {
@@ -153,8 +162,7 @@ export const JobModule: React.FC<Props> = ({ isBangla, user, onLogin }) => {
 
   const handleCvGeneratorClick = () => {
       if (!user) { onLogin?.(); return; }
-      setShowCvModal(true);
-      setCvStep(1);
+      setActiveView('cv_generator');
   };
 
   const handleCvPhotoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -233,114 +241,334 @@ export const JobModule: React.FC<Props> = ({ isBangla, user, onLogin }) => {
   ];
 
   return (
-    <div className="bg-gray-50 min-h-screen py-8 lg:py-12 px-4 sm:px-6 lg:px-8 print:p-0 print:bg-white">
+    <div className="bg-gray-50 min-h-screen print:bg-white print:p-0">
       <style>{`
         @media print {
           @page { margin: 0; size: A4; }
           body * { visibility: hidden !important; }
           #cv-paper, #cv-paper * { visibility: visible !important; }
           #cv-paper { position: absolute !important; left: 0 !important; top: 0 !important; width: 210mm !important; min-height: 297mm !important; margin: 0 !important; padding: 10mm !important; box-shadow: none !important; background: white !important; z-index: 9999 !important; }
-          html, body { margin: 0 !important; padding: 0 !important; height: auto !important; background: white !important; }
+          html, body { margin: 0 !important; padding: 0 !important; height: auto !important; background: white !important; overflow: visible !important; }
           .no-print { display: none !important; }
         }
       `}</style>
 
-      <div className="max-w-7xl mx-auto print:max-w-none no-print">
-        <div className="text-center mb-10">
-          <h1 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">{isBangla ? 'আপনার স্বপ্নের চাকরি খুঁজুন' : 'Find Your Dream Job'}</h1>
-          <p className="text-gray-500 max-w-2xl mx-auto mb-6">{isBangla ? 'সরকারি, বেসরকারি, স্বায়ত্বশাসিত এবং এনজিও - সব ধরনের চাকরির বিশাল সমাহার।' : 'Government, Private, Autonomous, and NGO - A vast collection of all types of jobs.'}</p>
-          <div className="flex flex-col sm:flex-row justify-center gap-4 px-4">
-            <Button onClick={handlePostClick} className="bg-brand-600 hover:bg-brand-700 text-white shadow-lg shadow-brand-600/20 rounded-full px-8 py-3 flex items-center justify-center gap-2 text-lg font-bold w-full sm:w-auto">
-              <PlusCircle size={20} /> {isBangla ? 'চাকরির পোস্ট দিন' : 'Create Job Post'}
-            </Button>
-            <Button onClick={handleCvGeneratorClick} variant="outline" className="bg-white border-brand-500 text-brand-700 shadow-lg rounded-full px-8 py-3 flex items-center justify-center gap-2 text-lg font-bold hover:bg-brand-50 w-full sm:w-auto">
-              <FileText size={20} /> {isBangla ? 'সিভি জেনারেটর' : 'CV Generator'}
+      {activeView === 'list' ? (
+        <div className="py-8 lg:py-12 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto print:hidden">
+          <div className="text-center mb-10">
+            <h1 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">{isBangla ? 'আপনার স্বপ্নের চাকরি খুঁজুন' : 'Find Your Dream Job'}</h1>
+            <p className="text-gray-500 max-w-2xl mx-auto mb-6">{isBangla ? 'সরকারি, বেসরকারি, স্বায়ত্বশাসিত এবং এনজিও - সব ধরনের চাকরির বিশাল সমাহার।' : 'Government, Private, Autonomous, and NGO - A vast collection of all types of jobs.'}</p>
+            <div className="flex flex-col sm:flex-row justify-center gap-4 px-4">
+              <Button onClick={handlePostClick} className="bg-brand-600 hover:bg-brand-700 text-white shadow-lg shadow-brand-600/20 rounded-full px-8 py-3 flex items-center justify-center gap-2 text-lg font-bold w-full sm:w-auto">
+                <PlusCircle size={20} /> {isBangla ? 'চাকরির পোস্ট দিন' : 'Create Job Post'}
+              </Button>
+              <Button onClick={handleCvGeneratorClick} variant="outline" className="bg-white border-brand-500 text-brand-700 shadow-lg rounded-full px-8 py-3 flex items-center justify-center gap-2 text-lg font-bold hover:bg-brand-50 w-full sm:w-auto">
+                <FileText size={20} /> {isBangla ? 'সিভি জেনারেটর' : 'CV Generator'}
+              </Button>
+            </div>
+          </div>
+
+          <div className="lg:hidden mb-4">
+            <Button variant="outline" className="w-full flex justify-between items-center bg-white border-gray-200" onClick={() => setShowMobileFilters(!showMobileFilters)}>
+              <span className="flex items-center gap-2"><Filter size={18}/> {isBangla ? 'ফিল্টার' : 'Filters'}</span>
+              <ChevronDown size={18} className={`transform transition-transform ${showMobileFilters ? 'rotate-180' : ''}`} />
             </Button>
           </div>
-        </div>
 
-        <div className="lg:hidden mb-4">
-          <Button variant="outline" className="w-full flex justify-between items-center bg-white border-gray-200" onClick={() => setShowMobileFilters(!showMobileFilters)}>
-            <span className="flex items-center gap-2"><Filter size={18}/> {isBangla ? 'ফিল্টার' : 'Filters'}</span>
-            <ChevronDown size={18} className={`transform transition-transform ${showMobileFilters ? 'rotate-180' : ''}`} />
-          </Button>
-        </div>
-
-        <div className="grid grid-cols-1 lg:grid-cols-4 gap-8 items-start">
-          <aside className={`lg:block ${showMobileFilters ? 'block' : 'hidden'} lg:sticky lg:top-24 space-y-6 bg-white p-6 rounded-2xl shadow-sm border border-gray-100`}>
-            <div className="flex justify-between items-center mb-4">
-              <h3 className="font-bold text-gray-900 flex items-center gap-2"><Filter size={20} /> {isBangla ? 'ফিল্টার করুন' : 'Filter By'}</h3>
-              {(selectedCategories.length > 0 || selectedTypes.length > 0 || selectedLevels.length > 0) && (
-                <button onClick={clearFilters} className="text-xs text-red-500 font-medium hover:underline flex items-center gap-1"><RefreshCw size={12} /> {isBangla ? 'রিসেট' : 'Reset'}</button>
-              )}
-            </div>
-            <div>
-              <h4 className="text-sm font-bold text-gray-700 mb-3 uppercase tracking-wider">{isBangla ? 'প্রতিষ্ঠানের ধরন' : 'Job Category'}</h4>
-              <div className="space-y-2">
-                {jobCategoriesList.map((cat) => (
-                  <label key={cat.val} className="flex items-center gap-3 cursor-pointer group">
-                    <div className={`w-5 h-5 rounded border flex items-center justify-center transition-colors ${selectedCategories.includes(cat.val as JobCategory) ? 'bg-brand-600 border-brand-600' : 'border-gray-300 group-hover:border-brand-400'}`}>
-                      {selectedCategories.includes(cat.val as JobCategory) && <CheckCircle size={12} className="text-white" />}
-                    </div>
-                    <input type="checkbox" className="hidden" checked={selectedCategories.includes(cat.val as JobCategory)} onChange={() => toggleFilter(cat.val as JobCategory, selectedCategories, setSelectedCategories)} />
-                    <span className={`text-sm ${selectedCategories.includes(cat.val as JobCategory) ? 'text-brand-700 font-medium' : 'text-gray-600'}`}>{cat.label}</span>
-                  </label>
-                ))}
+          <div className="grid grid-cols-1 lg:grid-cols-4 gap-8 items-start">
+            <aside className={`lg:block ${showMobileFilters ? 'block' : 'hidden'} lg:sticky lg:top-24 space-y-6 bg-white p-6 rounded-2xl shadow-sm border border-gray-100`}>
+              <div className="flex justify-between items-center mb-4">
+                <h3 className="font-bold text-gray-900 flex items-center gap-2"><Filter size={20} /> {isBangla ? 'ফিল্টার করুন' : 'Filter By'}</h3>
+                {(selectedCategories.length > 0 || selectedTypes.length > 0 || selectedLevels.length > 0) && (
+                  <button onClick={clearFilters} className="text-xs text-red-500 font-medium hover:underline flex items-center gap-1"><RefreshCw size={12} /> {isBangla ? 'রিসেট' : 'Reset'}</button>
+                )}
               </div>
-            </div>
-          </aside>
-          
-          <main className="lg:col-span-3 space-y-6">
-            <div className="bg-white p-2 rounded-2xl shadow-sm border border-gray-200 flex items-center focus-within:ring-2 focus-within:ring-brand-500/20 transition-all">
-              <Search className="text-gray-400 ml-4" size={20} />
-              <input type="text" value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} placeholder={isBangla ? 'পদের নাম, কোম্পানি বা স্থান খুঁজুন...' : 'Search jobs...'} className="w-full px-4 py-3 bg-transparent border-none outline-none text-black font-bold placeholder-gray-400" />
-              <Button className="rounded-xl px-6 m-1 hidden sm:inline-flex">{isBangla ? 'খুঁজুন' : 'Search'}</Button>
-            </div>
-            <div className="space-y-4">
-              {isLoading ? (
-                <div className="flex flex-col items-center justify-center py-20 bg-white rounded-2xl border border-gray-100 shadow-sm relative overflow-hidden">
-                   <div className="absolute inset-0 bg-brand-500/5 shonali-loader-pulse"></div>
-                   <div className="relative z-10 flex flex-col items-center">
-                     <div className="w-16 h-16 bg-white rounded-2xl flex items-center justify-center text-brand-600 shadow-md border-2 border-brand-100 shonali-loader-spin mb-4"><Bird size={32} /></div>
-                     <p className="text-brand-700 font-black tracking-widest animate-pulse">{isBangla ? 'চাকরি লোড হচ্ছে...' : 'LOADING JOBS...'}</p>
-                   </div>
-                </div>
-              ) : filteredJobs.length > 0 ? (
-                filteredJobs.map((job: any) => (
-                  <div key={job.id} onClick={() => setSelectedJob(job)} className="bg-white p-5 sm:p-6 rounded-2xl shadow-sm border border-gray-100 hover:shadow-lg transition-all cursor-pointer group relative overflow-hidden">
-                    <div className={`absolute top-0 right-0 px-3 sm:px-4 py-1 text-[10px] sm:text-xs font-bold rounded-bl-xl border-l border-b ${getCategoryColor(job.category)}`}>
-                      {isBangla ? categoryLabels[job.category]?.bn || job.category : categoryLabels[job.category]?.en || job.category}
-                    </div>
-                    <div className="flex flex-col md:flex-row gap-4 sm:gap-5 items-start">
-                      <div className="w-12 h-12 bg-gray-50 rounded-xl flex items-center justify-center text-gray-600 border border-gray-100 shrink-0 group-hover:bg-brand-50 group-hover:text-brand-600 transition-colors"><Building2 size={28} /></div>
-                      <div className="flex-1 w-full">
-                        <div className="flex items-center gap-2 mb-1">
-                           <h3 className="font-bold text-lg text-gray-900 group-hover:text-brand-700 transition-colors">{job.title}</h3>
-                           <span className="text-[10px] font-black uppercase text-brand-600 bg-brand-50 px-1.5 py-0.5 rounded border border-brand-100">{job.level}</span>
-                        </div>
-                        <p className="text-gray-600 font-medium mb-3 text-sm">{job.company}</p>
-                        <div className="flex flex-wrap gap-2 text-[11px] text-gray-500">
-                          <span className="flex items-center gap-1 bg-gray-50 px-2 py-1 rounded border border-gray-100"><MapPin size={12} className="text-red-400" /> {job.location}</span>
-                          <span className="flex items-center gap-1 bg-gray-50 px-2 py-1 rounded border border-gray-100"><Clock size={12} className="text-blue-400" /> {job.type}</span>
-                          <span className="flex items-center gap-1 bg-gray-50 px-2 py-1 rounded border border-gray-100"><Banknote size={12} className="text-green-600" /> {job.salary}</span>
-                        </div>
+              <div>
+                <h4 className="text-sm font-bold text-gray-700 mb-3 uppercase tracking-wider">{isBangla ? 'প্রতিষ্ঠানের ধরন' : 'Job Category'}</h4>
+                <div className="space-y-2">
+                  {jobCategoriesList.map((cat) => (
+                    <label key={cat.val} className="flex items-center gap-3 cursor-pointer group">
+                      <div className={`w-5 h-5 rounded border flex items-center justify-center transition-colors ${selectedCategories.includes(cat.val as JobCategory) ? 'bg-brand-600 border-brand-600' : 'border-gray-300 group-hover:border-brand-400'}`}>
+                        {selectedCategories.includes(cat.val as JobCategory) && <CheckCircle size={12} className="text-white" />}
                       </div>
-                      <Button variant="outline" className="w-full md:w-auto text-xs h-9 mt-2 md:mt-0">{isBangla ? 'বিস্তারিত' : 'Details'}</Button>
-                    </div>
-                  </div>
-                ))
-              ) : (
-                <div className="text-center py-20 bg-white rounded-2xl border border-dashed border-gray-200">
-                  <Briefcase size={48} className="mx-auto text-gray-300 mb-4" />
-                  <h3 className="text-lg font-bold text-gray-900">{isBangla ? 'কোন চাকরি পাওয়া যায়নি' : 'No jobs found'}</h3>
+                      <input type="checkbox" className="hidden" checked={selectedCategories.includes(cat.val as JobCategory)} onChange={() => toggleFilter(cat.val as JobCategory, selectedCategories, setSelectedCategories)} />
+                      <span className={`text-sm ${selectedCategories.includes(cat.val as JobCategory) ? 'text-brand-700 font-medium' : 'text-gray-600'}`}>{cat.label}</span>
+                    </label>
+                  ))}
                 </div>
-              )}
-            </div>
-          </main>
+              </div>
+            </aside>
+            
+            <main className="lg:col-span-3 space-y-6">
+              <div className="bg-white p-2 rounded-2xl shadow-sm border border-gray-200 flex items-center focus-within:ring-2 focus-within:ring-brand-500/20 transition-all">
+                <Search className="text-gray-400 ml-4" size={20} />
+                <input type="text" value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} placeholder={isBangla ? 'পদের নাম, কোম্পানি বা স্থান খুঁজুন...' : 'Search jobs...'} className="w-full px-4 py-3 bg-transparent border-none outline-none text-black font-bold placeholder-gray-400" />
+                <Button className="rounded-xl px-6 m-1 hidden sm:inline-flex">{isBangla ? 'খুঁজুন' : 'Search'}</Button>
+              </div>
+              <div className="space-y-4">
+                {isLoading ? (
+                  <div className="flex flex-col items-center justify-center py-20 bg-white rounded-2xl border border-gray-100 shadow-sm relative overflow-hidden">
+                     <div className="absolute inset-0 bg-brand-500/5 shonali-loader-pulse"></div>
+                     <div className="relative z-10 flex flex-col items-center">
+                       <div className="w-16 h-16 bg-white rounded-2xl flex items-center justify-center text-brand-600 shadow-md border-2 border-brand-100 shonali-loader-spin mb-4"><Bird size={32} /></div>
+                       <p className="text-brand-700 font-black tracking-widest animate-pulse">{isBangla ? 'চাকরি লোড হচ্ছে...' : 'LOADING JOBS...'}</p>
+                     </div>
+                  </div>
+                ) : filteredJobs.length > 0 ? (
+                  filteredJobs.map((job: any) => (
+                    <div key={job.id} onClick={() => setSelectedJob(job)} className="bg-white p-5 sm:p-6 rounded-2xl shadow-sm border border-gray-100 hover:shadow-lg transition-all cursor-pointer group relative overflow-hidden">
+                      <div className={`absolute top-0 right-0 px-3 sm:px-4 py-1 text-[10px] sm:text-xs font-bold rounded-bl-xl border-l border-b ${getCategoryColor(job.category)}`}>
+                        {isBangla ? categoryLabels[job.category]?.bn || job.category : categoryLabels[job.category]?.en || job.category}
+                      </div>
+                      <div className="flex flex-col md:flex-row gap-4 sm:gap-5 items-start">
+                        <div className="w-12 h-12 bg-gray-50 rounded-xl flex items-center justify-center text-gray-600 border border-gray-100 shrink-0 group-hover:bg-brand-50 group-hover:text-brand-600 transition-colors"><Building2 size={28} /></div>
+                        <div className="flex-1 w-full">
+                          <div className="flex items-center gap-2 mb-1">
+                             <h3 className="font-bold text-lg text-gray-900 group-hover:text-brand-700 transition-colors">{job.title}</h3>
+                             <span className="text-[10px] font-black uppercase text-brand-600 bg-brand-50 px-1.5 py-0.5 rounded border border-brand-100">{job.level}</span>
+                          </div>
+                          <p className="text-gray-600 font-medium mb-3 text-sm">{job.company}</p>
+                          <div className="flex flex-wrap gap-2 text-[11px] text-gray-500">
+                            <span className="flex items-center gap-1 bg-gray-50 px-2 py-1 rounded border border-gray-100"><MapPin size={12} className="text-red-400" /> {job.location}</span>
+                            <span className="flex items-center gap-1 bg-gray-50 px-2 py-1 rounded border border-gray-100"><Clock size={12} className="text-blue-400" /> {job.type}</span>
+                            <span className="flex items-center gap-1 bg-gray-50 px-2 py-1 rounded border border-gray-100"><Banknote size={12} className="text-green-600" /> {job.salary}</span>
+                          </div>
+                        </div>
+                        <Button variant="outline" className="w-full md:w-auto text-xs h-9 mt-2 md:mt-0">{isBangla ? 'বিস্তারিত' : 'Details'}</Button>
+                      </div>
+                    </div>
+                  ))
+                ) : (
+                  <div className="text-center py-20 bg-white rounded-2xl border border-dashed border-gray-200">
+                    <Briefcase size={48} className="mx-auto text-gray-300 mb-4" />
+                    <h3 className="text-lg font-bold text-gray-900">{isBangla ? 'কোন চাকরি পাওয়া যায়নি' : 'No jobs found'}</h3>
+                  </div>
+                )}
+              </div>
+            </main>
+          </div>
         </div>
-      </div>
+      ) : (
+        /* --- CV GENERATOR PAGE --- */
+        <div className="flex flex-col h-screen overflow-hidden no-print bg-white">
+           {/* Header */}
+           <header className="bg-gray-900 text-white p-4 px-6 flex justify-between items-center shadow-md z-30 shrink-0">
+              <div className="flex items-center gap-4">
+                 <button onClick={() => setActiveView('list')} className="p-2 hover:bg-gray-800 rounded-full transition-colors">
+                    <ArrowLeft size={20} />
+                 </button>
+                 <div className="flex items-center gap-2">
+                    <FileText className="text-brand-500" />
+                    <h1 className="text-xl font-bold tracking-tight">{isBangla ? 'সিভি জেনারেটর' : 'CV Generator'}</h1>
+                 </div>
+              </div>
+              <Button onClick={handlePrintCv} className="bg-brand-600 hover:bg-brand-700 text-white font-bold flex items-center gap-2 shadow-lg shadow-brand-500/20">
+                 <Printer size={18} /> {isBangla ? 'ডাউনলোড' : 'Download PDF'}
+              </Button>
+           </header>
 
-      {/* Detail Modal */}
+           {/* Content */}
+           <div className="flex-1 flex overflow-hidden">
+              {/* Editor Column */}
+              <div className="w-full lg:w-5/12 xl:w-1/3 bg-gray-50 border-r border-gray-200 flex flex-col h-full overflow-hidden">
+                 {/* Editor Tabs */}
+                 <div className="flex border-b border-gray-200 bg-white sticky top-0 z-20">
+                    {[
+                      { id: 'personal', label: isBangla ? 'ব্যক্তিগত' : 'Personal', icon: <UserIcon size={16}/> },
+                      { id: 'experience', label: isBangla ? 'অভিজ্ঞতা' : 'Experience', icon: <Briefcase size={16}/> },
+                      { id: 'education', label: isBangla ? 'শিক্ষা' : 'Education', icon: <GraduationCap size={16}/> }
+                    ].map(tab => (
+                      <button 
+                        key={tab.id}
+                        onClick={() => setCvTab(tab.id as any)} 
+                        className={`flex-1 py-4 text-xs font-bold uppercase tracking-wider flex items-center justify-center gap-2 border-b-4 transition-all ${cvTab === tab.id ? 'border-brand-600 text-brand-700 bg-brand-50' : 'border-transparent text-gray-500 hover:bg-gray-50'}`}
+                      >
+                        {tab.icon} {tab.label}
+                      </button>
+                    ))}
+                 </div>
+                 
+                 {/* Editor Forms */}
+                 <div className="flex-1 overflow-y-auto p-6 custom-scrollbar space-y-6">
+                    {cvTab === 'personal' && (
+                      <div className="space-y-6 animate-fade-in">
+                         <div className="flex flex-col items-center">
+                            <div className="relative group cursor-pointer" onClick={() => cvPhotoInputRef.current?.click()}>
+                               <div className="w-28 h-28 rounded-full border-4 border-white shadow-lg overflow-hidden bg-gray-200 flex items-center justify-center">
+                                  {cvData.image ? <img src={cvData.image} className="w-full h-full object-cover" /> : <Camera className="text-gray-400" size={32}/>}
+                               </div>
+                               <div className="absolute inset-0 bg-black/30 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                                  <Camera className="text-white" size={24}/>
+                               </div>
+                               <input type="file" ref={cvPhotoInputRef} className="hidden" accept="image/*" onChange={handleCvPhotoUpload} />
+                            </div>
+                            <p className="text-xs text-gray-400 mt-2 font-bold uppercase">{isBangla ? 'ছবি আপলোড করুন' : 'Upload Photo'}</p>
+                         </div>
+
+                         <div className="space-y-4">
+                            <div>
+                               <label className="block text-xs font-bold text-gray-500 uppercase mb-1">Full Name</label>
+                               <input className="w-full p-3 bg-white border-2 border-gray-300 rounded-xl font-bold text-gray-900 placeholder-gray-500 focus:border-brand-600 focus:ring-0 outline-none" value={cvData.name} onChange={e => setCvData({...cvData, name: e.target.value})} placeholder="e.g. Rahim Ahmed" />
+                            </div>
+                            <div>
+                               <label className="block text-xs font-bold text-gray-500 uppercase mb-1">Professional Title</label>
+                               <input className="w-full p-3 bg-white border-2 border-gray-300 rounded-xl font-bold text-gray-900 placeholder-gray-500 focus:border-brand-600 focus:ring-0 outline-none" value={cvData.title} onChange={e => setCvData({...cvData, title: e.target.value})} placeholder="e.g. Software Engineer" />
+                            </div>
+                            <div className="grid grid-cols-2 gap-4">
+                               <div>
+                                  <label className="block text-xs font-bold text-gray-500 uppercase mb-1">Email</label>
+                                  <input className="w-full p-3 bg-white border-2 border-gray-300 rounded-xl font-bold text-gray-900 placeholder-gray-500 focus:border-brand-600 focus:ring-0 outline-none" value={cvData.email} onChange={e => setCvData({...cvData, email: e.target.value})} />
+                               </div>
+                               <div>
+                                  <label className="block text-xs font-bold text-gray-500 uppercase mb-1">Phone</label>
+                                  <input className="w-full p-3 bg-white border-2 border-gray-300 rounded-xl font-bold text-gray-900 placeholder-gray-500 focus:border-brand-600 focus:ring-0 outline-none" value={cvData.phone} onChange={e => setCvData({...cvData, phone: e.target.value})} />
+                               </div>
+                            </div>
+                            <div>
+                               <label className="block text-xs font-bold text-gray-500 uppercase mb-1">Address</label>
+                               <input className="w-full p-3 bg-white border-2 border-gray-300 rounded-xl font-bold text-gray-900 placeholder-gray-500 focus:border-brand-600 focus:ring-0 outline-none" value={cvData.address} onChange={e => setCvData({...cvData, address: e.target.value})} />
+                            </div>
+                            <div>
+                               <label className="block text-xs font-bold text-gray-500 uppercase mb-1">Profile Summary</label>
+                               <textarea rows={4} className="w-full p-3 bg-white border-2 border-gray-300 rounded-xl font-bold text-gray-900 placeholder-gray-500 focus:border-brand-600 focus:ring-0 outline-none resize-none leading-relaxed" value={cvData.summary} onChange={e => setCvData({...cvData, summary: e.target.value})} placeholder="Brief overview of your career..." />
+                            </div>
+                         </div>
+                      </div>
+                    )}
+
+                    {cvTab === 'experience' && (
+                      <div className="space-y-6 animate-fade-in">
+                         {cvData.experience.map((exp, i) => (
+                           <div key={i} className="p-5 bg-white rounded-2xl border border-gray-200 shadow-sm relative group">
+                              <button 
+                                onClick={() => {
+                                   const newExp = cvData.experience.filter((_, idx) => idx !== i);
+                                   setCvData({...cvData, experience: newExp});
+                                }}
+                                className="absolute top-3 right-3 text-gray-300 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-all"
+                              >
+                                <Trash2 size={18} />
+                              </button>
+                              <div className="space-y-3">
+                                 <input className="w-full p-4 bg-white border border-gray-200 rounded-xl font-bold text-gray-900 placeholder-gray-400 focus:ring-2 focus:ring-brand-500 outline-none" placeholder="Company Name" value={exp.company} onChange={e => { const n = [...cvData.experience]; n[i].company = e.target.value; setCvData({...cvData, experience: n}); }} />
+                                 <input className="w-full p-4 bg-white border border-gray-200 rounded-xl font-bold text-gray-900 placeholder-gray-400 focus:ring-2 focus:ring-brand-500 outline-none" placeholder="Job Title / Role" value={exp.role} onChange={e => { const n = [...cvData.experience]; n[i].role = e.target.value; setCvData({...cvData, experience: n}); }} />
+                                 <input className="w-full p-4 bg-white border border-gray-200 rounded-xl font-bold text-gray-900 placeholder-gray-400 focus:ring-2 focus:ring-brand-500 outline-none" placeholder="Period (e.g. 2020 - Present)" value={exp.period} onChange={e => { const n = [...cvData.experience]; n[i].period = e.target.value; setCvData({...cvData, experience: n}); }} />
+                                 <textarea rows={2} className="w-full p-4 bg-white border border-gray-200 rounded-xl text-sm font-medium text-gray-900 placeholder-gray-400 focus:ring-2 focus:ring-brand-500 outline-none resize-none" placeholder="Job Description..." value={exp.desc} onChange={e => { const n = [...cvData.experience]; n[i].desc = e.target.value; setCvData({...cvData, experience: n}); }} />
+                              </div>
+                           </div>
+                         ))}
+                         <Button onClick={addExperience} variant="outline" className="w-full border-dashed border-2 border-gray-300 text-gray-500 hover:border-brand-500 hover:text-brand-600 py-3 rounded-xl flex items-center justify-center gap-2">
+                            <PlusCircle size={20}/> {isBangla ? 'অভিজ্ঞতা যোগ করুন' : 'Add Experience'}
+                         </Button>
+                      </div>
+                    )}
+
+                    {cvTab === 'education' && (
+                      <div className="space-y-6 animate-fade-in">
+                         {cvData.education.map((edu, i) => (
+                           <div key={i} className="p-5 bg-white rounded-2xl border border-gray-200 shadow-sm relative group">
+                              <button 
+                                onClick={() => {
+                                   const newEdu = cvData.education.filter((_, idx) => idx !== i);
+                                   setCvData({...cvData, education: newEdu});
+                                }}
+                                className="absolute top-3 right-3 text-gray-300 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-all"
+                              >
+                                <Trash2 size={18} />
+                              </button>
+                              <div className="space-y-3">
+                                 <input className="w-full p-4 bg-white border border-gray-200 rounded-xl font-bold text-gray-900 placeholder-gray-400 focus:ring-2 focus:ring-brand-500 outline-none" placeholder="School / University" value={edu.school} onChange={e => { const n = [...cvData.education]; n[i].school = e.target.value; setCvData({...cvData, education: n}); }} />
+                                 <input className="w-full p-4 bg-white border border-gray-200 rounded-xl font-bold text-gray-900 placeholder-gray-400 focus:ring-2 focus:ring-brand-500 outline-none" placeholder="Degree / Certificate" value={edu.degree} onChange={e => { const n = [...cvData.education]; n[i].degree = e.target.value; setCvData({...cvData, education: n}); }} />
+                                 <input className="w-full p-4 bg-white border border-gray-200 rounded-xl font-bold text-gray-900 placeholder-gray-400 focus:ring-2 focus:ring-brand-500 outline-none" placeholder="Passing Year" value={edu.year} onChange={e => { const n = [...cvData.education]; n[i].year = e.target.value; setCvData({...cvData, education: n}); }} />
+                              </div>
+                           </div>
+                         ))}
+                         <Button onClick={addEducation} variant="outline" className="w-full border-dashed border-2 border-gray-300 text-gray-500 hover:border-brand-500 hover:text-brand-600 py-3 rounded-xl flex items-center justify-center gap-2">
+                            <PlusCircle size={20}/> {isBangla ? 'শিক্ষা যোগ করুন' : 'Add Education'}
+                         </Button>
+                      </div>
+                    )}
+                 </div>
+              </div>
+
+              {/* Live Preview Column */}
+              <div className="hidden lg:flex flex-1 bg-gray-100 items-start justify-center p-8 overflow-y-auto custom-scrollbar">
+                 <div id="cv-paper" className="bg-white shadow-2xl w-[210mm] min-h-[297mm] p-10 relative text-gray-800">
+                    {/* CV Header */}
+                    <div className="flex justify-between items-start border-b-2 border-gray-800 pb-8 mb-8">
+                       <div>
+                          <h1 className="text-4xl font-black uppercase tracking-wider text-gray-900">{cvData.name || 'YOUR NAME'}</h1>
+                          <p className="text-xl font-medium text-brand-600 mt-1">{cvData.title || 'PROFESSIONAL TITLE'}</p>
+                       </div>
+                       {cvData.image && (
+                         <div className="w-32 h-32 border-4 border-gray-100 overflow-hidden bg-gray-50 shadow-sm">
+                            <img src={cvData.image} className="w-full h-full object-cover grayscale" />
+                         </div>
+                       )}
+                    </div>
+
+                    <div className="grid grid-cols-12 gap-8">
+                       {/* Left Column (Contact & Skills) */}
+                       <div className="col-span-4 space-y-8 border-r border-gray-200 pr-6">
+                          <div>
+                             <h3 className="font-black text-sm uppercase tracking-widest text-gray-400 mb-4 border-b pb-2">Contact</h3>
+                             <div className="space-y-3 text-xs font-bold text-gray-700">
+                                <p className="break-all">{cvData.email || 'email@example.com'}</p>
+                                <p>{cvData.phone || '+880 1XXX...'}</p>
+                                <p>{cvData.address || 'Address Line'}</p>
+                             </div>
+                          </div>
+                          
+                          {cvData.education.length > 0 && (
+                             <div>
+                                <h3 className="font-black text-sm uppercase tracking-widest text-gray-400 mb-4 border-b pb-2">Education</h3>
+                                <div className="space-y-4">
+                                   {cvData.education.map((edu, i) => (
+                                     <div key={i}>
+                                        <p className="font-bold text-gray-900 text-sm">{edu.degree}</p>
+                                        <p className="text-xs text-gray-500 font-medium">{edu.school}</p>
+                                        <p className="text-[10px] text-gray-400">{edu.year}</p>
+                                     </div>
+                                   ))}
+                                </div>
+                             </div>
+                          )}
+                       </div>
+
+                       {/* Right Column (Summary & Experience) */}
+                       <div className="col-span-8 space-y-8">
+                          {cvData.summary && (
+                             <div>
+                                <h3 className="font-black text-sm uppercase tracking-widest text-gray-400 mb-4 border-b pb-2">Profile</h3>
+                                <p className="text-sm leading-relaxed text-gray-700 font-medium">{cvData.summary}</p>
+                             </div>
+                          )}
+
+                          {cvData.experience.length > 0 && (
+                             <div>
+                                <h3 className="font-black text-sm uppercase tracking-widest text-gray-400 mb-4 border-b pb-2">Experience</h3>
+                                <div className="space-y-6">
+                                   {cvData.experience.map((exp, i) => (
+                                     <div key={i}>
+                                        <div className="flex justify-between items-baseline mb-1">
+                                           <h4 className="font-bold text-gray-900">{exp.role}</h4>
+                                           <span className="text-xs font-bold text-gray-400 bg-gray-100 px-2 py-0.5 rounded">{exp.period}</span>
+                                        </div>
+                                        <p className="text-xs font-bold text-brand-600 uppercase mb-2">{exp.company}</p>
+                                        <p className="text-sm text-gray-600 leading-relaxed">{exp.desc}</p>
+                                     </div>
+                                   ))}
+                                </div>
+                             </div>
+                          )}
+                       </div>
+                    </div>
+                 </div>
+              </div>
+           </div>
+        </div>
+      )}
+
       {selectedJob && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fade-in no-print" onClick={() => setSelectedJob(null)}>
           <div className="bg-white rounded-3xl shadow-2xl w-full max-w-2xl overflow-hidden flex flex-col max-h-[90vh]" onClick={e => e.stopPropagation()}>
@@ -371,7 +599,6 @@ export const JobModule: React.FC<Props> = ({ isBangla, user, onLogin }) => {
         </div>
       )}
 
-      {/* Post Modal */}
       {showPostModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm animate-fade-in no-print" onClick={() => setShowPostModal(false)}>
            <div className="bg-white w-full max-w-2xl rounded-[2.5rem] shadow-2xl overflow-hidden animate-fade-in-up" onClick={e => e.stopPropagation()}>
@@ -458,100 +685,6 @@ export const JobModule: React.FC<Props> = ({ isBangla, user, onLogin }) => {
                  )}
               </div>
            </div>
-        </div>
-      )}
-
-      {/* CV Modal */}
-      {showCvModal && (
-        <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-md flex items-center justify-center p-4 animate-fade-in no-print" onClick={() => setShowCvModal(false)}>
-          <div className="bg-white rounded-[2.5rem] shadow-2xl w-full max-w-5xl h-[90vh] flex flex-col overflow-hidden animate-fade-in-up" onClick={e => e.stopPropagation()}>
-             <div className="p-6 border-b border-gray-100 flex justify-between items-center bg-gray-50 shrink-0">
-                <h2 className="text-xl font-black uppercase tracking-tighter flex items-center gap-3"><FileText size={24} className="text-brand-600"/> {isBangla ? 'স্মার্ট সিভি জেনারেটর' : 'Smart CV Generator'}</h2>
-                <button onClick={() => setShowCvModal(false)} className="p-2 hover:bg-red-50 text-gray-400 hover:text-red-500 rounded-full transition-all"><X size={24}/></button>
-             </div>
-             <div className="flex-1 overflow-hidden flex flex-col md:flex-row">
-                <div className="flex-1 overflow-y-auto p-8 custom-scrollbar">
-                   {cvStep === 1 && (
-                     <div className="space-y-6 animate-fade-in">
-                        <div className="text-center mb-8">
-                           <div className="relative inline-block group" onClick={() => cvPhotoInputRef.current?.click()}>
-                              <div className="w-28 h-28 rounded-full border-4 border-white shadow-xl overflow-hidden bg-gray-100 flex items-center justify-center cursor-pointer group-hover:brightness-90 transition-all">
-                                 {cvData.image ? <img src={cvData.image} className="w-full h-full object-cover" /> : <Camera className="text-gray-300" size={40} />}
-                              </div>
-                              <input type="file" ref={cvPhotoInputRef} className="hidden" accept="image/*" onChange={handleCvPhotoUpload} />
-                           </div>
-                           <h3 className="mt-4 font-black text-gray-900">{isBangla ? 'ব্যক্তিগত তথ্য' : 'Personal Info'}</h3>
-                        </div>
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                           <input className="w-full p-4 bg-gray-50 border border-gray-200 rounded-xl font-bold text-black" value={cvData.name} onChange={e => setCvData({...cvData, name: e.target.value})} placeholder="Full Name" />
-                           <input className="w-full p-4 bg-gray-50 border border-gray-200 rounded-xl font-bold text-black" value={cvData.title} onChange={e => setCvData({...cvData, title: e.target.value})} placeholder="Professional Title" />
-                        </div>
-                        <textarea rows={4} className="w-full p-4 bg-gray-50 border border-gray-200 rounded-xl font-medium text-black" value={cvData.summary} onChange={e => setCvData({...cvData, summary: e.target.value})} placeholder="Short Summary"></textarea>
-                     </div>
-                   )}
-                   {cvStep === 2 && (
-                     <div className="space-y-10 animate-fade-in">
-                        <div>
-                           <div className="flex justify-between items-center mb-6"><h3 className="font-black text-gray-900 uppercase text-xs flex items-center gap-2"><Briefcase size={16} className="text-brand-600"/> {isBangla ? 'কাজের অভিজ্ঞতা' : 'Experience'}</h3><button onClick={addExperience} className="p-2 bg-brand-50 text-brand-600 rounded-lg"><Plus size={20}/></button></div>
-                           <div className="space-y-4">
-                              {cvData.experience.map((exp, i) => (
-                                <div key={i} className="p-4 bg-gray-50 rounded-2xl border border-gray-200 space-y-3">
-                                   <input className="w-full bg-white p-2 rounded-lg border border-gray-100 font-bold text-sm text-black" placeholder="Company" value={exp.company} onChange={e => { const n = [...cvData.experience]; n[i].company = e.target.value; setCvData({...cvData, experience: n}); }} />
-                                   <input className="w-full bg-white p-2 rounded-lg border border-gray-100 text-sm font-bold text-black" placeholder="Role" value={exp.role} onChange={e => { const n = [...cvData.experience]; n[i].role = e.target.value; setCvData({...cvData, experience: n}); }} />
-                                </div>
-                              ))}
-                           </div>
-                        </div>
-                        <div>
-                           <div className="flex justify-between items-center mb-6"><h3 className="font-black text-gray-900 uppercase text-xs flex items-center gap-2"><GraduationCap size={16} className="text-brand-600"/> {isBangla ? 'শিক্ষা' : 'Education'}</h3><button onClick={addEducation} className="p-2 bg-brand-50 text-brand-600 rounded-lg"><Plus size={20}/></button></div>
-                           <div className="space-y-4">
-                              {cvData.education.map((edu, i) => (
-                                <div key={i} className="p-4 bg-gray-50 rounded-2xl border border-gray-200 space-y-3">
-                                   <input className="w-full bg-white p-2 rounded-lg border border-gray-100 font-bold text-sm text-black" placeholder="School/Uni" value={edu.school} onChange={e => { const n = [...cvData.education]; n[i].school = e.target.value; setCvData({...cvData, education: n}); }} />
-                                   <input className="w-full bg-white p-2 rounded-lg border border-gray-100 text-sm font-bold text-black" placeholder="Degree" value={edu.degree} onChange={e => { const n = [...cvData.education]; n[i].degree = e.target.value; setCvData({...cvData, education: n}); }} />
-                                </div>
-                              ))}
-                           </div>
-                        </div>
-                     </div>
-                   )}
-                   {cvStep === 3 && (
-                     <div className="space-y-8 animate-fade-in text-center p-20">
-                        <div className="w-20 h-20 bg-green-100 text-green-600 rounded-full flex items-center justify-center mx-auto mb-6"><CheckCircle size={48} /></div>
-                        <h3 className="text-2xl font-black text-gray-900 mb-2">{isBangla ? 'সিভি তৈরি সম্পন্ন!' : 'CV is Ready!'}</h3>
-                        <p className="text-gray-500 font-medium">ডাউনলোড বাটনে ক্লিক করে আপনার সিভিটি পিডিএফ হিসেবে সেভ করুন।</p>
-                     </div>
-                   )}
-                </div>
-                <div className="w-full md:w-[400px] bg-gray-50 border-l border-gray-100 p-8 overflow-y-auto hidden md:block">
-                   <div id="cv-paper" className="w-full aspect-[1/1.41] bg-white shadow-xl flex flex-col p-8 text-[10px] overflow-hidden border-l-8 border-brand-600">
-                      <div className="flex justify-between items-start mb-6">
-                         <div className="flex-1 pr-4">
-                            <h2 className="text-xl font-black text-gray-900 uppercase">{cvData.name || 'Your Name'}</h2>
-                            <p className="text-brand-600 font-bold">{cvData.title || 'Title'}</p>
-                            <div className="mt-4 text-[8px] text-gray-500 uppercase font-bold">
-                               <p>{cvData.email}</p><p>{cvData.phone}</p><p>{cvData.address}</p>
-                            </div>
-                         </div>
-                         <div className="w-20 h-20 bg-gray-100 rounded-lg overflow-hidden border">{cvData.image && <img src={cvData.image} className="w-full h-full object-cover" />}</div>
-                      </div>
-                      <div className="space-y-4">
-                         <div><h3 className="font-black text-gray-900 border-b pb-1 mb-2 uppercase">Summary</h3><p className="text-gray-600 leading-relaxed">{cvData.summary}</p></div>
-                         <div><h3 className="font-black text-gray-900 border-b pb-1 mb-2 uppercase">Experience</h3>{cvData.experience.map((e, i) => e.company && <div key={i} className="mb-2"><p className="font-black">{e.company}</p><p className="text-brand-600">{e.role}</p></div>)}</div>
-                         <div><h3 className="font-black text-gray-900 border-b pb-1 mb-2 uppercase">Education</h3>{cvData.education.map((e, i) => e.school && <div key={i} className="mb-2"><p className="font-black">{e.school}</p><p className="text-brand-600">{e.degree}</p></div>)}</div>
-                      </div>
-                   </div>
-                </div>
-             </div>
-             <div className="p-6 border-t border-gray-100 bg-gray-50 flex justify-between items-center shrink-0">
-                <Button variant="outline" disabled={cvStep === 1} onClick={() => setCvStep(prev => prev - 1)} className="px-10 rounded-xl font-black text-xs uppercase text-black">Back</Button>
-                {cvStep < 3 ? (
-                  <Button onClick={() => setCvStep(prev => prev + 1)} className="bg-brand-600 text-white px-10 rounded-xl font-black text-xs uppercase shadow-lg shadow-brand-200">Next Step</Button>
-                ) : (
-                  <Button onClick={handlePrintCv} className="bg-gray-900 hover:bg-black text-white px-12 rounded-xl font-black text-xs uppercase shadow-xl flex items-center gap-2"><Printer size={16}/> Print & Download CV</Button>
-                )}
-             </div>
-          </div>
         </div>
       )}
     </div>

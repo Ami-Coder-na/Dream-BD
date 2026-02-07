@@ -18,6 +18,7 @@ interface Props {
   isBangla: boolean;
   user?: User | null;
   onLogin?: () => void;
+  initialTab?: string;
 }
 
 type Tab = 'overview' | 'calculator' | 'aiscan' | 'market';
@@ -88,9 +89,16 @@ const CROPS_DB = [
   }
 ];
 
-export const AgriModule: React.FC<Props> = ({ isBangla, user, onLogin }) => {
+export const AgriModule: React.FC<Props> = ({ isBangla, user, onLogin, initialTab }) => {
   const { marketPrices } = useData();
   const [activeTab, setActiveTab] = useState<Tab>('overview');
+  
+  useEffect(() => {
+    if (initialTab && ['overview', 'calculator', 'aiscan', 'market'].includes(initialTab)) {
+      setActiveTab(initialTab as Tab);
+    }
+  }, [initialTab]);
+
   const [selectedCrop, setSelectedCrop] = useState<any | null>(null);
   const [analyzing, setAnalyzing] = useState(false);
   const [scannedResult, setScannedResult] = useState<any>(null);

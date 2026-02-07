@@ -8,20 +8,6 @@ body {
   -webkit-font-smoothing: antialiased;
   overflow-x: hidden;
   font-family: "Noto Sans Bengali", "Hind Siliguri", sans-serif;
-  
-  /* Security: Disable text selection globally */
-  -webkit-user-select: none;
-  -moz-user-select: none;
-  -ms-user-select: none;
-  user-select: none;
-}
-
-/* Security: Allow selection only in input fields and textareas */
-input, textarea {
-  -webkit-user-select: text;
-  -moz-user-select: text;
-  -ms-user-select: text;
-  user-select: text;
 }
 
 /* Security: Extra protection for images */

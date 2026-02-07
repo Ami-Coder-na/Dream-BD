@@ -1,11 +1,11 @@
 
 "use client";
 
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { 
   Smartphone, Upload, ImageIcon, Loader2, Power, Image as ImageIcon2, Plus, LayoutGrid,
   Globe, Database, Zap, CheckCircle, Search, Layout, Layers, RefreshCw, Smartphone as MobileIcon,
-  ShieldCheck, Info, Monitor, ToggleLeft, ToggleRight
+  ShieldCheck, Info, Monitor, ToggleLeft, ToggleRight, Save
 } from 'lucide-react';
 import { Button } from '../../ui/Button';
 import { useSiteConfig, ToggableModule, LandingSection } from '../../../contexts/SiteConfigContext';
@@ -90,6 +90,48 @@ const ImageSlot: React.FC<ImageSlotProps> = ({ label, subLabel, currentImage, on
 export const AdminWebsiteManage = () => {
   const { modules, sections, settings, toggleModule, toggleSection, updateSettings } = useSiteConfig();
   const { seedDistricts } = useData();
+  
+  // Local state for identity form to prevent re-render glitches while typing
+  const [identityForm, setIdentityForm] = useState({
+    websiteTitle: '',
+    contactEmail: '',
+    contactPhone: '',
+    address: ''
+  });
+  const [isDirty, setIsDirty] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
+
+  // Sync with global settings on load (only if not dirty/typing)
+  useEffect(() => {
+    if (!isDirty && settings) {
+      setIdentityForm({
+        websiteTitle: settings.websiteTitle || '',
+        contactEmail: settings.contactEmail || '',
+        contactPhone: settings.contactPhone || '',
+        address: settings.address || ''
+      });
+    }
+  }, [settings, isDirty]);
+
+  const handleIdentityChange = (field: string, value: string) => {
+    setIdentityForm(prev => ({ ...prev, [field]: value }));
+    setIsDirty(true);
+  };
+
+  const handleSaveIdentity = async () => {
+    setIsSaving(true);
+    updateSettings('websiteTitle', identityForm.websiteTitle);
+    updateSettings('contactEmail', identityForm.contactEmail);
+    updateSettings('contactPhone', identityForm.contactPhone);
+    updateSettings('address', identityForm.address);
+    
+    // Simulate delay for feedback
+    setTimeout(() => {
+      setIsSaving(false);
+      setIsDirty(false);
+      alert("Website identity updated successfully!");
+    }, 500);
+  };
   
   const logoInputRef = useRef<HTMLInputElement>(null);
   const faviconInputRef = useRef<HTMLInputElement>(null);
@@ -242,9 +284,16 @@ export const AdminWebsiteManage = () => {
 
       {/* 3. Website Identity */}
       <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
-        <div className="p-6 border-b border-gray-100 bg-white flex items-center gap-3">
-          <Smartphone className="text-brand-600" size={22} />
-          <h3 className="text-lg font-bold text-gray-900">Website Identity</h3>
+        <div className="p-6 border-b border-gray-100 bg-white flex items-center justify-between gap-3">
+          <div className="flex items-center gap-3">
+            <Smartphone className="text-brand-600" size={22} />
+            <h3 className="text-lg font-bold text-gray-900">Website Identity</h3>
+          </div>
+          {isDirty && (
+            <div className="text-xs font-bold text-amber-500 animate-pulse">
+              Unsaved changes
+            </div>
+          )}
         </div>
         <div className="p-8 space-y-8">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
@@ -262,8 +311,8 @@ export const AdminWebsiteManage = () => {
               <input 
                 type="text"
                 className={inputStyles}
-                value={settings.websiteTitle}
-                onChange={(e) => updateSettings('websiteTitle', e.target.value)}
+                value={identityForm.websiteTitle}
+                onChange={(e) => handleIdentityChange('websiteTitle', e.target.value)}
                 placeholder="Digital Desh BD"
               />
             </div>
@@ -272,8 +321,8 @@ export const AdminWebsiteManage = () => {
               <input 
                 type="email"
                 className={inputStyles}
-                value={settings.contactEmail}
-                onChange={(e) => updateSettings('contactEmail', e.target.value)}
+                value={identityForm.contactEmail}
+                onChange={(e) => handleIdentityChange('contactEmail', e.target.value)}
                 placeholder="contact@digitaldeshbd.com"
               />
             </div>
@@ -307,12 +356,12 @@ export const AdminWebsiteManage = () => {
               </div>
             </div>
             <div>
-              <label className={labelStyles}>Contact Phone</label>
+              <label className={labelStyles}>Contact Phone (Footer)</label>
               <input 
                 type="text"
                 className={inputStyles}
-                value={settings.contactPhone}
-                onChange={(e) => updateSettings('contactPhone', e.target.value)}
+                value={identityForm.contactPhone}
+                onChange={(e) => handleIdentityChange('contactPhone', e.target.value)}
                 placeholder="+880 1XXX-XXXXXX"
               />
             </div>
@@ -341,15 +390,27 @@ export const AdminWebsiteManage = () => {
                   )}
                 </div>
              </div>
-             <div className="lg:col-span-8">
-                <label className={labelStyles}>Office Address</label>
-                <textarea 
-                  rows={4}
-                  className={`${inputStyles} resize-none font-medium text-base leading-relaxed`}
-                  value={settings.address}
-                  onChange={(e) => updateSettings('address', e.target.value)}
-                  placeholder="Dhaka, Bangladesh"
-                ></textarea>
+             <div className="lg:col-span-8 flex flex-col justify-between">
+                <div>
+                  <label className={labelStyles}>Office Address</label>
+                  <textarea 
+                    rows={4}
+                    className={`${inputStyles} resize-none font-medium text-base leading-relaxed`}
+                    value={identityForm.address}
+                    onChange={(e) => handleIdentityChange('address', e.target.value)}
+                    placeholder="Dhaka, Bangladesh"
+                  ></textarea>
+                </div>
+                <div className="flex justify-end mt-4">
+                  <Button 
+                    onClick={handleSaveIdentity} 
+                    disabled={isSaving || !isDirty}
+                    className="bg-brand-600 hover:bg-brand-700 text-white font-black px-8 py-3 rounded-xl shadow-lg shadow-brand-500/20 flex items-center gap-2"
+                  >
+                    {isSaving ? <Loader2 className="animate-spin" size={18} /> : <Save size={18} />}
+                    {isSaving ? 'Saving...' : 'Save Identity Settings'}
+                  </Button>
+                </div>
              </div>
           </div>
         </div>

@@ -7,7 +7,7 @@ import {
   AlertCircle, Users, Building2, Camera, Info, CheckCircle, Save, ChevronRight,
   Image as ImageIcon, HeartPulse, PlusCircle, Phone, DollarSign, Clock, Tag, Waves,
   Upload, Loader2, Eye, Gift, Pencil,
-  Monitor
+  Monitor, Globe
 } from 'lucide-react';
 import { Button } from '../../ui/Button';
 import { useData } from '../../../contexts/DataContext';
@@ -17,8 +17,8 @@ interface Props {
   isBangla: boolean;
 }
 
-// Fix: Defined ConfigTab type to resolve "Cannot find name 'ConfigTab'" error on line 39
-type ConfigTab = 'districts' | 'agri' | 'legal' | 'expat' | 'vocational' | 'health' | 'edu' | 'transport' | 'disaster' | 'fishery' | 'craft';
+// Fix: Defined ConfigTab type to resolve "Cannot find name 'ConfigTab'" error
+type ConfigTab = 'districts' | 'agri' | 'legal' | 'expat' | 'vocational' | 'health' | 'edu' | 'transport' | 'disaster' | 'fishery' | 'craft' | 'directory' | 'categories';
 
 const bnToEn = (str: any) => {
     if(!str) return 0;
@@ -36,10 +36,11 @@ export const AdminConfig: React.FC<Props> = ({ isBangla }) => {
     exchangeRates, addExchangeRate, deleteExchangeRate,
     vocationalCourses, addVocationalCourse, deleteVocationalCourse,
     districts, updateDistrict, deleteDistrict,
-    craftProducts, addCraftProduct, updateCraftProduct, deleteCraftProduct
+    craftProducts, addCraftProduct, updateCraftProduct, deleteCraftProduct,
+    serviceLinks, addServiceLink, updateServiceLink, deleteServiceLink,
+    serviceCategories, addServiceCategory, updateServiceCategory, deleteServiceCategory
   } = useData();
 
-  // Fix: The ConfigTab type is now defined above to resolve the compilation error.
   const [activeSubTab, setActiveSubTab] = useState<ConfigTab>('districts');
   const [isConfigModalOpen, setIsConfigModalOpen] = useState(false);
   const [configForm, setConfigForm] = useState<any>({});
@@ -47,10 +48,13 @@ export const AdminConfig: React.FC<Props> = ({ isBangla }) => {
   const [isCompressing, setIsCompressing] = useState(false);
   const imageInputRef = useRef<HTMLInputElement>(null);
   const craftImageInputRef = useRef<HTMLInputElement>(null);
+  const serviceLogoInputRef = useRef<HTMLInputElement>(null);
 
   const [editingDistrict, setEditingDistrict] = useState<any>(null);
   const [viewingDistrict, setViewingDistrict] = useState<any>(null);
   const [editingCraft, setEditingCraft] = useState<any>(null);
+  const [editingService, setEditingService] = useState<any>(null);
+  const [editingCategory, setEditingCategory] = useState<any>(null);
   
   const filteredDistricts = useMemo(() => {
     const searchLower = (districtSearch || '').toLowerCase();
@@ -77,6 +81,18 @@ export const AdminConfig: React.FC<Props> = ({ isBangla }) => {
 
   const handleEditCraft = (c: any) => {
     setEditingCraft(c);
+    setConfigForm({ ...c });
+    setIsConfigModalOpen(true);
+  };
+
+  const handleEditService = (s: any) => {
+    setEditingService(s);
+    setConfigForm({ ...s });
+    setIsConfigModalOpen(true);
+  };
+
+  const handleEditCategory = (c: any) => {
+    setEditingCategory(c);
     setConfigForm({ ...c });
     setIsConfigModalOpen(true);
   };
@@ -120,6 +136,21 @@ export const AdminConfig: React.FC<Props> = ({ isBangla }) => {
     }
   };
 
+  const handleServiceLogoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setIsCompressing(true);
+      try {
+        const compressed = await compressImage(file, 500, 0.8);
+        setConfigForm({ ...configForm, logo: compressed });
+      } catch (err) {
+        console.error("Compression failed", err);
+      } finally {
+        setIsCompressing(false);
+      }
+    }
+  };
+
   const handleSaveDistrict = (e: React.FormEvent) => {
     e.preventDefault();
     const safeNameEn = (editingDistrict.nameEn || editingDistrict.nameen || 'unnamed');
@@ -151,6 +182,8 @@ export const AdminConfig: React.FC<Props> = ({ isBangla }) => {
     } else {
         setConfigForm({});
         setEditingCraft(null);
+        setEditingService(null);
+        setEditingCategory(null);
     }
     setIsConfigModalOpen(true);
   };
@@ -163,6 +196,8 @@ export const AdminConfig: React.FC<Props> = ({ isBangla }) => {
       else if (activeSubTab === 'expat') deleteExchangeRate(id);
       else if (activeSubTab === 'districts') deleteDistrict(id);
       else if (activeSubTab === 'craft') deleteCraftProduct(id);
+      else if (activeSubTab === 'directory') deleteServiceLink(id);
+      else if (activeSubTab === 'categories') deleteServiceCategory(id);
   };
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -190,10 +225,26 @@ export const AdminConfig: React.FC<Props> = ({ isBangla }) => {
             } else {
               addCraftProduct({ ...configForm, id: Date.now() });
             }
+        } else if (activeSubTab === 'directory') {
+            if (editingService) {
+              updateServiceLink({ ...configForm });
+            } else {
+              addServiceLink({ ...configForm, id: Date.now(), views: 0 });
+            }
+        } else if (activeSubTab === 'categories') {
+            const catId = configForm.id || configForm.titleEn; // Use titleEn as ID if new, or existing ID
+            const newCat = { ...configForm, id: catId };
+            if (editingCategory) {
+              updateServiceCategory(newCat);
+            } else {
+              addServiceCategory(newCat);
+            }
         }
         setIsConfigModalOpen(false);
         setConfigForm({});
         setEditingCraft(null);
+        setEditingService(null);
+        setEditingCategory(null);
     } catch (err) {
         console.error(err);
     }
@@ -271,6 +322,53 @@ export const AdminConfig: React.FC<Props> = ({ isBangla }) => {
             </div>
         );
     }
+
+    if (activeSubTab === 'directory') {
+      return (
+        <div className="space-y-6">
+           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {serviceLinks.map((service: any) => (
+                <div key={service.id} className="bg-white p-5 rounded-2xl border border-gray-100 shadow-sm flex items-center justify-between group hover:border-brand-200 transition-all">
+                   <div className="flex items-center gap-3">
+                      <div className="w-12 h-12 bg-gray-50 rounded-xl flex items-center justify-center border border-gray-100 overflow-hidden">
+                         {service.logo ? <img src={service.logo} className="w-8 h-8 object-contain"/> : <Globe size={20} className="text-gray-400"/>}
+                      </div>
+                      <div>
+                         <h4 className="font-bold text-gray-900 text-sm line-clamp-1">{service.titleEn}</h4>
+                         <p className="text-xs text-gray-500">{service.category}</p>
+                      </div>
+                   </div>
+                   <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                      <button onClick={() => handleEditService(service)} className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg"><Edit3 size={16}/></button>
+                      <button onClick={() => handleDeleteItem(service.id)} className="p-2 text-red-600 hover:bg-red-50 rounded-lg"><Trash2 size={16}/></button>
+                   </div>
+                </div>
+              ))}
+           </div>
+        </div>
+      );
+    }
+
+    if (activeSubTab === 'categories') {
+        return (
+          <div className="space-y-6">
+             <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                {serviceCategories.map((cat: any) => (
+                   <div key={cat.id} className="bg-white p-4 rounded-xl border border-gray-100 shadow-sm flex justify-between items-center group hover:border-brand-200">
+                      <div>
+                         <h4 className="font-bold text-gray-900">{cat.titleEn}</h4>
+                         <p className="text-xs text-gray-500">{cat.titleBn}</p>
+                      </div>
+                      <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                         <button onClick={() => handleEditCategory(cat)} className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg"><Edit3 size={16}/></button>
+                         <button onClick={() => handleDeleteItem(cat.id)} className="p-2 text-red-600 hover:bg-red-50 rounded-lg"><Trash2 size={16}/></button>
+                      </div>
+                   </div>
+                ))}
+             </div>
+          </div>
+        );
+    }
     
     // Generic table for other subtabs
     return (
@@ -282,6 +380,8 @@ export const AdminConfig: React.FC<Props> = ({ isBangla }) => {
 
   const TABS = [
     { id: 'districts', label: '64 Districts', icon: <MapPin size={16}/> },
+    { id: 'directory', label: 'Service Directory', icon: <Globe size={16}/> },
+    { id: 'categories', label: 'Categories', icon: <Tag size={16}/> },
     { id: 'agri', label: 'Agriculture', icon: <Sprout size={16}/> },
     { id: 'legal', label: 'Legal Aid', icon: <Scale size={16}/> },
     { id: 'expat', label: 'Expat', icon: <Plane size={16}/> },
@@ -357,8 +457,8 @@ export const AdminConfig: React.FC<Props> = ({ isBangla }) => {
           <div className="fixed inset-0 z-[60] bg-black/60 flex items-center justify-center p-4 backdrop-blur-sm animate-fade-in">
             <div className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl overflow-hidden flex flex-col" onClick={e => e.stopPropagation()}>
                <div className="p-6 border-b border-gray-100 flex justify-between items-center bg-gray-50">
-                  <h3 className="font-bold text-xl text-gray-900">{editingDistrict || editingCraft ? 'Edit Entry' : 'Add New Entry'}</h3>
-                  <button onClick={() => { setIsConfigModalOpen(false); setEditingDistrict(null); setEditingCraft(null); }}><X size={24}/></button>
+                  <h3 className="font-bold text-xl text-gray-900">{editingDistrict || editingCraft || editingService || editingCategory ? 'Edit Entry' : 'Add New Entry'}</h3>
+                  <button onClick={() => { setIsConfigModalOpen(false); setEditingDistrict(null); setEditingCraft(null); setEditingService(null); setEditingCategory(null); }}><X size={24}/></button>
                </div>
                <form onSubmit={handleSubmit} className="p-8 space-y-4 overflow-y-auto max-h-[75vh] custom-scrollbar">
                   {activeSubTab === 'districts' && editingDistrict && (
@@ -486,12 +586,149 @@ export const AdminConfig: React.FC<Props> = ({ isBangla }) => {
                       </div>
                     </>
                   )}
+
+                  {activeSubTab === 'directory' && (
+                    <>
+                      <div className="grid grid-cols-2 gap-4">
+                        <div><label className="block text-xs font-bold text-gray-500 uppercase mb-1">Title (EN)</label><input required className="w-full p-2.5 bg-gray-50 border rounded-xl font-bold text-black" value={configForm.titleEn || ''} onChange={e => setConfigForm({...configForm, titleEn: e.target.value})} /></div>
+                        <div><label className="block text-xs font-bold text-gray-500 uppercase mb-1">Title (BN)</label><input required className="w-full p-2.5 bg-gray-50 border rounded-xl font-bold text-black" value={configForm.titleBn || ''} onChange={e => setConfigForm({...configForm, titleBn: e.target.value})} /></div>
+                      </div>
+                      <div><label className="block text-xs font-bold text-gray-500 uppercase mb-1">Link URL</label><input required className="w-full p-2.5 bg-gray-50 border rounded-xl font-bold text-black" value={configForm.link || ''} onChange={e => setConfigForm({...configForm, link: e.target.value})} placeholder="https://..." /></div>
+                      <div><label className="block text-xs font-bold text-gray-500 uppercase mb-1">Logo URL / Upload</label>
+                        <div className="flex gap-2">
+                           <input className="flex-1 p-2.5 bg-gray-50 border rounded-xl text-xs font-bold text-black" value={configForm.logo || ''} onChange={e => setConfigForm({...configForm, logo: e.target.value})} placeholder="URL or Upload" />
+                           <button type="button" onClick={() => serviceLogoInputRef.current?.click()} className="px-3 bg-white border rounded-xl text-gray-500 hover:bg-gray-50">{isCompressing ? <Loader2 className="animate-spin" size={16}/> : <Upload size={18}/>}</button>
+                        </div>
+                        <input type="file" ref={serviceLogoInputRef} className="hidden" accept="image/*" onChange={handleServiceLogoUpload} />
+                      </div>
+                      <div className="grid grid-cols-2 gap-4">
+                        <div>
+                          <label className="block text-xs font-bold text-gray-500 uppercase mb-1">Category</label>
+                          <select 
+                             required 
+                             className="w-full p-2.5 bg-gray-50 border rounded-xl font-bold text-black cursor-pointer appearance-none" 
+                             value={configForm.category || ''} 
+                             onChange={e => setConfigForm({...configForm, category: e.target.value})}
+                          >
+                             <option value="" disabled>Select Category</option>
+                             {serviceCategories.map((cat: any) => (
+                               <option key={cat.id} value={cat.id}>{cat.titleEn}</option>
+                             ))}
+                             {/* Fallback option if needed, or remove if strict */}
+                             {/* <option value="Other">Other</option> */}
+                          </select>
+                        </div>
+                        <div>
+                          <label className="block text-xs font-bold text-gray-500 uppercase mb-1">Badge</label>
+                          <select className="w-full p-2.5 bg-gray-50 border rounded-xl font-bold text-black appearance-none cursor-pointer" value={configForm.badge || ''} onChange={e => setConfigForm({...configForm, badge: e.target.value})}>
+                            <option value="">None</option>
+                            <option value="FREE">FREE</option>
+                            <option value="PREMIUM">PREMIUM</option>
+                            <option value="NEW">NEW</option>
+                          </select>
+                        </div>
+                      </div>
+                    </>
+                  )}
+
+                  {activeSubTab === 'categories' && (
+                    <>
+                       <div className="grid grid-cols-2 gap-4">
+                        <div><label className="block text-xs font-bold text-gray-500 uppercase mb-1">Category Name (EN)</label><input required className="w-full p-2.5 bg-gray-50 border rounded-xl font-bold text-black" value={configForm.titleEn || ''} onChange={e => setConfigForm({...configForm, titleEn: e.target.value})} /></div>
+                        <div><label className="block text-xs font-bold text-gray-500 uppercase mb-1">Category Name (BN)</label><input required className="w-full p-2.5 bg-gray-50 border rounded-xl font-bold text-black" value={configForm.titleBn || ''} onChange={e => setConfigForm({...configForm, titleBn: e.target.value})} /></div>
+                      </div>
+                    </>
+                  )}
+
                   <Button type="submit" disabled={isCompressing} className="w-full bg-[#0f172a] text-white font-bold py-3 mt-4">{isCompressing ? 'Processing...' : 'Save Entry'}</Button>
                </form>
             </div>
           </div>
         )}
-        {/* ...View District Details Modal */}
+        
+        {viewingDistrict && (
+          <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fade-in" onClick={() => setViewingDistrict(null)}>
+            <div className="bg-white w-full max-w-lg rounded-2xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh]" onClick={e => e.stopPropagation()}>
+              <div className="p-6 border-b border-gray-100 flex justify-between items-center bg-blue-50">
+                <div>
+                  <h3 className="font-bold text-xl text-gray-900">{isBangla ? (viewingDistrict.nameBn || viewingDistrict.namebn) : (viewingDistrict.nameEn || viewingDistrict.nameen)}</h3>
+                  <p className="text-xs text-blue-600 font-bold uppercase tracking-widest">{viewingDistrict.division} DIVISION</p>
+                </div>
+                <button onClick={() => setViewingDistrict(null)} className="p-2 hover:bg-blue-100 text-blue-600 rounded-full transition-colors"><X size={24}/></button>
+              </div>
+              
+              <div className="p-8 overflow-y-auto custom-scrollbar space-y-6">
+                 {/* Images Carousel or Single Image */}
+                 {Array.isArray(viewingDistrict.images) && viewingDistrict.images.length > 0 && (
+                   <div className="flex gap-2 overflow-x-auto pb-2 no-scrollbar">
+                     {viewingDistrict.images.map((img: string, i: number) => (
+                       <img key={i} src={img} className="w-32 h-20 object-cover rounded-lg border border-gray-200" alt={`District ${i}`} />
+                     ))}
+                   </div>
+                 )}
+
+                 <div className="grid grid-cols-2 gap-4">
+                    <div className="p-4 bg-gray-50 rounded-xl border border-gray-100 text-center">
+                       <p className="text-[10px] font-black text-gray-400 uppercase">Population</p>
+                       <p className="text-lg font-bold text-gray-900">{viewingDistrict.population || 'N/A'}</p>
+                    </div>
+                    <div className="p-4 bg-gray-50 rounded-xl border border-gray-100 text-center">
+                       <p className="text-[10px] font-black text-gray-400 uppercase">Area</p>
+                       <p className="text-lg font-bold text-gray-900">{viewingDistrict.area || 'N/A'} km²</p>
+                    </div>
+                 </div>
+
+                 {viewingDistrict.description && (
+                   <div>
+                     <h4 className="text-sm font-bold text-gray-900 mb-2 uppercase tracking-wide">Description</h4>
+                     <p className="text-sm text-gray-600 leading-relaxed bg-gray-50 p-4 rounded-xl border border-gray-100 whitespace-pre-wrap">
+                       {viewingDistrict.description}
+                     </p>
+                   </div>
+                 )}
+
+                 <div>
+                    <h4 className="text-sm font-bold text-gray-900 mb-2 uppercase tracking-wide flex items-center gap-2"><MapPin size={14}/> Tourist Spots</h4>
+                    <div className="flex flex-wrap gap-2">
+                      {(Array.isArray(viewingDistrict.touristspots) ? viewingDistrict.touristspots : (viewingDistrict.touristSpots || [])).map((spot: string, i: number) => (
+                        <span key={i} className="px-3 py-1 bg-green-50 text-green-700 text-xs font-bold rounded-lg border border-green-100">{spot}</span>
+                      ))}
+                      {(!viewingDistrict.touristspots?.length && !viewingDistrict.touristSpots?.length) && <p className="text-xs text-gray-400 italic">No spots listed</p>}
+                    </div>
+                 </div>
+
+                 {viewingDistrict.education && (
+                   <div>
+                      <h4 className="text-sm font-bold text-gray-900 mb-2 uppercase tracking-wide flex items-center gap-2"><BookOpen size={14}/> Education</h4>
+                      <div className="grid grid-cols-4 gap-2 text-center">
+                         <div className="bg-blue-50 p-2 rounded-lg"><p className="text-[9px] font-bold text-blue-400">PRI</p><p className="font-bold">{viewingDistrict.education.primary || 0}</p></div>
+                         <div className="bg-blue-50 p-2 rounded-lg"><p className="text-[9px] font-bold text-blue-400">SEC</p><p className="font-bold">{viewingDistrict.education.highSchool || 0}</p></div>
+                         <div className="bg-blue-50 p-2 rounded-lg"><p className="text-[9px] font-bold text-blue-400">COL</p><p className="font-bold">{viewingDistrict.education.college || 0}</p></div>
+                         <div className="bg-blue-50 p-2 rounded-lg"><p className="text-[9px] font-bold text-blue-400">UNI</p><p className="font-bold">{viewingDistrict.education.university || 0}</p></div>
+                      </div>
+                   </div>
+                 )}
+
+                 <div>
+                    <h4 className="text-sm font-bold text-gray-900 mb-2 uppercase tracking-wide flex items-center gap-2"><HeartPulse size={14}/> Hospitals</h4>
+                    <div className="space-y-2">
+                      {(viewingDistrict.hospitals || []).map((h: any, i: number) => (
+                        <div key={i} className="flex justify-between items-center p-3 bg-red-50 rounded-xl border border-red-100">
+                           <span className="text-sm font-bold text-gray-800">{h.name}</span>
+                           <span className="text-xs font-medium text-red-600">{h.phone}</span>
+                        </div>
+                      ))}
+                      {(!viewingDistrict.hospitals || viewingDistrict.hospitals.length === 0) && <p className="text-xs text-gray-400 italic">No hospitals listed</p>}
+                    </div>
+                 </div>
+              </div>
+              
+              <div className="p-6 border-t border-gray-100 bg-gray-50 text-right">
+                 <Button onClick={() => setViewingDistrict(null)} className="bg-gray-900 text-white">Close</Button>
+              </div>
+            </div>
+          </div>
+        )}
     </div>
   );
 };

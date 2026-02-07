@@ -1,16 +1,24 @@
-import React, { useState } from 'react';
+
+import React, { useState, useEffect } from 'react';
 import { Globe, Plane, DollarSign, FileText, TrendingUp, RefreshCw, Briefcase, Landmark } from 'lucide-react';
 import { Button } from '../ui/Button';
 import { useData } from '../../contexts/DataContext';
 
 interface Props {
   isBangla: boolean;
+  initialTab?: string;
 }
 
-export const ExpatModule: React.FC<Props> = ({ isBangla }) => {
+export const ExpatModule: React.FC<Props> = ({ isBangla, initialTab }) => {
   const { exchangeRates } = useData();
   const [activeTab, setActiveTab] = useState<'rates' | 'services' | 'remit'>('rates');
   
+  useEffect(() => {
+    if (initialTab && ['rates', 'services', 'remit'].includes(initialTab)) {
+      setActiveTab(initialTab as any);
+    }
+  }, [initialTab]);
+
   // Remittance Calc
   const [amount, setAmount] = useState('');
   const [currency, setCurrency] = useState('USD');
