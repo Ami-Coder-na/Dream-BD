@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Menu, X, Globe, ChevronDown, User as UserIcon, Shield, HelpCircle, Bell, Bird, Info, ArrowRight, Briefcase, FileText, LayoutGrid, MapPin, Lock, Home, Calculator, CreditCard, Camera } from 'lucide-react';
 import { Button } from '../ui/Button';
@@ -79,14 +80,7 @@ export const Header: React.FC<HeaderProps> = ({
 
           {/* Desktop Nav */}
           <div className="hidden lg:flex items-center gap-1 xl:gap-3">
-            {/* Admin Button - Always Visible for Testing */}
-            <button 
-              onClick={() => handleModuleClick(AppModule.ADMIN)} 
-              className="px-4 py-2 text-sm font-bold text-white bg-red-600 hover:bg-red-700 rounded-lg shadow-md transition-colors flex items-center gap-2 animate-fade-in"
-            >
-              <Shield size={16} /> ADMIN
-            </button>
-
+            
             <button onClick={onNavigateHome} className="px-3 py-2 text-sm font-bold text-gray-600 hover:text-brand-600 transition-colors">
               {isBangla ? 'হোম' : 'Home'}
             </button>
@@ -211,11 +205,6 @@ export const Header: React.FC<HeaderProps> = ({
                   </div>
                 </div>
               )}
-
-              {/* Dev Admin Button Mobile - Always Visible */}
-              <button onClick={() => handleModuleClick(AppModule.ADMIN)} className="w-full text-left font-black text-white bg-red-600 hover:bg-red-700 text-lg py-4 px-4 rounded-xl flex items-center gap-3 shadow-md mb-2">
-                 <Shield size={22}/> ADMIN PANEL
-              </button>
 
               <button onClick={() => { setMobileMenuOpen(false); onNavigateHome(); }} className="w-full text-left font-black text-gray-800 text-lg py-4 px-2 border-b border-gray-50 flex items-center gap-3 hover:bg-gray-50">
                  <Home size={22}/> {isBangla ? 'হোম' : 'Home'}
