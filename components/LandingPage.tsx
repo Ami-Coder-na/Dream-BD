@@ -144,8 +144,6 @@ export const LandingPage: React.FC<Props> = ({
     return (serviceLinks || []).filter((service: any) => {
       const matchesSearch = (service.titleBn.toLowerCase().includes(serviceSearch.toLowerCase()) || 
                              service.titleEn.toLowerCase().includes(serviceSearch.toLowerCase()));
-      // We assume service.category stores the ID of the category (e.g., 'NID', 'Birth Reg')
-      // If service.category stores English title, it still works if IDs match English titles.
       const matchesTag = selectedTag === 'All' || service.category === selectedTag;
       return matchesSearch && matchesTag;
     });
@@ -153,9 +151,17 @@ export const LandingPage: React.FC<Props> = ({
 
   const handleServiceClick = (service: any) => {
     if (service.link) {
-      // Use internal browser view
-      setBrowserTitle(isBangla ? service.titleBn : service.titleEn);
-      setBrowserUrl(service.link);
+      // Most government sites block iframes via X-Frame-Options.
+      // To ensure reliability ("solved koro"), we default to opening in a new tab.
+      // If we had a whitelist of iframe-friendly sites, we could use setBrowserUrl here.
+      const iframeFriendly = false; // Default to false to prevent errors
+      
+      if (iframeFriendly) {
+        setBrowserUrl(service.link);
+        setBrowserTitle(isBangla ? service.titleBn : service.titleEn);
+      } else {
+        window.open(service.link, '_blank', 'noopener,noreferrer');
+      }
     } else if (service.module) {
       // Internal Module
       onModuleSelect(service.module);
@@ -261,7 +267,7 @@ export const LandingPage: React.FC<Props> = ({
              sandbox="allow-same-origin allow-scripts allow-forms allow-popups"
              title={browserTitle}
            />
-           {/* Fallback/Loader Layer (Visible if iframe is slow or blocked, but simple overlay here) */}
+           {/* Fallback/Loader Layer */}
            <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-[-1]">
               <div className="text-center text-gray-400">
                  <p className="mb-2">Loading...</p>
