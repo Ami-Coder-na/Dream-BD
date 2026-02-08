@@ -7,9 +7,9 @@ import Script from 'next/script';
 import { Metadata } from 'next';
 
 export const metadata: Metadata = {
-  title: 'Digital Desh BD - বাংলাদেশের সেরা ডিজিটাল সেবা পোর্টাল | কৃষি, স্বাস্থ্য ও শিক্ষা',
-  description: 'বাংলাদেশের একটি সমন্বিত ডিজিটাল প্ল্যাটফর্ম যা কারুশিল্প, কৃষি তথ্য, শিক্ষা, স্বাস্থ্য সেবা, পরিবহন এবং দুর্যোগ ব্যবস্থাপনা সেবা প্রদান করে। স্মার্ট বাংলাদেশের পূর্ণাঙ্গ সমাধান এখন এক ঠিকানায়।',
-  keywords: 'digital desh bd, bangladesh digital services, কৃষি তথ্য, স্বাস্থ্য সেবা, অনলাইন শিক্ষা, চাকরির খবর, মিঠু এআই, সোনালী দেশ, ডিজিটাল বাংলাদেশ, smart bangladesh',
+  title: 'Digital Desh BD - স্মার্ট বাংলাদেশের সকল ডিজিটাল সেবা',
+  description: 'Digital Desh BD is the unified digital platform for Bangladesh offering Agriculture, Health, Education, Transport, NID, Passport, and Government services. ডিজিটাল বাংলাদেশের সব সেবা এক ঠিকানায়।',
+  keywords: 'Digital Desh BD, Smart Bangladesh, Online Seba, BD Government Services, Agriculture Info, Health Service BD, Education BD, Transport Schedule, NID Service, Passport Check, Job Circular, কৃষি তথ্য, স্বাস্থ্য সেবা, ডিজিটাল সেবা, স্মার্ট বাংলাদেশ, চাকরির খবর, এনআইডি চেক, পাসপোর্ট স্ট্যাটাস, জন্ম নিবন্ধন, Bazar Sodai, Legal Aid',
   authors: [{ name: 'Digital Desh BD Team' }],
   viewport: 'width=device-width, initial-scale=1',
   robots: 'index, follow',
