@@ -108,6 +108,19 @@ const App: React.FC = () => {
     logVisit();
   }, [logVisit]);
 
+  // Dynamic Favicon Update
+  useEffect(() => {
+    if (settings?.websiteFavicon) {
+      let link = document.querySelector("link[rel~='icon']") as HTMLLinkElement;
+      if (!link) {
+        link = document.createElement('link');
+        link.rel = 'icon';
+        document.head.appendChild(link);
+      }
+      link.href = settings.websiteFavicon;
+    }
+  }, [settings?.websiteFavicon]);
+
   const handleNavigate = useCallback((viewPath: string) => {
     const cleanPath = viewPath.replace(/^\/|\/$/g, '') || 'LANDING';
     setCurrentView(cleanPath);
