@@ -137,18 +137,7 @@ export const AdminConfig: React.FC<Props> = ({ isBangla }) => {
   };
 
   const handleServiceLogoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      setIsCompressing(true);
-      try {
-        const compressed = await compressImage(file, 500, 0.8);
-        setConfigForm({ ...configForm, logo: compressed });
-      } catch (err) {
-        console.error("Compression failed", err);
-      } finally {
-        setIsCompressing(false);
-      }
-    }
+    // Removed logic as logo upload is removed
   };
 
   const handleSaveDistrict = (e: React.FormEvent) => {
@@ -330,9 +319,6 @@ export const AdminConfig: React.FC<Props> = ({ isBangla }) => {
               {serviceLinks.map((service: any) => (
                 <div key={service.id} className="bg-white p-5 rounded-2xl border border-gray-100 shadow-sm flex items-center justify-between group hover:border-brand-200 transition-all">
                    <div className="flex items-center gap-3">
-                      <div className="w-12 h-12 bg-gray-50 rounded-xl flex items-center justify-center border border-gray-100 overflow-hidden">
-                         {service.logo ? <img src={service.logo} className="w-8 h-8 object-contain"/> : <Globe size={20} className="text-gray-400"/>}
-                      </div>
                       <div>
                          <h4 className="font-bold text-gray-900 text-sm line-clamp-1">{service.titleEn}</h4>
                          <p className="text-xs text-gray-500">{service.category}</p>
@@ -594,13 +580,6 @@ export const AdminConfig: React.FC<Props> = ({ isBangla }) => {
                         <div><label className="block text-xs font-bold text-gray-500 uppercase mb-1">Title (BN)</label><input required className="w-full p-2.5 bg-gray-50 border rounded-xl font-bold text-black" value={configForm.titleBn || ''} onChange={e => setConfigForm({...configForm, titleBn: e.target.value})} /></div>
                       </div>
                       <div><label className="block text-xs font-bold text-gray-500 uppercase mb-1">Link URL</label><input required className="w-full p-2.5 bg-gray-50 border rounded-xl font-bold text-black" value={configForm.link || ''} onChange={e => setConfigForm({...configForm, link: e.target.value})} placeholder="https://..." /></div>
-                      <div><label className="block text-xs font-bold text-gray-500 uppercase mb-1">Logo URL / Upload</label>
-                        <div className="flex gap-2">
-                           <input className="flex-1 p-2.5 bg-gray-50 border rounded-xl text-xs font-bold text-black" value={configForm.logo || ''} onChange={e => setConfigForm({...configForm, logo: e.target.value})} placeholder="URL or Upload" />
-                           <button type="button" onClick={() => serviceLogoInputRef.current?.click()} className="px-3 bg-white border rounded-xl text-gray-500 hover:bg-gray-50">{isCompressing ? <Loader2 className="animate-spin" size={16}/> : <Upload size={18}/>}</button>
-                        </div>
-                        <input type="file" ref={serviceLogoInputRef} className="hidden" accept="image/*" onChange={handleServiceLogoUpload} />
-                      </div>
                       <div className="grid grid-cols-2 gap-4">
                         <div>
                           <label className="block text-xs font-bold text-gray-500 uppercase mb-1">Category</label>
@@ -614,8 +593,6 @@ export const AdminConfig: React.FC<Props> = ({ isBangla }) => {
                              {serviceCategories.map((cat: any) => (
                                <option key={cat.id} value={cat.id}>{cat.titleEn}</option>
                              ))}
-                             {/* Fallback option if needed, or remove if strict */}
-                             {/* <option value="Other">Other</option> */}
                           </select>
                         </div>
                         <div>

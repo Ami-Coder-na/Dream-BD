@@ -350,9 +350,9 @@ export const JobModule: React.FC<Props> = ({ isBangla, user, onLogin, initialVie
         </div>
       ) : (
         /* --- CV GENERATOR PAGE --- */
-        <div className="flex flex-col h-screen overflow-hidden no-print bg-white">
+        <div className="flex flex-col h-screen overflow-hidden bg-white">
            {/* Header */}
-           <header className="bg-gray-900 text-white p-4 px-6 flex justify-between items-center shadow-md z-30 shrink-0">
+           <header className="bg-gray-900 text-white p-4 px-6 flex justify-between items-center shadow-md z-30 shrink-0 no-print">
               <div className="flex items-center gap-4">
                  <button onClick={() => setActiveView('list')} className="p-2 hover:bg-gray-800 rounded-full transition-colors">
                     <ArrowLeft size={20} />
@@ -370,7 +370,7 @@ export const JobModule: React.FC<Props> = ({ isBangla, user, onLogin, initialVie
            {/* Content */}
            <div className="flex-1 flex overflow-hidden">
               {/* Editor Column */}
-              <div className="w-full lg:w-5/12 xl:w-1/3 bg-gray-50 border-r border-gray-200 flex flex-col h-full overflow-hidden">
+              <div className="w-full lg:w-5/12 xl:w-1/3 bg-gray-50 border-r border-gray-200 flex flex-col h-full overflow-hidden print:hidden">
                  {/* Editor Tabs */}
                  <div className="flex border-b border-gray-200 bg-white sticky top-0 z-20">
                     {[
@@ -492,13 +492,14 @@ export const JobModule: React.FC<Props> = ({ isBangla, user, onLogin, initialVie
               </div>
 
               {/* Live Preview Column */}
-              <div className="hidden lg:flex flex-1 bg-gray-100 items-start justify-center p-8 overflow-y-auto custom-scrollbar">
+              <div className="hidden lg:flex print:block flex-1 bg-gray-100 items-start justify-center p-8 overflow-y-auto custom-scrollbar">
                  <div id="cv-paper" className="bg-white shadow-2xl w-[210mm] min-h-[297mm] p-10 relative text-gray-800">
                     {/* CV Header */}
                     <div className="flex justify-between items-start border-b-2 border-gray-800 pb-8 mb-8">
                        <div>
                           <h1 className="text-4xl font-black uppercase tracking-wider text-gray-900">{cvData.name || 'YOUR NAME'}</h1>
-                          <p className="text-xl font-medium text-brand-600 mt-1">{cvData.title || 'PROFESSIONAL TITLE'}</p>
+                          <p className="text-xl font-medium text-brand-600 mt-1">{cvData.title || 'PROFESSIONAL TITLE'}
+                          </p>
                        </div>
                        {cvData.image && (
                          <div className="w-32 h-32 border-4 border-gray-100 overflow-hidden bg-gray-50 shadow-sm">

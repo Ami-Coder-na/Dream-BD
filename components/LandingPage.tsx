@@ -44,7 +44,7 @@ export const LandingPage: React.FC<Props> = ({
 }) => {
   
   const { sections, modules, settings } = useSiteConfig();
-  const { serviceLinks, serviceCategories } = useData();
+  const { serviceLinks, serviceCategories, updateServiceLink } = useData();
 
   // Rotating Headline State
   const [currentHeadlineIndex, setCurrentHeadlineIndex] = useState(0);
@@ -150,6 +150,11 @@ export const LandingPage: React.FC<Props> = ({
   }, [serviceSearch, selectedTag, serviceLinks]);
 
   const handleServiceClick = (service: any) => {
+    // Increment view count
+    if (updateServiceLink) {
+        updateServiceLink({ ...service, views: (service.views || 0) + 1 });
+    }
+
     if (service.link) {
       // Most government sites block iframes via X-Frame-Options.
       // To ensure reliability ("solved koro"), we default to opening in a new tab.
@@ -538,14 +543,6 @@ export const LandingPage: React.FC<Props> = ({
                   </div>
 
                   <div className="mb-4">
-                    <div className="w-16 h-16 bg-gray-50 rounded-2xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform duration-300 border border-gray-50 overflow-hidden">
-                      {/* Logo Render Logic */}
-                      {service.logo ? (
-                        <img src={service.logo} alt="Logo" className="w-12 h-12 object-contain" />
-                      ) : (
-                        <Globe size={24} className="text-gray-400" />
-                      )}
-                    </div>
                     <h3 className="text-lg font-bold text-gray-900 leading-tight mb-1 group-hover:text-blue-600 transition-colors">
                       {isBangla ? service.titleBn : service.titleEn}
                     </h3>
