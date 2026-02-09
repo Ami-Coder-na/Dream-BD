@@ -7,9 +7,9 @@ import Script from 'next/script';
 import { Metadata } from 'next';
 
 export const metadata: Metadata = {
-  title: 'Digital Desh BD - স্মার্ট বাংলাদেশের সকল ডিজিটাল সেবা',
-  description: 'Digital Desh BD is the unified digital platform for Bangladesh offering Agriculture, Health, Education, Transport, NID, Passport, and Government services. ডিজিটাল বাংলাদেশের সব সেবা এক ঠিকানায়।',
-  keywords: 'Digital Desh BD, Smart Bangladesh, Online Seba, BD Government Services, Agriculture Info, Health Service BD, Education BD, Transport Schedule, NID Service, Passport Check, Job Circular, কৃষি তথ্য, স্বাস্থ্য সেবা, ডিজিটাল সেবা, স্মার্ট বাংলাদেশ, চাকরির খবর, এনআইডি চেক, পাসপোর্ট স্ট্যাটাস, জন্ম নিবন্ধন, Bazar Sodai, Legal Aid',
+  title: 'Digital Desh BD - রমজান ক্যালেন্ডার ২০২৬, জন্ম নিবন্ধন ও ডিজিটাল সেবা',
+  description: 'Digital Desh BD: রমজান ক্যালেন্ডার ২০২৬, সেহরি ও ইফতারের সঠিক সময়সূচি, জন্ম ও মৃত্যু নিবন্ধন চেক/সংশোধন, জাতীয় পরিচয়পত্র, চাকরি খুঁজুন, সিভি জেনারেটর, ডিজিটাল আমিন ও আইনি পরামর্শ এবং আমার জেলার সব তথ্য এক ঠিকানায়। স্মার্ট বাংলাদেশ গড়ার ডিজিটাল সমাধান।',
+  keywords: 'Digital Desh BD, Digital Bangladesh, Bangladesh, Digital Solutions, Smart Bangladesh, News, রমজান ক্যালেন্ডার ২০২৬, আপনার জেলার সেহরি ও ইফতারের সঠিক সময়সূচি, জন্ম নিবন্ধন চেক, মৃত্যু নিবন্ধন চেক, জন্ম নিবন্ধন সংশোধন এর আবেদন, উন্মুক্ত বিশ্ববিদ্যালয়, জাতীয় পরিচয়পত্র আবেদনপ্রক্রিয়া, চাকরি খুঁজুন, সিভি জেনারেটর, ডিজিটাল আমিন ও আইনি পরামর্শ, হাজার বছরের ইতিহাস, আমার বাংলাদেশ, আমার জেলা, স্মার্ট বাংলাদেশ গঠন, কৃষি তথ্য, স্বাস্থ্য সেবা, Online Seba, BD Government Services',
   authors: [{ name: 'Digital Desh BD Team' }],
   viewport: 'width=device-width, initial-scale=1',
   robots: 'index, follow',
@@ -21,7 +21,7 @@ export const metadata: Metadata = {
   },
   openGraph: {
     title: 'Digital Desh BD - স্মার্ট বাংলাদেশের সমন্বিত ডিজিটাল সমাধান',
-    description: 'কৃষি, স্বাস্থ্য, শিক্ষা ও পরিবহন সেবা এখন আপনার হাতের মুঠোয়। ডিজিটাল বাংলাদেশের এক নতুন দিগন্ত।',
+    description: 'রমজান ক্যালেন্ডার ২০২৬, জন্ম নিবন্ধন, চাকরি ও সব সরকারি সেবা এক অ্যাপে। ডিজিটাল দেশ - স্মার্ট সমাধান।',
     url: 'https://digitaldeshbd.com',
     siteName: 'Digital Desh BD',
     images: [
@@ -38,7 +38,7 @@ export const metadata: Metadata = {
   twitter: {
     card: 'summary_large_image',
     title: 'Digital Desh BD - আপনার ডিজিটাল সেবার সাথী',
-    description: 'এক প্ল্যাটফর্মে কৃষি, শিক্ষা, স্বাস্থ্য ও পরিবহন সব সেবা।',
+    description: 'রমজান ২০২৬, জন্ম নিবন্ধন, চাকরি ও সিভি জেনারেটর সহ সব ডিজিটাল সেবা।',
     images: ['https://zpsxpqurazjeqviwooky.supabase.co/storage/v1/object/public/images/logo.png'],
   },
 };
