@@ -31,18 +31,29 @@ export const BlogModule: React.FC<Props> = ({ isBangla, user, onLogin }) => {
   // State for Detail View
   const [selectedPost, setSelectedPost] = useState<any | null>(null);
 
-  // Safe id load
+  // Handle URL syncing for deep linking
   useEffect(() => {
-    try {
-      const params = new URLSearchParams(window.location.search);
-      const id = params.get('id');
-      if (id && blogs && blogs.length > 0) {
-        const post = blogs.find((b: any) => b.id?.toString() === id);
-        if (post) setSelectedPost(post);
+    const handleUrlChange = () => {
+      try {
+        const params = new URLSearchParams(window.location.search);
+        const id = params.get('id');
+        if (id && blogs && blogs.length > 0) {
+          const post = blogs.find((b: any) => b.id?.toString() === id);
+          if (post) setSelectedPost(post);
+        } else {
+          setSelectedPost(null);
+        }
+      } catch (e) {
+        console.warn("Could not parse URL parameters.");
       }
-    } catch (e) {
-      console.warn("Could not access URL search params.");
-    }
+    };
+
+    // Run on mount/update
+    handleUrlChange();
+
+    // Listen for back/forward navigation
+    window.addEventListener('popstate', handleUrlChange);
+    return () => window.removeEventListener('popstate', handleUrlChange);
   }, [blogs]);
 
   const handlePostClick = () => {
@@ -93,7 +104,7 @@ export const BlogModule: React.FC<Props> = ({ isBangla, user, onLogin }) => {
   const handleCopyLink = (e: React.MouseEvent, id: number) => {
     e.stopPropagation();
     try {
-      const url = `${window.location.origin}/blog?id=${id}`;
+      const url = `${window.location.origin}${window.location.pathname}?id=${id}`;
       navigator.clipboard.writeText(url);
       setCopyStatus(id);
       setTimeout(() => setCopyStatus(null), 2000);
@@ -105,7 +116,7 @@ export const BlogModule: React.FC<Props> = ({ isBangla, user, onLogin }) => {
   const handleShare = (e: React.MouseEvent, platform: 'fb' | 'wa', post: any) => {
     e.stopPropagation();
     try {
-      const url = encodeURIComponent(`${window.location.origin}/blog?id=${post.id}`);
+      const url = encodeURIComponent(`${window.location.origin}${window.location.pathname}?id=${post.id}`);
       const text = encodeURIComponent(post.title);
       let shareUrl = '';
 
@@ -127,12 +138,24 @@ export const BlogModule: React.FC<Props> = ({ isBangla, user, onLogin }) => {
     } else {
       setSelectedPost(post);
       window.scrollTo({ top: 0, behavior: 'smooth' });
+      // Update URL without reloading
+      try {
+        const url = new URL(window.location.href);
+        url.searchParams.set('id', post.id);
+        window.history.pushState({}, '', url.toString());
+      } catch (e) {}
     }
   };
 
   const handleBack = () => {
     setSelectedPost(null);
     window.scrollTo({ top: 0, behavior: 'smooth' });
+    // Reset URL without reloading
+    try {
+      const url = new URL(window.location.href);
+      url.searchParams.delete('id');
+      window.history.pushState({}, '', url.toString());
+    } catch (e) {}
   };
 
   const filteredPosts = blogs.filter((post: any) => {

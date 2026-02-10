@@ -1,3 +1,4 @@
+
 import React, { useState, useMemo, useRef, useEffect } from 'react';
 import { 
   Briefcase, MapPin, Clock, DollarSign, Search, X, CheckCircle, Calendar, 
@@ -115,16 +116,43 @@ export const JobModule: React.FC<Props> = ({ isBangla, user, onLogin, initialVie
     }
   }, [initialView, user, onLogin]);
 
+  // Handle URL syncing for deep linking
   useEffect(() => {
-    try {
-      const params = new URLSearchParams(window.location.search);
-      const jobId = params.get('jobId');
-      if (jobId && jobs && jobs.length > 0) {
-        const job = jobs.find((j: any) => j.id?.toString() === jobId);
-        if (job) setSelectedJob(job);
-      }
-    } catch (e) { console.warn(e); }
+    const handleUrlChange = () => {
+      try {
+        const params = new URLSearchParams(window.location.search);
+        const jobId = params.get('jobId');
+        if (jobId && jobs && jobs.length > 0) {
+          const job = jobs.find((j: any) => j.id?.toString() === jobId);
+          if (job) setSelectedJob(job);
+        } else {
+          setSelectedJob(null);
+        }
+      } catch (e) { console.warn(e); }
+    };
+
+    handleUrlChange();
+    window.addEventListener('popstate', handleUrlChange);
+    return () => window.removeEventListener('popstate', handleUrlChange);
   }, [jobs]);
+
+  const handleJobClick = (job: any) => {
+    setSelectedJob(job);
+    try {
+      const url = new URL(window.location.href);
+      url.searchParams.set('jobId', job.id);
+      window.history.pushState({}, '', url.toString());
+    } catch (e) {}
+  };
+
+  const handleCloseJob = () => {
+    setSelectedJob(null);
+    try {
+      const url = new URL(window.location.href);
+      url.searchParams.delete('jobId');
+      window.history.pushState({}, '', url.toString());
+    } catch (e) {}
+  };
 
   const filteredJobs = useMemo(() => {
     const term = searchTerm.toLowerCase();
@@ -178,7 +206,7 @@ export const JobModule: React.FC<Props> = ({ isBangla, user, onLogin, initialVie
   const handleApplyClick = () => {
       if (!user) { onLogin?.(); return; }
       alert(isBangla ? 'আবেদন সফল হয়েছে!' : 'Application Submitted!');
-      setSelectedJob(null);
+      handleCloseJob();
   };
 
   const handleCopyJobLink = (e: React.MouseEvent, id: number) => {
@@ -316,7 +344,7 @@ export const JobModule: React.FC<Props> = ({ isBangla, user, onLogin, initialVie
                   </div>
                 ) : filteredJobs.length > 0 ? (
                   filteredJobs.map((job: any) => (
-                    <div key={job.id} onClick={() => setSelectedJob(job)} className="bg-white p-5 sm:p-6 rounded-2xl shadow-sm border border-gray-100 hover:shadow-lg transition-all cursor-pointer group relative overflow-hidden">
+                    <div key={job.id} onClick={() => handleJobClick(job)} className="bg-white p-5 sm:p-6 rounded-2xl shadow-sm border border-gray-100 hover:shadow-lg transition-all cursor-pointer group relative overflow-hidden">
                       <div className={`absolute top-0 right-0 px-3 sm:px-4 py-1 text-[10px] sm:text-xs font-bold rounded-bl-xl border-l border-b ${getCategoryColor(job.category)}`}>
                         {isBangla ? categoryLabels[job.category]?.bn || job.category : categoryLabels[job.category]?.en || job.category}
                       </div>
@@ -571,10 +599,10 @@ export const JobModule: React.FC<Props> = ({ isBangla, user, onLogin, initialVie
       )}
 
       {selectedJob && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fade-in no-print" onClick={() => setSelectedJob(null)}>
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fade-in no-print" onClick={handleCloseJob}>
           <div className="bg-white rounded-3xl shadow-2xl w-full max-w-2xl overflow-hidden flex flex-col max-h-[90vh]" onClick={e => e.stopPropagation()}>
             <div className="relative h-32 bg-brand-600 shrink-0">
-               <button onClick={() => setSelectedJob(null)} className="absolute top-4 right-4 p-2 bg-white/20 hover:bg-white/40 rounded-full text-white transition-all"><X size={24}/></button>
+               <button onClick={handleCloseJob} className="absolute top-4 right-4 p-2 bg-white/20 hover:bg-white/40 rounded-full text-white transition-all"><X size={24}/></button>
             </div>
             <div className="p-8 pt-12 overflow-y-auto custom-scrollbar">
                <h2 className="text-2xl font-black text-gray-900">{selectedJob.title}</h2>
