@@ -66,6 +66,28 @@ const JanteChaiModule = lazy(() => import('./components/modules/JanteChaiModule'
 const NidPrintModule = lazy(() => import('./components/modules/NidPrintModule').then(m => ({ default: m.NidPrintModule })));
 const PhotoStudioModule = lazy(() => import('./components/modules/PhotoStudioModule').then(m => ({ default: m.PhotoStudioModule })));
 
+// Helper to safely interact with history API in sandboxed environments
+const safeHistory = {
+  push: (url: string) => {
+    if (typeof window !== 'undefined' && window.location.protocol !== 'blob:') {
+      try {
+        window.history.pushState(null, '', url);
+      } catch (e) {
+        console.warn("Navigation state update blocked (sandbox):", e);
+      }
+    }
+  },
+  replace: (url: string) => {
+    if (typeof window !== 'undefined' && window.location.protocol !== 'blob:') {
+      try {
+        window.history.replaceState(null, '', url);
+      } catch (e) {
+        console.warn("Navigation state update blocked (sandbox):", e);
+      }
+    }
+  }
+};
+
 const App: React.FC = () => {
   const { logVisit, isLoading } = useData();
   const { settings } = useSiteConfig();
@@ -73,7 +95,7 @@ const App: React.FC = () => {
   
   // Initialize view based on URL to prevent flashing or wrong initial render
   const [currentView, setCurrentView] = useState(() => {
-    if (typeof window !== 'undefined') {
+    if (typeof window !== 'undefined' && window.location.protocol !== 'blob:') {
       const path = window.location.pathname.replace(/^\/|\/$/g, '');
       if (path === 'adminrm') return 'admin';
       if (path) return decodeURIComponent(path);
@@ -91,6 +113,7 @@ const App: React.FC = () => {
     
     // Handle Browser Back/Forward Navigation
     const onPopState = () => {
+      if (window.location.protocol === 'blob:') return;
       const path = window.location.pathname.replace(/^\/|\/$/g, '');
       if (path === 'adminrm') setCurrentView('admin');
       else setCurrentView(path ? decodeURIComponent(path) : 'LANDING');
@@ -99,7 +122,7 @@ const App: React.FC = () => {
 
     // URL Cleanup: If accidentally at /lander, visually reset to root without reloading
     if (typeof window !== 'undefined' && window.location.pathname === '/lander') {
-       window.history.replaceState(null, '', '/');
+       safeHistory.replace('/');
     }
 
     try {
@@ -141,8 +164,8 @@ const App: React.FC = () => {
 
     // Update Browser URL
     const targetUrl = cleanPath === 'LANDING' ? '/' : `/${cleanPath}`;
-    if (window.location.pathname !== targetUrl) {
-      window.history.pushState(null, '', targetUrl);
+    if (typeof window !== 'undefined' && window.location.pathname !== targetUrl) {
+      safeHistory.push(targetUrl);
     }
   }, []);
 
