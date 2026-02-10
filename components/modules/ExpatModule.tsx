@@ -7,9 +7,10 @@ import { useData } from '../../contexts/DataContext';
 interface Props {
   isBangla: boolean;
   initialTab?: string;
+  onNavigate?: (path: string) => void;
 }
 
-export const ExpatModule: React.FC<Props> = ({ isBangla, initialTab }) => {
+export const ExpatModule: React.FC<Props> = ({ isBangla, initialTab, onNavigate }) => {
   const { exchangeRates } = useData();
   const [activeTab, setActiveTab] = useState<'rates' | 'services' | 'remit'>('rates');
   
@@ -18,6 +19,14 @@ export const ExpatModule: React.FC<Props> = ({ isBangla, initialTab }) => {
       setActiveTab(initialTab as any);
     }
   }, [initialTab]);
+
+  const handleTabChange = (tabId: 'rates' | 'services' | 'remit') => {
+    if (onNavigate) {
+      onNavigate(`expat:${tabId}`);
+    } else {
+      setActiveTab(tabId);
+    }
+  };
 
   // Remittance Calc
   const [amount, setAmount] = useState('');
@@ -53,13 +62,13 @@ export const ExpatModule: React.FC<Props> = ({ isBangla, initialTab }) => {
         {/* Tabs */}
         <div className="flex justify-center mb-10">
           <div className="bg-white p-1.5 rounded-full shadow-sm border border-cyan-100 flex gap-2">
-            <button onClick={() => setActiveTab('rates')} className={`px-6 py-2 rounded-full text-sm font-bold transition-all flex items-center gap-2 ${activeTab === 'rates' ? 'bg-cyan-600 text-white' : 'text-gray-600 hover:bg-cyan-50'}`}>
+            <button onClick={() => handleTabChange('rates')} className={`px-6 py-2 rounded-full text-sm font-bold transition-all flex items-center gap-2 ${activeTab === 'rates' ? 'bg-cyan-600 text-white' : 'text-gray-600 hover:bg-cyan-50'}`}>
               <TrendingUp size={16} /> {isBangla ? 'টাকার রেট' : 'Exchange Rates'}
             </button>
-            <button onClick={() => setActiveTab('services')} className={`px-6 py-2 rounded-full text-sm font-bold transition-all flex items-center gap-2 ${activeTab === 'services' ? 'bg-cyan-600 text-white' : 'text-gray-600 hover:bg-cyan-50'}`}>
+            <button onClick={() => handleTabChange('services')} className={`px-6 py-2 rounded-full text-sm font-bold transition-all flex items-center gap-2 ${activeTab === 'services' ? 'bg-cyan-600 text-white' : 'text-gray-600 hover:bg-cyan-50'}`}>
               <Briefcase size={16} /> {isBangla ? 'সেবাসমূহ' : 'Services'}
             </button>
-            <button onClick={() => setActiveTab('remit')} className={`px-6 py-2 rounded-full text-sm font-bold transition-all flex items-center gap-2 ${activeTab === 'remit' ? 'bg-cyan-600 text-white' : 'text-gray-600 hover:bg-cyan-50'}`}>
+            <button onClick={() => handleTabChange('remit')} className={`px-6 py-2 rounded-full text-sm font-bold transition-all flex items-center gap-2 ${activeTab === 'remit' ? 'bg-cyan-600 text-white' : 'text-gray-600 hover:bg-cyan-50'}`}>
               <DollarSign size={16} /> {isBangla ? 'ক্যালকুলেটর' : 'Calculator'}
             </button>
           </div>

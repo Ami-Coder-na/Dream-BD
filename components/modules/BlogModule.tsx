@@ -104,8 +104,9 @@ export const BlogModule: React.FC<Props> = ({ isBangla, user, onLogin }) => {
   const handleCopyLink = (e: React.MouseEvent, id: number) => {
     e.stopPropagation();
     try {
-      const url = `${window.location.origin}${window.location.pathname}?id=${id}`;
-      navigator.clipboard.writeText(url);
+      const url = new URL(window.location.href);
+      url.searchParams.set('id', id.toString());
+      navigator.clipboard.writeText(url.toString());
       setCopyStatus(id);
       setTimeout(() => setCopyStatus(null), 2000);
     } catch (e) {
@@ -116,7 +117,9 @@ export const BlogModule: React.FC<Props> = ({ isBangla, user, onLogin }) => {
   const handleShare = (e: React.MouseEvent, platform: 'fb' | 'wa', post: any) => {
     e.stopPropagation();
     try {
-      const url = encodeURIComponent(`${window.location.origin}${window.location.pathname}?id=${post.id}`);
+      const urlObj = new URL(window.location.href);
+      urlObj.searchParams.set('id', post.id);
+      const url = encodeURIComponent(urlObj.toString());
       const text = encodeURIComponent(post.title);
       let shareUrl = '';
 

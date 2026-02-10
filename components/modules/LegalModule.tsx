@@ -1,14 +1,31 @@
-import React, { useState } from 'react';
+
+import React, { useState, useEffect } from 'react';
 import { Scale, Ruler, Book, Calculator, CheckCircle } from 'lucide-react';
 import { Button } from '../ui/Button';
 
 interface Props {
   isBangla: boolean;
+  initialTab?: string;
+  onNavigate?: (path: string) => void;
 }
 
-export const LegalModule: React.FC<Props> = ({ isBangla }) => {
+export const LegalModule: React.FC<Props> = ({ isBangla, initialTab, onNavigate }) => {
   const [activeTab, setActiveTab] = useState<'calc' | 'guide'>('calc');
   
+  useEffect(() => {
+    if (initialTab && ['calc', 'guide'].includes(initialTab)) {
+      setActiveTab(initialTab as any);
+    }
+  }, [initialTab]);
+
+  const handleTabChange = (tabId: 'calc' | 'guide') => {
+    if (onNavigate) {
+      onNavigate(`legal:${tabId}`);
+    } else {
+      setActiveTab(tabId);
+    }
+  };
+
   // Calculator State
   const [length, setLength] = useState('');
   const [width, setWidth] = useState('');
@@ -53,10 +70,10 @@ export const LegalModule: React.FC<Props> = ({ isBangla }) => {
         {/* Tabs */}
         <div className="flex justify-center mb-10">
           <div className="bg-white p-1.5 rounded-full shadow-sm border border-gray-200 flex gap-2">
-            <button onClick={() => setActiveTab('calc')} className={`px-6 py-2 rounded-full text-sm font-bold transition-all flex items-center gap-2 ${activeTab === 'calc' ? 'bg-slate-700 text-white' : 'text-gray-600 hover:bg-gray-100'}`}>
+            <button onClick={() => handleTabChange('calc')} className={`px-6 py-2 rounded-full text-sm font-bold transition-all flex items-center gap-2 ${activeTab === 'calc' ? 'bg-slate-700 text-white' : 'text-gray-600 hover:bg-gray-100'}`}>
               <Calculator size={16} /> {isBangla ? 'জমি মাপুন' : 'Land Calculator'}
             </button>
-            <button onClick={() => setActiveTab('guide')} className={`px-6 py-2 rounded-full text-sm font-bold transition-all flex items-center gap-2 ${activeTab === 'guide' ? 'bg-slate-700 text-white' : 'text-gray-600 hover:bg-gray-100'}`}>
+            <button onClick={() => handleTabChange('guide')} className={`px-6 py-2 rounded-full text-sm font-bold transition-all flex items-center gap-2 ${activeTab === 'guide' ? 'bg-slate-700 text-white' : 'text-gray-600 hover:bg-gray-100'}`}>
               <Book size={16} /> {isBangla ? 'আইনি গাইড' : 'Legal Guide'}
             </button>
           </div>

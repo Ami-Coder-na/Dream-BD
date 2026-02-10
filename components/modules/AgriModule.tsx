@@ -19,6 +19,7 @@ interface Props {
   user?: User | null;
   onLogin?: () => void;
   initialTab?: string;
+  onNavigate?: (path: string) => void;
 }
 
 type Tab = 'overview' | 'calculator' | 'aiscan' | 'market';
@@ -89,7 +90,7 @@ const CROPS_DB = [
   }
 ];
 
-export const AgriModule: React.FC<Props> = ({ isBangla, user, onLogin, initialTab }) => {
+export const AgriModule: React.FC<Props> = ({ isBangla, user, onLogin, initialTab, onNavigate }) => {
   const { marketPrices } = useData();
   const [activeTab, setActiveTab] = useState<Tab>('overview');
   
@@ -98,6 +99,14 @@ export const AgriModule: React.FC<Props> = ({ isBangla, user, onLogin, initialTa
       setActiveTab(initialTab as Tab);
     }
   }, [initialTab]);
+
+  const handleTabChange = (tabId: Tab) => {
+    if (onNavigate) {
+      onNavigate(`agriculture:${tabId}`);
+    } else {
+      setActiveTab(tabId);
+    }
+  };
 
   const [selectedCrop, setSelectedCrop] = useState<any | null>(null);
   const [analyzing, setAnalyzing] = useState(false);
@@ -202,7 +211,7 @@ export const AgriModule: React.FC<Props> = ({ isBangla, user, onLogin, initialTa
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-        <div className="bg-white p-8 rounded-[2rem] border border-gray-100 shadow-sm flex flex-col justify-between group hover:shadow-lg transition-all cursor-pointer" onClick={() => setActiveTab('aiscan')}>
+        <div className="bg-white p-8 rounded-[2rem] border border-gray-100 shadow-sm flex flex-col justify-between group hover:shadow-lg transition-all cursor-pointer" onClick={() => handleTabChange('aiscan')}>
            <div>
               <div className="w-14 h-14 bg-green-100 text-green-600 rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform"><ScanLine size={32} /></div>
               <h3 className="text-2xl font-black text-gray-900 mb-2">{isBangla ? 'এআই রোগ নির্ণয় কেন্দ্র' : 'AI Agri-Diagnosis Center'}</h3>
@@ -210,7 +219,7 @@ export const AgriModule: React.FC<Props> = ({ isBangla, user, onLogin, initialTa
            </div>
            <Button className="mt-8 bg-green-600 hover:bg-green-700 text-white font-bold">{isBangla ? 'স্ক্যান শুরু করুন' : 'Start Scan'}</Button>
         </div>
-        <div className="bg-white p-8 rounded-[2rem] border border-gray-100 shadow-sm flex flex-col justify-between group hover:shadow-lg transition-all cursor-pointer" onClick={() => setActiveTab('calculator')}>
+        <div className="bg-white p-8 rounded-[2rem] border border-gray-100 shadow-sm flex flex-col justify-between group hover:shadow-lg transition-all cursor-pointer" onClick={() => handleTabChange('calculator')}>
            <div>
               <div className="w-14 h-14 bg-blue-100 text-blue-600 rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform"><Calculator size={32} /></div>
               <h3 className="text-2xl font-black text-gray-900 mb-2">{isBangla ? 'সার ও বীজ ক্যালকুলেটর' : 'Agri Calculator'}</h3>
@@ -440,7 +449,7 @@ export const AgriModule: React.FC<Props> = ({ isBangla, user, onLogin, initialTa
                 { id: 'calculator', icon: <Calculator size={18}/>, label: isBangla ? 'ক্যালকুলেটর' : 'Calculator' },
                 { id: 'market', icon: <TrendingUp size={18}/>, label: isBangla ? 'বাজার দর' : 'Market' }
               ].map(tab => (
-                 <button key={tab.id} onClick={() => setActiveTab(tab.id as Tab)} className={`flex items-center gap-2 px-6 py-3 rounded-xl text-sm font-bold transition-all whitespace-nowrap ${activeTab === tab.id ? 'bg-white text-green-700 shadow-md ring-1 ring-black/5' : 'text-gray-500 hover:bg-gray-200'}`}>{tab.icon} {tab.label}</button>
+                 <button key={tab.id} onClick={() => handleTabChange(tab.id as Tab)} className={`flex items-center gap-2 px-6 py-3 rounded-xl text-sm font-bold transition-all whitespace-nowrap ${activeTab === tab.id ? 'bg-white text-green-700 shadow-md ring-1 ring-black/5' : 'text-gray-500 hover:bg-gray-200'}`}>{tab.icon} {tab.label}</button>
               ))}
             </div>
         </div>

@@ -17,6 +17,7 @@ interface Props {
   user?: User | null;
   onLogin?: () => void;
   initialView?: string;
+  onNavigate?: (path: string) => void;
 }
 
 type JobCategory = 'Government' | 'Private' | 'NGO' | 'International' | 'Autonomous' | 'Local Government' | 'Public University';
@@ -61,7 +62,7 @@ const categoryLabels: Record<string, { bn: string; en: string }> = {
   'International': { bn: 'আন্তর্জাতিক', en: 'International' },
 };
 
-export const JobModule: React.FC<Props> = ({ isBangla, user, onLogin, initialView }) => {
+export const JobModule: React.FC<Props> = ({ isBangla, user, onLogin, initialView, onNavigate }) => {
   const { jobs, addRequest, logCvGeneration, isLoading } = useData();
   const [activeView, setActiveView] = useState<'list' | 'cv_generator'>('list');
   const [cvTab, setCvTab] = useState<'personal' | 'experience' | 'education'>('personal');
@@ -190,7 +191,20 @@ export const JobModule: React.FC<Props> = ({ isBangla, user, onLogin, initialVie
 
   const handleCvGeneratorClick = () => {
       if (!user) { onLogin?.(); return; }
-      setActiveView('cv_generator');
+      if (onNavigate) {
+        onNavigate('job:cv_generator');
+      } else {
+        setActiveView('cv_generator');
+      }
+  };
+
+  const handleBackToList = () => {
+      if (onNavigate) {
+        onNavigate('job'); // Reset URL to /job
+        setActiveView('list');
+      } else {
+        setActiveView('list');
+      }
   };
 
   const handleCvPhotoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -212,8 +226,9 @@ export const JobModule: React.FC<Props> = ({ isBangla, user, onLogin, initialVie
   const handleCopyJobLink = (e: React.MouseEvent, id: number) => {
     e.stopPropagation();
     try {
-      const url = `${window.location.origin}${window.location.pathname}?jobId=${id}`;
-      navigator.clipboard.writeText(url);
+      const url = new URL(window.location.href);
+      url.searchParams.set('jobId', id.toString());
+      navigator.clipboard.writeText(url.toString());
       setJobCopyStatus(id);
       setTimeout(() => setJobCopyStatus(null), 2000);
     } catch (err) { console.warn(err); }
@@ -382,7 +397,7 @@ export const JobModule: React.FC<Props> = ({ isBangla, user, onLogin, initialVie
            {/* Header */}
            <header className="bg-gray-900 text-white p-4 px-6 flex justify-between items-center shadow-md z-30 shrink-0 no-print">
               <div className="flex items-center gap-4">
-                 <button onClick={() => setActiveView('list')} className="p-2 hover:bg-gray-800 rounded-full transition-colors">
+                 <button onClick={handleBackToList} className="p-2 hover:bg-gray-800 rounded-full transition-colors">
                     <ArrowLeft size={20} />
                  </button>
                  <div className="flex items-center gap-2">

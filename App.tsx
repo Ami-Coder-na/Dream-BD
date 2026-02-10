@@ -109,7 +109,7 @@ const App: React.FC = () => {
 
   useEffect(() => {
     setIsMounted(true);
-    console.log("App Version: v2.6 (SPA Routing Enabled)");
+    console.log("App Version: v2.7 (Deep Linking Enabled)");
     
     // Handle Browser Back/Forward Navigation
     const onPopState = () => {
@@ -231,21 +231,21 @@ const App: React.FC = () => {
               case AppModule.ADMIN: 
                 return <AdminModule isBangla={isBangla} onExit={() => { window.location.href = '/'; }} user={user} />;
               case AppModule.PROFILE: return user ? <ProfilePage user={user} onUpdateUser={setUser} isBangla={isBangla} onLogout={() => { setUser(null); localStorage.removeItem('digital_desh_bd_user_session'); handleNavigate('LANDING'); }} /> : null;
-              case AppModule.JOB: return <JobModule isBangla={isBangla} user={user} onLogin={() => setAuthView('login')} initialView={viewParam} />;
+              case AppModule.JOB: return <JobModule isBangla={isBangla} user={user} onLogin={() => setAuthView('login')} initialView={viewParam} onNavigate={handleNavigate} />;
               case AppModule.BLOG: return <BlogModule isBangla={isBangla} user={user} onLogin={() => setAuthView('login')} />;
               case AppModule.AMAR_BD: return <AmarBdModule isBangla={isBangla} onModuleSelect={m => handleNavigate(m)} />;
               case AppModule.AMAR_JELA: return <AmarJelaModule isBangla={isBangla} />;
-              case AppModule.AGRI: return <AgriModule isBangla={isBangla} user={user} onLogin={() => setAuthView('login')} initialTab={viewParam} />;
-              case AppModule.HEALTH: return <HealthModule isBangla={isBangla} />;
-              case AppModule.EDU: return <EduModule isBangla={isBangla} user={user} />;
-              case AppModule.TRANSPORT: return <TransportModule isBangla={isBangla} />;
+              case AppModule.AGRI: return <AgriModule isBangla={isBangla} user={user} onLogin={() => setAuthView('login')} initialTab={viewParam} onNavigate={handleNavigate} />;
+              case AppModule.HEALTH: return <HealthModule isBangla={isBangla} initialTab={viewParam} onNavigate={handleNavigate} />;
+              case AppModule.EDU: return <EduModule isBangla={isBangla} user={user} initialTab={viewParam} onNavigate={handleNavigate} />;
+              case AppModule.TRANSPORT: return <TransportModule isBangla={isBangla} initialTab={viewParam} onNavigate={handleNavigate} />;
               case AppModule.CRAFT: return <CraftModule isBangla={isBangla} />;
               case AppModule.BAZAR_SODAI: return <BazarSodaiModule isBangla={isBangla} user={user} onLogin={() => setAuthView('login')} />;
-              case AppModule.WASTE: return <WasteModule isBangla={isBangla} user={user} onLogin={() => setAuthView('login')} />;
-              case AppModule.FISHERY: return <FisheryModule isBangla={isBangla} initialTab={viewParam} />;
+              case AppModule.WASTE: return <WasteModule isBangla={isBangla} user={user} onLogin={() => setAuthView('login')} initialTab={viewParam} onNavigate={handleNavigate} />;
+              case AppModule.FISHERY: return <FisheryModule isBangla={isBangla} initialTab={viewParam} onNavigate={handleNavigate} />;
               case AppModule.DISASTER: return <DisasterModule isBangla={isBangla} />;
-              case AppModule.LEGAL: return <LegalModule isBangla={isBangla} />;
-              case AppModule.EXPAT: return <ExpatModule isBangla={isBangla} initialTab={viewParam} />;
+              case AppModule.LEGAL: return <LegalModule isBangla={isBangla} initialTab={viewParam} onNavigate={handleNavigate} />;
+              case AppModule.EXPAT: return <ExpatModule isBangla={isBangla} initialTab={viewParam} onNavigate={handleNavigate} />;
               case AppModule.VOCATIONAL: return <VocationalModule isBangla={isBangla} user={user} onLogin={() => setAuthView('login')} />;
               case AppModule.JANTE_CHAI: return <JanteChaiModule isBangla={isBangla} />;
               case AppModule.CONTACT: return <ContactModule isBangla={isBangla} />;

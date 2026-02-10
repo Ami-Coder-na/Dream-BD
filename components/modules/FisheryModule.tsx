@@ -12,6 +12,7 @@ import { getOptimizedImageUrl } from '../utils/imageUtils';
 interface Props {
   isBangla: boolean;
   initialTab?: string;
+  onNavigate?: (path: string) => void;
 }
 
 type FisheryTab = 'market' | 'encyclopedia' | 'tools' | 'govt';
@@ -126,7 +127,7 @@ const GOVT_SERVICES = [
   }
 ];
 
-export const FisheryModule: React.FC<Props> = ({ isBangla, initialTab }) => {
+export const FisheryModule: React.FC<Props> = ({ isBangla, initialTab, onNavigate }) => {
   const [activeTab, setActiveTab] = useState<FisheryTab>('market');
   
   useEffect(() => {
@@ -134,6 +135,14 @@ export const FisheryModule: React.FC<Props> = ({ isBangla, initialTab }) => {
       setActiveTab(initialTab as FisheryTab);
     }
   }, [initialTab]);
+
+  const handleTabChange = (tabId: FisheryTab) => {
+    if (onNavigate) {
+      onNavigate(`fishery:${tabId}`);
+    } else {
+      setActiveTab(tabId);
+    }
+  };
 
   // Calculator State
   const [calcSpecies, setCalcSpecies] = useState('Rui');
@@ -539,7 +548,7 @@ export const FisheryModule: React.FC<Props> = ({ isBangla, initialTab }) => {
         <div className="flex justify-center mb-10">
           <div className="bg-white p-1.5 rounded-2xl shadow-sm border border-gray-100 flex flex-wrap justify-center gap-1">
             <button 
-              onClick={() => setActiveTab('market')}
+              onClick={() => handleTabChange('market')}
               className={`px-5 py-2.5 rounded-xl text-sm font-bold transition-all flex items-center gap-2 ${
                 activeTab === 'market' ? 'bg-cyan-600 text-white shadow-md' : 'text-gray-600 hover:bg-gray-50'
               }`}
@@ -548,7 +557,7 @@ export const FisheryModule: React.FC<Props> = ({ isBangla, initialTab }) => {
               {isBangla ? 'মার্কেট ও ড্যাশবোর্ড' : 'Market & Dashboard'}
             </button>
             <button 
-              onClick={() => setActiveTab('encyclopedia')}
+              onClick={() => handleTabChange('encyclopedia')}
               className={`px-5 py-2.5 rounded-xl text-sm font-bold transition-all flex items-center gap-2 ${
                 activeTab === 'encyclopedia' ? 'bg-indigo-600 text-white shadow-md' : 'text-gray-600 hover:bg-gray-50'
               }`}
@@ -557,7 +566,7 @@ export const FisheryModule: React.FC<Props> = ({ isBangla, initialTab }) => {
               {isBangla ? 'এনসাইক্লোপিডিয়া' : 'Encyclopedia'}
             </button>
             <button 
-              onClick={() => setActiveTab('tools')}
+              onClick={() => handleTabChange('tools')}
               className={`px-5 py-2.5 rounded-xl text-sm font-bold transition-all flex items-center gap-2 ${
                 activeTab === 'tools' ? 'bg-teal-600 text-white shadow-md' : 'text-gray-600 hover:bg-gray-50'
               }`}
@@ -566,7 +575,7 @@ export const FisheryModule: React.FC<Props> = ({ isBangla, initialTab }) => {
               {isBangla ? 'টুলস ও সেবা' : 'Tools & Services'}
             </button>
             <button 
-              onClick={() => setActiveTab('govt')}
+              onClick={() => handleTabChange('govt')}
               className={`px-5 py-2.5 rounded-xl text-sm font-bold transition-all flex items-center gap-2 ${
                 activeTab === 'govt' ? 'bg-blue-600 text-white shadow-md' : 'text-gray-600 hover:bg-gray-50'
               }`}
