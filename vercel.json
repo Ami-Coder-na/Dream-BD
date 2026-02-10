@@ -2,11 +2,7 @@
 {
   "rewrites": [
     {
-      "source": "/adminrm",
-      "destination": "/"
-    },
-    {
-      "source": "/[^/.]+",
+      "source": "/(.*)",
       "destination": "/"
     }
   ],
