@@ -4,6 +4,10 @@
     {
       "source": "/adminrm",
       "destination": "/"
+    },
+    {
+      "source": "/[^/.]+",
+      "destination": "/"
     }
   ],
   "redirects": [

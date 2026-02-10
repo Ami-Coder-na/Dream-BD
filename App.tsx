@@ -74,8 +74,9 @@ const App: React.FC = () => {
   // Initialize view based on URL to prevent flashing or wrong initial render
   const [currentView, setCurrentView] = useState(() => {
     if (typeof window !== 'undefined') {
-      const path = window.location.pathname.replace(/\/$/, '') || '/';
-      if (path === '/adminrm') return 'admin';
+      const path = window.location.pathname.replace(/^\/|\/$/g, '');
+      if (path === 'adminrm') return 'admin';
+      if (path) return decodeURIComponent(path);
     }
     return 'LANDING';
   });
@@ -86,8 +87,16 @@ const App: React.FC = () => {
 
   useEffect(() => {
     setIsMounted(true);
-    console.log("App Version: v2.5 (Stable Admin)");
+    console.log("App Version: v2.6 (SPA Routing Enabled)");
     
+    // Handle Browser Back/Forward Navigation
+    const onPopState = () => {
+      const path = window.location.pathname.replace(/^\/|\/$/g, '');
+      if (path === 'adminrm') setCurrentView('admin');
+      else setCurrentView(path ? decodeURIComponent(path) : 'LANDING');
+    };
+    window.addEventListener('popstate', onPopState);
+
     // URL Cleanup: If accidentally at /lander, visually reset to root without reloading
     if (typeof window !== 'undefined' && window.location.pathname === '/lander') {
        window.history.replaceState(null, '', '/');
@@ -106,6 +115,8 @@ const App: React.FC = () => {
     }
     
     logVisit();
+
+    return () => window.removeEventListener('popstate', onPopState);
   }, [logVisit]);
 
   // Dynamic Favicon Update
@@ -123,9 +134,16 @@ const App: React.FC = () => {
 
   const handleNavigate = useCallback((viewPath: string) => {
     const cleanPath = viewPath.replace(/^\/|\/$/g, '') || 'LANDING';
+    
     setCurrentView(cleanPath);
     setAuthView('none');
     window.scrollTo({ top: 0, behavior: 'smooth' });
+
+    // Update Browser URL
+    const targetUrl = cleanPath === 'LANDING' ? '/' : `/${cleanPath}`;
+    if (window.location.pathname !== targetUrl) {
+      window.history.pushState(null, '', targetUrl);
+    }
   }, []);
 
   const [viewModule, viewParam] = (currentView || '').split(':');
