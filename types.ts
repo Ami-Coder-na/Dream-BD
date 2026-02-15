@@ -62,6 +62,7 @@ export interface ServiceLink {
   badge?: string;
   views?: number;
   module?: AppModule;
+  iframe?: boolean;
 }
 
 export interface User {

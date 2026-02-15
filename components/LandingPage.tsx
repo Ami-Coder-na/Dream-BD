@@ -156,10 +156,8 @@ export const LandingPage: React.FC<Props> = ({
     }
 
     if (service.link) {
-      // Most government sites block iframes via X-Frame-Options.
-      // To ensure reliability ("solved koro"), we default to opening in a new tab.
-      // If we had a whitelist of iframe-friendly sites, we could use setBrowserUrl here.
-      const iframeFriendly = false; // Default to false to prevent errors
+      // Check if the service is configured to open in an iframe
+      const iframeFriendly = service.iframe === true;
       
       if (iframeFriendly) {
         setBrowserUrl(service.link);
@@ -199,7 +197,7 @@ export const LandingPage: React.FC<Props> = ({
     };
 
     const offset = DISTRICT_OFFSETS[ramadanDistrict] || 0;
-    const startDate = new Date('2026-02-18'); // Tentative start
+    const startDate = new Date('2026-02-19'); // Updated start date
     const schedule = [];
     
     for (let i = 0; i < 30; i++) {
@@ -556,7 +554,7 @@ export const LandingPage: React.FC<Props> = ({
                       <Eye size={14} /> {service.views || 0}
                     </div>
                     <div className="p-2 rounded-full hover:bg-gray-100 transition-colors text-gray-400 hover:text-blue-600">
-                      {service.link ? <ExternalLink size={16} /> : <ArrowRight size={16} />}
+                      {service.link ? (service.iframe ? <Globe size={16} /> : <ExternalLink size={16} />) : <ArrowRight size={16} />}
                     </div>
                   </div>
                 </div>
