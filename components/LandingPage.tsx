@@ -198,29 +198,70 @@ export const LandingPage: React.FC<Props> = ({
 
     const offset = DISTRICT_OFFSETS[ramadanDistrict] || 0;
     const startDate = new Date('2026-02-19'); // Updated start date
-    const schedule = [];
     
-    for (let i = 0; i < 30; i++) {
+    // Static Data provided by user
+    const baseSchedule = [
+      { s: '05:13 AM', i: '05:56 PM' },
+      { s: '05:12 AM', i: '05:57 PM' },
+      { s: '05:12 AM', i: '05:57 PM' },
+      { s: '05:11 AM', i: '05:58 PM' },
+      { s: '05:10 AM', i: '05:59 PM' },
+      { s: '05:09 AM', i: '05:59 PM' },
+      { s: '05:09 AM', i: '06:00 PM' },
+      { s: '05:08 AM', i: '06:00 PM' },
+      { s: '05:07 AM', i: '06:01 PM' },
+      { s: '05:06 AM', i: '06:01 PM' },
+      { s: '05:05 AM', i: '06:02 PM' },
+      { s: '05:04 AM', i: '06:02 PM' },
+      { s: '05:04 AM', i: '06:03 PM' },
+      { s: '05:04 AM', i: '06:03 PM' },
+      { s: '05:03 AM', i: '06:03 PM' },
+      { s: '05:01 AM', i: '06:04 PM' },
+      { s: '05:00 AM', i: '06:04 PM' },
+      { s: '04:59 AM', i: '06:05 PM' },
+      { s: '04:58 AM', i: '06:05 PM' },
+      { s: '04:57 AM', i: '06:06 PM' },
+      { s: '04:56 AM', i: '06:06 PM' },
+      { s: '04:55 AM', i: '06:07 PM' },
+      { s: '04:54 AM', i: '06:07 PM' },
+      { s: '04:53 AM', i: '06:07 PM' },
+      { s: '04:52 AM', i: '06:08 PM' },
+      { s: '04:51 AM', i: '06:08 PM' },
+      { s: '04:50 AM', i: '06:09 PM' },
+      { s: '04:49 AM', i: '06:09 PM' },
+      { s: '04:48 AM', i: '06:09 PM' },
+      { s: '04:47 AM', i: '06:10 PM' }
+    ];
+
+    const adjustTime = (timeStr: string, minutes: number) => {
+      const [time, modifier] = timeStr.split(' ');
+      let [hours, mins] = time.split(':').map(Number);
+      
+      if (hours === 12 && modifier === 'AM') hours = 0;
+      if (hours !== 12 && modifier === 'PM') hours += 12;
+      
+      const date = new Date();
+      date.setHours(hours, mins + minutes, 0, 0);
+      
+      return date.toLocaleTimeString(isBangla ? 'bn-BD' : 'en-US', { 
+        hour: '2-digit', 
+        minute: '2-digit', 
+        hour12: true 
+      });
+    };
+
+    return baseSchedule.map((day, i) => {
       const current = new Date(startDate);
       current.setDate(startDate.getDate() + i);
       
-      const sehriTime = new Date(current);
-      sehriTime.setHours(5, 12, 0, 0);
-      sehriTime.setMinutes(sehriTime.getMinutes() - i + offset);
-      
-      const iftarTime = new Date(current);
-      iftarTime.setHours(17, 55, 0, 0);
-      iftarTime.setMinutes(iftarTime.getMinutes() + i + offset);
-
-      schedule.push({
+      return {
         roza: i + 1,
         date: current.toLocaleDateString(isBangla ? 'bn-BD' : 'en-US', { day: 'numeric', month: 'long' }),
         day: current.toLocaleDateString(isBangla ? 'bn-BD' : 'en-US', { weekday: 'long' }),
-        sehri: sehriTime.toLocaleTimeString(isBangla ? 'bn-BD' : 'en-US', { hour: '2-digit', minute: '2-digit', hour12: true }),
-        iftar: iftarTime.toLocaleTimeString(isBangla ? 'bn-BD' : 'en-US', { hour: '2-digit', minute: '2-digit', hour12: true })
-      });
-    }
-    return schedule;
+        sehri: adjustTime(day.s, offset),
+        iftar: adjustTime(day.i, offset)
+      };
+    });
   }, [isBangla, ramadanDistrict]);
 
   // --- BROWSER VIEW RENDER ---
